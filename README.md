@@ -1,5 +1,13 @@
 # Chicago Skyline
 
+## Animated version
+
+Open `index.html` in a modern browser for the full-screen viewer, or open `skyline-animated.svg` directly. The viewer can switch between the original and animated scenes; use its fullscreen control or press `F` to enter fullscreen.
+
+The living-night treatment keeps the original illustration intact and adds a photo-to-vector entrance, pulsing window lights, aircraft beacons, stars, and moving lake reflections. Hover over Aon Center to illuminate it.
+
+The animated SVG references `skyline.jpg`, so keep both files in the same directory. Motion is disabled automatically when the operating system's reduced-motion preference is enabled.
+
 ## Direction for Update
 
 These directions have been created using Inkscape 1.1 on MacOS.
