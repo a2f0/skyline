@@ -132,8 +132,6 @@
       </object>
 
       <nav class="controls" aria-label="Skyline controls">
-        <button type="button" data-scene="skyline.svg" aria-pressed="false">original</button>
-        <button type="button" data-scene="skyline-animated.svg" aria-pressed="true">animated</button>
         <button type="button" id="fullscreen" aria-pressed="false">fullscreen</button>
       </nav>
 
@@ -141,35 +139,8 @@
     </main>
 
     <script>
-      const scene = document.querySelector("#scene");
-      const sceneButtons = document.querySelectorAll("[data-scene]");
       const fullscreenButton = document.querySelector("#fullscreen");
       const status = document.querySelector("#status");
-
-      function selectScene(button) {
-        const source = button.dataset.scene;
-        if (scene.getAttribute("data") === source) return;
-
-        scene.setAttribute("data", source);
-        scene.setAttribute(
-          "aria-label",
-          source === "skyline-animated.svg"
-            ? "Animated Chicago skyline at night"
-            : "Original Chicago skyline"
-        );
-
-        sceneButtons.forEach((candidate) => {
-          candidate.setAttribute("aria-pressed", String(candidate === button));
-        });
-
-        status.textContent = source === "skyline-animated.svg"
-          ? "Animated skyline selected"
-          : "Original skyline selected";
-      }
-
-      sceneButtons.forEach((button) => {
-        button.addEventListener("click", () => selectScene(button));
-      });
 
       async function toggleFullscreen() {
         try {

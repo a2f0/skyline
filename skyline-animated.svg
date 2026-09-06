@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    data-name="Chicago Skyline — Living Night"
-   viewBox="0 0 6399 3601"
-   preserveAspectRatio="xMidYMax slice"
+   viewBox="0 0 8501.0986 2782.0373"
+   preserveAspectRatio="xMidYMax meet"
    version="1.1"
    id="svg6766"
    role="img"
    aria-labelledby="skyline-title skyline-description"
+   style="background:#000000"
    sodipodi:docname="skyline-animated.svg"
    inkscape:version="1.1 (c4e8f9e, 2021-05-24)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -15,7 +16,7 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <title id="skyline-title">Chicago skyline at night</title>
-  <desc id="skyline-description">An animated vector and photographic panorama with softly pulsing windows, aircraft warning lights, stars, and reflections on Lake Michigan.</desc>
+  <desc id="skyline-description">A bottom-aligned animated vector panorama with softly pulsing windows, aircraft warning lights, and stars.</desc>
   <sodipodi:namedview
      id="namedview6768"
      pagecolor="#ffffff"
@@ -43,43 +44,6 @@
          d="M0 0h6399v3606H0z"
          id="path9" />
     </clipPath>
-    <clipPath id="water-clip">
-      <rect x="0" y="2860" width="6399" height="741" />
-    </clipPath>
-    <linearGradient id="night-sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#020818" stop-opacity="0.78" />
-      <stop offset="0.55" stop-color="#101c42" stop-opacity="0.24" />
-      <stop offset="1" stop-color="#31587b" stop-opacity="0" />
-    </linearGradient>
-    <radialGradient id="horizon-glow" cx="50%" cy="100%" r="72%">
-      <stop offset="0" stop-color="#58c8ff" stop-opacity="0.22" />
-      <stop offset="0.45" stop-color="#7180d8" stop-opacity="0.08" />
-      <stop offset="1" stop-color="#10152e" stop-opacity="0" />
-    </radialGradient>
-    <linearGradient id="water-grade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#06152c" stop-opacity="0.1" />
-      <stop offset="1" stop-color="#010510" stop-opacity="0.58" />
-    </linearGradient>
-    <linearGradient id="reflection-cyan" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#60e7ff" stop-opacity="0.72" />
-      <stop offset="0.4" stop-color="#2db6dc" stop-opacity="0.22" />
-      <stop offset="1" stop-color="#0d6390" stop-opacity="0" />
-    </linearGradient>
-    <linearGradient id="reflection-blue" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#72a7ff" stop-opacity="0.64" />
-      <stop offset="0.46" stop-color="#466de0" stop-opacity="0.2" />
-      <stop offset="1" stop-color="#172f99" stop-opacity="0" />
-    </linearGradient>
-    <linearGradient id="reflection-gold" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffd876" stop-opacity="0.75" />
-      <stop offset="0.42" stop-color="#d99136" stop-opacity="0.2" />
-      <stop offset="1" stop-color="#7a4314" stop-opacity="0" />
-    </linearGradient>
-    <linearGradient id="reflection-magenta" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff6ab6" stop-opacity="0.72" />
-      <stop offset="0.45" stop-color="#cf3a93" stop-opacity="0.2" />
-      <stop offset="1" stop-color="#7e185c" stop-opacity="0" />
-    </linearGradient>
     <radialGradient id="beacon-core">
       <stop offset="0" stop-color="#ffffff" />
       <stop offset="0.28" stop-color="#ffadbd" />
@@ -91,9 +55,6 @@
         <feMergeNode in="blur" />
         <feMergeNode in="SourceGraphic" />
       </feMerge>
-    </filter>
-    <filter id="water-soften" x="-40%" y="-10%" width="180%" height="120%">
-      <feGaussianBlur stdDeviation="18 7" />
     </filter>
     <style><![CDATA[
       #atmosphere,
@@ -149,16 +110,6 @@
       .beacon-b { animation: beacon 4.1s 1.15s ease-in-out infinite; }
       .beacon-c { animation: beacon 3.7s 2.05s ease-in-out infinite; }
 
-      .reflection {
-        transform-box: fill-box;
-        transform-origin: 50% 0;
-        mix-blend-mode: screen;
-      }
-      .reflection-a { animation: reflection-a 6.5s ease-in-out infinite; }
-      .reflection-b { animation: reflection-b 8s ease-in-out infinite; }
-      .reflection-c { animation: reflection-c 9.5s ease-in-out infinite; }
-      .water-glint { animation: water-glint 7.5s ease-in-out infinite; }
-
       @keyframes skyline-arrive {
         from { opacity: 0.25; transform: translateY(34px); }
         to { opacity: 1; transform: translateY(0); }
@@ -191,22 +142,6 @@
         10% { opacity: 1; }
         13% { opacity: 0.35; }
       }
-      @keyframes reflection-a {
-        0%, 100% { transform: translateX(-10px) scaleY(0.92) skewX(-1deg); opacity: 0.42; }
-        50% { transform: translateX(12px) scaleY(1.08) skewX(1.5deg); opacity: 0.68; }
-      }
-      @keyframes reflection-b {
-        0%, 100% { transform: translateX(14px) scaleY(1.06) skewX(1deg); opacity: 0.58; }
-        50% { transform: translateX(-13px) scaleY(0.9) skewX(-1.5deg); opacity: 0.34; }
-      }
-      @keyframes reflection-c {
-        0%, 100% { transform: translateX(-7px) scaleY(0.96); opacity: 0.3; }
-        50% { transform: translateX(15px) scaleY(1.1); opacity: 0.62; }
-      }
-      @keyframes water-glint {
-        0%, 100% { transform: translateX(-45px); opacity: 0.2; }
-        50% { transform: translateX(55px); opacity: 0.48; }
-      }
       @media (prefers-reduced-motion: reduce) {
         #layer4,
         #atmosphere *,
@@ -224,26 +159,12 @@
       }
     ]]></style>
   </defs>
-  <g
-     inkscape:groupmode="layer"
-     id="layer2"
-     inkscape:label="JPEG"
-     style="display:inline">
-    <image
-       width="26553.332"
-       height="7086.6665"
-       preserveAspectRatio="none"
-       xlink:href="skyline.jpg"
-       id="image17081"
-       x="-15558.758"
-       y="-1754.2251" />
-  </g>
-  <g
-     inkscape:groupmode="layer"
-     inkscape:label="Effects — Atmosphere"
-     id="atmosphere">
-    <rect x="0" y="0" width="6399" height="2860" fill="url(#night-sky)" style="mix-blend-mode:multiply" />
-    <rect x="0" y="0" width="6399" height="2860" fill="url(#horizon-glow)" style="mix-blend-mode:screen" />
+  <rect id="backdrop" x="0" y="0" width="8501.0986" height="2782.0373" fill="#000000" />
+  <g id="skyline-position" transform="translate(1105.5923,-87.26366)">
+    <g
+       inkscape:groupmode="layer"
+       inkscape:label="Effects — Atmosphere"
+       id="atmosphere">
     <g fill="#d9efff" class="stars-a">
       <circle cx="820" cy="390" r="3.6" />
       <circle cx="1190" cy="720" r="2.4" />
@@ -18536,10 +18457,6 @@
      id="night-details">
     <g id="architectural-lighting" filter="url(#soft-glow)">
       <g fill="#ffd98a" class="window-a">
-        <rect x="448" y="1040" width="12" height="22" rx="2" />
-        <rect x="515" y="1280" width="11" height="20" rx="2" />
-        <rect x="590" y="1515" width="12" height="23" rx="2" />
-        <rect x="618" y="1880" width="11" height="21" rx="2" />
         <rect x="3915" y="930" width="10" height="17" rx="2" />
         <rect x="3960" y="1260" width="10" height="17" rx="2" />
         <rect x="4010" y="1620" width="10" height="17" rx="2" />
@@ -18556,8 +18473,6 @@
         <rect x="6100" y="2320" width="12" height="19" rx="2" />
       </g>
       <g fill="#9deaff" class="window-b">
-        <rect x="485" y="1170" width="10" height="18" rx="2" />
-        <rect x="562" y="1660" width="10" height="18" rx="2" />
         <rect x="3875" y="1120" width="9" height="16" rx="2" />
         <rect x="3995" y="1460" width="9" height="16" rx="2" />
         <rect x="4110" y="1840" width="9" height="16" rx="2" />
@@ -18570,8 +18485,6 @@
         <rect x="6015" y="2160" width="11" height="18" rx="2" />
       </g>
       <g fill="#ffb95f" class="window-c">
-        <rect x="535" y="1385" width="11" height="19" rx="2" />
-        <rect x="633" y="2070" width="11" height="19" rx="2" />
         <rect x="3940" y="1080" width="9" height="16" rx="2" />
         <rect x="4050" y="1785" width="9" height="16" rx="2" />
         <rect x="4870" y="1020" width="10" height="18" rx="2" />
@@ -18583,8 +18496,6 @@
     </g>
     <g id="beacons" filter="url(#soft-glow)">
       <g class="beacon-a">
-        <circle cx="257" cy="1342" r="38" fill="url(#beacon-core)" />
-        <circle cx="257" cy="1342" r="6" fill="#fff2f5" />
         <circle cx="4143" cy="184" r="42" fill="url(#beacon-core)" />
         <circle cx="4143" cy="184" r="6.5" fill="#fff2f5" />
       </g>
@@ -18601,34 +18512,6 @@
         <circle cx="5500" cy="887" r="5.5" fill="#fff2f5" />
       </g>
     </g>
-    <g id="lake-light" clip-path="url(#water-clip)">
-      <rect x="0" y="2860" width="6399" height="741" fill="url(#water-grade)" />
-      <g filter="url(#water-soften)">
-        <path class="reflection reflection-a" fill="url(#reflection-cyan)"
-          d="M390 2860 C430 2990 350 3100 420 3601 L610 3601 C555 3370 665 3160 520 2860 Z" />
-        <path class="reflection reflection-b" fill="url(#reflection-gold)"
-          d="M815 2860 C860 3040 805 3190 900 3601 L1075 3601 C1020 3370 1090 3130 965 2860 Z" />
-        <path class="reflection reflection-c" fill="url(#reflection-blue)"
-          d="M1680 2860 C1715 3020 1640 3240 1760 3601 L1975 3601 C1880 3330 1990 3090 1840 2860 Z" />
-        <path class="reflection reflection-a" fill="url(#reflection-magenta)"
-          d="M2510 2860 C2575 3020 2470 3230 2600 3601 L2780 3601 C2700 3350 2810 3100 2670 2860 Z" />
-        <path class="reflection reflection-b" fill="url(#reflection-cyan)"
-          d="M3980 2860 C4040 3010 3930 3220 4070 3601 L4280 3601 C4200 3330 4320 3090 4160 2860 Z" />
-        <path class="reflection reflection-c" fill="url(#reflection-blue)"
-          d="M4760 2860 C4800 3030 4730 3250 4860 3601 L5065 3601 C4980 3330 5100 3080 4930 2860 Z" />
-        <path class="reflection reflection-a" fill="url(#reflection-gold)"
-          d="M5480 2860 C5520 3000 5440 3210 5570 3601 L5760 3601 C5680 3335 5780 3090 5620 2860 Z" />
-        <path class="reflection reflection-b" fill="url(#reflection-cyan)"
-          d="M6000 2860 C6050 3015 5950 3220 6100 3601 L6290 3601 C6200 3340 6330 3090 6160 2860 Z" />
-      </g>
-      <g fill="none" stroke-linecap="round" style="mix-blend-mode:screen" class="water-glint">
-        <path d="M120 3005 H1430 M1710 3055 H3050 M3370 3000 H4680 M4910 3070 H6260"
-          stroke="#8cecff" stroke-opacity="0.28" stroke-width="6" stroke-dasharray="95 78 28 105" />
-        <path d="M40 3190 H1250 M1490 3270 H2780 M3180 3185 H4570 M4800 3290 H6380"
-          stroke="#769eff" stroke-opacity="0.2" stroke-width="5" stroke-dasharray="160 120 42 95" />
-        <path d="M320 3440 H1880 M2230 3385 H3830 M4210 3460 H6020"
-          stroke="#f7c86d" stroke-opacity="0.14" stroke-width="4" stroke-dasharray="72 130 190 80" />
-      </g>
-    </g>
+  </g>
   </g>
 </svg>
