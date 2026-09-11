@@ -147,6 +147,7 @@
 
       <nav class="controls" aria-label="Skyline controls">
         <button type="button" id="fullscreen" aria-pressed="false">fullscreen</button>
+        <button type="button" id="toggle-skyline" aria-pressed="false">show original</button>
         <button type="button" id="debug-motion" aria-pressed="false" aria-describedby="motion-status">debug motion</button>
         <p class="motion-status" id="motion-status" role="status">Checking motion preference…</p>
       </nav>
@@ -157,11 +158,36 @@
     <script>
       const fullscreenButton = document.querySelector("#fullscreen");
       const status = document.querySelector("#status");
+      const scene = document.querySelector("#scene");
       const stars = document.querySelector("#stars");
+      const skylineToggleButton = document.querySelector("#toggle-skyline");
       const debugMotionButton = document.querySelector("#debug-motion");
       const motionStatus = document.querySelector("#motion-status");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       let debugMotion = false;
+      let showingOriginalSkyline = false;
+
+      function updateSkylineView() {
+        scene.src = showingOriginalSkyline ? "skyline.svg" : "skyline-animated.svg";
+        scene.title = showingOriginalSkyline
+          ? "Original Chicago skyline"
+          : "Animated Chicago skyline at night";
+        skylineToggleButton.textContent = showingOriginalSkyline ? "show enhanced" : "show original";
+        skylineToggleButton.setAttribute("aria-pressed", String(showingOriginalSkyline));
+        skylineToggleButton.title = showingOriginalSkyline
+          ? "Return to the enhanced interactive skyline"
+          : "Compare with the original skyline SVG";
+      }
+
+      skylineToggleButton.addEventListener("click", () => {
+        showingOriginalSkyline = !showingOriginalSkyline;
+        updateSkylineView();
+        status.textContent = showingOriginalSkyline
+          ? "Original skyline displayed"
+          : "Enhanced interactive skyline displayed";
+      });
+
+      updateSkylineView();
 
       function updateMotionStatus() {
         const preference = reducedMotion.matches ? "reduced" : "allowed";

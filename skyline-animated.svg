@@ -18622,7 +18622,7 @@
     <text
        id="building-tooltip-text"
        fill="#ffffff"
-       font-family="system-ui, sans-serif"
+       font-family="monospace"
        font-weight="600">Building name</text>
   </g>
   <script><![CDATA[
@@ -18641,9 +18641,9 @@
       function setTooltipLabel(label) {
         const matrix = svg.getScreenCTM();
         const scale = Math.hypot(matrix.a, matrix.b) || 1;
-        const fontSize = 14 / scale;
-        const paddingX = 9 / scale;
-        const paddingY = 6 / scale;
+        const fontSize = 12 / scale;
+        const paddingX = 7 / scale;
+        const paddingY = 4 / scale;
 
         tooltipText.textContent = label;
         tooltipText.setAttribute("font-size", fontSize);
@@ -18661,7 +18661,7 @@
         };
         tooltipBackground.setAttribute("width", tooltipSize.width);
         tooltipBackground.setAttribute("height", tooltipSize.height);
-        tooltipBackground.setAttribute("rx", 4 / scale);
+        tooltipBackground.setAttribute("rx", 3 / scale);
         tooltipBackground.setAttribute("stroke-width", 1 / scale);
       }
 
