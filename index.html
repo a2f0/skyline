@@ -26,6 +26,7 @@
         background: #000;
       }
 
+      .stars,
       .scene {
         position: fixed;
         inset: 0;
@@ -33,7 +34,16 @@
         width: 100%;
         height: 100%;
         border: 0;
-        background: #000;
+        background: transparent;
+      }
+
+      .stars {
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .scene {
+        z-index: 1;
       }
 
       .controls {
@@ -89,18 +99,6 @@
         outline-offset: 6px;
       }
 
-      .loading {
-        position: fixed;
-        inset: auto 0 20px;
-        z-index: 0;
-        margin: 0;
-        color: #777;
-        font: 13px/1.4 system-ui, sans-serif;
-        letter-spacing: 0.12em;
-        text-align: center;
-        text-transform: uppercase;
-      }
-
       .motion-status {
         flex-basis: 100%;
         margin: 0;
@@ -132,7 +130,14 @@
   </head>
   <body>
     <main id="stage">
-      <p class="loading" aria-hidden="true">Chicago after dark</p>
+      <iframe
+        class="stars"
+        id="stars"
+        src="stars.svg"
+        title="Twinkling night sky"
+        aria-hidden="true"
+        tabindex="-1"
+      ></iframe>
       <iframe
         class="scene"
         id="scene"
@@ -152,7 +157,7 @@
     <script>
       const fullscreenButton = document.querySelector("#fullscreen");
       const status = document.querySelector("#status");
-      const scene = document.querySelector("#scene");
+      const stars = document.querySelector("#stars");
       const debugMotionButton = document.querySelector("#debug-motion");
       const motionStatus = document.querySelector("#motion-status");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -174,7 +179,7 @@
       debugMotionButton.addEventListener("click", () => {
         debugMotion = !debugMotion;
         // A fragment works for both hosted pages and files opened directly.
-        scene.src = `skyline-animated.svg${debugMotion ? "#debug-motion" : ""}`;
+        stars.src = `stars.svg${debugMotion ? "#debug-motion" : ""}`;
         updateMotionStatus();
       });
 

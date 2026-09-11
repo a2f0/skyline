@@ -2,13 +2,13 @@
 
 ## Animated version
 
-Open `index.html` in a modern browser for the full-screen viewer, or open `skyline-animated.svg` directly. Use the viewer's fullscreen control or press `F` to enter fullscreen.
+Open `index.html` in a modern browser for the full-screen viewer. Use the viewer's fullscreen control or press `F` to enter fullscreen.
 
-The living-night treatment is entirely vector-based and grayscale. It places the skyline along the bottom of a black canvas beneath 96 softly twinkling stars. The buildings have no animated lights or beacons. Hover over Aon Center to illuminate it.
+The living-night treatment is entirely vector-based and grayscale. The transparent `skyline-animated.svg` layer keeps the buildings aligned along the bottom and scaled proportionally to fit the viewport. A separate `stars.svg` layer fills the entire viewport behind it with 96 softly twinkling stars, including the sky above the tallest buildings. Star positions use percentages and their radii stay fixed so resizing does not stretch the stars. The buildings have no animated lights or beacons. Hover over Aon Center to illuminate it.
 
 Stars pause automatically when the browser reports the operating system's reduced-motion preference. The viewer displays the current preference and animation mode, updating immediately when the preference changes. Aon's hover highlight still works with reduced motion enabled.
 
-Use **debug motion** to preview larger stars with a pronounced 1.8-second pulse. This opt-in preview overrides reduced motion until you select **stop debug** or reload the page. You can also open `skyline-animated.svg#debug-motion` directly to preview the exaggerated animation; remove the fragment to return to the system preference.
+Use **debug motion** to preview larger stars with a pronounced 1.8-second pulse. This opt-in preview overrides reduced motion until you select **stop debug** or reload the page. You can also open `stars.svg#debug-motion` directly to preview the exaggerated animation; remove the fragment to return to the system preference.
 
 ## Direction for Update
 

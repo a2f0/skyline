@@ -7,7 +7,7 @@
    id="svg6766"
    role="img"
    aria-labelledby="skyline-title skyline-description"
-   style="background:#000000"
+   style="color-scheme:dark"
    sodipodi:docname="skyline-animated.svg"
    inkscape:version="1.1 (c4e8f9e, 2021-05-24)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -16,7 +16,7 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <title id="skyline-title">Chicago skyline at night</title>
-  <desc id="skyline-description">A bottom-aligned grayscale animated vector panorama with a field of softly twinkling stars. System reduced-motion preferences pause the stars; the debug-motion fragment enables an exaggerated preview.</desc>
+  <desc id="skyline-description">A bottom-aligned grayscale Chicago skyline on a transparent background. Hover over Aon Center to illuminate it.</desc>
   <sodipodi:namedview
      id="namedview6768"
      pagecolor="#ffffff"
@@ -45,10 +45,6 @@
          id="path9" />
     </clipPath>
     <style><![CDATA[
-      #atmosphere {
-        pointer-events: none;
-      }
-
       #layer3 {
         cursor: pointer;
         transition: filter 600ms ease;
@@ -56,153 +52,12 @@
       #layer3:hover {
         filter: brightness(1.14) drop-shadow(0 0 22px rgba(194, 194, 194, 0.72));
       }
-
-      #atmosphere circle {
-        opacity: 0.5;
-        transform-box: fill-box;
-        transform-origin: center;
-        animation: star-twinkle 5.8s ease-in-out infinite;
-      }
-      #atmosphere .stars-b circle { animation-duration: 7.6s; }
-      #atmosphere .stars-c circle { animation-duration: 9.4s; }
-      #atmosphere circle:nth-child(3n + 1) { animation-delay: -1.7s; }
-      #atmosphere circle:nth-child(3n + 2) { animation-delay: -3.9s; }
-      #atmosphere circle:nth-child(3n) { animation-delay: -5.2s; }
-
-      @keyframes star-twinkle {
-        0%, 100% { opacity: 0.16; }
-        50% { opacity: 0.85; }
-      }
-      @keyframes star-debug {
-        0%, 100% { opacity: 0.04; transform: scale(1); }
-        50% { opacity: 1; transform: scale(2.6); }
-      }
-
       @media (prefers-reduced-motion: reduce) {
-        #atmosphere circle { animation: none; }
         #layer3 { transition: none; }
-      }
-
-      /* An explicit debug preview may override the system motion preference. */
-      #debug-motion:target circle {
-        animation-name: star-debug;
-        animation-duration: 1.8s;
-        animation-timing-function: ease-in-out;
-        animation-iteration-count: infinite;
       }
     ]]></style>
   </defs>
-  <rect id="backdrop" x="0" y="0" width="8501.0986" height="2782.0373" fill="#000000" />
   <g id="skyline-position" transform="translate(1105.5923,-87.26366)">
-    <g
-       inkscape:groupmode="layer"
-       inkscape:label="Effects — Atmosphere"
-       id="atmosphere">
-      <g id="debug-motion">
-        <g fill="#ebebeb" class="stars-a">
-          <circle cx="820" cy="390" r="5" />
-          <circle cx="2210" cy="610" r="3.1" />
-          <circle cx="3760" cy="215" r="3.9" />
-          <circle cx="510" cy="610" r="3.1" />
-          <circle cx="3040" cy="610" r="3.6" />
-          <circle cx="5570" cy="650" r="3.1" />
-          <circle cx="1306" cy="1658" r="3.3" />
-          <circle cx="-546" cy="1299" r="3.5" />
-          <circle cx="1635" cy="1579" r="4.1" />
-          <circle cx="4655" cy="1386" r="3.7" />
-          <circle cx="3823" cy="1437" r="4.5" />
-          <circle cx="5247" cy="719" r="4.1" />
-          <circle cx="189" cy="1397" r="4.6" />
-          <circle cx="-64" cy="619" r="5.1" />
-          <circle cx="4175" cy="585" r="4.6" />
-          <circle cx="3324" cy="1679" r="4.5" />
-          <circle cx="-209" cy="374" r="3.4" />
-          <circle cx="3139" cy="1283" r="5.2" />
-          <circle cx="3828" cy="1040" r="3.4" />
-          <circle cx="763" cy="1430" r="3.7" />
-          <circle cx="-971" cy="1376" r="3.8" />
-          <circle cx="153" cy="1240" r="4.9" />
-          <circle cx="2315" cy="1610" r="3.8" />
-          <circle cx="69" cy="842" r="3.1" />
-          <circle cx="-466" cy="826" r="3.2" />
-          <circle cx="5689" cy="539" r="3.2" />
-          <circle cx="632" cy="274" r="4" />
-          <circle cx="255" cy="1057" r="5" />
-          <circle cx="5229" cy="154" r="5.5" />
-          <circle cx="18" cy="1681" r="3.8" />
-          <circle cx="2873" cy="976" r="3.3" />
-          <circle cx="4200" cy="1689" r="5.3" />
-        </g>
-        <g fill="#cfcfcf" class="stars-b">
-          <circle cx="1190" cy="720" r="3.4" />
-          <circle cx="2740" cy="275" r="4.8" />
-          <circle cx="4480" cy="465" r="3.4" />
-          <circle cx="1450" cy="470" r="3.9" />
-          <circle cx="3530" cy="760" r="2.9" />
-          <circle cx="6170" cy="510" r="3.6" />
-          <circle cx="444" cy="1359" r="4.1" />
-          <circle cx="5893" cy="601" r="4.1" />
-          <circle cx="3572" cy="468" r="3.5" />
-          <circle cx="-269" cy="1644" r="4.1" />
-          <circle cx="4945" cy="1332" r="3.5" />
-          <circle cx="4997" cy="483" r="3.9" />
-          <circle cx="6593" cy="927" r="3.7" />
-          <circle cx="4188" cy="971" r="3.7" />
-          <circle cx="5502" cy="1466" r="4.1" />
-          <circle cx="5563" cy="891" r="3.5" />
-          <circle cx="5936" cy="1371" r="3.2" />
-          <circle cx="-792" cy="1543" r="4.8" />
-          <circle cx="-927" cy="1628" r="5.2" />
-          <circle cx="2278" cy="463" r="3.9" />
-          <circle cx="-661" cy="379" r="5.3" />
-          <circle cx="1123" cy="1501" r="4.2" />
-          <circle cx="5138" cy="1047" r="5.2" />
-          <circle cx="2790" cy="1355" r="3.6" />
-          <circle cx="2919" cy="720" r="4.7" />
-          <circle cx="6082" cy="875" r="4.1" />
-          <circle cx="2136" cy="1248" r="4.1" />
-          <circle cx="2892" cy="490" r="4" />
-          <circle cx="2131" cy="757" r="3.5" />
-          <circle cx="6831" cy="1179" r="5.3" />
-          <circle cx="-329" cy="1418" r="3.2" />
-          <circle cx="-828" cy="1088" r="4.6" />
-        </g>
-        <g fill="#ffffff" class="stars-c">
-          <circle cx="1680" cy="315" r="4.2" />
-          <circle cx="3320" cy="480" r="3.4" />
-          <circle cx="5780" cy="340" r="4.2" />
-          <circle cx="1960" cy="820" r="3.1" />
-          <circle cx="4320" cy="280" r="4.2" />
-          <circle cx="844" cy="201" r="4.9" />
-          <circle cx="-492" cy="341" r="3.5" />
-          <circle cx="3577" cy="163" r="4.9" />
-          <circle cx="539" cy="928" r="3.2" />
-          <circle cx="1065" cy="925" r="3.2" />
-          <circle cx="159" cy="243" r="4.7" />
-          <circle cx="2452" cy="1522" r="3.7" />
-          <circle cx="2618" cy="1552" r="3.8" />
-          <circle cx="2476" cy="1311" r="5.2" />
-          <circle cx="3060" cy="1675" r="4.4" />
-          <circle cx="1286" cy="1193" r="4.2" />
-          <circle cx="5272" cy="1370" r="5.5" />
-          <circle cx="3391" cy="1462" r="3.9" />
-          <circle cx="3335" cy="1175" r="4.9" />
-          <circle cx="1666" cy="1254" r="5.4" />
-          <circle cx="310" cy="325" r="4.8" />
-          <circle cx="1725" cy="692" r="4.3" />
-          <circle cx="6417" cy="397" r="3.6" />
-          <circle cx="183" cy="1599" r="4.6" />
-          <circle cx="6764" cy="647" r="5" />
-          <circle cx="6671" cy="1643" r="3.1" />
-          <circle cx="3583" cy="1097" r="3.6" />
-          <circle cx="6906" cy="587" r="5.2" />
-          <circle cx="-22" cy="1336" r="4.8" />
-          <circle cx="332" cy="530" r="3.2" />
-          <circle cx="3371" cy="960" r="3.3" />
-          <circle cx="4738" cy="290" r="5.2" />
-        </g>
-      </g>
-    </g>
   <g
      inkscape:groupmode="layer"
      id="layer4"
