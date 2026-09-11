@@ -16,7 +16,7 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <title id="skyline-title">Chicago skyline at night</title>
-  <desc id="skyline-description">A bottom-aligned animated vector panorama with softly pulsing windows, aircraft warning lights, and stars.</desc>
+  <desc id="skyline-description">A bottom-aligned grayscale animated vector panorama with softly pulsing windows, aircraft warning lights, and stars.</desc>
   <sodipodi:namedview
      id="namedview6768"
      pagecolor="#ffffff"
@@ -46,8 +46,8 @@
     </clipPath>
     <radialGradient id="beacon-core">
       <stop offset="0" stop-color="#ffffff" />
-      <stop offset="0.28" stop-color="#ffadbd" />
-      <stop offset="1" stop-color="#ff174f" stop-opacity="0" />
+      <stop offset="0.28" stop-color="#c0c0c0" />
+      <stop offset="1" stop-color="#4c4c4c" stop-opacity="0" />
     </radialGradient>
     <filter id="soft-glow" x="-150%" y="-150%" width="400%" height="400%">
       <feGaussianBlur stdDeviation="12" result="blur" />
@@ -73,12 +73,12 @@
         transition: filter 600ms ease;
       }
       #layer3:hover {
-        filter: brightness(1.14) drop-shadow(0 0 22px rgba(116, 211, 255, 0.72));
+        filter: brightness(1.14) drop-shadow(0 0 22px rgba(194, 194, 194, 0.72));
       }
 
       #g442,
       #g446 {
-        stroke: #f3b85e;
+        stroke: #bebebe;
         opacity: 0.34;
         animation: window-bank-a 9s ease-in-out infinite;
       }
@@ -87,15 +87,15 @@
       #g4760 > path:nth-of-type(22n + 7),
       #g5878 > path:nth-of-type(26n + 1),
       #g5878 > path:nth-of-type(26n + 9) {
-        fill: #ffd58a;
-        stroke: #ffd58a;
+        fill: #d9d9d9;
+        stroke: #d9d9d9;
         animation: window-bank-b 7.4s ease-in-out infinite;
       }
 
       #g4760 > path:nth-of-type(30n + 13),
       #g5878 > path:nth-of-type(34n + 17) {
-        fill: #8fe8ff;
-        stroke: #8fe8ff;
+        fill: #d7d7d7;
+        stroke: #d7d7d7;
         animation: window-bank-c 11s ease-in-out infinite;
       }
 
@@ -165,7 +165,7 @@
        inkscape:groupmode="layer"
        inkscape:label="Effects — Atmosphere"
        id="atmosphere">
-    <g fill="#d9efff" class="stars-a">
+    <g fill="#ebebeb" class="stars-a">
       <circle cx="820" cy="390" r="3.6" />
       <circle cx="1190" cy="720" r="2.4" />
       <circle cx="1680" cy="315" r="3" />
@@ -176,7 +176,7 @@
       <circle cx="4480" cy="465" r="2.4" />
       <circle cx="5780" cy="340" r="3" />
     </g>
-    <g fill="#9dd9ff" class="stars-b">
+    <g fill="#cfcfcf" class="stars-b">
       <circle cx="510" cy="610" r="2.2" />
       <circle cx="1450" cy="470" r="2.8" />
       <circle cx="1960" cy="820" r="2.2" />
@@ -1499,56 +1499,56 @@
          style="stroke-width:1.33526" />
       <path
          fill="none"
-         stroke="#6d6c6c"
+         stroke="#6c6c6c"
          stroke-miterlimit="10"
          d="m 1234.667,2655.6427 v 35.1722 m -6.1035,-41.2769 6.1035,-6.1048 6.1048,6.1048 -6.1048,6.1035 z m 26.2218,0 6.1048,-6.1048 6.1035,6.1048 -6.1035,6.1035 z"
          id="path386"
          style="stroke-width:1.33526" />
       <path
          fill="none"
-         stroke="#6d6c6c"
+         stroke="#6c6c6c"
          stroke-miterlimit="10"
          d="m 1262.7969,2649.538 6.1034,-6.1035 6.1049,6.1035 -6.1049,6.1047 z"
          id="path388"
          style="stroke-width:1.33526" />
       <path
          fill="none"
-         stroke="#6d6c6c"
+         stroke="#6c6c6c"
          stroke-miterlimit="10"
          d="m 1270.8084,2649.538 6.1048,-6.1035 6.1034,6.1035 -6.1034,6.1047 z"
          id="path390"
          style="stroke-width:1.33526" />
       <path
          fill="none"
-         stroke="#6d6c6c"
+         stroke="#6c6c6c"
          stroke-miterlimit="10"
          d="m 1278.82,2649.538 6.1034,-6.1048 6.1048,6.1048 -6.1048,6.1035 z"
          id="path392"
          style="stroke-width:1.33526" />
       <path
          fill="none"
-         stroke="#6d6c6c"
+         stroke="#6c6c6c"
          stroke-miterlimit="10"
          d="m 1286.8315,2649.538 6.1034,-6.1035 6.1049,6.1035 -6.1049,6.1047 z"
          id="path394"
          style="stroke-width:1.33526" />
       <path
          fill="none"
-         stroke="#6d6c6c"
+         stroke="#6c6c6c"
          stroke-miterlimit="10"
          d="m 1294.843,2649.5393 6.1049,-6.1048 6.1035,6.1048 -6.1035,6.1022 z"
          id="path396"
          style="stroke-width:1.33526" />
       <path
          fill="none"
-         stroke="#6d6c6c"
+         stroke="#6c6c6c"
          stroke-miterlimit="10"
          d="m 1302.8546,2649.538 6.1035,-6.1048 6.1048,6.1048 -6.1048,6.1035 z"
          id="path398"
          style="stroke-width:1.33526" />
       <path
          fill="none"
-         stroke="#6d6c6c"
+         stroke="#6c6c6c"
          stroke-miterlimit="10"
          d="m 1322.5497,2649.538 -5.58,6.1047 -6.1035,-6.1047 6.1035,-6.1035 z m -67.7644,16.5746 68.5321,0.5007 m -22.3709,-10.9706 v 40.1793 m -24.0346,-41.4544 v 40.1806 m -22.1266,-19.3171 68.5321,0.5007 m 16.3249,-20.0891 v 40.1793 m -6.1034,-46.284 6.1048,-6.1048 6.1035,6.1048 -6.1035,6.1035 z m -105.5696,-25.5142 3.0591,-3.0604 3.0604,3.0604 -3.0604,3.0592 z m 8.9849,0 3.0604,-3.0604 3.0592,3.0604 -3.0592,3.0592 z m 97.0921,0.4326 3.0617,-3.0604 3.0591,3.0604 -3.0591,3.0592 z m 7.8032,0 3.0605,-3.0604 3.059,3.0604 -3.059,3.0592 z"
          id="path400"
@@ -1642,14 +1642,14 @@
          id="path424"
          style="stroke-width:1.33526" />
       <path
-         fill="#343435"
+         fill="#343434"
          stroke="#191919"
          stroke-miterlimit="10"
          d="m 2588.267,1812.1904 0.219,13.7105 163.4023,15.6879 0.064,-15.0203 z"
          id="path426"
          style="stroke-width:1.33526" />
       <path
-         fill="#343435"
+         fill="#343434"
          stroke="#191919"
          stroke-miterlimit="10"
          d="m 2440.2722,1819.0016 v 12.6195 l 148.2205,-5.3076 -0.2257,-14.1231 z"
@@ -1801,7 +1801,7 @@
          id="path470"
          style="stroke-width:1.33526" />
       <path
-         fill="#343435"
+         fill="#343434"
          stroke="#c1c1c1"
          stroke-miterlimit="10"
          d="m 2931.6475,1594.0105 -10.65,-7.5897 -172.6489,260.509 238.8778,280.2389 v -57.1171 l 71.1693,2.27 140.2021,-219.2495 -230.1986,-262.512 -8.8127,11.8838 16.5626,156.0304 -24.9748,-0.8732 z"
@@ -14336,7 +14336,7 @@
       <path
          data-name="Crown Base Panel Left"
          d="m 3986.5022,1529.4734 v 85.9012 l -340.7795,12.3164 c 0,0 -0.1562,-78.4118 0,-82.8622 z"
-         fill="#686262"
+         fill="#636363"
          stroke="#2f2f2f"
          stroke-miterlimit="10"
          id="path5880"
@@ -18456,7 +18456,7 @@
      inkscape:label="Effects — Living Night"
      id="night-details">
     <g id="architectural-lighting" filter="url(#soft-glow)">
-      <g fill="#ffd98a" class="window-a">
+      <g fill="#dbdbdb" class="window-a">
         <rect x="3915" y="930" width="10" height="17" rx="2" />
         <rect x="3960" y="1260" width="10" height="17" rx="2" />
         <rect x="4010" y="1620" width="10" height="17" rx="2" />
@@ -18472,7 +18472,7 @@
         <rect x="5900" y="1960" width="12" height="19" rx="2" />
         <rect x="6100" y="2320" width="12" height="19" rx="2" />
       </g>
-      <g fill="#9deaff" class="window-b">
+      <g fill="#dbdbdb" class="window-b">
         <rect x="3875" y="1120" width="9" height="16" rx="2" />
         <rect x="3995" y="1460" width="9" height="16" rx="2" />
         <rect x="4110" y="1840" width="9" height="16" rx="2" />
@@ -18484,7 +18484,7 @@
         <rect x="5820" y="1740" width="11" height="18" rx="2" />
         <rect x="6015" y="2160" width="11" height="18" rx="2" />
       </g>
-      <g fill="#ffb95f" class="window-c">
+      <g fill="#c1c1c1" class="window-c">
         <rect x="3940" y="1080" width="9" height="16" rx="2" />
         <rect x="4050" y="1785" width="9" height="16" rx="2" />
         <rect x="4870" y="1020" width="10" height="18" rx="2" />
@@ -18497,19 +18497,19 @@
     <g id="beacons" filter="url(#soft-glow)">
       <g class="beacon-a">
         <circle cx="4143" cy="184" r="42" fill="url(#beacon-core)" />
-        <circle cx="4143" cy="184" r="6.5" fill="#fff2f5" />
+        <circle cx="4143" cy="184" r="6.5" fill="#f5f5f5" />
       </g>
       <g class="beacon-b">
         <circle cx="4790" cy="656" r="32" fill="url(#beacon-core)" />
-        <circle cx="4790" cy="656" r="5.5" fill="#fff2f5" />
+        <circle cx="4790" cy="656" r="5.5" fill="#f5f5f5" />
         <circle cx="6075" cy="864" r="34" fill="url(#beacon-core)" />
-        <circle cx="6075" cy="864" r="5.5" fill="#fff2f5" />
+        <circle cx="6075" cy="864" r="5.5" fill="#f5f5f5" />
       </g>
       <g class="beacon-c">
         <circle cx="5148" cy="64" r="46" fill="url(#beacon-core)" />
-        <circle cx="5148" cy="64" r="7" fill="#fff2f5" />
+        <circle cx="5148" cy="64" r="7" fill="#f5f5f5" />
         <circle cx="5500" cy="887" r="34" fill="url(#beacon-core)" />
-        <circle cx="5500" cy="887" r="5.5" fill="#fff2f5" />
+        <circle cx="5500" cy="887" r="5.5" fill="#f5f5f5" />
       </g>
     </g>
   </g>
