@@ -10,18 +10,18 @@
       opacity: 0.5;
     }
     #atmosphere .twinkle {
-      animation: star-twinkle var(--twinkle-duration, 24s) ease-in-out var(--twinkle-delay, 0s) infinite;
+      animation: star-twinkle var(--twinkle-duration, 80s) ease-in-out var(--twinkle-delay, 0s) infinite;
     }
 
     @keyframes star-twinkle {
       0%, 10%, 84%, 100% { opacity: 0.5; }
-      28% { opacity: var(--twinkle-dim, 0.2); }
-      50% { opacity: var(--twinkle-peak, 0.85); }
-      68% { opacity: var(--twinkle-afterglow, 0.4); }
+      28% { opacity: var(--twinkle-dim, 0.45); }
+      50% { opacity: var(--twinkle-peak, 0.58); }
+      68% { opacity: var(--twinkle-afterglow, 0.5); }
     }
     @keyframes star-debug {
-      0%, 100% { opacity: 0.04; }
-      50% { opacity: 1; }
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.7; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -30,7 +30,7 @@
 
     /* An explicit debug preview may override the system motion preference. */
     #debug-motion:target .twinkle {
-      animation: star-debug 1.8s ease-in-out var(--twinkle-delay, 0s) infinite;
+      animation: star-debug var(--twinkle-duration, 80s) ease-in-out var(--twinkle-delay, 0s) infinite;
     }
   ]]></style>
   <g id="atmosphere">
@@ -143,9 +143,9 @@
     const stars = [...document.querySelectorAll("#atmosphere circle")];
 
     function randomizeTwinkle(star) {
-      star.style.setProperty("--twinkle-dim", 0.1 + Math.random() * 0.2);
-      star.style.setProperty("--twinkle-peak", 0.65 + Math.random() * 0.3);
-      star.style.setProperty("--twinkle-afterglow", 0.2 + Math.random() * 0.45);
+      star.style.setProperty("--twinkle-dim", 0.42 + Math.random() * 0.05);
+      star.style.setProperty("--twinkle-peak", 0.54 + Math.random() * 0.06);
+      star.style.setProperty("--twinkle-afterglow", 0.47 + Math.random() * 0.06);
     }
 
     for (const star of stars) {
@@ -159,7 +159,7 @@
       const selected = i + Math.floor(Math.random() * (stars.length - i));
       [stars[i], stars[selected]] = [stars[selected], stars[i]];
       const star = stars[i];
-      const duration = 18 + Math.random() * 14;
+      const duration = 60 + Math.random() * 40;
       star.style.setProperty("--twinkle-duration", `${duration}s`);
       star.style.setProperty("--twinkle-delay", `${-Math.random() * duration}s`);
       randomizeTwinkle(star);
