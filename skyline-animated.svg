@@ -16,7 +16,7 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <title id="skyline-title">Chicago skyline at night</title>
-  <desc id="skyline-description">A bottom-aligned grayscale Chicago skyline on a transparent background. Hover over Aon Center to illuminate it.</desc>
+  <desc id="skyline-description">A detailed, bottom-aligned grayscale illustration of the Chicago skyline on a transparent background. Hover over Aon Center to illuminate it.</desc>
   <sodipodi:namedview
      id="namedview6768"
      pagecolor="#ffffff"
@@ -44,7 +44,101 @@
          d="M0 0h6399v3606H0z"
          id="path9" />
     </clipPath>
+    <!-- Reusable tonal treatments add depth without changing the hand-drawn silhouettes. -->
+    <linearGradient id="facade-depth" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#050505" stop-opacity="0.3" />
+      <stop offset="0.24" stop-color="#f4f4f4" stop-opacity="0.035" />
+      <stop offset="0.68" stop-color="#ffffff" stop-opacity="0.1" />
+      <stop offset="1" stop-color="#000000" stop-opacity="0.28" />
+    </linearGradient>
+    <linearGradient id="facade-height" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.11" />
+      <stop offset="0.38" stop-color="#ffffff" stop-opacity="0" />
+      <stop offset="1" stop-color="#050505" stop-opacity="0.23" />
+    </linearGradient>
+    <linearGradient id="crown-facet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2f2f2" stop-opacity="0.22" />
+      <stop offset="0.48" stop-color="#a8a8a8" stop-opacity="0.06" />
+      <stop offset="1" stop-color="#090909" stop-opacity="0.32" />
+    </linearGradient>
+    <pattern id="office-sparkle" width="152" height="126" patternUnits="userSpaceOnUse">
+      <rect x="14" y="18" width="17" height="10" rx="1.5" fill="#dadada" opacity="0.34" />
+      <rect x="79" y="22" width="12" height="9" rx="1.5" fill="#f3f3f3" opacity="0.22" />
+      <rect x="119" y="61" width="16" height="10" rx="1.5" fill="#bdbdbd" opacity="0.28" />
+      <rect x="47" y="91" width="14" height="9" rx="1.5" fill="#eeeeee" opacity="0.2" />
+    </pattern>
+    <pattern id="tower-sparkle" width="82" height="112" patternUnits="userSpaceOnUse">
+      <rect x="11" y="16" width="10" height="8" rx="1" fill="#e8e8e8" opacity="0.3" />
+      <rect x="54" y="49" width="11" height="8" rx="1" fill="#c9c9c9" opacity="0.22" />
+      <rect x="29" y="84" width="9" height="7" rx="1" fill="#f4f4f4" opacity="0.18" />
+    </pattern>
+    <clipPath id="clip-round-tower">
+      <use xlink:href="#path276" />
+    </clipPath>
+    <clipPath id="clip-left-lowrises">
+      <use xlink:href="#path6670" />
+      <use xlink:href="#path6672" />
+      <use xlink:href="#path6688" />
+      <use xlink:href="#path6690" />
+      <use xlink:href="#path6716" />
+      <use xlink:href="#path6718" />
+    </clipPath>
+    <clipPath id="clip-skinny-tower">
+      <use xlink:href="#path352" />
+    </clipPath>
+    <clipPath id="clip-crain-building">
+      <use xlink:href="#path472" />
+    </clipPath>
+    <clipPath id="clip-midrise-tower">
+      <use xlink:href="#path436" />
+      <use xlink:href="#path438" />
+    </clipPath>
+    <clipPath id="clip-dark-tower">
+      <use xlink:href="#path492" />
+    </clipPath>
+    <clipPath id="clip-wide-midrise">
+      <use xlink:href="#path1038" />
+    </clipPath>
+    <clipPath id="clip-prudential-tower">
+      <use xlink:href="#path6104" />
+      <use xlink:href="#path6148" />
+      <use xlink:href="#path6216" />
+    </clipPath>
+    <clipPath id="clip-aon-center">
+      <use xlink:href="#path606" />
+    </clipPath>
+    <clipPath id="clip-banded-tower">
+      <use xlink:href="#path182" />
+      <use xlink:href="#path188" />
+      <use xlink:href="#path194" />
+    </clipPath>
+    <clipPath id="clip-grid-tower">
+      <use xlink:href="#path260" />
+      <use xlink:href="#path262" />
+    </clipPath>
+    <clipPath id="clip-right-tower">
+      <use xlink:href="#path32" />
+    </clipPath>
     <style><![CDATA[
+      .architectural-details {
+        pointer-events: none;
+        shape-rendering: geometricPrecision;
+      }
+      .detail-line {
+        fill: none;
+        stroke: #bdbdbd;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-opacity: 0.48;
+        stroke-width: 4;
+      }
+      .detail-shadow {
+        fill: none;
+        stroke: #090909;
+        stroke-linecap: round;
+        stroke-opacity: 0.5;
+        stroke-width: 7;
+      }
       #layer3 {
         cursor: pointer;
         transition: filter 600ms ease;
@@ -18313,6 +18407,133 @@
          d="m 5401.8766,2736.5475 -6.2303,12.6822 V 150.5955 l 6.2303,4.45175 z m -193.6099,-12.0174 h -14.2445 l 1.5596,-2635.35651 11.3496,-0.444642 z"
          id="path1034"
          style="display:inline;stroke-width:1.33526" />
+      <g id="aon-architectural-details"
+         class="architectural-details"
+         clip-path="url(#clip-aon-center)">
+        <rect x="4798" y="78" width="610" height="2728" fill="url(#facade-depth)" />
+        <rect x="4798" y="78" width="610" height="2728" fill="url(#facade-height)" />
+        <g fill="#e9e9e9" opacity="0.34">
+          <rect x="4840" y="428" width="10" height="12" rx="1" />
+          <rect x="4930" y="756" width="10" height="12" rx="1" />
+          <rect x="5020" y="1110" width="10" height="12" rx="1" />
+          <rect x="4862" y="1452" width="10" height="12" rx="1" />
+          <rect x="4974" y="1828" width="10" height="12" rx="1" />
+          <rect x="5070" y="2212" width="10" height="12" rx="1" />
+          <rect x="5230" y="590" width="9" height="11" rx="1" />
+          <rect x="5296" y="986" width="9" height="11" rx="1" />
+          <rect x="5352" y="1570" width="9" height="11" rx="1" />
+          <rect x="5260" y="2070" width="9" height="11" rx="1" />
+        </g>
+        <g class="detail-line" stroke-opacity="0.34" stroke-width="5">
+          <path d="m 4808,718 328,-20 m 71,1 188,29" />
+          <path d="m 4808,1375 328,-14 m 71,2 189,20" />
+          <path d="m 4808,2040 328,-9 m 71,2 189,12" />
+        </g>
+        <g class="detail-shadow" stroke-opacity="0.32" stroke-width="4">
+          <path d="m 4808,729 328,-20 m 71,1 188,29" />
+          <path d="m 4808,1386 328,-14 m 71,2 189,20" />
+          <path d="m 4808,2051 328,-9 m 71,2 189,12" />
+        </g>
+      </g>
+    </g>
+    <g id="architectural-details" class="architectural-details" aria-hidden="true">
+      <!-- Lakefront low-rises: quiet window variation and continuous stone cornices. -->
+      <g clip-path="url(#clip-left-lowrises)">
+        <rect x="-1335" y="2138" width="1625" height="670" fill="url(#facade-depth)" />
+        <rect x="-1335" y="2138" width="1625" height="670" fill="url(#office-sparkle)" opacity="0.34" />
+        <path class="detail-line" stroke-opacity="0.28" d="m -1318,2410 578,12 m 0,-118 1017,31 m -770,286 760,24" />
+      </g>
+
+      <!-- Slender historic tower: shadowed corners and a handful of occupied rooms. -->
+      <g clip-path="url(#clip-skinny-tower)">
+        <rect x="1202" y="1768" width="310" height="1010" fill="url(#facade-depth)" />
+        <rect x="1202" y="1768" width="310" height="1010" fill="url(#tower-sparkle)" opacity="0.46" />
+        <path class="detail-line" stroke-opacity="0.3" d="m 1215,2078 277,1 m -278,312 278,2" />
+      </g>
+
+      <!-- Curved tower: stronger floor bands and an asymmetric glass sheen. -->
+      <g clip-path="url(#clip-round-tower)">
+        <rect x="2128" y="1490" width="320" height="1225" fill="url(#facade-depth)" />
+        <rect x="2128" y="1490" width="320" height="1225" fill="url(#facade-height)" />
+        <rect x="2128" y="1490" width="320" height="1225" fill="url(#office-sparkle)" opacity="0.62" />
+        <path class="detail-line" d="m 2135,1810 c 78,-7 214,-1 303,14 m -303,326 c 81,-7 217,0 303,15 m -303,329 c 84,-6 218,2 303,17" />
+        <path class="detail-shadow" stroke-width="5" d="m 2172,1514 -1,1180 m 225,-1169 1,1172" />
+      </g>
+      <path class="detail-line" stroke-width="5" d="m 2163,1441 61,0 33,-22 184,18" />
+
+      <!-- Crain Communications Building: layered diamond facets and an inset frame. -->
+      <g clip-path="url(#clip-crain-building)">
+        <rect x="2738" y="1575" width="470" height="570" fill="url(#crown-facet)" />
+        <path d="m 2922,1588 -174,259 239,280 -5,-56 -207,-225 z" fill="#f1f1f1" opacity="0.075" />
+        <path d="m 2968,1591 231,262 -141,219 -70,-2 183,-217 z" fill="#050505" opacity="0.18" />
+        <path class="detail-line" stroke-opacity="0.42" d="m 2922,1632 -129,214 196,231 164,-224 -184,-214" />
+      </g>
+      <path class="detail-shadow" stroke-width="6" d="m 2987,2070 0,605" />
+
+      <!-- Paired midrise façades: opposing light produces clearer three-dimensional faces. -->
+      <g clip-path="url(#clip-midrise-tower)">
+        <rect x="3248" y="1565" width="430" height="1250" fill="url(#facade-depth)" />
+        <rect x="3248" y="1565" width="430" height="1250" fill="url(#office-sparkle)" opacity="0.46" />
+        <path class="detail-line" stroke-opacity="0.34" d="m 3466,1574 0,1210 m -151,-886 300,12 m -300,333 300,13" />
+      </g>
+
+      <!-- Tall dark tower: subtle occupied windows remain visible above the foreground roofs. -->
+      <g clip-path="url(#clip-dark-tower)">
+        <rect x="3880" y="600" width="350" height="1060" fill="url(#facade-depth)" />
+        <rect x="3880" y="600" width="350" height="1060" fill="url(#tower-sparkle)" opacity="0.62" />
+        <path class="detail-line" stroke-opacity="0.3" d="m 3891,925 c 92,-15 236,-4 326,17 m -326,309 c 93,-14 236,-3 326,17" />
+      </g>
+
+      <!-- Wide foreground office block: heavier floor plates give the window grid scale. -->
+      <g clip-path="url(#clip-wide-midrise)">
+        <rect x="3624" y="1638" width="500" height="1110" fill="url(#facade-height)" />
+        <path class="detail-shadow" stroke-opacity="0.32" stroke-width="6" d="m 3631,1890 486,-14 m -486,402 486,-8" />
+        <path class="detail-line" stroke-opacity="0.32" d="m 3631,1882 486,-14 m -486,402 486,-8" />
+        <path class="detail-line" stroke-opacity="0.25" d="m 3748,1659 0,1078 m 392,-1089 0,1087" />
+      </g>
+
+      <!-- One Prudential Plaza: crown planes, masonry seams, and scattered lit offices. -->
+      <g clip-path="url(#clip-prudential-tower)">
+        <rect x="4248" y="810" width="460" height="1985" fill="url(#facade-depth)" />
+        <rect x="4248" y="1140" width="460" height="1655" fill="url(#tower-sparkle)" opacity="0.5" />
+        <path d="m 4407,829 119,302 -8,1646 -98,11 -4,-1810 z" fill="#050505" opacity="0.12" />
+        <path class="detail-line" stroke-opacity="0.35" d="m 4268,1430 421,-9 m -421,454 421,-5 m -421,455 421,-2" />
+      </g>
+      <path class="detail-line" stroke-width="5" d="m 4416,823 0,-132 m 16,148 0,-103" />
+
+      <!-- Banded office tower: varied occupancy breaks up the long repetitive façade. -->
+      <g clip-path="url(#clip-banded-tower)">
+        <rect x="5485" y="865" width="605" height="1980" fill="url(#facade-depth)" />
+        <rect x="5485" y="875" width="605" height="1960" fill="url(#office-sparkle)" opacity="0.52" />
+        <path class="detail-line" stroke-opacity="0.35" stroke-width="5" d="m 5495,1265 583,-28 m -585,546 584,-20 m -585,531 586,-2" />
+        <path class="detail-shadow" stroke-opacity="0.3" stroke-width="6" d="m 5510,1016 -2,1800 m 552,-1835 1,1836" />
+      </g>
+      <g fill="#777777" stroke="#1c1c1c" stroke-width="3">
+        <rect x="5550" y="886" width="36" height="48" />
+        <rect x="5612" y="883" width="28" height="51" />
+        <rect x="5680" y="879" width="42" height="51" />
+        <rect x="5750" y="875" width="30" height="51" />
+      </g>
+
+      <!-- Framed glass tower: inset floor slabs and side-plane shading reinforce its depth. -->
+      <g clip-path="url(#clip-grid-tower)">
+        <rect x="6260" y="1048" width="545" height="1795" fill="url(#facade-depth)" />
+        <rect x="6260" y="1048" width="545" height="1795" fill="url(#tower-sparkle)" opacity="0.42" />
+        <path class="detail-line" stroke-opacity="0.32" d="m 6271,1330 370,-13 m -370,462 370,-8 m -370,462 370,-4 m 1,-910 143,7 m -143,450 147,7 m -147,450 151,8" />
+      </g>
+
+      <!-- Right tower: roof plant, corner highlight, and articulated service floors. -->
+      <g clip-path="url(#clip-right-tower)">
+        <rect x="6900" y="1772" width="430" height="1100" fill="url(#facade-depth)" />
+        <rect x="6900" y="1772" width="430" height="1100" fill="url(#office-sparkle)" opacity="0.48" />
+        <path class="detail-line" stroke-opacity="0.35" d="m 6914,2050 397,-7 m -399,307 400,-4 m -402,305 403,-2" />
+        <path class="detail-shadow" stroke-width="5" d="m 7190,1790 0,1038" />
+      </g>
+      <g fill="#686868" stroke="#181818" stroke-width="3">
+        <rect x="6950" y="1748" width="38" height="43" />
+        <rect x="7010" y="1742" width="31" height="48" />
+        <rect x="7065" y="1740" width="44" height="49" />
+      </g>
     </g>
     <path
        d="m 7419.1097,2722.1761 a 26.544948,26.544948 0 0 0 -29.7976,-3.1713 c -5.4478,3.0712 -9.7234,8.0636 -15.4797,10.4965 -5.8537,2.4729 -12.4767,1.9868 -18.8097,1.4581 -29.2889,-2.4475 -58.7714,-4.9297 -87.1244,-12.6743 -22.7475,-6.2129 -45.1905,-15.8629 -68.7658,-15.1832 -10.5285,0.3044 -20.8687,2.6786 -31.2317,4.5666 -30.0433,5.4746 -71.1974,13.1162 -100.7119,5.2569 -65.6947,-17.4919 -128.2276,30.739 -188.6508,61.912 a 427.38968,427.38968 0 0 1 -133.853,42.536 c -68.7164,10.0651 -138.6239,4.2047 -207.9372,-0.1562 a 4758.3502,4758.3502 0 0 0 -674.7944,5.4972 c -36.4526,2.8908 -74.0041,6.0848 -108.8237,-5.05 -40.0164,-12.7958 -72.0572,-43.1395 -110.6329,-59.7809 -35.5179,-15.3194 -74.908,-18.3758 -113.4823,-21.2306 l -142.217,-10.5485 -321.931,-23.8664 c -23.7409,-1.7599 -48.4044,-3.393 -70.6018,5.2075 -18.0046,6.9767 -33.0237,20.2212 -50.9562,27.3821 -62.3058,24.8853 -129.7391,-30.2342 -196.5501,-24.1788 -29.7389,2.6945 -57.6178,17.5199 -87.4661,18.3478 -72.8878,2.0229 -141.926,-61.7117 -214.2223,-52.2341 a 499.26534,499.26534 0 0 0 -127.7843,34.4698 c -21.5137,9.0103 -45.2987,19.7084 -67.1982,11.6795 -7.2625,-2.6705 -13.7919,-7.2892 -21.3267,-9.0357 -20.6432,-4.7856 -41.3677,13.131 -62.131,8.9022 -13.3713,-2.7226 -24.502,-14.3567 -38.135,-13.7719 -18.5975,0.8012 -31.245,23.9118 -49.8238,22.7114 -13.1991,-0.8532 -24.2631,-14.1964 -37.2538,-11.6981 -7.1276,1.3699 -12.4793,7.2584 -19.1609,10.0971 -20.0837,8.5337 -39.5237,-12.0052 -59.5847,-20.5789 -38.7091,-16.5386 -82.9556,13.0721 -124.4461,5.9952 -22.5525,-3.8455 -41.6814,-18.0807 -61.8331,-28.9137 -20.1517,-10.8329 -44.9449,-18.4012 -65.4891,-8.3346 -6.3719,3.1218 -12.0481,7.8366 -18.9167,9.6138 -13.3673,3.4717 -26.5276,-4.887 -39.0723,-10.6607 -29.5173,-13.5822 -63.2206,-13.6196 -95.7114,-13.4207 -37.5555,0.2377 -76.0804,0.6503 -111.1108,14.1925 -15.3222,5.9232 -30.1156,14.3808 -46.4925,15.6439 -13.7331,1.0589 -27.2632,-3.0711 -40.5625,-6.6509 -42.3116,-11.4085 -86.1775,-17.7589 -129.9727,-16.2074 -46.2,1.6384 -100.6786,15.3821 -143.9517,-0.2924 a 60.471208,60.471208 0 0 0 -25.0227,-3.3729 c -67.6976,4.9725 -135.6275,9.3388 -203.3225,4.6974 -42.1435,-2.8895 -83.9785,-9.2599 -125.5384,-16.8242 -8.1611,-1.4862 -16.3729,-3.0351 -24.0855,-6.0915 -5.4384,-2.155 -10.5725,-5.0405 -16.0657,-7.0541 -8.5377,-3.1299 -17.703,-4.0739 -26.7734,-4.7282 -76.4769,-5.5173 -151.7935,7.6631 -228.436,4.9218 -14.0083,-0.5021 -32.2866,-3.2995 -44.1076,-11.6528 a 61.249664,61.249664 0 0 0 -35.5553,-11.1935 l -295.8707,0.9347 c -28.7468,0.089 -57.6405,0.1696 -86.0361,-4.3196 -24.0186,-3.7975 -47.4084,-10.8249 -71.2801,-15.4596 -114.5585,-22.2481 -232.335,11.5513 -341.1881,53.628 -33.4401,12.9266 -66.8964,26.7626 -102.2554,32.6845 -42.5641,7.1262 -86.0855,2.5022 -129.1195,-0.6556 -74.41,-5.4599 -149.6438,-6.4413 -223.1912,6.1128 -22.7889,3.8896 -45.5751,9.0904 -68.6898,8.6965 -29.1767,-0.4981 -58.42023,-11.0212 -82.24391,-28.4076 a 62.434038,62.434038 0 0 0 -51.43818,-10.415 c -128.30504,30.7977 -268.59937,-20.8915 -400.53097,2.4034 -38.7639,6.8418 -79.64151,19.9568 -116.20624,5.3838 -26.25387,-10.4631 -45.08368,-33.4336 -67.54007,-50.5929 a 174.36212,174.36212 0 0 0 -64.35014,-30.7525 c -96.90241,-23.6206 -194.632682,37.8787 -294.369849,37.1977 -42.523994,-0.2898 -84.059891,-11.9239 -124.962881,-23.5606 -15.28337,-4.3477 -30.6976,-8.7326 -46.54846,-9.8515 -60.20149,-4.2475 -115.52393,38.5742 -175.86829,37.7224 -59.92108,-0.8466 -110.16688,-43.7872 -166.98748,-62.8307 -45.73129,-15.3248 -95.12519,-14.8707 -143.2733,-12.0881 -72.44714,4.1847 -150.21663,15.8148 -202.38253,66.2649 -13.76117,13.3099 -25.55415,29.1834 -42.16743,38.6985 -17.68552,10.1293 -38.77996,11.8838 -59.1026,13.4047 -44.64307,3.3461 -93.70847,7.6109 -138.35157,10.9638 v 184.9334 h 8556.3394 z"
