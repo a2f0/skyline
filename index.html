@@ -178,8 +178,8 @@
 
       debugMotionButton.addEventListener("click", () => {
         debugMotion = !debugMotion;
-        // A fragment works for both hosted pages and files opened directly.
-        stars.src = `stars.svg${debugMotion ? "#debug-motion" : ""}`;
+        // Keep a fragment when stopping so the randomized sky does not reload.
+        stars.src = `stars.svg#${debugMotion ? "debug-motion" : ""}`;
         updateMotionStatus();
       });
 

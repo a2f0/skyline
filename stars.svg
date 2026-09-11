@@ -4,17 +4,19 @@
      role="img" aria-labelledby="stars-title stars-description"
      style="background:#000000;pointer-events:none">
   <title id="stars-title">Twinkling night sky</title>
-  <desc id="stars-description">96 grayscale stars spread across the full viewport. Reduced motion pauses the stars; the debug-motion fragment enables stronger brightness pulses.</desc>
+  <desc id="stars-description">96 randomly positioned grayscale stars spread across the full viewport. Ten randomly selected stars twinkle while the rest stay steady. Reduced motion pauses twinkling; the debug-motion fragment enables stronger brightness pulses on the same ten stars.</desc>
   <style><![CDATA[
     #atmosphere circle {
       opacity: 0.5;
+    }
+    #atmosphere .twinkle {
       animation: star-twinkle 5.8s ease-in-out infinite;
     }
-    #atmosphere .stars-b circle { animation-duration: 7.6s; }
-    #atmosphere .stars-c circle { animation-duration: 9.4s; }
-    #atmosphere circle:nth-child(3n + 1) { animation-delay: -1.7s; }
-    #atmosphere circle:nth-child(3n + 2) { animation-delay: -3.9s; }
-    #atmosphere circle:nth-child(3n) { animation-delay: -5.2s; }
+    #atmosphere .stars-b .twinkle { animation-duration: 7.6s; }
+    #atmosphere .stars-c .twinkle { animation-duration: 9.4s; }
+    #atmosphere .twinkle:nth-child(3n + 1) { animation-delay: -1.7s; }
+    #atmosphere .twinkle:nth-child(3n + 2) { animation-delay: -3.9s; }
+    #atmosphere .twinkle:nth-child(3n) { animation-delay: -5.2s; }
 
     @keyframes star-twinkle {
       0%, 100% { opacity: 0.16; }
@@ -26,11 +28,11 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      #atmosphere circle { animation: none; }
+      #atmosphere .twinkle { animation: none; }
     }
 
     /* An explicit debug preview may override the system motion preference. */
-    #debug-motion:target circle {
+    #debug-motion:target .twinkle {
       animation-name: star-debug;
       animation-duration: 1.8s;
       animation-timing-function: ease-in-out;
@@ -143,4 +145,20 @@
       </g>
     </g>
   </g>
+  <script><![CDATA[
+    const stars = [...document.querySelectorAll("#atmosphere circle")];
+
+    for (const star of stars) {
+      star.setAttribute("cx", `${1 + Math.random() * 98}%`);
+      star.setAttribute("cy", `${2 + Math.random() * 96}%`);
+    }
+
+    // Choose about 10% without replacement, once per load.
+    const twinkleCount = Math.round(stars.length * 0.1);
+    for (let i = 0; i < twinkleCount; i++) {
+      const selected = i + Math.floor(Math.random() * (stars.length - i));
+      [stars[i], stars[selected]] = [stars[selected], stars[i]];
+      stars[i].classList.add("twinkle");
+    }
+  ]]></script>
 </svg>
