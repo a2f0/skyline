@@ -4,9 +4,11 @@
 
 Open `index.html` in a modern browser for the full-screen viewer, or open `skyline-animated.svg` directly. Use the viewer's fullscreen control or press `F` to enter fullscreen.
 
-The living-night treatment is entirely vector-based and grayscale. It places the skyline along the bottom of a black canvas and adds a gentle entrance, pulsing window lights, aircraft beacons, and stars. Hover over Aon Center to illuminate it.
+The living-night treatment is entirely vector-based and grayscale. It places the skyline along the bottom of a black canvas beneath 96 softly twinkling stars. The buildings have no animated lights or beacons. Hover over Aon Center to illuminate it.
 
-Motion is disabled automatically when the operating system's reduced-motion preference is enabled.
+Stars pause automatically when the browser reports the operating system's reduced-motion preference. The viewer displays the current preference and animation mode, updating immediately when the preference changes. Aon's hover highlight still works with reduced motion enabled.
+
+Use **debug motion** to preview larger stars with a pronounced 1.8-second pulse. This opt-in preview overrides reduced motion until you select **stop debug** or reload the page. You can also open `skyline-animated.svg#debug-motion` directly to preview the exaggerated animation; remove the fragment to return to the system preference.
 
 ## Direction for Update
 
