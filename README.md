@@ -8,7 +8,7 @@ The living-night treatment is entirely vector-based and grayscale. The transpare
 
 Stars pause automatically when the browser reports the operating system's reduced-motion preference. The viewer displays the current preference and animation mode, updating immediately when the preference changes. Aon's hover highlight still works with reduced motion enabled.
 
-Use **debug motion** to preview larger stars with a pronounced 1.8-second pulse. This opt-in preview overrides reduced motion until you select **stop debug** or reload the page. You can also open `stars.svg#debug-motion` directly to preview the exaggerated animation; remove the fragment to return to the system preference.
+Use **debug motion** to preview pronounced 1.8-second brightness pulses while the stars stay the same size. This opt-in preview overrides reduced motion until you select **stop debug** or reload the page. You can also open `stars.svg#debug-motion` directly to preview the exaggerated animation; remove the fragment to return to the system preference.
 
 ## Direction for Update
 

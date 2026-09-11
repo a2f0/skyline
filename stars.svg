@@ -4,12 +4,10 @@
      role="img" aria-labelledby="stars-title stars-description"
      style="background:#000000;pointer-events:none">
   <title id="stars-title">Twinkling night sky</title>
-  <desc id="stars-description">96 grayscale stars spread across the full viewport. Reduced motion pauses the stars; the debug-motion fragment enables an exaggerated preview.</desc>
+  <desc id="stars-description">96 grayscale stars spread across the full viewport. Reduced motion pauses the stars; the debug-motion fragment enables stronger brightness pulses.</desc>
   <style><![CDATA[
     #atmosphere circle {
       opacity: 0.5;
-      transform-box: fill-box;
-      transform-origin: center;
       animation: star-twinkle 5.8s ease-in-out infinite;
     }
     #atmosphere .stars-b circle { animation-duration: 7.6s; }
@@ -23,8 +21,8 @@
       50% { opacity: 0.85; }
     }
     @keyframes star-debug {
-      0%, 100% { opacity: 0.04; transform: scale(1); }
-      50% { opacity: 1; transform: scale(2.6); }
+      0%, 100% { opacity: 0.04; }
+      50% { opacity: 1; }
     }
 
     @media (prefers-reduced-motion: reduce) {
