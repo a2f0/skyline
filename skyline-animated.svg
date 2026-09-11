@@ -56,11 +56,6 @@
       <stop offset="0.38" stop-color="#ffffff" stop-opacity="0" />
       <stop offset="1" stop-color="#050505" stop-opacity="0.23" />
     </linearGradient>
-    <linearGradient id="crown-facet" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f2f2f2" stop-opacity="0.22" />
-      <stop offset="0.48" stop-color="#a8a8a8" stop-opacity="0.06" />
-      <stop offset="1" stop-color="#090909" stop-opacity="0.32" />
-    </linearGradient>
     <pattern id="office-sparkle" width="152" height="126" patternUnits="userSpaceOnUse">
       <rect x="14" y="18" width="17" height="10" rx="1.5" fill="#dadada" opacity="0.34" />
       <rect x="79" y="22" width="12" height="9" rx="1.5" fill="#f3f3f3" opacity="0.22" />
@@ -85,9 +80,6 @@
     </clipPath>
     <clipPath id="clip-skinny-tower">
       <use xlink:href="#path352" />
-    </clipPath>
-    <clipPath id="clip-crain-building">
-      <use xlink:href="#path472" />
     </clipPath>
     <clipPath id="clip-midrise-tower">
       <use xlink:href="#path436" />
@@ -18424,16 +18416,6 @@
           <rect x="5352" y="1570" width="9" height="11" rx="1" />
           <rect x="5260" y="2070" width="9" height="11" rx="1" />
         </g>
-        <g class="detail-line" stroke-opacity="0.34" stroke-width="5">
-          <path d="m 4808,718 328,-20 m 71,1 188,29" />
-          <path d="m 4808,1375 328,-14 m 71,2 189,20" />
-          <path d="m 4808,2040 328,-9 m 71,2 189,12" />
-        </g>
-        <g class="detail-shadow" stroke-opacity="0.32" stroke-width="4">
-          <path d="m 4808,729 328,-20 m 71,1 188,29" />
-          <path d="m 4808,1386 328,-14 m 71,2 189,20" />
-          <path d="m 4808,2051 328,-9 m 71,2 189,12" />
-        </g>
       </g>
     </g>
     <g id="architectural-details" class="architectural-details" aria-hidden="true">
@@ -18441,14 +18423,12 @@
       <g clip-path="url(#clip-left-lowrises)">
         <rect x="-1335" y="2138" width="1625" height="670" fill="url(#facade-depth)" />
         <rect x="-1335" y="2138" width="1625" height="670" fill="url(#office-sparkle)" opacity="0.34" />
-        <path class="detail-line" stroke-opacity="0.28" d="m -1318,2410 578,12 m 0,-118 1017,31 m -770,286 760,24" />
       </g>
 
       <!-- Slender historic tower: shadowed corners and a handful of occupied rooms. -->
       <g clip-path="url(#clip-skinny-tower)">
         <rect x="1202" y="1768" width="310" height="1010" fill="url(#facade-depth)" />
         <rect x="1202" y="1768" width="310" height="1010" fill="url(#tower-sparkle)" opacity="0.46" />
-        <path class="detail-line" stroke-opacity="0.3" d="m 1215,2078 277,1 m -278,312 278,2" />
       </g>
 
       <!-- Curved tower: stronger floor bands and an asymmetric glass sheen. -->
@@ -18456,39 +18436,26 @@
         <rect x="2128" y="1490" width="320" height="1225" fill="url(#facade-depth)" />
         <rect x="2128" y="1490" width="320" height="1225" fill="url(#facade-height)" />
         <rect x="2128" y="1490" width="320" height="1225" fill="url(#office-sparkle)" opacity="0.62" />
-        <path class="detail-line" d="m 2135,1810 c 78,-7 214,-1 303,14 m -303,326 c 81,-7 217,0 303,15 m -303,329 c 84,-6 218,2 303,17" />
         <path class="detail-shadow" stroke-width="5" d="m 2172,1514 -1,1180 m 225,-1169 1,1172" />
       </g>
       <path class="detail-line" stroke-width="5" d="m 2163,1441 61,0 33,-22 184,18" />
-
-      <!-- Crain Communications Building: layered diamond facets and an inset frame. -->
-      <g clip-path="url(#clip-crain-building)">
-        <rect x="2738" y="1575" width="470" height="570" fill="url(#crown-facet)" />
-        <path d="m 2922,1588 -174,259 239,280 -5,-56 -207,-225 z" fill="#f1f1f1" opacity="0.075" />
-        <path d="m 2968,1591 231,262 -141,219 -70,-2 183,-217 z" fill="#050505" opacity="0.18" />
-        <path class="detail-line" stroke-opacity="0.42" d="m 2922,1632 -129,214 196,231 164,-224 -184,-214" />
-      </g>
-      <path class="detail-shadow" stroke-width="6" d="m 2987,2070 0,605" />
 
       <!-- Paired midrise façades: opposing light produces clearer three-dimensional faces. -->
       <g clip-path="url(#clip-midrise-tower)">
         <rect x="3248" y="1565" width="430" height="1250" fill="url(#facade-depth)" />
         <rect x="3248" y="1565" width="430" height="1250" fill="url(#office-sparkle)" opacity="0.46" />
-        <path class="detail-line" stroke-opacity="0.34" d="m 3466,1574 0,1210 m -151,-886 300,12 m -300,333 300,13" />
+        <path class="detail-line" stroke-opacity="0.34" d="m 3466,1574 0,1210" />
       </g>
 
       <!-- Tall dark tower: subtle occupied windows remain visible above the foreground roofs. -->
       <g clip-path="url(#clip-dark-tower)">
         <rect x="3880" y="600" width="350" height="1060" fill="url(#facade-depth)" />
         <rect x="3880" y="600" width="350" height="1060" fill="url(#tower-sparkle)" opacity="0.62" />
-        <path class="detail-line" stroke-opacity="0.3" d="m 3891,925 c 92,-15 236,-4 326,17 m -326,309 c 93,-14 236,-3 326,17" />
       </g>
 
       <!-- Wide foreground office block: heavier floor plates give the window grid scale. -->
       <g clip-path="url(#clip-wide-midrise)">
         <rect x="3624" y="1638" width="500" height="1110" fill="url(#facade-height)" />
-        <path class="detail-shadow" stroke-opacity="0.32" stroke-width="6" d="m 3631,1890 486,-14 m -486,402 486,-8" />
-        <path class="detail-line" stroke-opacity="0.32" d="m 3631,1882 486,-14 m -486,402 486,-8" />
         <path class="detail-line" stroke-opacity="0.25" d="m 3748,1659 0,1078 m 392,-1089 0,1087" />
       </g>
 
@@ -18497,7 +18464,6 @@
         <rect x="4248" y="810" width="460" height="1985" fill="url(#facade-depth)" />
         <rect x="4248" y="1140" width="460" height="1655" fill="url(#tower-sparkle)" opacity="0.5" />
         <path d="m 4407,829 119,302 -8,1646 -98,11 -4,-1810 z" fill="#050505" opacity="0.12" />
-        <path class="detail-line" stroke-opacity="0.35" d="m 4268,1430 421,-9 m -421,454 421,-5 m -421,455 421,-2" />
       </g>
       <path class="detail-line" stroke-width="5" d="m 4416,823 0,-132 m 16,148 0,-103" />
 
@@ -18505,7 +18471,6 @@
       <g clip-path="url(#clip-banded-tower)">
         <rect x="5485" y="865" width="605" height="1980" fill="url(#facade-depth)" />
         <rect x="5485" y="875" width="605" height="1960" fill="url(#office-sparkle)" opacity="0.52" />
-        <path class="detail-line" stroke-opacity="0.35" stroke-width="5" d="m 5495,1265 583,-28 m -585,546 584,-20 m -585,531 586,-2" />
         <path class="detail-shadow" stroke-opacity="0.3" stroke-width="6" d="m 5510,1016 -2,1800 m 552,-1835 1,1836" />
       </g>
       <g fill="#777777" stroke="#1c1c1c" stroke-width="3">
@@ -18519,14 +18484,12 @@
       <g clip-path="url(#clip-grid-tower)">
         <rect x="6260" y="1048" width="545" height="1795" fill="url(#facade-depth)" />
         <rect x="6260" y="1048" width="545" height="1795" fill="url(#tower-sparkle)" opacity="0.42" />
-        <path class="detail-line" stroke-opacity="0.32" d="m 6271,1330 370,-13 m -370,462 370,-8 m -370,462 370,-4 m 1,-910 143,7 m -143,450 147,7 m -147,450 151,8" />
       </g>
 
       <!-- Right tower: roof plant, corner highlight, and articulated service floors. -->
       <g clip-path="url(#clip-right-tower)">
         <rect x="6900" y="1772" width="430" height="1100" fill="url(#facade-depth)" />
         <rect x="6900" y="1772" width="430" height="1100" fill="url(#office-sparkle)" opacity="0.48" />
-        <path class="detail-line" stroke-opacity="0.35" d="m 6914,2050 397,-7 m -399,307 400,-4 m -402,305 403,-2" />
         <path class="detail-shadow" stroke-width="5" d="m 7190,1790 0,1038" />
       </g>
       <g fill="#686868" stroke="#181818" stroke-width="3">
