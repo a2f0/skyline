@@ -6,7 +6,8 @@
    version="1.1"
    id="svg6766"
    role="img"
-   aria-labelledby="skyline-title skyline-description"
+   aria-label="Chicago skyline at night"
+   aria-describedby="skyline-description"
    style="color-scheme:dark"
    sodipodi:docname="skyline-animated.svg"
    inkscape:version="1.1 (c4e8f9e, 2021-05-24)"
@@ -15,7 +16,6 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
-  <title id="skyline-title">Chicago skyline at night</title>
   <desc id="skyline-description">A detailed, bottom-aligned grayscale illustration of the Chicago skyline on a transparent background. Hover over a building to illuminate it and reveal its name.</desc>
   <sodipodi:namedview
      id="namedview6768"
@@ -133,13 +133,17 @@
       }
       .interactive-building {
         cursor: pointer;
-        transition: filter 600ms ease;
+        transition: filter 0ms;
       }
-      .interactive-building:hover {
+      .interactive-building.is-active {
         filter: brightness(1.14) drop-shadow(0 0 22px rgba(194, 194, 194, 0.72));
+        transition: filter 180ms ease;
+      }
+      .building-tooltip {
+        pointer-events: none;
       }
       @media (prefers-reduced-motion: reduce) {
-        .interactive-building { transition: none; }
+        .interactive-building.is-active { transition: none; }
       }
     ]]></style>
   </defs>
@@ -158,7 +162,6 @@
          id="building-lakeshore-east"
          class="interactive-building"
          aria-label="Lakeshore East towers">
-        <title>Lakeshore East towers — hover to illuminate</title>
       <path
          data-name="Behind Panel"
          fill="#4f4f4f"
@@ -711,7 +714,6 @@
          id="building-blue-cross-blue-shield"
          class="interactive-building"
          aria-label="Blue Cross and Blue Shield Tower">
-        <title>Blue Cross and Blue Shield Tower — hover to illuminate</title>
       <path
          fill="#282828"
          stroke="#333333"
@@ -997,7 +999,6 @@
          id="building-aqua-and-340-on-the-park"
          class="interactive-building"
          aria-label="Aqua and 340 on the Park">
-        <title>Aqua and 340 on the Park — hover to illuminate</title>
       <g
          fill="#767676"
          stroke="#767676"
@@ -1080,7 +1081,6 @@
          id="building-leo-burnett"
          class="interactive-building"
          aria-label="Leo Burnett Building">
-        <title>Leo Burnett Building — hover to illuminate</title>
       <path
          data-name="Main Panel"
          d="m 2134.2776,1504.8031 c 18.7671,-4.1005 67.5227,-18.7417 306.1615,19.663 V 2708.507 l -306.8852,-2.0029 z"
@@ -1211,7 +1211,6 @@
          id="building-michigan-avenue-east"
          class="interactive-building"
          aria-label="Michigan Avenue buildings">
-        <title>Michigan Avenue buildings — hover to illuminate</title>
       <path
          data-name="Front Panel"
          fill="#383838"
@@ -1353,7 +1352,6 @@
          id="building-michigan-avenue-historic-tower"
          class="interactive-building"
          aria-label="Historic Michigan Avenue tower">
-        <title>Historic Michigan Avenue tower — hover to illuminate</title>
       <path
          fill="#4c4c4c"
          stroke="#3f3f3f"
@@ -1550,7 +1548,6 @@
          id="building-michigan-avenue-west"
          class="interactive-building"
          aria-label="Michigan Avenue building">
-        <title>Michigan Avenue building — hover to illuminate</title>
       <path
          data-name="Behind Panel"
          fill="#3f3f3f"
@@ -1621,7 +1618,6 @@
          id="building-kemper"
          class="interactive-building"
          aria-label="Kemper Building">
-        <title>Kemper Building — hover to illuminate</title>
       <path
          data-name="Right Panel"
          fill="#686868"
@@ -1685,7 +1681,6 @@
          id="building-michigan-plaza-south"
          class="interactive-building"
          aria-label="Michigan Plaza South">
-        <title>Michigan Plaza South — hover to illuminate</title>
       <path
          data-name="Right Panel"
          fill="#3f3f3f"
@@ -1802,7 +1797,6 @@
          id="building-crain-communications"
          class="interactive-building"
          aria-label="Crain Communications Building">
-        <title>Crain Communications Building — hover to illuminate</title>
       <path
          stroke="#000000"
          stroke-miterlimit="10"
@@ -1852,10 +1846,9 @@
          style="stroke-width:1.33526" />
       </g>
       <g
-         id="building-one-prudential-plaza"
+         id="building-trump-tower"
          class="interactive-building"
-         aria-label="One Prudential Plaza complex">
-        <title>One Prudential Plaza complex — hover to illuminate</title>
+         aria-label="Trump International Hotel and Tower">
       <path
          data-name="Crown Panel"
          d="m 4037.9096,561.18763 c 8.9022,-3.11516 25.1483,-2.00289 26.2606,-2.16312 0,0 118.1703,-2.67052 143.5403,8.34537 l -0.3339,125.78139 -169.467,-4.00578 z"
@@ -15001,7 +14994,6 @@
          id="building-two-prudential-plaza"
          class="interactive-building"
          aria-label="Two Prudential Plaza">
-        <title>Two Prudential Plaza — hover to illuminate</title>
       <path
          fill="#e9e9e9"
          stroke="#2f2f2f"
@@ -16033,7 +16025,6 @@
          id="building-prudential-plaza-podium"
          class="interactive-building"
          aria-label="Prudential Plaza podium">
-        <title>Prudential Plaza podium — hover to illuminate</title>
       <path
          fill="#757575"
          stroke="#2f2f2f"
@@ -16533,7 +16524,6 @@
          id="building-loop-north"
          class="interactive-building"
          aria-label="Historic Loop building">
-        <title>Historic Loop building — hover to illuminate</title>
       <path
          data-name="Roof"
          fill="#2d2d2d"
@@ -16647,7 +16637,6 @@
          id="building-loop-northeast"
          class="interactive-building"
          aria-label="Historic Loop building">
-        <title>Historic Loop building — hover to illuminate</title>
       <path
          d="m 498.3611,2433.5065 c 3.33814,-2.0591 77.94707,-79.6376 77.94707,-79.6376 l 79.07937,82.9129 z"
          fill="#a3a3a3"
@@ -16723,7 +16712,6 @@
          id="building-loop-center"
          class="interactive-building"
          aria-label="Historic Loop building">
-        <title>Historic Loop building — hover to illuminate</title>
       <path
          data-name="Roof"
          d="m 585.7618,2344.3739 -93.63235,94.073 -50.29387,-6.9434 v -87.5034 l 143.90086,0.3217 a 0.03471673,0.03471673 0 0 1 0.0254,0.052 z"
@@ -16804,7 +16792,6 @@
          id="building-loop-southwest"
          class="interactive-building"
          aria-label="Historic Loop building">
-        <title>Historic Loop building — hover to illuminate</title>
       <path
          fill="#686868"
          stroke="#2d2d2d"
@@ -16845,7 +16832,6 @@
          id="building-lakefront-office-north"
          class="interactive-building"
          aria-label="Lakefront office building">
-        <title>Lakefront office building — hover to illuminate</title>
       <path
          data-name="Panel Right"
          fill="#515151"
@@ -16917,7 +16903,6 @@
          id="building-lakefront-office-south"
          class="interactive-building"
          aria-label="Lakefront office building">
-        <title>Lakefront office building — hover to illuminate</title>
       <path
          fill="#3a3a3a"
          stroke="#000000"
@@ -17014,7 +16999,6 @@
          id="building-lakefront-cultural"
          class="interactive-building"
          aria-label="Lakefront cultural buildings">
-        <title>Lakefront cultural buildings — hover to illuminate</title>
       <path
          fill="#4c4c4c"
          stroke="#3f3f3f"
@@ -17225,7 +17209,6 @@
        class="interactive-building"
        aria-label="Aon Center"
        style="display:inline">
-      <title>Aon Center — hover to illuminate</title>
       <path
          fill="#222222"
          stroke="#8d8d8d"
@@ -18629,4 +18612,117 @@
        style="display:inline;stroke-width:1.33526" />
   </g>
   </g>
+  <g
+     id="building-tooltip"
+     class="building-tooltip"
+     role="tooltip"
+     aria-hidden="true"
+     visibility="hidden">
+    <rect id="building-tooltip-background" fill="#000000" stroke="#3a3a3a" />
+    <text
+       id="building-tooltip-text"
+       fill="#ffffff"
+       font-family="system-ui, sans-serif"
+       font-weight="600">Building name</text>
+  </g>
+  <script><![CDATA[
+    (() => {
+      const svg = document.documentElement;
+      const tooltip = document.querySelector("#building-tooltip");
+      const tooltipBackground = document.querySelector("#building-tooltip-background");
+      const tooltipText = document.querySelector("#building-tooltip-text");
+      let activeBuilding = null;
+      let tooltipSize = { width: 0, height: 0 };
+
+      function svgPoint(clientX, clientY, inverse) {
+        return new DOMPoint(clientX, clientY).matrixTransform(inverse);
+      }
+
+      function setTooltipLabel(label) {
+        const matrix = svg.getScreenCTM();
+        const scale = Math.hypot(matrix.a, matrix.b) || 1;
+        const fontSize = 14 / scale;
+        const paddingX = 9 / scale;
+        const paddingY = 6 / scale;
+
+        tooltipText.textContent = label;
+        tooltipText.setAttribute("font-size", fontSize);
+        tooltipText.setAttribute("x", 0);
+        tooltipText.setAttribute("y", 0);
+        tooltip.setAttribute("visibility", "visible");
+
+        const textBounds = tooltipText.getBBox();
+        tooltipText.setAttribute("x", paddingX - textBounds.x);
+        tooltipText.setAttribute("y", paddingY - textBounds.y);
+
+        tooltipSize = {
+          width: textBounds.width + paddingX * 2,
+          height: textBounds.height + paddingY * 2,
+        };
+        tooltipBackground.setAttribute("width", tooltipSize.width);
+        tooltipBackground.setAttribute("height", tooltipSize.height);
+        tooltipBackground.setAttribute("rx", 4 / scale);
+        tooltipBackground.setAttribute("stroke-width", 1 / scale);
+      }
+
+      function positionTooltip(event) {
+        const matrix = svg.getScreenCTM();
+        const inverse = matrix.inverse();
+        const scale = Math.hypot(matrix.a, matrix.b) || 1;
+        const pointer = svgPoint(event.clientX, event.clientY, inverse);
+        const viewportStart = svgPoint(0, 0, inverse);
+        const viewportEnd = svgPoint(innerWidth, innerHeight, inverse);
+        const viewBox = svg.viewBox.baseVal;
+        const left = Math.max(viewBox.x, Math.min(viewportStart.x, viewportEnd.x));
+        const right = Math.min(viewBox.x + viewBox.width, Math.max(viewportStart.x, viewportEnd.x));
+        const top = Math.max(viewBox.y, Math.min(viewportStart.y, viewportEnd.y));
+        const bottom = Math.min(viewBox.y + viewBox.height, Math.max(viewportStart.y, viewportEnd.y));
+        const gap = 18 / scale;
+        const margin = 6 / scale;
+        let x = pointer.x + gap;
+        let y = pointer.y + gap;
+
+        if (x + tooltipSize.width > right - margin) {
+          x = pointer.x - gap - tooltipSize.width;
+        }
+        if (y + tooltipSize.height > bottom - margin) {
+          y = pointer.y - gap - tooltipSize.height;
+        }
+
+        x = Math.max(left + margin, Math.min(x, right - tooltipSize.width - margin));
+        y = Math.max(top + margin, Math.min(y, bottom - tooltipSize.height - margin));
+        tooltip.setAttribute("transform", `translate(${x} ${y})`);
+      }
+
+      function activate(building, event) {
+        if (activeBuilding !== building) {
+          activeBuilding?.classList.remove("is-active");
+          activeBuilding = building;
+          activeBuilding.classList.add("is-active");
+          setTooltipLabel(activeBuilding.getAttribute("aria-label") || "Chicago building");
+        }
+        positionTooltip(event);
+      }
+
+      function deactivate() {
+        activeBuilding?.classList.remove("is-active");
+        activeBuilding = null;
+        tooltip.setAttribute("visibility", "hidden");
+      }
+
+      function updateHover(event) {
+        const building = event.target.closest?.(".interactive-building");
+        if (building) {
+          activate(building, event);
+        } else {
+          deactivate();
+        }
+      }
+
+      svg.addEventListener("pointerover", updateHover, { passive: true });
+      svg.addEventListener("pointermove", updateHover, { passive: true });
+      svg.addEventListener("pointerleave", deactivate);
+      window.addEventListener("blur", deactivate);
+    })();
+  ]]></script>
 </svg>
