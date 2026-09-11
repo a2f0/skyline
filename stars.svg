@@ -4,23 +4,20 @@
      role="img" aria-labelledby="stars-title stars-description"
      style="background:#000000;pointer-events:none">
   <title id="stars-title">Twinkling night sky</title>
-  <desc id="stars-description">96 randomly positioned grayscale stars spread across the full viewport. Ten randomly selected stars twinkle while the rest stay steady. Reduced motion pauses twinkling; the debug-motion fragment enables stronger brightness pulses on the same ten stars.</desc>
+  <desc id="stars-description">96 randomly positioned grayscale stars spread across the full viewport. Ten randomly selected stars slowly twinkle with independent timing and changing brightness patterns while the rest stay steady. Reduced motion pauses twinkling; the debug-motion fragment enables stronger brightness pulses on the same ten stars.</desc>
   <style><![CDATA[
     #atmosphere circle {
       opacity: 0.5;
     }
     #atmosphere .twinkle {
-      animation: star-twinkle 5.8s ease-in-out infinite;
+      animation: star-twinkle var(--twinkle-duration, 24s) ease-in-out var(--twinkle-delay, 0s) infinite;
     }
-    #atmosphere .stars-b .twinkle { animation-duration: 7.6s; }
-    #atmosphere .stars-c .twinkle { animation-duration: 9.4s; }
-    #atmosphere .twinkle:nth-child(3n + 1) { animation-delay: -1.7s; }
-    #atmosphere .twinkle:nth-child(3n + 2) { animation-delay: -3.9s; }
-    #atmosphere .twinkle:nth-child(3n) { animation-delay: -5.2s; }
 
     @keyframes star-twinkle {
-      0%, 100% { opacity: 0.16; }
-      50% { opacity: 0.85; }
+      0%, 10%, 84%, 100% { opacity: 0.5; }
+      28% { opacity: var(--twinkle-dim, 0.2); }
+      50% { opacity: var(--twinkle-peak, 0.85); }
+      68% { opacity: var(--twinkle-afterglow, 0.4); }
     }
     @keyframes star-debug {
       0%, 100% { opacity: 0.04; }
@@ -33,10 +30,7 @@
 
     /* An explicit debug preview may override the system motion preference. */
     #debug-motion:target .twinkle {
-      animation-name: star-debug;
-      animation-duration: 1.8s;
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: infinite;
+      animation: star-debug 1.8s ease-in-out var(--twinkle-delay, 0s) infinite;
     }
   ]]></style>
   <g id="atmosphere">
@@ -148,6 +142,12 @@
   <script><![CDATA[
     const stars = [...document.querySelectorAll("#atmosphere circle")];
 
+    function randomizeTwinkle(star) {
+      star.style.setProperty("--twinkle-dim", 0.1 + Math.random() * 0.2);
+      star.style.setProperty("--twinkle-peak", 0.65 + Math.random() * 0.3);
+      star.style.setProperty("--twinkle-afterglow", 0.2 + Math.random() * 0.45);
+    }
+
     for (const star of stars) {
       star.setAttribute("cx", `${1 + Math.random() * 98}%`);
       star.setAttribute("cy", `${2 + Math.random() * 96}%`);
@@ -158,7 +158,19 @@
     for (let i = 0; i < twinkleCount; i++) {
       const selected = i + Math.floor(Math.random() * (stars.length - i));
       [stars[i], stars[selected]] = [stars[selected], stars[i]];
-      stars[i].classList.add("twinkle");
+      const star = stars[i];
+      const duration = 18 + Math.random() * 14;
+      star.style.setProperty("--twinkle-duration", `${duration}s`);
+      star.style.setProperty("--twinkle-delay", `${-Math.random() * duration}s`);
+      randomizeTwinkle(star);
+      star.classList.add("twinkle");
     }
+
+    document.querySelector("#atmosphere").addEventListener("animationiteration", (event) => {
+      if (event.animationName === "star-twinkle") {
+        // The cycle ends at a fixed brightness so the next pattern joins smoothly.
+        randomizeTwinkle(event.target);
+      }
+    });
   ]]></script>
 </svg>
