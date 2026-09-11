@@ -10,7 +10,7 @@
       opacity: 0.5;
     }
     #atmosphere .twinkle {
-      animation: star-twinkle var(--twinkle-duration, 80s) ease-in-out var(--twinkle-delay, 0s) infinite;
+      animation: star-twinkle var(--twinkle-duration, 53.333s) ease-in-out var(--twinkle-delay, 0s) infinite;
     }
 
     @keyframes star-twinkle {
@@ -30,7 +30,7 @@
 
     /* An explicit debug preview may override the system motion preference. */
     #debug-motion:target .twinkle {
-      animation: star-debug var(--twinkle-duration, 80s) ease-in-out var(--twinkle-delay, 0s) infinite;
+      animation: star-debug var(--twinkle-duration, 53.333s) ease-in-out var(--twinkle-delay, 0s) infinite;
     }
   ]]></style>
   <g id="atmosphere">
@@ -159,7 +159,7 @@
       const selected = i + Math.floor(Math.random() * (stars.length - i));
       [stars[i], stars[selected]] = [stars[selected], stars[i]];
       const star = stars[i];
-      const duration = 60 + Math.random() * 40;
+      const duration = (60 + Math.random() * 40) / 1.5;
       star.style.setProperty("--twinkle-duration", `${duration}s`);
       star.style.setProperty("--twinkle-delay", `${-Math.random() * duration}s`);
       randomizeTwinkle(star);
