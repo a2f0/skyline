@@ -14,7 +14,7 @@ available; all repairs belong to the current session.
    branch for new work. Fetch that base and record its exact SHA. Never assume
    an old `origin/main` is current. Unless report-only, merge the fetched base
    into the feature branch, resolve in-scope conflicts, run
-   `node scripts/check.cjs`, and commit intended changes. Keep repairs local;
+   `SKYLINE_BASE_SHA=<fetched-base-sha> node scripts/check.cjs`, and commit intended changes. Keep repairs local;
    `ship-pr`/`open-pr` owns the eventual push. Report-only leaves the worktree
    and branch untouched (fetching objects is allowed).
 2. Require a clean worktree for a committed review. Record candidate HEAD and

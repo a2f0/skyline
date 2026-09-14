@@ -11,6 +11,9 @@ Google Chrome, then run `npm run check` (or `node scripts/check.cjs`). The check
 runner starts and closes its own local server and runs the merge helper tests,
 building hover regressions, and 3D study browser checks. Use explicit paths when
 staging changes. Do not modify the vendored Three.js bundle as incidental cleanup.
+For branch review/shipping, set `SKYLINE_BASE_SHA` to the fetched base commit so
+whitespace checks include the committed branch diff, as well as staged and
+unstaged work (which are always checked).
 
 The PR workflow skills live in `.agents/skills`; `.claude/skills` links to the
 same files. For an open-PR request use `open-pr`. For an explicit end-to-end

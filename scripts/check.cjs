@@ -14,7 +14,11 @@ function run(command, args, env = process.env) {
 }
 
 async function main() {
+  const baseSha = process.env.SKYLINE_BASE_SHA;
+  if (baseSha && !/^[a-f0-9]{40}$/.test(baseSha)) throw new Error("SKYLINE_BASE_SHA must be a full commit SHA.");
   await run("git", ["diff", "--check"]);
+  await run("git", ["diff", "--cached", "--check"]);
+  if (baseSha) await run("git", ["diff", "--check", `${baseSha}...HEAD`]);
   await run(process.execPath, ["tests/squash-merge.cjs"]);
   const server = createServer(async (request, response) => {
     try {

@@ -60,7 +60,8 @@ review; repairs after pushing or a moving base can require another.
 
 ## Skyline adaptations
 
-Use `node scripts/check.cjs` for preflight. This repo has no Bun workspace,
+Use `SKYLINE_BASE_SHA=<fetched-base-sha> node scripts/check.cjs` for preflight,
+including whitespace in committed branch changes. This repo has no Bun workspace,
 commitlint, agent-tool package, or managed Git hooks. Use the local
 `scripts/squash-merge.cjs` for the synchronous, SHA-bound, subject-only merge.
 `reset` only switches and fast-forwards; it does not install or remove hooks.
