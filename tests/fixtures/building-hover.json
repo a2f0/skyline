@@ -1,0 +1,254 @@
+[
+  {
+    "id": "building-buckingham-west",
+    "key": "buckingham-west",
+    "label": "Unidentified tower west of The Buckingham",
+    "x": 6811.9015,
+    "y": 1999.8631
+  },
+  {
+    "id": "building-buckingham-east",
+    "key": "buckingham-east",
+    "label": "Unidentified tower east of The Buckingham",
+    "x": 7330.6911,
+    "y": 2175.3339
+  },
+  {
+    "id": "building-the-buckingham",
+    "key": "the-buckingham",
+    "label": "The Buckingham",
+    "x": 6999.3294,
+    "y": 1791.2009
+  },
+  {
+    "id": "building-blue-cross-blue-shield",
+    "key": "building-blue-cross-blue-shield",
+    "label": "Blue Cross and Blue Shield Tower",
+    "x": 5951.8668,
+    "y": 884.6989
+  },
+  {
+    "id": "building-340-on-the-park",
+    "key": "building-340-on-the-park",
+    "label": "340 on the Park",
+    "x": 6752.4945,
+    "y": 1045.4014
+  },
+  {
+    "id": "building-heritage-at-millennium-park",
+    "key": "building-heritage-at-millennium-park",
+    "label": "The Heritage at Millennium Park",
+    "x": 2232.8619,
+    "y": 1426.4802
+  },
+  {
+    "id": "building-six-north-far-east",
+    "key": "six-north-far-east",
+    "label": "Unidentified facade farther east of Six North Michigan",
+    "x": 2029.7248,
+    "y": 2244.7367
+  },
+  {
+    "id": "building-six-north-east",
+    "key": "six-north-east",
+    "label": "Unidentified facade east of Six North Michigan",
+    "x": 1851.2889,
+    "y": 2239.8757
+  },
+  {
+    "id": "building-six-north-east-path318",
+    "key": "six-north-east",
+    "label": "Unidentified facade east of Six North Michigan",
+    "x": 1814.0805,
+    "y": 2253.6557
+  },
+  {
+    "id": "building-six-north-far-east-path318",
+    "key": "six-north-far-east",
+    "label": "Unidentified facade farther east of Six North Michigan",
+    "x": 2042.0162,
+    "y": 2285.5125
+  },
+  {
+    "id": "building-six-north-east-path320",
+    "key": "six-north-east",
+    "label": "Unidentified facade east of Six North Michigan",
+    "x": 2004.57,
+    "y": 2255.198
+  },
+  {
+    "id": "building-six-north-far-east-path320",
+    "key": "six-north-far-east",
+    "label": "Unidentified facade farther east of Six North Michigan",
+    "x": 2043.0908,
+    "y": 2257.5119
+  },
+  {
+    "id": "building-six-north-michigan",
+    "key": "six-north-michigan",
+    "label": "Six North Michigan (Montgomery Ward Building)",
+    "x": 1618.1532,
+    "y": 2208.6083
+  },
+  {
+    "id": "building-willoughby-tower",
+    "key": "building-willoughby-tower",
+    "label": "Willoughby Tower",
+    "x": 1382.5842,
+    "y": 1783.9996
+  },
+  {
+    "id": "building-michigan-west-right",
+    "key": "michigan-west-right",
+    "label": "Unidentified Michigan Avenue facade (east)",
+    "x": 1112.625,
+    "y": 2495.7248
+  },
+  {
+    "id": "building-michigan-west-left",
+    "key": "michigan-west-left",
+    "label": "Unidentified Michigan Avenue facade (west)",
+    "x": 893.2416,
+    "y": 2487.6227
+  },
+  {
+    "id": "building-michigan-west-front",
+    "key": "michigan-west-front",
+    "label": "Unidentified Michigan Avenue foreground building",
+    "x": 950.3016,
+    "y": 2661.1501
+  },
+  {
+    "id": "building-kemper",
+    "key": "building-kemper",
+    "label": "Kemper Building",
+    "x": 2500.2695,
+    "y": 1811.4006
+  },
+  {
+    "id": "building-michigan-plaza-south-tower",
+    "key": "michigan-plaza-south-tower",
+    "label": "Michigan Plaza South",
+    "x": 3263.2813,
+    "y": 1580.9256
+  },
+  {
+    "id": "building-michigan-plaza-front-tall",
+    "key": "michigan-plaza-front-tall",
+    "label": "Unidentified tower in front of Michigan Plaza",
+    "x": 3361.0719,
+    "y": 2019.3351
+  },
+  {
+    "id": "building-michigan-plaza-front-middle",
+    "key": "michigan-plaza-front-middle",
+    "label": "Unidentified gabled building in front of Michigan Plaza",
+    "x": 3248.9499,
+    "y": 2310.161
+  },
+  {
+    "id": "building-michigan-plaza-front-small",
+    "key": "michigan-plaza-front-small",
+    "label": "Unidentified low-rise in front of Michigan Plaza",
+    "x": 3211.073,
+    "y": 2560.6046
+  },
+  {
+    "id": "building-crain-communications",
+    "key": "building-crain-communications",
+    "label": "Crain Communications Building",
+    "x": 2926.8714,
+    "y": 1594.9217
+  },
+  {
+    "id": "building-trump-tower-only",
+    "key": "trump-tower-only",
+    "label": "Trump International Hotel and Tower",
+    "x": 4136.8957,
+    "y": 493.5777
+  },
+  {
+    "id": "building-office-west-of-aon",
+    "key": "office-west-of-aon",
+    "label": "Unidentified office building west of Aon Center",
+    "x": 4702.4865,
+    "y": 1984.5345
+  },
+  {
+    "id": "building-one-prudential-plaza",
+    "key": "one-prudential-plaza",
+    "label": "One Prudential Plaza",
+    "x": 4055.0426,
+    "y": 1108.7318
+  },
+  {
+    "id": "building-two-prudential-plaza",
+    "key": "building-two-prudential-plaza",
+    "label": "Two Prudential Plaza",
+    "x": 4478.5653,
+    "y": 675.5608
+  },
+  {
+    "id": "building-prudential-plaza-podium",
+    "key": "one-prudential-plaza",
+    "label": "One Prudential Plaza",
+    "x": 3987.5485,
+    "y": 2541.0877
+  },
+  {
+    "id": "building-university-club",
+    "key": "building-university-club",
+    "label": "University Club of Chicago",
+    "x": 600.1522,
+    "y": 2353.6845
+  },
+  {
+    "id": "building-monroe",
+    "key": "building-monroe",
+    "label": "Monroe Building",
+    "x": 501.3432,
+    "y": 2352.5009
+  },
+  {
+    "id": "building-maclean-center",
+    "key": "building-maclean-center",
+    "label": "SAIC MacLean Center (Illinois Athletic Club)",
+    "x": 358.3053,
+    "y": 2289.7252
+  },
+  {
+    "id": "building-lakeview",
+    "key": "building-lakeview",
+    "label": "SAIC Lakeview Building",
+    "x": 288.4814,
+    "y": 2303.306
+  },
+  {
+    "id": "building-peoples-gas",
+    "key": "building-peoples-gas",
+    "label": "Peoples Gas Building",
+    "x": -213.9271,
+    "y": 2146.1065
+  },
+  {
+    "id": "building-200-south-michigan",
+    "key": "building-200-south-michigan",
+    "label": "200 South Michigan (Borg-Warner Building)",
+    "x": -660.8878,
+    "y": 2145.5168
+  },
+  {
+    "id": "building-railway-exchange",
+    "key": "building-railway-exchange",
+    "label": "Railway Exchange Building (Santa Fe Building)",
+    "x": -1097.0912,
+    "y": 2178.2297
+  },
+  {
+    "id": "layer3",
+    "key": "layer3",
+    "label": "Aon Center",
+    "x": 5107.0945,
+    "y": 95.0021
+  }
+]

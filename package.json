@@ -1,0 +1,11 @@
+{
+  "name": "chicago-skyline",
+  "private": true,
+  "scripts": {
+    "check": "node scripts/check.cjs",
+    "test": "node scripts/check.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
