@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080808" />
+    <link rel="icon" href="data:," />
+    <title>Crain Communications Building — 3D Study</title>
+    <style>
+      :root { color-scheme: dark; background: #080808; color: #ddd; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      * { box-sizing: border-box; -webkit-tap-highlight-color: #ffffff22; }
+      body { margin: 0; }
+      a { color: inherit; text-underline-offset: 4px; }
+      header { display: flex; justify-content: space-between; align-items: start; gap: 24px; padding: 32px 5vw 24px; }
+      .eyebrow, .caption { color: #858585; font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase; }
+      .eyebrow { margin: 0 0 14px; }
+      h1 { margin: 0; color: #eee; font: 400 clamp(26px, 3.4vw, 46px)/1.08 Georgia, serif; }
+      .address { color: #999; font-size: 11px; margin: 12px 0 0; }
+      .back { font-size: 12px; white-space: nowrap; margin-top: 2px; }
+      main { max-width: 1600px; margin: auto; padding: 0 5vw 24px; }
+      .comparison { display: grid; grid-template-columns: 0.85fr 1.4fr; border-top: 1px solid #292929; border-bottom: 1px solid #292929; }
+      figure { position: relative; margin: 0; min-width: 0; }
+      .reference { border-right: 1px solid #292929; display: flex; flex-direction: column; align-items: center; }
+      figcaption { position: absolute; top: 20px; left: 22px; z-index: 1; pointer-events: none; }
+      .reference img { position: absolute; left: 50%; transform: translateX(-50%); width: 65%; height: 100%; padding: 65px 0 45px; object-fit: contain; }
+      .viewport { height: clamp(440px, 67vh, 850px); min-height: 0; position: relative; background: radial-gradient(ellipse at 50% 55%, #191919, #0b0b0b 70%); }
+      canvas { display: block; width: 100%; height: calc(100% - 44px); touch-action: none; cursor: grab; }
+      canvas:active { cursor: grabbing; }
+      .view-label { position: absolute; right: 20px; top: 20px; color: #777; font-size: 10px; pointer-events: none; }
+      .hint { position: absolute; bottom: 7px; left: 12px; right: 12px; margin: 0; text-align: center; color: #777; font-size: 10px; line-height: 1.6; pointer-events: none; }
+      .narrow-hint { display: none; }
+      .loading { position: absolute; inset: 30% 24px auto; color: #bbb; font-size: 12px; line-height: 1.7; text-align: center; }
+      .toolbar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 20px 0 6px; }
+      .button-group { display: flex; flex-wrap: wrap; gap: 7px; }
+      button { border: 1px solid #393939; border-radius: 2px; padding: 10px 13px; background: #101010; color: #aaa; font: inherit; font-size: 11px; cursor: pointer; }
+      button:hover, button[aria-pressed="true"] { color: #fff; border-color: #999; background: #202020; }
+      button:disabled { cursor: default; opacity: 0.35; }
+      :focus-visible { outline: 1px solid #fff; outline-offset: 4px; }
+      .notes { display: flex; justify-content: space-between; gap: 30px; color: #777; font-size: 10px; line-height: 1.8; }
+      .notes p { max-width: 65ch; }
+      .tooltip { position: fixed; z-index: 3; border: 1px solid #3a3a3a; border-radius: 3px; padding: 4px 7px; background: #000; color: #fff; font: 600 12px/1.15 ui-monospace, monospace; pointer-events: none; }
+      [hidden] { display: none !important; }
+      @media (max-width: 600px) {
+        header { padding: 24px 5vw; flex-wrap: wrap; gap: 18px; }
+        h1 { max-width: 300px; }
+        .comparison { grid-template-columns: 0.55fr 1fr; }
+        .viewport { height: 430px; }
+        figcaption { top: 14px; left: 10px; font-size: 9px; letter-spacing: 0.05em; }
+        .reference img { width: 88%; padding: 50px 0 48px; }
+        .view-label { top: 34px; left: 10px; right: auto; font-size: 9px; }
+        .hint { font-size: 9px; }
+        .wide-hint { display: none; }
+        .narrow-hint { display: inline; }
+        .notes { display: block; }
+        button { padding: 12px 11px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <p class="eyebrow">Chicago skyline / building study 01</p>
+        <h1>Crain Communications Building</h1>
+        <p class="address">150 North Michigan Avenue · the diamond roof</p>
+      </div>
+      <a class="back" href="index.html">← back to skyline</a>
+    </header>
+    <main>
+      <div class="comparison">
+        <figure class="reference">
+          <figcaption class="caption">01 / existing SVG</figcaption>
+          <img src="models/crain-reference.svg" alt="Existing grayscale illustration of the Crain Communications Building, with its diamond roof and horizontal window bands" />
+        </figure>
+        <figure>
+          <figcaption class="caption">02 / 3D study</figcaption>
+          <div class="viewport" id="viewport">
+            <canvas id="building" tabindex="0" role="img" aria-label="Interactive 3D model of the Crain Communications Building" aria-describedby="camera-hint"></canvas>
+            <span class="view-label" id="view-label">three-quarter view</span>
+            <p class="loading" id="loading" role="status">Preparing the building…</p>
+            <p class="hint" id="camera-hint">Drag to orbit · scroll or pinch to zoom<br />Arrow keys rotate · + / − zoom · Home resets</p>
+          </div>
+        </figure>
+      </div>
+      <div class="toolbar" aria-label="Building study controls">
+        <div class="button-group" role="group" aria-label="Camera views">
+          <button type="button" data-view="front">front</button>
+          <button type="button" data-view="quarter" aria-pressed="true">three-quarter</button>
+          <button type="button" data-view="side">side</button>
+          <button type="button" id="reset">reset view</button>
+        </div>
+        <div class="button-group" role="group" aria-label="Model display">
+          <button type="button" id="wireframe" aria-pressed="false">wireframe</button>
+          <button type="button" id="turntable" aria-pressed="false" aria-describedby="motion-status">turntable</button>
+        </div>
+      </div>
+      <div class="notes">
+        <p>A stylized shape study. The façades, roof, and depth are modeled in 3D; proportions and hidden sides are approximate.</p>
+        <p id="motion-status" role="status">Camera moves only when you interact or start the turntable.</p>
+      </div>
+      <noscript><p>Enable JavaScript to explore the 3D model. The existing SVG reference is shown above.</p></noscript>
+    </main>
+    <div class="tooltip" id="tooltip" aria-hidden="true" hidden></div>
+    <script>
+      function showStudyError(message) {
+        document.querySelector("#loading").textContent = message;
+        document.querySelectorAll("button").forEach((button) => { button.disabled = true; });
+      }
+      if (location.protocol === "file:") {
+        showStudyError("Start a local server with python3 -m http.server, then open http://localhost:8000/building-study.html to explore the 3D model.");
+      } else {
+        import("./building-study.js").catch((error) => {
+          console.error(error);
+          showStudyError("The 3D preview could not load. Check that WebGL 2 is enabled, then reload. You can still compare the SVG or return to the skyline.");
+        });
+      }
+    </script>
+  </body>
+</html>

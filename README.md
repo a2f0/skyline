@@ -20,6 +20,29 @@ Use **debug motion** to preview a slightly wider brightness range (30–70% opac
 
 Because the prototype fetches and decomposes the enhanced SVG at runtime, use a local web server rather than opening the WebGL mode through `file://`. From the repository directory, run `python3 -m http.server`, then open `http://localhost:8000`. The enhanced and fitted-original SVG modes continue to work when `index.html` is opened directly.
 
+## Single-building 3D study
+
+Select **3d building** in the viewer, or open `http://localhost:8000/building-study.html` after starting `python3 -m http.server`. This first experiment for [#4](https://github.com/a2f0/skyline/issues/4) places a custom Crain Communications Building model beside its existing SVG illustration.
+
+Drag to orbit, scroll or pinch to zoom, and hover to illuminate the building and display its name. Front, three-quarter, and side buttons make the shape easy to compare. **Wireframe** exposes the triangles; **turntable** opts into a slow rotation. Focus the canvas and use arrow keys to rotate, `+` / `−` to zoom, or `Home` to reset. Reduced motion disables drag movement and the turntable; view buttons and keyboard controls remain available as immediate changes. The renderer only draws when the view changes, except while the turntable is running, and suspends rendering in a hidden tab.
+
+The model has a closed tower shell, a diagonal diamond roof, a roof grid and dark split, and clipped window cells on all four façades. It uses grayscale toon materials, real perspective, depth testing, directional shadows, and raycast hover selection. The model builder lives in `models/crain-communications.js`; it can be reused in a larger scene.
+
+This is an art-directed shape study, not a surveyed or georeferenced reconstruction. The 177.4 m height comes from the [Skyscraper Center's building record](https://www.skyscrapercenter.com/building/150-north-michigan-avenue/2441); width, roof slope, window arrangement, and hidden sides are approximations guided by the repository's SVG. `models/crain-reference.svg` is an excerpt of the existing `building-crain-communications` group, with a padded viewBox and no third-party artwork. The model is authored locally; no external model, photographic texture, map tiles, or footprint dataset is included.
+
+For this experiment, local Three.js was chosen to explore the custom geometry and materials with little scene setup. The existing raw WebGL renderer remains useful for the SVG layers, but would need its own camera, mesh, lighting, and picking implementation for this study. Cesium is still a candidate for a later georeferenced city comparison; streamed OSM or footprint extrusions would need custom roof geometry to reproduce this landmark. This experiment does **not** settle the engine or data choice for the full skyline in #4. Matching the skyline camera, testing geographic data and Cesium, and modeling the other buildings remain future work.
+
+Three.js is vendored under its MIT license; see `vendor/README.md` for provenance and regeneration. The study loads entirely from the local server without API keys, paid services, or CDN access. The enhanced, original, and 2.5D WebGL viewer modes remain available through **back to skyline**.
+
+To run the browser smoke checks with the local server running and Google Chrome installed:
+
+```sh
+npm install --prefix /tmp/skyline-3d-tools --no-audit --no-fund --ignore-scripts playwright
+NODE_PATH=/tmp/skyline-3d-tools/node_modules node tests/building-study.cjs
+```
+
+The checks cover actual rendering, hover selection, camera views and orbit, wireframe, idle rendering, live reduced-motion changes, keyboard navigation, mobile touch, the existing viewer modes, and failure messages. Desktop, side, and mobile screenshots are written to `/tmp/skyline-3d-*.png`.
+
 ## Direction for Update
 
 These directions have been created using Inkscape 1.1 on MacOS.
