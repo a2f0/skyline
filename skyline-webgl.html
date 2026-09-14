@@ -446,6 +446,7 @@
             const bounds = transformedBounds(element, sourceRoot);
             return {
               id: element.id,
+              buildingId: element.dataset.buildingId || element.id,
               label: element.getAttribute("aria-label") || `Chicago building ${index + 1}`,
               bounds,
               content: serializer.serializeToString(element),
@@ -453,8 +454,30 @@
               parentTransform: matrixAttribute(parentMatrix(element, sourceRoot)),
               pickable: true,
               pickId: index + 1,
-              depth: 0.25 + (1 - Math.min(1, bounds.height / VIEWBOX.height)) * 0.75,
             };
+          });
+
+          // A building can have several paint layers, separated by another
+          // building in SVG draw order. Keep those layers in place, but give
+          // them one raster grid, parallax depth, and hover identity.
+          const buildingBounds = new Map();
+          descriptors.forEach(({ buildingId, bounds }) => {
+            const previous = buildingBounds.get(buildingId);
+            if (!previous) {
+              buildingBounds.set(buildingId, { ...bounds });
+              return;
+            }
+            const x = Math.min(previous.x, bounds.x);
+            const y = Math.min(previous.y, bounds.y);
+            buildingBounds.set(buildingId, {
+              x, y,
+              width: Math.max(previous.x + previous.width, bounds.x + bounds.width) - x,
+              height: Math.max(previous.y + previous.height, bounds.y + bounds.height) - y,
+            });
+          });
+          descriptors.forEach((descriptor) => {
+            descriptor.bounds = buildingBounds.get(descriptor.buildingId);
+            descriptor.depth = 0.25 + (1 - Math.min(1, descriptor.bounds.height / VIEWBOX.height)) * 0.75;
           });
 
           const terrain = sourceRoot.querySelector("#path6762");
@@ -545,11 +568,12 @@
           gl.clearColor(0, 0, 0, 0);
           gl.clear(gl.COLOR_BUFFER_BIT);
           prepareDrawState();
-          buildingSprites.forEach((sprite, index) => {
+          const selectedBuilding = buildingSprites[selectedIndex]?.buildingId;
+          buildingSprites.forEach((sprite) => {
             drawSprite(sprite, {
               pickPass: false,
               flatPass: false,
-              selected: index === selectedIndex,
+              selected: sprite.buildingId === selectedBuilding,
               time: reducedMotion.matches ? 0 : time,
             });
           });
@@ -609,6 +633,10 @@
           tooltip.hidden = true;
         });
 
+        reducedMotion.addEventListener("change", () => {
+          if (pointer.inside) pickPending = true;
+        });
+
         async function initialize() {
           program = createProgram();
           cacheUniforms();
@@ -623,6 +651,8 @@
           window.__skylineWebGL = {
             ready: true,
             layerCount: buildingSprites.length,
+            buildingCount: new Set(buildingSprites.map((sprite) => sprite.buildingId)).size,
+            get selectedBuilding() { return buildingSprites[selectedIndex]?.buildingId || null; },
             renderer: gl.getParameter(gl.RENDERER),
           };
         }

@@ -6,7 +6,7 @@ Open `index.html` in a modern browser for the full-screen viewer. Use the viewer
 
 The living-night treatment is entirely vector-based and grayscale. The transparent `skyline-animated.svg` layer keeps the buildings aligned along the bottom and scaled proportionally to fit the viewport. A separate `stars.svg` layer fills the entire viewport behind it with 96 stars, including the sky above the tallest buildings. Ten randomly selected stars (about 10%) softly twinkle; the other 86 stay steady. Positions and the twinkling selection are randomized each time the sky loads, then stay fixed during animation, resizing, and debug toggles. Star positions use percentages and their radii stay fixed so resizing does not stretch the stars. The buildings have no animated lights or beacons. Hover over any building to illuminate it; its name appears immediately in a compact black monospace label offset from the pointer.
 
-The building fidelity treatment also remains entirely vector-based. Clipped tonal gradients separate façade planes, while roof equipment, corner seams, and sparse occupied windows preserve the illustrated style at normal viewing sizes. These architectural details are static and ignore pointer events so they do not interfere with the building hover interactions. Named groups include Aon Center, Aqua, Blue Cross and Blue Shield Tower, the Crain Communications Building, Trump International Hotel and Tower, Two Prudential Plaza, the Kemper Building, Leo Burnett Building, and Michigan Plaza South.
+The building fidelity treatment also remains entirely vector-based. Clipped tonal gradients separate façade planes, while roof equipment, corner seams, and sparse occupied windows preserve the illustrated style at normal viewing sizes. These architectural details are static and ignore pointer events so they do not interfere with the building hover interactions. Named buildings include Aon Center, 340 on the Park, Blue Cross and Blue Shield Tower, Crain Communications Building, Trump International Hotel and Tower, One and Two Prudential Plaza, Kemper Building, The Heritage at Millennium Park, and Michigan Plaza South. The [building audit](docs/building-labels.md) records the corrected historic-building names and the small silhouettes that remain unidentified.
 
 Each twinkling star has its own slow cycle of approximately 40–67 seconds and a random starting phase. Brightness varies subtly between 42% and 60% opacity, with fresh brightness levels each cycle, gradual transitions, and quiet pauses between twinkles.
 
@@ -16,7 +16,7 @@ Use **debug motion** to preview a slightly wider brightness range (30–70% opac
 
 ## WebGL prototype
 
-`skyline-webgl.html` uses `skyline-animated.svg` as source artwork. At runtime it rasterizes the 21 labeled SVG building groups into separate cropped GPU textures, draws them as subtly depth-shifted quads, applies façade shading and hover illumination in a fragment shader, and resolves overlapping buildings with an offscreen color-picking pass. The foreground remains a separate top layer, and the existing star field stays visible beneath the transparent WebGL canvas.
+`skyline-webgl.html` uses `skyline-animated.svg` as source artwork. At runtime it rasterizes 38 SVG paint layers representing 31 building identities into cropped GPU textures, draws them as subtly depth-shifted quads, applies façade shading and hover illumination in a fragment shader, and resolves overlapping buildings with an offscreen color-picking pass. Separate portions of one building share a hover identity and parallax depth while keeping their original draw order. The foreground remains a separate top layer, and the existing star field stays visible beneath the transparent WebGL canvas.
 
 Because the prototype fetches and decomposes the enhanced SVG at runtime, use a local web server rather than opening the WebGL mode through `file://`. From the repository directory, run `python3 -m http.server`, then open `http://localhost:8000`. The enhanced and fitted-original SVG modes continue to work when `index.html` is opened directly.
 
@@ -34,14 +34,20 @@ For this experiment, local Three.js was chosen to explore the custom geometry an
 
 Three.js is vendored under its MIT license; see `vendor/README.md` for provenance and regeneration. The study loads entirely from the local server without API keys, paid services, or CDN access. The enhanced, original, and 2.5D WebGL viewer modes remain available through **back to skyline**.
 
-To run the browser smoke checks with the local server running and Google Chrome installed:
+## Checks and PR workflow
+
+With Node.js 20+ and Google Chrome installed, run:
 
 ```sh
-npm install --prefix /tmp/skyline-3d-tools --no-audit --no-fund --ignore-scripts playwright
-NODE_PATH=/tmp/skyline-3d-tools/node_modules node tests/building-study.cjs
+npm ci --ignore-scripts
+npm run check
 ```
 
-The checks cover actual rendering, hover selection, camera views and orbit, wireframe, idle rendering, live reduced-motion changes, keyboard navigation, mobile touch, the existing viewer modes, and failure messages. Desktop, side, and mobile screenshots are written to `/tmp/skyline-3d-*.png`.
+The runner starts its own temporary local server. Checks cover the merge helper's guards, SVG/WebGL hover regions and illumination, actual 3D rendering, camera views and orbit, wireframe, idle rendering, reduced motion, keyboard navigation, mobile touch, existing viewer modes, and failure messages. Desktop, side, and mobile screenshots are written to `/tmp/skyline-3d-*.png`. To run one browser suite against an existing server, use `node tests/building-hover.cjs` or `node tests/building-study.cjs`; `SKYLINE_TEST_URL` overrides the default `http://127.0.0.1:8000`.
+
+The repo includes the `ship-pr`, `open-pr`, `cross-agent-review`, `squash-merge`, and `reset` skills adapted from [tearleads](https://github.com/a2f0/tearleads). In Codex, invoke `$ship-pr` to commit, review and repair, open or resume the PR, squash-merge the reviewed commit, and return to updated `main`. In Claude Code, use `/ship-pr`. Use `$open-pr` or `/open-pr` when you want to stop with an open PR. Optional `--keep-branch` leaves you on the feature branch after shipping; `--report-only` disables review repairs and stops shipping on blocking findings.
+
+The canonical skills live in `.agents/skills`, following [Codex's local skill discovery](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills); `.claude/skills` contains relative links to the same instructions. If a new skill does not appear, restart the agent session. The flow uses Git, authenticated `gh`, local browser checks, and an available review agent, with a disclosed in-session review fallback. It has no dependency on tearleads' Bun workspace, agent-tool, commitlint, or hook installer. Merge messages contain only the PR title and `(#number)`; the helper binds the merge to the reviewed head using [GitHub's `expectedHeadOid`](https://docs.github.com/en/graphql/reference/pulls#mergepullrequestinput). Base freshness is checked immediately before merging; atomic base enforcement depends on repository protection rules.
 
 ## Direction for Update
 

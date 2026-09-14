@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ship PR"
+  short_description: "Review, repair, merge, and clean up a Skyline PR"
+  default_prompt: "Use $ship-pr to ship the current Skyline changes."
