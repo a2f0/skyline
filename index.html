@@ -46,6 +46,10 @@
         z-index: 1;
       }
 
+      .scene[hidden] {
+        display: none;
+      }
+
       .controls {
         position: fixed;
         z-index: 2;
@@ -144,9 +148,18 @@
         src="skyline-animated.svg"
         title="Animated Chicago skyline at night"
       ></iframe>
+      <iframe
+        class="scene"
+        id="webgl-scene"
+        data-src="skyline-webgl.html"
+        title="WebGL Chicago skyline prototype"
+        hidden
+      ></iframe>
 
       <nav class="controls" aria-label="Skyline controls">
         <button type="button" id="fullscreen" aria-pressed="false">fullscreen</button>
+        <button type="button" id="toggle-skyline" aria-pressed="false">show original</button>
+        <button type="button" id="toggle-webgl" aria-pressed="false">show webgl</button>
         <button type="button" id="debug-motion" aria-pressed="false" aria-describedby="motion-status">debug motion</button>
         <p class="motion-status" id="motion-status" role="status">Checking motion preference…</p>
       </nav>
@@ -157,11 +170,68 @@
     <script>
       const fullscreenButton = document.querySelector("#fullscreen");
       const status = document.querySelector("#status");
+      const scene = document.querySelector("#scene");
+      const webglScene = document.querySelector("#webgl-scene");
       const stars = document.querySelector("#stars");
+      const skylineToggleButton = document.querySelector("#toggle-skyline");
+      const webglToggleButton = document.querySelector("#toggle-webgl");
       const debugMotionButton = document.querySelector("#debug-motion");
       const motionStatus = document.querySelector("#motion-status");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       let debugMotion = false;
+      let skylineMode = "enhanced";
+
+      function updateSkylineView() {
+        const showingOriginal = skylineMode === "original";
+        const showingWebgl = skylineMode === "webgl";
+
+        if (showingWebgl) {
+          if (!webglScene.getAttribute("src")) {
+            webglScene.src = webglScene.dataset.src;
+          }
+          scene.hidden = true;
+          webglScene.hidden = false;
+        } else {
+          const nextSource = showingOriginal ? "skyline-original-fit.svg" : "skyline-animated.svg";
+          if (scene.getAttribute("src") !== nextSource) {
+            scene.src = nextSource;
+          }
+          scene.title = showingOriginal
+            ? "Original Chicago skyline"
+            : "Animated Chicago skyline at night";
+          scene.hidden = false;
+          webglScene.hidden = true;
+        }
+
+        skylineToggleButton.textContent = showingOriginal ? "show enhanced" : "show original";
+        skylineToggleButton.setAttribute("aria-pressed", String(showingOriginal));
+        skylineToggleButton.title = showingOriginal
+          ? "Return to the enhanced interactive skyline"
+          : "Compare with the original skyline SVG";
+        webglToggleButton.textContent = showingWebgl ? "show enhanced" : "show webgl";
+        webglToggleButton.setAttribute("aria-pressed", String(showingWebgl));
+        webglToggleButton.title = showingWebgl
+          ? "Return to the enhanced interactive skyline"
+          : "Preview the WebGL skyline prototype";
+      }
+
+      skylineToggleButton.addEventListener("click", () => {
+        skylineMode = skylineMode === "original" ? "enhanced" : "original";
+        updateSkylineView();
+        status.textContent = skylineMode === "original"
+          ? "Original skyline displayed"
+          : "Enhanced interactive skyline displayed";
+      });
+
+      webglToggleButton.addEventListener("click", () => {
+        skylineMode = skylineMode === "webgl" ? "enhanced" : "webgl";
+        updateSkylineView();
+        status.textContent = skylineMode === "webgl"
+          ? "WebGL skyline prototype displayed"
+          : "Enhanced interactive skyline displayed";
+      });
+
+      updateSkylineView();
 
       function updateMotionStatus() {
         const preference = reducedMotion.matches ? "reduced" : "allowed";

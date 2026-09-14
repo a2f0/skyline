@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WebGL Chicago Skyline Prototype</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        background: transparent;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      }
+
+      html,
+      body,
+      canvas {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: transparent;
+      }
+
+      canvas {
+        display: block;
+        cursor: crosshair;
+      }
+
+      .loading,
+      .badge,
+      .tooltip {
+        position: fixed;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      .loading {
+        left: 50%;
+        bottom: 24px;
+        transform: translateX(-50%);
+        color: #a8a8a8;
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-align: center;
+      }
+
+      .loading.error {
+        max-width: min(520px, calc(100% - 32px));
+        color: #fff;
+        line-height: 1.5;
+      }
+
+      .badge {
+        right: 12px;
+        bottom: 10px;
+        color: #777;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .tooltip {
+        border: 1px solid #3a3a3a;
+        border-radius: 3px;
+        padding: 4px 7px;
+        background: #000;
+        color: #fff;
+        font: 600 12px/1.15 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+        white-space: nowrap;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="skyline" role="img" aria-label="Interactive WebGL rendering of the Chicago skyline"></canvas>
+    <p class="loading" id="loading" role="status">preparing WebGL building layers…</p>
+    <div class="tooltip" id="tooltip" aria-hidden="true" hidden></div>
+    <div class="badge" id="badge" hidden>WebGL · 0 layers</div>
+
+    <script>
+      (() => {
+        "use strict";
+
+        const SOURCE_URL = "skyline-animated.svg";
+        const VIEWBOX = { x: 0, y: 0, width: 8501.0986, height: 2782.0373 };
+        const SVG_NS = "http://www.w3.org/2000/svg";
+        const XLINK_NS = "http://www.w3.org/1999/xlink";
+        const canvas = document.querySelector("#skyline");
+        const loading = document.querySelector("#loading");
+        const tooltip = document.querySelector("#tooltip");
+        const badge = document.querySelector("#badge");
+        const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+        const gl = canvas.getContext("webgl2", {
+          alpha: true,
+          antialias: true,
+          premultipliedAlpha: false,
+        });
+
+        if (!gl) {
+          fail("WebGL 2 is not available in this browser.");
+          return;
+        }
+
+        const vertexSource = `#version 300 es
+          in vec2 a_corner;
+          out vec2 v_uv;
+          uniform vec4 u_bounds;
+          uniform vec2 u_viewport;
+          uniform vec2 u_origin;
+          uniform vec2 u_shift;
+          uniform float u_scale;
+
+          void main() {
+            vec2 svgPosition = u_bounds.xy + a_corner * u_bounds.zw;
+            vec2 pixelPosition = u_origin + svgPosition * u_scale + u_shift;
+            vec2 clipPosition = vec2(
+              pixelPosition.x / u_viewport.x * 2.0 - 1.0,
+              1.0 - pixelPosition.y / u_viewport.y * 2.0
+            );
+            gl_Position = vec4(clipPosition, 0.0, 1.0);
+            v_uv = vec2(a_corner.x, 1.0 - a_corner.y);
+          }
+        `;
+
+        const fragmentSource = `#version 300 es
+          precision highp float;
+          in vec2 v_uv;
+          out vec4 outColor;
+          uniform sampler2D u_texture;
+          uniform vec2 u_texel;
+          uniform vec3 u_pickColor;
+          uniform float u_selected;
+          uniform float u_time;
+          uniform int u_pickPass;
+          uniform int u_flatPass;
+
+          void main() {
+            vec4 texel = texture(u_texture, v_uv);
+            if (u_pickPass == 1) {
+              if (texel.a < 0.12) {
+                discard;
+              }
+              outColor = vec4(u_pickColor, 1.0);
+              return;
+            }
+
+            if (u_flatPass == 1) {
+              if (texel.a < 0.015) {
+                discard;
+              }
+              outColor = texel;
+              return;
+            }
+
+            float nearbyAlpha = texel.a;
+            if (u_selected > 0.5) {
+              vec2 radius = u_texel * 5.0;
+              nearbyAlpha = max(nearbyAlpha, texture(u_texture, v_uv + vec2(radius.x, 0.0)).a);
+              nearbyAlpha = max(nearbyAlpha, texture(u_texture, v_uv - vec2(radius.x, 0.0)).a);
+              nearbyAlpha = max(nearbyAlpha, texture(u_texture, v_uv + vec2(0.0, radius.y)).a);
+              nearbyAlpha = max(nearbyAlpha, texture(u_texture, v_uv - vec2(0.0, radius.y)).a);
+              nearbyAlpha = max(nearbyAlpha, texture(u_texture, v_uv + radius).a);
+              nearbyAlpha = max(nearbyAlpha, texture(u_texture, v_uv - radius).a);
+              nearbyAlpha = max(nearbyAlpha, texture(u_texture, v_uv + vec2(radius.x, -radius.y)).a);
+              nearbyAlpha = max(nearbyAlpha, texture(u_texture, v_uv + vec2(-radius.x, radius.y)).a);
+            }
+            if (nearbyAlpha < 0.015) {
+              discard;
+            }
+
+            float facadeLight = mix(0.955, 1.035, v_uv.x);
+            vec3 shaded = texel.rgb * facadeLight;
+            float outputAlpha = texel.a;
+
+            if (u_selected > 0.5) {
+              float halo = max(0.0, nearbyAlpha - texel.a) * 0.72;
+              float pulse = 1.15 + 0.025 * sin(u_time * 0.003);
+              vec3 illuminated = min(vec3(1.0), shaded * pulse + 0.02);
+              shaded = texel.a > 0.025 ? illuminated : vec3(0.76);
+              outputAlpha = max(texel.a, halo);
+            }
+
+            outColor = vec4(shaded, outputAlpha);
+          }
+        `;
+
+        let program;
+        let vao;
+        let uniforms;
+        let buildingSprites = [];
+        let terrainSprite = null;
+        let pickFramebuffer = null;
+        let pickTexture = null;
+        let selectedIndex = -1;
+        let pickPending = false;
+        let ready = false;
+        let pointer = { x: 0, y: 0, inside: false, parallax: 0 };
+        let projection = { scale: 1, originX: 0, originY: 0 };
+
+        function fail(message, error) {
+          if (error) {
+            console.error(error);
+          }
+          loading.textContent = location.protocol === "file:"
+            ? `${message} Run a local server to use the WebGL view (for example: python3 -m http.server).`
+            : message;
+          loading.classList.add("error");
+          loading.hidden = false;
+          badge.hidden = true;
+        }
+
+        function compileShader(type, source) {
+          const shader = gl.createShader(type);
+          gl.shaderSource(shader, source);
+          gl.compileShader(shader);
+          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            const message = gl.getShaderInfoLog(shader);
+            gl.deleteShader(shader);
+            throw new Error(message);
+          }
+          return shader;
+        }
+
+        function createProgram() {
+          const vertexShader = compileShader(gl.VERTEX_SHADER, vertexSource);
+          const fragmentShader = compileShader(gl.FRAGMENT_SHADER, fragmentSource);
+          const nextProgram = gl.createProgram();
+          gl.attachShader(nextProgram, vertexShader);
+          gl.attachShader(nextProgram, fragmentShader);
+          gl.linkProgram(nextProgram);
+          gl.deleteShader(vertexShader);
+          gl.deleteShader(fragmentShader);
+          if (!gl.getProgramParameter(nextProgram, gl.LINK_STATUS)) {
+            throw new Error(gl.getProgramInfoLog(nextProgram));
+          }
+          return nextProgram;
+        }
+
+        function setupGeometry() {
+          vao = gl.createVertexArray();
+          const buffer = gl.createBuffer();
+          gl.bindVertexArray(vao);
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+          gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]),
+            gl.STATIC_DRAW,
+          );
+          const corner = gl.getAttribLocation(program, "a_corner");
+          gl.enableVertexAttribArray(corner);
+          gl.vertexAttribPointer(corner, 2, gl.FLOAT, false, 0, 0);
+          gl.bindVertexArray(null);
+        }
+
+        function cacheUniforms() {
+          uniforms = Object.fromEntries([
+            "u_bounds",
+            "u_viewport",
+            "u_origin",
+            "u_shift",
+            "u_scale",
+            "u_texture",
+            "u_texel",
+            "u_pickColor",
+            "u_selected",
+            "u_time",
+            "u_pickPass",
+            "u_flatPass",
+          ].map((name) => [name, gl.getUniformLocation(program, name)]));
+        }
+
+        function resizeCanvas() {
+          const pixelRatio = Math.min(devicePixelRatio || 1, 2);
+          const width = Math.max(1, Math.round(innerWidth * pixelRatio));
+          const height = Math.max(1, Math.round(innerHeight * pixelRatio));
+          if (canvas.width === width && canvas.height === height) {
+            return false;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          projection.scale = Math.min(width / VIEWBOX.width, height / VIEWBOX.height);
+          projection.originX = (width - VIEWBOX.width * projection.scale) / 2;
+          projection.originY = height - VIEWBOX.height * projection.scale;
+          createPickTarget();
+          return true;
+        }
+
+        function createPickTarget() {
+          if (pickFramebuffer) {
+            gl.deleteFramebuffer(pickFramebuffer);
+            gl.deleteTexture(pickTexture);
+          }
+          pickTexture = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, pickTexture);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            canvas.width,
+            canvas.height,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null,
+          );
+          pickFramebuffer = gl.createFramebuffer();
+          gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);
+          gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,
+            gl.COLOR_ATTACHMENT0,
+            gl.TEXTURE_2D,
+            pickTexture,
+            0,
+          );
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
+
+        function transformedBounds(element, sourceRoot) {
+          const bounds = element.getBBox();
+          const rootMatrix = sourceRoot.getScreenCTM();
+          const elementMatrix = element.getScreenCTM();
+          const matrix = rootMatrix.inverse().multiply(elementMatrix);
+          const points = [
+            new DOMPoint(bounds.x, bounds.y),
+            new DOMPoint(bounds.x + bounds.width, bounds.y),
+            new DOMPoint(bounds.x, bounds.y + bounds.height),
+            new DOMPoint(bounds.x + bounds.width, bounds.y + bounds.height),
+          ].map((point) => point.matrixTransform(matrix));
+          const xs = points.map((point) => point.x);
+          const ys = points.map((point) => point.y);
+          return {
+            x: Math.min(...xs),
+            y: Math.min(...ys),
+            width: Math.max(...xs) - Math.min(...xs),
+            height: Math.max(...ys) - Math.min(...ys),
+          };
+        }
+
+        function parentMatrix(element, sourceRoot) {
+          const rootMatrix = sourceRoot.getScreenCTM();
+          const parentScreenMatrix = element.parentElement.getScreenCTM();
+          return rootMatrix.inverse().multiply(parentScreenMatrix);
+        }
+
+        function matrixAttribute(matrix) {
+          return `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`;
+        }
+
+        function spriteDocument(descriptor, drawBounds, width, height) {
+          return `<?xml version="1.0" encoding="UTF-8"?>
+            <svg xmlns="${SVG_NS}" xmlns:xlink="${XLINK_NS}"
+              viewBox="${drawBounds.x} ${drawBounds.y} ${drawBounds.width} ${drawBounds.height}"
+              width="${width}" height="${height}">
+              ${descriptor.definitions}
+              <g transform="${descriptor.parentTransform}">${descriptor.content}</g>
+            </svg>`;
+        }
+
+        function loadImage(markup) {
+          return new Promise((resolve, reject) => {
+            const blob = new Blob([markup], { type: "image/svg+xml" });
+            const url = URL.createObjectURL(blob);
+            const image = new Image();
+            image.onload = () => {
+              URL.revokeObjectURL(url);
+              resolve(image);
+            };
+            image.onerror = () => {
+              URL.revokeObjectURL(url);
+              reject(new Error("A WebGL building texture could not be rasterized."));
+            };
+            image.src = url;
+          });
+        }
+
+        async function rasterize(descriptor) {
+          const pixelRatio = Math.min(devicePixelRatio || 1, 2);
+          const paddingPixels = descriptor.pickable ? 30 * pixelRatio : 2 * pixelRatio;
+          const padding = paddingPixels / projection.scale;
+          const drawBounds = {
+            x: descriptor.bounds.x - padding,
+            y: descriptor.bounds.y - padding,
+            width: descriptor.bounds.width + padding * 2,
+            height: descriptor.bounds.height + padding * 2,
+          };
+          const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+          let rasterScale = projection.scale;
+          rasterScale = Math.min(
+            rasterScale,
+            maxTextureSize / drawBounds.width,
+            maxTextureSize / drawBounds.height,
+          );
+          const width = Math.max(2, Math.ceil(drawBounds.width * rasterScale));
+          const height = Math.max(2, Math.ceil(drawBounds.height * rasterScale));
+          const image = await loadImage(spriteDocument(descriptor, drawBounds, width, height));
+          const texture = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, texture);
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+          gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+          return {
+            ...descriptor,
+            drawBounds,
+            texture,
+            texelX: 1 / width,
+            texelY: 1 / height,
+          };
+        }
+
+        async function prepareSprites() {
+          const response = await fetch(SOURCE_URL);
+          if (!response.ok) {
+            throw new Error(`Could not load ${SOURCE_URL} (${response.status}).`);
+          }
+          const sourceText = await response.text();
+          const sourceDocument = new DOMParser().parseFromString(sourceText, "image/svg+xml");
+          if (sourceDocument.querySelector("parsererror")) {
+            throw new Error(`${SOURCE_URL} could not be parsed.`);
+          }
+
+          const sourceRoot = sourceDocument.documentElement;
+          sourceRoot.querySelectorAll("script, #building-tooltip").forEach((element) => element.remove());
+          sourceRoot.setAttribute("width", "850");
+          sourceRoot.setAttribute("height", "278");
+          const sourceHost = document.createElement("div");
+          sourceHost.style.cssText = "position:fixed;left:-10000px;top:0;width:850px;height:278px;opacity:0;pointer-events:none";
+          sourceHost.append(sourceRoot);
+          document.body.append(sourceHost);
+          await new Promise(requestAnimationFrame);
+
+          const serializer = new XMLSerializer();
+          const definitions = serializer.serializeToString(sourceRoot.querySelector("defs"));
+          const elements = [...sourceRoot.querySelectorAll(".interactive-building")];
+          const descriptors = elements.map((element, index) => {
+            const bounds = transformedBounds(element, sourceRoot);
+            return {
+              id: element.id,
+              label: element.getAttribute("aria-label") || `Chicago building ${index + 1}`,
+              bounds,
+              content: serializer.serializeToString(element),
+              definitions,
+              parentTransform: matrixAttribute(parentMatrix(element, sourceRoot)),
+              pickable: true,
+              pickId: index + 1,
+              depth: 0.25 + (1 - Math.min(1, bounds.height / VIEWBOX.height)) * 0.75,
+            };
+          });
+
+          const terrain = sourceRoot.querySelector("#path6762");
+          const terrainDescriptor = {
+            id: terrain.id,
+            label: "foreground",
+            bounds: transformedBounds(terrain, sourceRoot),
+            content: serializer.serializeToString(terrain),
+            definitions,
+            parentTransform: matrixAttribute(parentMatrix(terrain, sourceRoot)),
+            pickable: false,
+            pickId: 0,
+            depth: 1.15,
+          };
+
+          for (let index = 0; index < descriptors.length; index += 1) {
+            loading.textContent = `rasterizing WebGL building ${index + 1} / ${descriptors.length}…`;
+            buildingSprites.push(await rasterize(descriptors[index]));
+          }
+          loading.textContent = "rasterizing skyline foreground…";
+          terrainSprite = await rasterize(terrainDescriptor);
+          sourceHost.remove();
+        }
+
+        function drawSprite(sprite, options) {
+          const pixelRatio = Math.min(devicePixelRatio || 1, 2);
+          const parallax = reducedMotion.matches ? 0 : pointer.parallax;
+          const shift = parallax * sprite.depth * 4 * pixelRatio;
+          gl.bindTexture(gl.TEXTURE_2D, sprite.texture);
+          gl.uniform4f(
+            uniforms.u_bounds,
+            sprite.drawBounds.x,
+            sprite.drawBounds.y,
+            sprite.drawBounds.width,
+            sprite.drawBounds.height,
+          );
+          gl.uniform2f(uniforms.u_shift, shift, 0);
+          gl.uniform2f(uniforms.u_texel, sprite.texelX, sprite.texelY);
+          gl.uniform3f(uniforms.u_pickColor, sprite.pickId / 255, 0, 0);
+          gl.uniform1f(uniforms.u_selected, options.selected ? 1 : 0);
+          gl.uniform1f(uniforms.u_time, options.time);
+          gl.uniform1i(uniforms.u_pickPass, options.pickPass ? 1 : 0);
+          gl.uniform1i(uniforms.u_flatPass, options.flatPass ? 1 : 0);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+
+        function prepareDrawState() {
+          gl.useProgram(program);
+          gl.bindVertexArray(vao);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.uniform1i(uniforms.u_texture, 0);
+          gl.uniform2f(uniforms.u_viewport, canvas.width, canvas.height);
+          gl.uniform2f(uniforms.u_origin, projection.originX, projection.originY);
+          gl.uniform1f(uniforms.u_scale, projection.scale);
+        }
+
+        function pickBuilding() {
+          if (!ready || !pointer.inside) {
+            selectedIndex = -1;
+            return;
+          }
+          gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          gl.disable(gl.BLEND);
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          prepareDrawState();
+          buildingSprites.forEach((sprite) => {
+            drawSprite(sprite, { pickPass: true, flatPass: false, selected: false, time: 0 });
+          });
+          drawSprite(terrainSprite, { pickPass: true, flatPass: true, selected: false, time: 0 });
+
+          const pixelRatio = Math.min(devicePixelRatio || 1, 2);
+          const pixel = new Uint8Array(4);
+          const x = Math.max(0, Math.min(canvas.width - 1, Math.floor(pointer.x * pixelRatio)));
+          const y = Math.max(0, Math.min(canvas.height - 1, canvas.height - 1 - Math.floor(pointer.y * pixelRatio)));
+          gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+          selectedIndex = pixel[0] ? pixel[0] - 1 : -1;
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+          updateTooltip();
+        }
+
+        function drawScene(time) {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          prepareDrawState();
+          buildingSprites.forEach((sprite, index) => {
+            drawSprite(sprite, {
+              pickPass: false,
+              flatPass: false,
+              selected: index === selectedIndex,
+              time: reducedMotion.matches ? 0 : time,
+            });
+          });
+          drawSprite(terrainSprite, { pickPass: false, flatPass: true, selected: false, time: 0 });
+        }
+
+        function updateTooltip() {
+          const sprite = buildingSprites[selectedIndex];
+          if (!sprite || !pointer.inside) {
+            tooltip.hidden = true;
+            return;
+          }
+          tooltip.textContent = sprite.label;
+          tooltip.hidden = false;
+          const bounds = tooltip.getBoundingClientRect();
+          const gap = 18;
+          let x = pointer.x + gap;
+          let y = pointer.y + gap;
+          if (x + bounds.width > innerWidth - 6) {
+            x = pointer.x - gap - bounds.width;
+          }
+          if (y + bounds.height > innerHeight - 6) {
+            y = pointer.y - gap - bounds.height;
+          }
+          tooltip.style.left = `${Math.max(6, x)}px`;
+          tooltip.style.top = `${Math.max(6, y)}px`;
+        }
+
+        function frame(time) {
+          const resized = resizeCanvas();
+          if (resized && pointer.inside) {
+            pickPending = true;
+          }
+          if (pickPending) {
+            pickPending = false;
+            pickBuilding();
+          }
+          if (ready) {
+            drawScene(time);
+          }
+          requestAnimationFrame(frame);
+        }
+
+        canvas.addEventListener("pointermove", (event) => {
+          const bounds = canvas.getBoundingClientRect();
+          pointer.x = event.clientX - bounds.left;
+          pointer.y = event.clientY - bounds.top;
+          pointer.inside = true;
+          pointer.parallax = (pointer.x / Math.max(1, bounds.width) - 0.5) * 2;
+          pickPending = true;
+        }, { passive: true });
+
+        canvas.addEventListener("pointerleave", () => {
+          pointer.inside = false;
+          pointer.parallax = 0;
+          selectedIndex = -1;
+          tooltip.hidden = true;
+        });
+
+        async function initialize() {
+          program = createProgram();
+          cacheUniforms();
+          setupGeometry();
+          resizeCanvas();
+          requestAnimationFrame(frame);
+          await prepareSprites();
+          ready = true;
+          loading.hidden = true;
+          badge.textContent = `WebGL · ${buildingSprites.length} layers`;
+          badge.hidden = false;
+          window.__skylineWebGL = {
+            ready: true,
+            layerCount: buildingSprites.length,
+            renderer: gl.getParameter(gl.RENDERER),
+          };
+        }
+
+        initialize().catch((error) => {
+          fail("The WebGL skyline could not be prepared.", error);
+        });
+      })();
+    </script>
+  </body>
+</html>
