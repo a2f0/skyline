@@ -5,6 +5,8 @@
     "check": "node scripts/check.cjs",
     "test": "node scripts/check.cjs",
     "build:site": "node scripts/build-site.cjs",
+    "fidelity": "node scripts/fidelity-report.cjs",
+    "renders": "node scripts/render-study.cjs",
     "deploy": "scripts/deploy.sh"
   },
   "devDependencies": {
