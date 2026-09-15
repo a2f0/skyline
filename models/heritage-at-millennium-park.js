@@ -351,8 +351,9 @@ export function createHeritageAtMillenniumParkBuilding() {
   lowerRows.push([lowerLedge + 0.4, lowerSoffit - 0.25]);
   glaze(lowerTier, lowerStations, lowerRows, lowerVisible, 23);
 
-  // Raised mullions run to the crown; the fins take over above it.
-  const mullion = (target, { at, normal }, y0, y1, width = 0.28, depth = 0.22) => box(target, at, normal, width / 2, 0, depth, y0, y1, { omit: ["back", "bottom", "top"] });
+  // Raised mullions run to the crown; the fins take over above it. Tops stay closed
+  // because not every mullion or louver ends under a covering surface.
+  const mullion = (target, { at, normal }, y0, y1, width = 0.28, depth = 0.22) => box(target, at, normal, width / 2, 0, depth, y0, y1, { omit: ["back", "bottom"] });
   const towerFoot = (at) => (towerVisible(at, 0) ? 0 : lowerParapet);
   tower.forEach((run, r) => {
     if (r >= 2 && r <= 4) return;
@@ -398,7 +399,8 @@ export function createHeritageAtMillenniumParkBuilding() {
   band(stone, tower.slice(2, 5), capSoffit, parapet, capProud, { from: capStart, to: capEnd, top: true, ends: true });
   band(stone, [north, westBulge], capSoffit, parapet, capProud, { from: northCapStart, top: true, ends: true });
   band(stone, [strip, north], crownBase, parapet, 0.08, { from: capEnd, to: northCapStart, soffit: false, top: true });
-  for (const where of lowerFins) box(stone, where.at, where.normal, lowerFinWidth / 2, 0, lowerFinDepth, lowerLedge, lowerSoffit, { omit: ["back", "top"] });
+  // Lower fins stand slightly proud of the lower cap, so they keep their tops.
+  for (const where of lowerFins) box(stone, where.at, where.normal, lowerFinWidth / 2, 0, lowerFinDepth, lowerLedge, lowerSoffit, { omit: ["back"] });
   band(stone, lowerChain, lowerSoffit, lowerParapet, lowerCapProud, { top: true, ends: true, visible: lowerVisible });
 
   // Rooftop block: the tall screen strip, then the lower loggia with four posts and a
