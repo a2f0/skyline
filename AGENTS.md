@@ -9,7 +9,9 @@ Preserve path geometry and draw order when changing hover ownership; see
 Install test dependencies with `npm ci --ignore-scripts`. Use Node.js 20+ and
 Google Chrome, then run `npm run check` (or `node scripts/check.cjs`). The check
 runner starts and closes its own local server and runs the merge helper tests,
-building hover regressions, and 3D study browser checks. Use explicit paths when
+building hover regressions, and both 3D study browser suites. Study pages share
+`study-viewer.js`, `study.css`, and `study-loader.js`; keep model geometry and
+scene-specific placement/camera presets in their own modules. Use explicit paths when
 staging changes. Do not modify the vendored Three.js bundle as incidental cleanup.
 For branch review/shipping, set `SKYLINE_BASE_SHA` to the fetched base commit so
 whitespace checks include the committed branch diff, as well as staged and

@@ -4,7 +4,7 @@ const path = require("node:path");
 const { spawn } = require("node:child_process");
 
 const root = path.resolve(__dirname, "..");
-const types = { ".html": "text/html", ".svg": "image/svg+xml", ".js": "text/javascript", ".jpg": "image/jpeg" };
+const types = { ".html": "text/html", ".svg": "image/svg+xml", ".js": "text/javascript", ".css": "text/css", ".jpg": "image/jpeg" };
 function run(command, args, env = process.env) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { cwd: root, env, stdio: "inherit" });
@@ -35,6 +35,7 @@ async function main() {
     const env = { ...process.env, SKYLINE_TEST_URL: `http://127.0.0.1:${server.address().port}` };
     await run(process.execPath, ["tests/building-hover.cjs"], env);
     await run(process.execPath, ["tests/building-study.cjs"], env);
+    await run(process.execPath, ["tests/skyline-study.cjs"], env);
   } finally {
     server.closeAllConnections();
     await new Promise((resolve) => server.close(resolve));
