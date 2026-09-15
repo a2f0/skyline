@@ -133,6 +133,7 @@ async function checkReferenceMatch(page) {
   assert.ok(cap.ends.every((end) => cap.apex[1] < end[1]), `Heritage's crown cap should crest over the joint, above both of its ends: ${JSON.stringify(cap)}`);
   const columnBatch = { mullions: "mullions, bands, and screen louvers", crownFins: "crown fins, caps, and penthouse frame", lowerFins: "crown fins, caps, and penthouse frame" };
   for (const [name, list] of Object.entries(columns)) {
+    assert.equal(list.length, heritageColumns[name].length, `Heritage should export every drawn ${name}`);
     list.forEach((column, index) => assert.ok(Math.abs(column.actual - column.expected) < 0.006, `Heritage ${name} ${index + 1} should line up with the drawing: ${JSON.stringify(column)}`));
     // Mullion points sit on the face and fin points half a fin deep, so a present column is
     // hit 0.1-1 m toward the camera. A missing one leaves the facade at 0 or panes behind it.

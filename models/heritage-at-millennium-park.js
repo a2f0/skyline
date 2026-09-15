@@ -391,7 +391,10 @@ export function createHeritageAtMillenniumParkBuilding() {
 
   // Crown: radial fins under a projecting cap that follows the plan and wraps the
   // hidden faces. A flush precast pier turns the north-east corner between the cap ends.
-  for (const where of [...crownFins, ...hiddenFins]) box(stone, where.at, where.normal, finWidth / 2, 0, finDepth, crownBase, capSoffit, { omit: ["back", "top"] });
+  // The cap closes each fin's top, except the last strip fin, which stands past the cap's end.
+  for (const where of [...crownFins, ...hiddenFins]) {
+    box(stone, where.at, where.normal, finWidth / 2, 0, finDepth, crownBase, capSoffit, { omit: where === crownFins.at(-1) ? ["back"] : ["back", "top"] });
+  }
   band(stone, tower.slice(2, 5), capSoffit, parapet, capProud, { from: capStart, to: capEnd, top: true, ends: true });
   band(stone, [north, westBulge], capSoffit, parapet, capProud, { from: northCapStart, top: true, ends: true });
   band(stone, [strip, north], crownBase, parapet, 0.08, { from: capEnd, to: northCapStart, soffit: false, top: true });
@@ -406,7 +409,8 @@ export function createHeritageAtMillenniumParkBuilding() {
   const loggiaEast = screen.east - screen.width + 0.2, lintel = penthouseTop - 1.68, backWall = penthouse.front - 1.5;
   box(shell, [(penthouse.west + loggiaEast) / 2, backWall], south, (loggiaEast - penthouse.west) / 2, screen.north - backWall, 0, parapet, lintel, { omit: ["bottom"] });
   const corniceWest = penthouse.west - penthouse.overhang, corniceFront = penthouse.front + penthouse.overhang;
-  box(stone, [(corniceWest + loggiaEast) / 2, corniceFront], south, (loggiaEast - corniceWest) / 2, screen.north - corniceFront, 0, lintel, penthouseTop, { omit: ["back"] });
+  // The back wall stops at the lintel, so the cornice closes its own north face.
+  box(stone, [(corniceWest + loggiaEast) / 2, corniceFront], south, (loggiaEast - corniceWest) / 2, screen.north - corniceFront, 0, lintel, penthouseTop);
   // Post spans in meters east of the loggia's west end, as drawn.
   const posts = [[0, 1.3], [4.5, 5.9], [9.4, 11.1], [12.3, 13.5]];
   for (const [left, right] of posts) {
