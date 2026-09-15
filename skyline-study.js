@@ -42,6 +42,9 @@ createBuildingStudy({
   // Keep fine facade layers distinct at maximum mobile zoom-out as well.
   near: 600,
   far: 10000,
+  // All tower and platform vertices are within 200 units of the orbit target.
+  // Fit clipping to zoom limits so portrait tablets remain visible far away.
+  clippingMargin: 200,
   target: [0, 90, 0],
   minimumCameraHeight: 1,
   fit: { height: 230, width: 300 },

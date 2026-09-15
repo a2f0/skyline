@@ -6,6 +6,8 @@ const { chromium } = require("playwright");
 const origin = process.env.SKYLINE_TEST_URL || "http://127.0.0.1:8000";
 const settle = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 const cameraPosition = (page) => page.evaluate(() => window.__buildingStudy.cameraPosition);
+// Exclude tooltip overlap from pixel checks; its text is asserted separately.
+const patch = (page, point) => page.screenshot({ style: "#tooltip { visibility: hidden !important; }", clip: { x: Math.floor(point.x) - 4, y: Math.floor(point.y) - 4, width: 8, height: 8 } });
 const kemper = "building-kemper", crain = "building-crain-communications";
 const michigan = "building-michigan-plaza-south-tower";
 // Corresponding roof features measured in the original SVG, not derived from
@@ -52,11 +54,28 @@ async function checkCameraFloor(page, screenshotPath) {
   assert.ok((await cameraPosition(page))[1] >= 0.999, "zooming out at the lowest orbit should stay above ground");
   for (let index = 0; index < 24; index += 1) await page.keyboard.press("ArrowDown");
   assert.ok((await cameraPosition(page))[1] >= 0.999, "lowest orbit at maximum distance should stay above ground");
+  await checkVisibleHighlight(page, "far");
   if (screenshotPath) await page.locator("canvas").screenshot({ path: screenshotPath });
+  for (let index = 0; index < 24; index += 1) await page.keyboard.press("+");
+  await checkVisibleHighlight(page, "near");
   await page.keyboard.press("Home");
 }
 
+async function checkVisibleHighlight(page, clippingPlane) {
+  const point = await screenPoint(page, michigan, [0, 120, 23.4]);
+  await page.mouse.move(5, 5);
+  await settle(page);
+  const unlit = await patch(page, point);
+  await page.mouse.move(point.x, point.y);
+  await settle(page);
+  assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), michigan);
+  assert.notDeepEqual(await patch(page, point), unlit, `the tower must still render and illuminate within the ${clippingPlane} clipping plane`);
+  await page.mouse.move(5, 5);
+  await settle(page);
+}
+
 async function screenPoint(page, id, point) {
+  await settle(page);
   const uv = await page.evaluate(([id, point]) => window.__buildingStudy.projectPoint(id, point), [id, point]);
   const bounds = await page.locator("canvas").boundingBox();
   return { x: bounds.x + uv[0] * bounds.width, y: bounds.y + uv[1] * bounds.height };
@@ -94,19 +113,16 @@ async function main() {
     assert.equal(await page.evaluate(() => window.__buildingStudy.renderCount), idle);
 
     const points = [await screenPoint(page, kemper, [-5, 75, 26.8]), await screenPoint(page, crain, [0, 65, 27.1]), await screenPoint(page, michigan, [0, 120, 23.4])];
-    // The tooltip can cross a neighboring tower in the wider composition;
-    // exclude that overlay from the pixel check, while testing its text below.
-    const patch = (point) => page.screenshot({ style: "#tooltip { visibility: hidden !important; }", clip: { x: Math.floor(point.x) - 4, y: Math.floor(point.y) - 4, width: 8, height: 8 } });
     const before = [];
-    for (const point of points) before.push(await patch(point));
+    for (const point of points) before.push(await patch(page, point));
     for (const [index, id, label] of [[0, kemper, "Kemper Building"], [1, crain, "Crain Communications Building"], [2, michigan, "Michigan Plaza South"]]) {
       await page.mouse.move(points[index].x, points[index].y);
       await settle(page);
       assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), id);
       assert.equal(await page.locator("#tooltip").textContent(), label);
-      assert.notDeepEqual(await patch(points[index]), before[index], `${label} should illuminate`);
+      assert.notDeepEqual(await patch(page, points[index]), before[index], `${label} should illuminate`);
       for (let neighbor = 0; neighbor < points.length; neighbor += 1) {
-        if (neighbor !== index) assert.deepEqual(await patch(points[neighbor]), before[neighbor], `neighbor ${neighbor} should stay unlit while hovering ${label}`);
+        if (neighbor !== index) assert.deepEqual(await patch(page, points[neighbor]), before[neighbor], `neighbor ${neighbor} should stay unlit while hovering ${label}`);
       }
     }
     await page.mouse.move(5, 5);
@@ -152,6 +168,14 @@ async function main() {
     await page.waitForTimeout(250);
     assert.deepEqual(await cameraPosition(page), stopped);
     assert.equal(await page.locator("#turntable").isDisabled(), true);
+    // Tall two-column layouts need the most camera distance to fit the scene.
+    for (const size of [{ width: 768, height: 1024 }, { width: 620, height: 1400 }]) {
+      await page.setViewportSize(size);
+      await page.locator("#reset").click();
+      await settle(page);
+      await checkReferenceMatch(page);
+      await checkCameraFloor(page, `/tmp/skyline-group-tablet-${size.width}-far.png`);
+    }
     assert.deepEqual(external, []);
 
     const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
