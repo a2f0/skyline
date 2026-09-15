@@ -17,6 +17,14 @@ For branch review/shipping, set `SKYLINE_BASE_SHA` to the fetched base commit so
 whitespace checks include the committed branch diff, as well as staged and
 unstaged work (which are always checked).
 
+Deploys publish to the `devopsrockstars-skyline-prod` Cloudflare Worker at
+skyline.devopsrockstars.com. `npm run deploy` stages `dist/` and uploads it; there is
+still no build step, only a copy. The staged set is the allowlist in
+`scripts/build-site.cjs`, because the repository root holds `.secrets/` and assets the
+site never requests. Add new top-level runtime files there or they will not ship;
+`models/` ships whole. `terraform/` owns only the custom-domain binding. Credentials
+live in the gitignored `.secrets/root.env`; never commit one.
+
 The PR workflow skills live in `.agents/skills`; `.claude/skills` links to the
 same files. For an open-PR request use `open-pr`. For an explicit end-to-end
 shipping request use `ship-pr`, including its review/repair and merge steps.

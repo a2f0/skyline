@@ -3,9 +3,12 @@
   "private": true,
   "scripts": {
     "check": "node scripts/check.cjs",
-    "test": "node scripts/check.cjs"
+    "test": "node scripts/check.cjs",
+    "build:site": "node scripts/build-site.cjs",
+    "deploy": "scripts/deploy.sh"
   },
   "devDependencies": {
-    "playwright": "1.63.0"
+    "playwright": "1.63.0",
+    "wrangler": "4.131.2"
   }
 }
