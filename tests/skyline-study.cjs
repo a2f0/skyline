@@ -33,6 +33,18 @@ async function checkReferenceMatch(page) {
     });
   }, landmarks);
   for (const result of deviations) assert.ok(result.error < 0.03, `roof landmark should follow source: ${JSON.stringify(result)}`);
+  assert.ok(deviations[1].actual[1] < deviations[0].actual[1] && deviations[1].actual[1] < deviations[2].actual[1], "Kemper's near roof corner should rise above both neighboring corners, as in the SVG");
+}
+
+async function checkCameraFloor(page) {
+  await page.locator("canvas").focus();
+  for (let index = 0; index < 24; index += 1) await page.keyboard.press("ArrowDown");
+  assert.ok((await cameraPosition(page))[1] >= 0.999, "orbit should keep the camera above ground");
+  for (let index = 0; index < 24; index += 1) await page.keyboard.press("-");
+  assert.ok((await cameraPosition(page))[1] >= 0.999, "zooming out at the lowest orbit should stay above ground");
+  for (let index = 0; index < 24; index += 1) await page.keyboard.press("ArrowDown");
+  assert.ok((await cameraPosition(page))[1] >= 0.999, "lowest orbit at maximum distance should stay above ground");
+  await page.keyboard.press("Home");
 }
 
 async function screenPoint(page, id, point) {
@@ -60,8 +72,8 @@ async function main() {
       const source = await parse("skyline-animated.svg"), reference = await parse("models/skyline-pair-reference.svg");
       const expected = source.querySelectorAll("#building-kemper path, #building-crain-communications path");
       const actual = [...reference.querySelectorAll("path")];
-      return actual.length === expected.length && actual.every((part) => part.getAttribute("d") === source.getElementById(part.id)?.getAttribute("d"));
-    }), true, "reference must preserve original path geometry");
+      return actual.length === expected.length && actual.every((part, index) => part.id === expected[index].id && part.getAttribute("d") === expected[index].getAttribute("d"));
+    }), true, "reference must preserve original path geometry and draw order");
     const initial = await cameraPosition(page);
     const idle = await page.evaluate(() => window.__buildingStudy.renderCount);
     await page.waitForTimeout(250);
@@ -100,6 +112,9 @@ async function main() {
     assert.notDeepEqual(await cameraPosition(page), initial);
     await page.keyboard.press("Home");
 
+    await checkCameraFloor(page);
+    assert.deepEqual(await cameraPosition(page), initial);
+
     await page.setViewportSize({ width: 1280, height: 800 });
     await settle(page);
     await checkReferenceMatch(page);
@@ -131,6 +146,8 @@ async function main() {
     await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     assert.notDeepEqual(await cameraPosition(mobile), mobileInitial);
     await mobile.locator("#reset").tap();
+    assert.deepEqual(await cameraPosition(mobile), mobileInitial);
+    await checkCameraFloor(mobile);
     assert.deepEqual(await cameraPosition(mobile), mobileInitial);
     await mobile.screenshot({ path: "/tmp/skyline-pair-mobile.png", fullPage: true });
     await mobile.locator('a[href="building-study.html"]').tap();

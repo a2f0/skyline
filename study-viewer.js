@@ -14,6 +14,7 @@ export function createBuildingStudy({
   near = 1,
   far = 2000,
   target = [0, 85, 0],
+  minimumCameraHeight = null,
   fit = { height: 230, width: 98 },
   platform = { width: 76, depth: 76 },
 }) {
@@ -153,7 +154,20 @@ export function createBuildingStudy({
     requestRender();
   }
 
-  controls.addEventListener("change", requestRender);
+  controls.addEventListener("change", () => {
+    // Long-lens scenes can reach below ground even at a shallow polar angle.
+    // Preserve zoom distance and azimuth while keeping the eye above the base.
+    if (minimumCameraHeight !== null && camera.position.y < minimumCameraHeight - 1e-6) {
+      const offset = camera.position.clone().sub(controls.target);
+      const distance = offset.length();
+      const vertical = minimumCameraHeight - controls.target.y;
+      const horizontal = Math.sqrt(Math.max(0, distance * distance - vertical * vertical));
+      const scale = horizontal / Math.hypot(offset.x, offset.z);
+      camera.position.set(controls.target.x + offset.x * scale, minimumCameraHeight, controls.target.z + offset.z * scale);
+      controls.update();
+    }
+    requestRender();
+  });
   controls.addEventListener("start", () => {
     interacting = true;
     setTurning(false);

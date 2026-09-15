@@ -2,10 +2,11 @@ import { createBuildingStudy } from "./study-viewer.js";
 import { createCrainBuilding } from "./models/crain-communications.js";
 import { createKemperBuilding } from "./models/kemper.js";
 
-// The SVG's Crain facade widths suggest a ~42° azimuth. Kemper's roof lines
-// suggest a ~3° elevation. A long lens keeps the traced verticals nearly parallel.
+// The SVG's Crain facade widths suggest a ~42° azimuth. Kemper's near roof
+// corner rises above its neighbors, placing the eye below the roof. A long
+// lens keeps the traced verticals nearly parallel.
 const azimuth = 41.5 * Math.PI / 180;
-const elevation = 3.3 * Math.PI / 180;
+const elevation = -2 * Math.PI / 180;
 const crain = createCrainBuilding();
 const kemper = createKemperBuilding();
 function place(model, across, towardCamera) {
@@ -36,6 +37,7 @@ createBuildingStudy({
   near: 100,
   far: 10000,
   target: [0, 90, 0],
+  minimumCameraHeight: 1,
   fit: { height: 230, width: 240 },
   platform: { width: 160, depth: 160, color: 0x222222 },
 });
