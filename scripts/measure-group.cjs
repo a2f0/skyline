@@ -153,8 +153,10 @@ command(usage, { out: { type: "string" }, padding: { type: "string", default: "0
   if (!Number.isFinite(padding) || padding < 0) throw new Error(`--padding takes a fraction of the group's size, not ${values.padding}.`);
   const name = key.replace(/^building-/, "");
   mkdirSync(out, { recursive: true });
-  const server = await startServer(path.join(__dirname, "..")), browser = await launch();
+  const server = await startServer(path.join(__dirname, ".."));
+  let browser;
   try {
+    browser = await launch();
     const drawing = await browser.newPage();
     await drawing.goto(`${server.origin}/skyline-animated.svg`);
     const measured = await drawing.evaluate(measure, { key, shapes });
@@ -204,7 +206,7 @@ command(usage, { out: { type: "string" }, padding: { type: "string", default: "0
     console.log(`  photo ids matched ${photoBounds.found}/${ids.length}${matched ? `, bounds differ by at most ${report.photo.maxOffsetFromLayerBounds.toFixed(3)}` : "; photo crop uses the layer rectangle"}`);
     console.log(`  wrote ${name}.json, ${name}-drawing.png, ${name}-photo.png to ${out}`);
   } finally {
-    await browser.close();
+    await browser?.close();
     await server.close();
   }
 });

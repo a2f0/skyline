@@ -117,15 +117,35 @@ function overlapArea(a, b) {
   return polygon.length >= 3 ? Math.abs(signedArea(polygon)) : 0;
 }
 
-// Points a covering surface must contain: a grid inset from a quad's corners, or points
-// pulled toward the centroid of any other face.
+// Points a covering surface must contain, over the whole face including its border, so a
+// cover that stops short of the perimeter fails.
 function samples(corners) {
-  if (corners.length === 4) return [0.1, 0.5, 0.9].flatMap((u) => [0.1, 0.5, 0.9].map((v) => lerp(lerp(corners[0], corners[1], u), lerp(corners[3], corners[2], u), v)));
+  if (corners.length === 4) {
+    const steps = Array.from({ length: 17 }, (_, i) => i / 16);
+    return steps.flatMap((u) => steps.map((v) => lerp(lerp(corners[0], corners[1], u), lerp(corners[3], corners[2], u), v)));
+  }
   const centroid = [0, 1, 2].map((axis) => corners.reduce((sum, p) => sum + p[axis], 0) / corners.length);
-  return [centroid, ...corners.map((corner) => lerp(centroid, corner, 0.8))];
+  const edges = corners.map((corner, i) => lerp(corner, corners[(i + 1) % corners.length], 0.5));
+  return [centroid, ...corners, ...edges];
 }
+// The sample points of an omitted face that no coplanar triangle covers.
+function bareSamples({ corners }, lookup) {
+  const newell = [0, 1, 2].map((axis) => corners.reduce((sum, p, i) => {
+    const q = corners[(i + 1) % corners.length], [j, k] = [(axis + 1) % 3, (axis + 2) % 3];
+    return sum + (p[j] - q[j]) * (p[k] + q[k]);
+  }, 0));
+  const plane = newell.map((value) => value / Math.hypot(...newell)), offset = dot(plane, corners[0]);
+  const candidates = lookup(plane, offset).filter((triangle) => onPlane(triangle, { normal: plane, offset }));
+  return samples(corners).filter((p) => !candidates.some((triangle) => contains(triangle, p)));
+}
+// Sidedness as a distance from each edge, so the slack is 0.1 mm wherever the triangle
+// sits and however large it is. A sample on a cover's edge carries plan-maths noise well
+// under a micrometre, while a cover that stops short of a face misses by millimetres.
 function contains(triangle, p) {
-  return [0, 1, 2].every((i) => dot(cross(sub(triangle.points[(i + 1) % 3], triangle.points[i]), sub(p, triangle.points[i])), triangle.normal) >= -1e-9);
+  return [0, 1, 2].every((i) => {
+    const edge = sub(triangle.points[(i + 1) % 3], triangle.points[i]);
+    return dot(cross(edge, sub(p, triangle.points[i])), triangle.normal) / Math.hypot(...edge) >= -1e-4;
+  });
 }
 
 async function main() {
@@ -187,6 +207,33 @@ async function main() {
       assert.ok(Math.abs(facing) < 1e-9 || Math.hypot(n[0] - Math.sign(facing) * ux, n[2] - Math.sign(facing) * uz) < 1e-9, `${label} band vertex ${i / 3} should carry the analytic normal: ${n}`);
     }
   }
+  // A vertex sitting on an ear's diagonal is not an ear: clipping it would fill the notch.
+  const notch = [[0, 0], [2, 0], [2, -2], [1, -1], [0, -2]];
+  const notched = build(({ slab }, target) => slab(target, notch, 0, true)).target;
+  const areaOf = (positions) => {
+    let total = 0;
+    for (let i = 0; i < positions.length; i += 9) {
+      const [a, b, c] = [0, 3, 6].map((k) => [positions[i + k], positions[i + k + 1], positions[i + k + 2]]);
+      total += Math.hypot(...cross(sub(b, a), sub(c, a))) / 2;
+    }
+    return total;
+  };
+  assert.ok(Math.abs(areaOf(notched.positions) - 3) < 1e-9, `slab should cover a notch once, not ${areaOf(notched.positions)}`);
+
+  // A band that `visible` interrupts closes itself, so no hole escapes the omission record.
+  const straight = [[[0, 0], [1, 0]], [[1, 0], [2, 0]], [[2, 0], [3, 0]], [[3, 0], [4, 0]]].map(([a, b]) => line(a, b));
+  const interrupted = build(({ band }, target) => band(target, straight, 0, 1, 0.3, { visible: ([x]) => x < 1.2 || x > 2.8 }));
+  assertClosed("band interrupted by visible", interrupted.target);
+  assert.equal(interrupted.omitted.length, 0, "closing an interrupted band should need no omission");
+
+  // An omitted face needs a cover over its whole area, border included.
+  const short = build(({ box, panel }, target) => {
+    box(target, [0, 0], [0, 1], 1, 0, 1, 0, 2, { omit: ["front"] });
+    panel(target, line([-0.9, 1], [0.9, 1]), 0, 1.8, 0.1, 1.9, 0);
+  });
+  const index = planeIndex(trianglesOf(short.target));
+  assert.ok(bareSamples(short.omitted[0], index).length > 0, "a cover that stops short of a face's border should fail");
+
   const finished = build(({ box }, target) => box(target, [0, 0], [0, 1], 1, 0, 1, 0, 1)).finish({ height: 1 });
   assert.equal(finished.triangleCount, 12, "a finished model should count its triangles");
 
@@ -212,16 +259,11 @@ async function main() {
       }
     }
     assert.deepEqual(overlaps.slice(0, 3), [], `${model.building.name} should have no same-facing coplanar overlaps (${overlaps.length} found)`);
-    for (const { batch, corners, normal } of model.building.userData.omitted) {
+    for (const omission of model.building.userData.omitted) {
+      const { batch, corners, normal } = omission;
       // A floor on the ground needs no cover: the camera never goes below the platform.
       if (normal[1] === -1 && corners.every((corner) => corner[1] === 0)) continue;
-      const newell = [0, 1, 2].map((axis) => corners.reduce((sum, p, i) => {
-        const q = corners[(i + 1) % corners.length], [j, k] = [(axis + 1) % 3, (axis + 2) % 3];
-        return sum + (p[j] - q[j]) * (p[k] + q[k]);
-      }, 0));
-      const plane = newell.map((value) => value / Math.hypot(...newell)), offset = dot(plane, corners[0]);
-      const candidates = lookup(plane, offset).filter((triangle) => onPlane(triangle, { normal: plane, offset }));
-      const bare = samples(corners).filter((p) => !candidates.some((triangle) => contains(triangle, p)));
+      const bare = bareSamples(omission, lookup);
       assert.equal(bare.length, 0, `${model.building.name} ${batch}: an omitted face at ${JSON.stringify(corners[0])} should be covered by coplanar geometry`);
     }
   }

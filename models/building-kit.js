@@ -158,17 +158,24 @@ export function createBuilder(name, buildingId, { gradient = [70, 135, 200, 255]
     const faceNames = ["back", "soffit", "top", "start", "end"];
     checkOmit(omit, faceNames, "band");
     const [back, soffit, top, start, end] = faceNames.map((name) => !omit.includes(name));
-    const endFace = (run, s, sign, keep) => {
-      if (!visible(run.at(s, proud + 0.2), y0)) return;
+    const endFace = (run, s, sign, keep, check = true) => {
+      if (check && !visible(run.at(s, proud + 0.2), y0)) return;
       const [inner, outer] = [run.at(s), run.at(s, proud)], n = run.normal(s);
       face(target, [point(inner, y0), point(outer, y0), point(outer, y1), point(inner, y1)], [n[1] * sign, 0, -n[0] * sign], !keep);
     };
+    // Whether the band is running, so a piece `visible` skips closes it and the next
+    // piece reopens it. The first piece takes the start return instead.
+    let drawn = false, opening = true;
     runs.forEach((run, index) => {
       const first = index === 0 ? from : 0, last = Math.min(run.length, index === runs.length - 1 ? to : Infinity);
       const n = run.pieces(first, last);
       for (let i = 0; i < n; i += 1) {
         const sa = first + (last - first) * i / n, sb = first + (last - first) * (i + 1) / n;
-        if (!visible(run.at((sa + sb) / 2, proud + 0.2), y0)) continue;
+        const shown = visible(run.at((sa + sb) / 2, proud + 0.2), y0);
+        if (shown !== drawn && !opening) endFace(run, sa, shown ? -1 : 1, true, false);
+        opening = false;
+        drawn = shown;
+        if (!shown) continue;
         panel(target, run, sa, sb, y0, y1, proud);
         const [ia, ib, oa, ob] = [run.at(sa), run.at(sb), run.at(sa, proud), run.at(sb, proud)];
         if (soffit) ledge(target, run, sa, sb, y0, 0, proud, false);
@@ -218,7 +225,8 @@ export function createBuilder(name, buildingId, { gradient = [70, 135, 200, 255]
     const area = shoelace(polygon);
     const ring = polygon.map((_, i) => i), normal = [0, up ? 1 : -1, 0];
     const convex = (a, b, c) => ((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])) * area > 0;
-    const contains = (a, b, c, q) => convex(a, b, q) && convex(b, c, q) && convex(c, a, q);
+    const touches = (a, b, q) => ((b[0] - a[0]) * (q[1] - a[1]) - (b[1] - a[1]) * (q[0] - a[0])) * area >= -1e-9;
+    const contains = (a, b, c, q) => touches(a, b, q) && touches(b, c, q) && touches(c, a, q);
     for (let guard = 0; ring.length > 3 && guard < polygon.length * polygon.length; guard += 1) {
       for (let i = 0; i < ring.length; i += 1) {
         const [a, b, c] = [ring[(i + ring.length - 1) % ring.length], ring[i], ring[(i + 1) % ring.length]].map((k) => polygon[k]);

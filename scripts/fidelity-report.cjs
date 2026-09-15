@@ -27,9 +27,10 @@ const table = (title, columns, rows) => {
 command(usage, { json: { type: "string" }, root: { type: "string" } }, async ({ values }) => {
   checkSpec(spec);
   const root = path.resolve(values.root || path.join(__dirname, ".."));
-  const server = await startServer(root), browser = await launch();
-  const results = {};
+  const server = await startServer(root), results = {};
+  let browser;
   try {
+    browser = await launch();
     for (const { name, options } of viewports) {
       const { context, page, errors } = await openStudy(browser, server.origin, options);
       results[name] = await page.evaluate(measureStudy, { ...spec, report: true });
@@ -37,7 +38,7 @@ command(usage, { json: { type: "string" }, root: { type: "string" } }, async ({ 
       await context.close();
     }
   } finally {
-    await browser.close();
+    await browser?.close();
     await server.close();
   }
   const names = Object.keys(results), first = results[names[0]];

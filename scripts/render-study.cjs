@@ -62,9 +62,11 @@ command(usage, { out: { type: "string" }, building: { type: "string" }, root: { 
   const entry = values.building && models.find((model) => model.id === values.building);
   if (values.building && !entry) throw new Error(`Unknown building ${values.building}; expected one of ${models.map((model) => model.id).join(", ")}.`);
   mkdirSync(out, { recursive: true });
-  const server = await startServer(root), browser = await launch(), written = [], errors = [];
+  const server = await startServer(root), written = [], errors = [];
   const shot = async (target, name, options) => { const file = path.join(out, `${name}.png`); await target.screenshot({ path: file, ...options }); written.push(file); };
+  let browser;
   try {
+    browser = await launch();
     const { page, errors: pageErrors } = await openStudy(browser, server.origin, desktop);
     const canvas = page.locator("canvas");
     await shot(page, "desktop-full", { fullPage: true });
@@ -119,7 +121,7 @@ command(usage, { out: { type: "string" }, building: { type: "string" }, root: { 
     await shot(mobile, "mobile-full", { fullPage: true });
     errors.push(...mobileErrors);
   } finally {
-    await browser.close();
+    await browser?.close();
     await server.close();
   }
   console.log(`Wrote ${written.length} stills to ${out}:\n  ${written.map((file) => path.basename(file)).join("\n  ")}`);
