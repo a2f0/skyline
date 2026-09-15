@@ -1,2 +1,13 @@
 .DS_Store
 node_modules/
+.secrets
+dist/
+.wrangler/
+
+# Terraform: provider caches and any local state. The lock file is committed.
+**/.terraform/
+*.tfstate
+*.tfstate.*
+# Saved plans (plan -out) can embed input variable values.
+*.tfplan
+tfplan

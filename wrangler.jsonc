@@ -1,0 +1,27 @@
+{
+  // Assets-only Worker: no `main`, so Cloudflare serves dist/ directly and the
+  // request never reaches a script. `npm run build:site` stages dist/.
+  //
+  // skyline.devopsrockstars.com is attached to this Worker by terraform/, which
+  // matches how every other host in the zone is served. Deploy order matters on
+  // a first apply: the Worker must exist before the domain can point at it.
+  "name": "devopsrockstars-skyline-prod",
+  "compatibility_date": "2026-09-15",
+  "assets": {
+    "directory": "./dist",
+
+    // Default html_handling, left explicit because it is visible in the URL bar:
+    // the site links to `building-study.html`, and Cloudflare answers those with
+    // a 307 to the extensionless path before serving the file. Browsers follow
+    // it and the content is identical. The one alternative that would serve
+    // `.html` untouched, "none", also stops mapping `/` to index.html, which
+    // costs more than the redirect does.
+    "html_handling": "auto-trailing-slash",
+
+    // The study pages are real files, so an unknown path is a broken link and
+    // should say so. "single-page-application" would answer it with index.html
+    // and hide the breakage. There is no 404.html to serve, hence "none".
+    "not_found_handling": "none"
+  },
+  "observability": { "enabled": true }
+}

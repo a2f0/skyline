@@ -61,6 +61,30 @@ The repo includes the `ship-pr`, `open-pr`, `cross-agent-review`, `squash-merge`
 
 The canonical skills live in `.agents/skills`, following [Codex's local skill discovery](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills); `.claude/skills` contains relative links to the same instructions. If a new skill does not appear, restart the agent session. The flow uses Git, authenticated `gh`, local browser checks, and an available review agent, with a disclosed in-session review fallback. It has no dependency on tearleads' Bun workspace, agent-tool, commitlint, or hook installer. Merge messages contain only the PR title and `(#number)`; the helper binds the merge to the reviewed head using [GitHub's `expectedHeadOid`](https://docs.github.com/en/graphql/reference/pulls#mergepullrequestinput). Base freshness is checked immediately before merging; atomic base enforcement depends on repository protection rules.
 
+## Deploying
+
+The site is live at [skyline.devopsrockstars.com](https://skyline.devopsrockstars.com), served by the `devopsrockstars-skyline-prod` Cloudflare Worker as static assets. There is no server-side code: the Worker has no `main`, so Cloudflare answers every request from the uploaded files. This matches how the rest of the `devopsrockstars.com` zone is served — each host is a Worker with a custom domain, not a Pages project or an S3 bucket.
+
+Credentials come from `.secrets/root.env`, which is gitignored and never committed. It needs `TF_VAR_cloudflare_api_token` and `TF_VAR_cloudflare_account_id` (the token needs Workers Scripts:Edit and Zone:Read on the zone), plus `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` for the S3 Terraform backend. `scripts/secrets.sh` loads the file, fails loudly on a missing variable, and re-exports the Cloudflare pair under the `CLOUDFLARE_*` names wrangler expects.
+
+Deploying needs Node.js 22+, which Wrangler requires; the checks above run on 20+. Publish content with:
+
+```sh
+npm ci --ignore-scripts
+npm run deploy
+```
+
+`npm run deploy` stages `dist/` via `scripts/build-site.cjs` and then runs `wrangler deploy`. The staging step is an allowlist, not an ignore list: the repository root holds `.secrets/`, test fixtures, and the 18MB `skyline.jpg` source photograph that the site never requests, so only files named in `scripts/build-site.cjs` reach Cloudflare. Every `models/*.js` and `models/*.svg` ships automatically; new top-level assets must be added to the list, and the script fails rather than publishing if a listed file has been renamed away. This is a deploy-time copy, not a build — the files served are the files in the repo, unchanged.
+
+`terraform/` owns one resource, the `cloudflare_workers_custom_domain` binding `skyline.devopsrockstars.com` to the Worker, with state in the shared `tearleads-terraform-state` bucket. It rarely changes and is not part of a content deploy:
+
+```sh
+scripts/terraform.sh plan
+scripts/terraform.sh apply
+```
+
+Order matters on a first apply, and only there: wrangler must publish the Worker before Terraform can point a hostname at it. Cloudflare serves `.html` requests with a 307 to the extensionless path, so `building-study.html` lands on `/building-study` with identical content; `wrangler.jsonc` explains why the alternative costs more than the redirect.
+
 ## Direction for Update
 
 These directions have been created using Inkscape 1.1 on MacOS.
