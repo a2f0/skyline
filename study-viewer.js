@@ -13,6 +13,7 @@ export function createBuildingStudy({
   fov = 32,
   near = 1,
   far = 2000,
+  clippingMargin = null,
   target = [0, 85, 0],
   minimumCameraHeight = null,
   fit = { height: 230, width: 98 },
@@ -139,13 +140,19 @@ export function createBuildingStudy({
     const { width, height } = canvas.getBoundingClientRect();
     const previousFit = fittedDistance;
     camera.aspect = width / Math.max(height, 1);
-    camera.updateProjectionMatrix();
     renderer.setSize(width, height, false);
     // Fit both the tower's height and its footprint at narrow mobile widths.
     const tangent = Math.tan(camera.fov * Math.PI / 360);
     fittedDistance = Math.max(fit.height / 2 / tangent, fit.width / 2 / (tangent * camera.aspect));
     controls.minDistance = fittedDistance * 0.48;
     controls.maxDistance = fittedDistance * 2;
+    if (clippingMargin !== null) {
+      // Enclose the scene throughout the permitted zoom range. Moving the
+      // near plane with the fit also preserves precision in narrow layouts.
+      camera.near = Math.max(near, controls.minDistance - clippingMargin);
+      camera.far = Math.max(far, controls.maxDistance + clippingMargin);
+    }
+    camera.updateProjectionMatrix();
     if (activeView) setView(activeView);
     else {
       camera.position.sub(controls.target).multiplyScalar(fittedDistance / previousFit).add(controls.target);
