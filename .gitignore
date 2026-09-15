@@ -8,3 +8,6 @@ dist/
 **/.terraform/
 *.tfstate
 *.tfstate.*
+# Saved plans (plan -out) can embed input variable values.
+*.tfplan
+tfplan

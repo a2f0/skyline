@@ -67,7 +67,7 @@ The site is live at [skyline.devopsrockstars.com](https://skyline.devopsrockstar
 
 Credentials come from `.secrets/root.env`, which is gitignored and never committed. It needs `TF_VAR_cloudflare_api_token` and `TF_VAR_cloudflare_account_id` (the token needs Workers Scripts:Edit and Zone:Read on the zone), plus `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` for the S3 Terraform backend. `scripts/secrets.sh` loads the file, fails loudly on a missing variable, and re-exports the Cloudflare pair under the `CLOUDFLARE_*` names wrangler expects.
 
-Publish content with:
+Deploying needs Node.js 22+, which Wrangler requires; the checks above run on 20+. Publish content with:
 
 ```sh
 npm ci --ignore-scripts

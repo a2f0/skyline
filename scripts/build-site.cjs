@@ -28,7 +28,9 @@ const files = [
   "vendor/THREE-LICENSE.txt",
 ];
 
-// Every model ships, so adding one does not also mean editing this script.
+// Top-level .js and .svg files in models/ ship automatically, so adding a model
+// does not also mean editing this script. The scan is not recursive: nested
+// directories and other file types need their own entry.
 // three-entry.js is the bundle's build input and imports bare specifiers, so
 // vendor/ stays on the explicit list above.
 const directories = [{ from: "models", extensions: [".js", ".svg"] }];

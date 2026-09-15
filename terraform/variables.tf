@@ -1,6 +1,9 @@
+# sensitive only redacts CLI output; a saved plan (plan -out) would still embed
+# the token. ephemeral keeps it out of saved plans and state entirely.
 variable "cloudflare_api_token" {
   type      = string
   sensitive = true
+  ephemeral = true
 }
 
 variable "cloudflare_account_id" {
