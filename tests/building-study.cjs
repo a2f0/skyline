@@ -99,6 +99,9 @@ async function main() {
     const touch = { x: mobileBounds.x + mobileBounds.width / 2, y: mobileBounds.y + mobileBounds.height / 2 };
     await session.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [touch] });
     await session.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ ...touch, x: touch.x + 45 }] });
+    // Rest before lifting, as a finger does after a drag. An instant release
+    // reads as a fling, and Chrome may swallow the next tap to stop that fling.
+    await mobile.waitForTimeout(100);
     await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     assert.notDeepEqual(await position(mobile), mobileInitial, "touch drag must orbit on mobile");
     await mobile.locator("#reset").tap();

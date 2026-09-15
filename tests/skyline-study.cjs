@@ -98,7 +98,7 @@ async function main() {
     assert.equal(await page.evaluate(async () => {
       const parse = async (url) => new DOMParser().parseFromString(await (await fetch(url)).text(), "image/svg+xml");
       const source = await parse("skyline-animated.svg"), reference = await parse("models/skyline-reference.svg");
-      const expected = source.querySelectorAll("#building-kemper path, #building-michigan-plaza-south-tower path, #building-crain-communications path");
+      const expected = source.querySelectorAll("#building-heritage-at-millennium-park path, #building-kemper path, #building-michigan-plaza-south-tower path, #building-crain-communications path");
       const actual = [...reference.querySelectorAll("path")];
       const transforms = (part) => {
         const chain = [];
@@ -191,6 +191,9 @@ async function main() {
     const touch = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
     await session.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [touch] });
     await session.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ ...touch, x: touch.x + 45 }] });
+    // Rest before lifting, as a finger does after a drag. An instant release
+    // reads as a fling, and Chrome may swallow the next tap to stop that fling.
+    await mobile.waitForTimeout(100);
     await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     assert.notDeepEqual(await cameraPosition(mobile), mobileInitial);
     await mobile.locator("#reset").tap();

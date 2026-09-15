@@ -13,7 +13,7 @@ const kemper = createKemperBuilding();
 const michigan = createMichiganPlazaSouthBuilding();
 function place(model, across, towardCamera) {
   // Center the wider group while retaining the drawing's relative spacing.
-  across -= 39;
+  across -= 9;
   model.building.position.set(
     across * Math.cos(azimuth) + towardCamera * Math.sin(azimuth),
     0,
@@ -45,8 +45,8 @@ createBuildingStudy({
   // All tower and platform vertices are within 200 units of the orbit target.
   // Fit clipping to zoom limits so portrait tablets remain visible far away.
   clippingMargin: 200,
-  target: [0, 90, 0],
+  target: [0, 102.5, 0],
   minimumCameraHeight: 1,
-  fit: { height: 230, width: 300 },
-  platform: { width: 190, depth: 170, color: 0x222222 },
+  fit: { height: 255, width: 360 },
+  platform: { width: 240, depth: 210, color: 0x222222 },
 });
