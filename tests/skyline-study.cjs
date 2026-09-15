@@ -7,6 +7,7 @@ const origin = process.env.SKYLINE_TEST_URL || "http://127.0.0.1:8000";
 const settle = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 const cameraPosition = (page) => page.evaluate(() => window.__buildingStudy.cameraPosition);
 const kemper = "building-kemper", crain = "building-crain-communications";
+const michigan = "building-michigan-plaza-south-tower";
 // Corresponding roof features measured in the original SVG, not derived from
 // the camera config. A tolerance allows the hand-drawn perspective to differ.
 const landmarks = [
@@ -17,23 +18,30 @@ const landmarks = [
   [crain, [27, 135.4, -27], [3198, 1854]],
   [crain, [-27, 177.4, -27], [2945, 1590]],
   [crain, [27, 93.4, 27], [2987, 2130]],
+  [michigan, [-23.35, 180, 23.35], [3255, 1577]],
+  [michigan, [23.35, 180, 23.35], [3466, 1572]],
+  [michigan, [23.35, 180, -23.35], [3662, 1589]],
 ];
 
 async function checkReferenceMatch(page) {
-  const deviations = await page.evaluate((landmarks) => {
-    const image = document.querySelector(".reference img").getBoundingClientRect();
-    const viewBox = { x: 2076.24, y: 1412.1, width: 1481.52, height: 1419.8 };
-    const scale = Math.min(image.width / viewBox.width, image.height / viewBox.height);
-    const paddingX = (image.width - viewBox.width * scale) / 2;
-    const paddingY = (image.height - viewBox.height * scale) / 2;
+  const deviations = await page.evaluate(async (landmarks) => {
+    const source = await (await fetch(document.querySelector(".reference img").src)).text();
+    const viewBox = new DOMParser().parseFromString(source, "image/svg+xml").documentElement.viewBox.baseVal;
+    // Fit the reference to the canvas, accounting for the differently sized
+    // source pane in the stacked mobile layout.
+    const canvas = document.querySelector("canvas").getBoundingClientRect();
+    const scale = Math.min(canvas.width / viewBox.width, canvas.height / viewBox.height);
+    const paddingX = (canvas.width - viewBox.width * scale) / 2;
+    const paddingY = (canvas.height - viewBox.height * scale) / 2;
     return landmarks.map(([id, point, source]) => {
       const actual = window.__buildingStudy.projectPoint(id, point);
-      const expected = [(paddingX + (source[0] - viewBox.x) * scale) / image.width, (paddingY + (source[1] - viewBox.y) * scale) / image.height];
+      const expected = [(paddingX + (source[0] - viewBox.x) * scale) / canvas.width, (paddingY + (source[1] - viewBox.y) * scale) / canvas.height];
       return { id, actual, expected, error: Math.max(...actual.map((value, axis) => Math.abs(value - expected[axis]))) };
     });
   }, landmarks);
   for (const result of deviations) assert.ok(result.error < 0.03, `roof landmark should follow source: ${JSON.stringify(result)}`);
   assert.ok(deviations[1].actual[1] < deviations[0].actual[1] && deviations[1].actual[1] < deviations[2].actual[1], "Kemper's near roof corner should rise above both neighboring corners, as in the SVG");
+  assert.ok(deviations[8].actual[1] < deviations[7].actual[1] && deviations[8].actual[1] < deviations[9].actual[1], "Michigan Plaza's near roof corner should rise above both neighboring corners");
 }
 
 async function checkCameraFloor(page) {
@@ -63,44 +71,58 @@ async function main() {
     await page.goto(`${origin}/skyline-study.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     await settle(page);
-    assert.deepEqual(await page.evaluate(() => window.__buildingStudy.modelNames), ["Kemper Building", "Crain Communications Building"]);
+    assert.deepEqual(await page.evaluate(() => window.__buildingStudy.modelNames), ["Kemper Building", "Crain Communications Building", "Michigan Plaza South"]);
     assert.equal(await page.evaluate(() => window.__buildingStudy.activeView), "skyline");
-    assert.ok(await page.evaluate(() => window.__buildingStudy.triangleCount > 4166 && window.__buildingStudy.triangleCount < 10000));
+    assert.ok(await page.evaluate(() => window.__buildingStudy.triangleCount > 4804 && window.__buildingStudy.triangleCount < 25000));
     await checkReferenceMatch(page);
     assert.equal(await page.evaluate(async () => {
       const parse = async (url) => new DOMParser().parseFromString(await (await fetch(url)).text(), "image/svg+xml");
-      const source = await parse("skyline-animated.svg"), reference = await parse("models/skyline-pair-reference.svg");
-      const expected = source.querySelectorAll("#building-kemper path, #building-crain-communications path");
+      const source = await parse("skyline-animated.svg"), reference = await parse("models/skyline-reference.svg");
+      const expected = source.querySelectorAll("#building-kemper path, #building-michigan-plaza-south-tower path, #building-crain-communications path");
       const actual = [...reference.querySelectorAll("path")];
-      return actual.length === expected.length && actual.every((part, index) => part.id === expected[index].id && part.getAttribute("d") === expected[index].getAttribute("d"));
-    }), true, "reference must preserve original path geometry and draw order");
+      const transforms = (part) => {
+        const chain = [];
+        for (let node = part; node && !node.classList.contains("interactive-building"); node = node.parentElement) chain.push(node.getAttribute("transform"));
+        return JSON.stringify(chain);
+      };
+      return actual.length === expected.length && actual.every((part, index) => part.id === expected[index].id && part.getAttribute("d") === expected[index].getAttribute("d") && transforms(part) === transforms(expected[index]));
+    }), true, "reference must preserve original path geometry, nested transforms, and draw order");
     const initial = await cameraPosition(page);
     const idle = await page.evaluate(() => window.__buildingStudy.renderCount);
     await page.waitForTimeout(250);
     assert.equal(await page.evaluate(() => window.__buildingStudy.renderCount), idle);
 
-    const points = [await screenPoint(page, kemper, [-5, 75, 26.8]), await screenPoint(page, crain, [0, 65, 27.1])];
-    const patch = (point) => page.screenshot({ clip: { x: Math.floor(point.x) - 4, y: Math.floor(point.y) - 4, width: 8, height: 8 } });
-    const before = [await patch(points[0]), await patch(points[1])];
-    for (const [index, id, label] of [[0, kemper, "Kemper Building"], [1, crain, "Crain Communications Building"]]) {
+    const points = [await screenPoint(page, kemper, [-5, 75, 26.8]), await screenPoint(page, crain, [0, 65, 27.1]), await screenPoint(page, michigan, [0, 120, 23.4])];
+    // The tooltip can cross a neighboring tower in the wider composition;
+    // exclude that overlay from the pixel check, while testing its text below.
+    const patch = (point) => page.screenshot({ style: "#tooltip { visibility: hidden !important; }", clip: { x: Math.floor(point.x) - 4, y: Math.floor(point.y) - 4, width: 8, height: 8 } });
+    const before = [];
+    for (const point of points) before.push(await patch(point));
+    for (const [index, id, label] of [[0, kemper, "Kemper Building"], [1, crain, "Crain Communications Building"], [2, michigan, "Michigan Plaza South"]]) {
       await page.mouse.move(points[index].x, points[index].y);
       await settle(page);
       assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), id);
       assert.equal(await page.locator("#tooltip").textContent(), label);
       assert.notDeepEqual(await patch(points[index]), before[index], `${label} should illuminate`);
-      assert.deepEqual(await patch(points[1 - index]), before[1 - index], "neighbor should stay unlit");
+      for (let neighbor = 0; neighbor < points.length; neighbor += 1) {
+        if (neighbor !== index) assert.deepEqual(await patch(points[neighbor]), before[neighbor], `neighbor ${neighbor} should stay unlit while hovering ${label}`);
+      }
     }
     await page.mouse.move(5, 5);
-    await page.screenshot({ path: "/tmp/skyline-pair-desktop.png", fullPage: true });
+    await page.screenshot({ path: "/tmp/skyline-group-desktop.png", fullPage: true });
     const normal = await page.locator("canvas").screenshot();
     await page.locator("#wireframe").click();
     assert.notDeepEqual(await page.locator("canvas").screenshot(), normal);
     await page.locator("#wireframe").click();
     await page.locator('[data-view="quarter"]').click();
     assert.notDeepEqual(await cameraPosition(page), initial);
-    await page.screenshot({ path: "/tmp/skyline-pair-quarter.png", fullPage: true });
+    await page.screenshot({ path: "/tmp/skyline-group-quarter.png", fullPage: true });
     await page.locator('[data-view="side"]').click();
     assert.notDeepEqual(await page.locator("canvas").screenshot(), normal);
+    const hiddenCrain = await screenPoint(page, crain, [0, 70, 0]);
+    await page.mouse.move(hiddenCrain.x, hiddenCrain.y);
+    await settle(page);
+    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), michigan, "Michigan Plaza should own the hover where it occludes Crain in side view");
     await page.locator("#reset").click();
     assert.deepEqual(await cameraPosition(page), initial);
     await page.locator("canvas").focus();
@@ -137,6 +159,7 @@ async function main() {
     await mobile.waitForFunction(() => window.__buildingStudy?.ready);
     assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await mobile.locator("canvas").scrollIntoViewIfNeeded();
+    await checkReferenceMatch(mobile);
     const mobileInitial = await cameraPosition(mobile);
     const bounds = await mobile.locator("canvas").boundingBox();
     const session = await mobile.context().newCDPSession(mobile);
@@ -149,7 +172,7 @@ async function main() {
     assert.deepEqual(await cameraPosition(mobile), mobileInitial);
     await checkCameraFloor(mobile);
     assert.deepEqual(await cameraPosition(mobile), mobileInitial);
-    await mobile.screenshot({ path: "/tmp/skyline-pair-mobile.png", fullPage: true });
+    await mobile.screenshot({ path: "/tmp/skyline-group-mobile.png", fullPage: true });
     await mobile.locator('a[href="building-study.html"]').tap();
     await mobile.waitForFunction(() => window.__buildingStudy?.ready);
     assert.equal(await mobile.evaluate(() => window.__buildingStudy.modelName), "Crain Communications Building");
@@ -166,7 +189,7 @@ async function main() {
     await fallback.waitForFunction(() => document.querySelector("#loading").textContent.includes("WebGL 2"));
     assert.equal(await fallback.locator("#turntable").isDisabled(), true);
     assert.deepEqual(errors, []);
-    console.log("PASS: paired 3D models, SVG camera landmarks, independent illumination, view/reset/zoom, idle rendering, reduced motion, mobile touch, local assets, navigation, and fallbacks.");
+    console.log("PASS: three 3D buildings, SVG camera landmarks, independent illumination and occlusion, view/reset/zoom, idle rendering, reduced motion, mobile touch, local assets, navigation, and fallbacks.");
   } finally { await browser.close(); }
 }
 main().catch((error) => { console.error(error); process.exitCode = 1; });
