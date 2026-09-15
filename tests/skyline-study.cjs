@@ -44,7 +44,7 @@ async function checkReferenceMatch(page) {
   assert.ok(deviations[8].actual[1] < deviations[7].actual[1] && deviations[8].actual[1] < deviations[9].actual[1], "Michigan Plaza's near roof corner should rise above both neighboring corners");
 }
 
-async function checkCameraFloor(page) {
+async function checkCameraFloor(page, screenshotPath) {
   await page.locator("canvas").focus();
   for (let index = 0; index < 24; index += 1) await page.keyboard.press("ArrowDown");
   assert.ok((await cameraPosition(page))[1] >= 0.999, "orbit should keep the camera above ground");
@@ -52,6 +52,7 @@ async function checkCameraFloor(page) {
   assert.ok((await cameraPosition(page))[1] >= 0.999, "zooming out at the lowest orbit should stay above ground");
   for (let index = 0; index < 24; index += 1) await page.keyboard.press("ArrowDown");
   assert.ok((await cameraPosition(page))[1] >= 0.999, "lowest orbit at maximum distance should stay above ground");
+  if (screenshotPath) await page.locator("canvas").screenshot({ path: screenshotPath });
   await page.keyboard.press("Home");
 }
 
@@ -170,7 +171,7 @@ async function main() {
     assert.notDeepEqual(await cameraPosition(mobile), mobileInitial);
     await mobile.locator("#reset").tap();
     assert.deepEqual(await cameraPosition(mobile), mobileInitial);
-    await checkCameraFloor(mobile);
+    await checkCameraFloor(mobile, "/tmp/skyline-group-mobile-far.png");
     assert.deepEqual(await cameraPosition(mobile), mobileInitial);
     await mobile.screenshot({ path: "/tmp/skyline-group-mobile.png", fullPage: true });
     await mobile.locator('a[href="building-study.html"]').tap();

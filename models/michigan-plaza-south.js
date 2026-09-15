@@ -38,6 +38,7 @@ export function createMichiganPlazaSouthBuilding() {
     const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const normal = [(a[1] - b[1]) / length, (b[0] - a[0]) / length];
     const point = (t, y, offset) => [a[0] + (b[0] - a[0]) * t + normal[0] * offset, y, a[1] + (b[1] - a[1]) * t + normal[1] * offset];
+    // Match the 24- and 23-column grids drawn on the two visible SVG faces.
     const columns = face % 2 === 0 ? 24 : 23;
     for (let row = 0; row < 40; row += 1) {
       const top = height - 13 - row * 4.1;

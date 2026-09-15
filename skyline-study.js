@@ -38,9 +38,9 @@ createBuildingStudy({
     side: { azimuth: azimuth + Math.PI / 2, polar: Math.PI / 2 - 0.14, label: "side view" },
   },
   fov: 6,
-  // The camera stays >1,000 scene units away. A farther near plane preserves
-  // depth precision between the facade and its small raised window details.
-  near: 100,
+  // Even at minimum zoom distance the nearest surface is >800 units away.
+  // Keep fine facade layers distinct at maximum mobile zoom-out as well.
+  near: 600,
   far: 10000,
   target: [0, 90, 0],
   minimumCameraHeight: 1,
