@@ -1,5 +1,6 @@
 import { createBuildingStudy } from "./study-viewer.js";
 import { createCrainBuilding } from "./models/crain-communications.js";
+import { createHeritageAtMillenniumParkBuilding } from "./models/heritage-at-millennium-park.js";
 import { createKemperBuilding } from "./models/kemper.js";
 import { createMichiganPlazaSouthBuilding } from "./models/michigan-plaza-south.js";
 
@@ -11,6 +12,7 @@ const elevation = -2 * Math.PI / 180;
 const crain = createCrainBuilding();
 const kemper = createKemperBuilding();
 const michigan = createMichiganPlazaSouthBuilding();
+const heritage = createHeritageAtMillenniumParkBuilding();
 function place(model, across, towardCamera) {
   // Center the wider group while retaining the drawing's relative spacing.
   across -= 9;
@@ -28,9 +30,12 @@ place(kemper, -38, -20);
 kemper.building.rotation.y = 9.1 * Math.PI / 180;
 place(michigan, 104, -12);
 michigan.building.rotation.y = -1.4 * Math.PI / 180;
+// Fitted through this camera to Heritage's drawn corners, mullions, and crown fins.
+// The plan needs no rotation, and its depth keeps the tower behind Kemper's left face.
+place(heritage, -91.9, -31.85);
 
 createBuildingStudy({
-  models: [kemper, crain, michigan],
+  models: [heritage, kemper, crain, michigan],
   defaultView: "skyline",
   views: {
     skyline: { azimuth, polar: Math.PI / 2 - elevation, label: "skyline view" },
