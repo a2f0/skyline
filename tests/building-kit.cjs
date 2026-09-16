@@ -178,7 +178,9 @@ function uncoveredArea({ corners }, lookup) {
     pieces = next;
     if (!pieces.length) break;
   }
-  return { area, uncovered: pieces.reduce((sum, piece) => sum + Math.abs(signed(piece)), 0) };
+  const perimeter = (polygon) => polygon.reduce((sum, p, i) => { const q = polygon[(i + 1) % polygon.length]; return sum + Math.hypot(q[0] - p[0], q[1] - p[1]); }, 0);
+  const thickness = (piece) => (perimeter(piece) > 0 ? 2 * Math.abs(signed(piece)) / perimeter(piece) : 0);
+  return { area, uncovered: pieces.reduce((sum, piece) => sum + Math.abs(signed(piece)), 0), thickness: pieces.reduce((worst, piece) => Math.max(worst, thickness(piece)), 0) };
 }
 
 async function main() {
@@ -304,6 +306,13 @@ async function main() {
   assert.throws(() => build(({ band }, target) => band(target, [line([0, 0], [1, 0])], 0, 1, 0.3, { closed: true })), /return to their start/);
   assert.throws(() => build(({ band }, target) => band(target, [line([0, 0], [1, 0]), line([2, 0], [3, 0])], 0, 1, 0.3)), /join end to start/);
 
+  // Runs that double back leave both returns missing, and no wedge can close that joint.
+  const doubleBack = [line([0, 0], [10, 0]), line([10, 0], [0, 0])];
+  assert.throws(() => build(({ band }, target) => band(target, doubleBack, 0, 1, 0.3)), /double back/);
+  assert.throws(() => build(({ band }, target) => band(target, doubleBack, 0, 1, 0.3, { closed: true })), /double back/);
+  // Runs that continue straight face the same way, so that joint needs no wedge.
+  assertClosed("band whose runs continue straight", build(({ band }, target) => band(target, [line([0, 0], [5, 0]), line([5, 0], [10, 0])], 0, 1, 0.3)).target);
+
   // from or to may leave a run empty; it contributes nothing rather than degenerate faces.
   const trimmed = build(({ band }, target) => band(target, [line([0, 0], [1, 0]), line([1, 0], [1, 1])], 0, 1, 0.3, { from: 1 }));
   assertClosed("band whose first run is trimmed away", trimmed.target);
@@ -311,6 +320,18 @@ async function main() {
   // A face too small for the absolute ceiling still needs a cover.
   const tiny = uncoveredOf(({ box }, target) => box(target, [0, 0], [0, 1], 0.0045, 0, 0.01, 0, 1, { omit: ["top"] }));
   assert.ok(tiny.uncovered > Math.min(1e-4, tiny.area * 1e-3), `a small uncovered face should still fail: ${JSON.stringify(tiny)}`);
+
+  // However small its area, a compact opening is a hole rather than a facet sliver: four
+  // covers around a 9 by 10 mm gap leave less area than the ceiling allows, so only its
+  // shape tells it apart.
+  const opening = uncoveredOf(({ box, panel }, target) => {
+    box(target, [0, 0], [0, 1], 0.5, 0, 1, 0, 1, { omit: ["front"] });
+    panel(target, line([-0.5, 1], [0.5, 1]), 0, 1, 0, 0.495, 0);
+    panel(target, line([-0.5, 1], [0.5, 1]), 0, 1, 0.505, 1, 0);
+    panel(target, line([-0.5, 1], [-0.0045, 1]), 0, 0.4955, 0.495, 0.505, 0);
+    panel(target, line([0.0045, 1], [0.5, 1]), 0, 0.4955, 0.495, 0.505, 0);
+  });
+  assert.ok(opening.uncovered <= Math.min(1e-4, opening.area * 1e-3) && opening.thickness > 1e-4, `a 9 by 10 mm opening should pass on area and fail on shape: ${JSON.stringify(opening)}`);
 
   // A prism's plan must close, exactly as a band's must.
   assert.throws(() => build(({ prism }, target) => prism(target, kit.rectangle(-1, 1, -1, 1).slice(0, 3), [0, 10])), /return to their start/);
@@ -353,11 +374,18 @@ async function main() {
       const { batch, corners, normal } = omission;
       // A floor on the ground needs no cover: the camera never goes below the platform.
       if (normal[1] === -1 && corners.every((corner) => corner[1] === 0)) continue;
-      const { area, uncovered } = uncoveredArea(omission, lookup);
-      // Arc facets cut chords inside a straight-edged face, leaving slivers: across the
-      // fitted models the worst is 1.3e-5 m2 and 6.9e-6 of a face. The ceiling keeps a
-      // large face honest; the fraction keeps a small face from passing uncovered.
+      // Mesh positions are Float32, so a cover meeting an omission exactly would read as
+      // a sliver of the rounding. Compare both at the precision the model actually holds.
+      const rendered = { ...omission, corners: corners.map((corner) => corner.map(Math.fround)) };
+      const { area, uncovered, thickness } = uncoveredArea(rendered, lookup);
+      // Arc facets cut chords inside a straight-edged face, leaving slivers: measured
+      // against what the meshes hold, the worst across the fitted models is 2.6e-7 m2,
+      // 2.6e-6 of a face, and 9e-7 m thick. The ceiling keeps a large face honest and
+      // the fraction keeps a small one from passing, but any area bound also tolerates a
+      // compact hole that small, so the shape carries the rest: a 9 by 10 mm opening is
+      // 2.4e-3 m thick, 24 times this bound, while a sliver stays far under it.
       assert.ok(uncovered <= Math.min(1e-4, area * 1e-3), `${model.building.name} ${batch}: an omitted face at ${JSON.stringify(corners[0])} leaves ${uncovered.toFixed(6)} m2 of its ${area.toFixed(6)} m2 uncovered`);
+      assert.ok(thickness <= 1e-4, `${model.building.name} ${batch}: an omitted face at ${JSON.stringify(corners[0])} leaves an opening ${thickness.toFixed(6)} m thick, which is a hole rather than a facet sliver`);
     }
   }
   console.log("PASS: closed kit solids (box, bands, prism, slab), analytic arc normals, and fitted models without same-facing coplanar overlaps or uncovered omissions.");

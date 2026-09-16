@@ -181,6 +181,10 @@ export function createBuilder(name, buildingId, { gradient = [70, 135, 200, 255]
     const cornerWedge = (run, next) => {
       const at = run.at(run.length), n1 = run.normal(run.length), n2 = next.normal(0);
       const turn = n1[0] * n2[1] - n1[1] * n2[0];
+      // Runs that double back share a point but face opposite ways, so no wedge can close
+      // the joint and both returns are missing: a hole no omission would record. Runs that
+      // merely continue straight face the same way and need no wedge at all.
+      if (Math.abs(turn) <= 1e-6 && n1[0] * n2[0] + n1[1] * n2[1] < 0) throw new Error("A band cannot double back on itself; end the band and start another.");
       if (turn > 1e-6) throw new Error("A band cannot turn a concave corner; split it into two bands there.");
       if (turn >= -1e-6) return;
       const a = run.at(run.length, proud), b = next.at(0, proud), mitre = cornerNormal(n1, n2);
