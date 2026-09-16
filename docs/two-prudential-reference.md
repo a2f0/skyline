@@ -30,7 +30,8 @@ runtime asset is our procedural mesh, with materials and geometry served locally
   final tip. Its foot remains seated in the roof.
 - The pointed facade panels contain four glazed bays with thin mullions and floor divisions.
   Panes clip to the sloping heads and the next setback, instead of leaving flat-ended gaps.
-- The main shaft's pier heads follow the chevron slope; both lower setbacks have thin projecting coping and
+- Pier heads stop floor by floor, with a short angled cap on each step, retaining the references'
+  sawtooth rhythm. Both lower setbacks have thin projecting coping and
   glazed returns. Paired north setbacks make the tower's depth readable when orbiting; their
   details mirror the visible south face and remain an inference rather than a survey.
 - The east facade includes the two narrow strips flanking the central glazing. The first pass

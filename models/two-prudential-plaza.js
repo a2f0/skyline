@@ -200,7 +200,10 @@ export function createTwoPrudentialPlazaBuilding() {
   // shell; a recessed pane would be buried because these walls contain no openings.
   const decorate = (run, width, peak, shoulder, centres, cover = null) => {
     const heightAt = (s) => peak - (peak - shoulder) * Math.abs(s - width / 2) / (width / 2);
-    const topAt = (s) => heightAt(s) - 0.35;
+    // The photos and SVG show floor-by-floor steps, each with a short angled
+    // pier cap. A continuous diagonal loses that characteristic sawtooth edge.
+    const topAt = (s) => Math.min(heightAt(s) - 0.35,
+      shoulder + Math.floor((heightAt(s) - shoulder) / pitch) * pitch);
     const boundaries = [-arrowWidth / 2, arrowWidth / 2, ...(cover ? [-cover.half, cover.half] : [])];
     const pieces = (from, to) => {
       if (to <= from) return [];
@@ -209,13 +212,14 @@ export function createTwoPrudentialPlazaBuilding() {
     };
     const floorAt = (a, b) => cover && Math.abs((a + b) / 2) < cover.half
       ? Math.max(gable(cover, a), gable(cover, b)) : 0;
-    // Sloping pier heads meet the chevron; window rows end bay by bay below them.
+    // Each head has one floor level; its small cap slopes within that step.
     for (const centre of centres) {
       for (const [a, b] of pieces(centre - pierWidth / 2, centre + pierWidth / 2)) {
         const s = (a + b + width) / 2, at = station(run, s);
         const y0 = floorAt(a, b) + 0.1;
+        const headAt = (u) => topAt(s) + heightAt(u) - heightAt(s);
         const points = [[a + width / 2, y0], [b + width / 2, y0],
-          [b + width / 2, topAt(b + width / 2)], [a + width / 2, topAt(a + width / 2)]]
+          [b + width / 2, headAt(b + width / 2)], [a + width / 2, headAt(a + width / 2)]]
           .map(([s, y]) => { const p = run.at(s); return [p[0], y, p[1]]; });
         relief(piers, points, [at.normal[0], 0, at.normal[1]], proud, 0.004);
       }

@@ -362,6 +362,12 @@ async function main() {
       for (const y of [231, 185]) {
         assert.equal(hit([4.5, y, 40], [0, 0, -1])?.object.name, "chevron glazing", `the arrow at y=${y} should reach the next gable`);
       }
+      // A visible main-shaft step in the references: the pier is present below
+      // its floor stop and absent above it. Smoothing the heads into one gable
+      // fills this notch even though the overall roof landmarks still match.
+      assert.equal(hit([-20.143, 260.9, 40], [0, 0, -1])?.object.name, "vertical piers and chevrons");
+      assert.equal(hit([-20.143, 261.7, 40], [0, 0, -1])?.object.name, "tower and setback shells",
+        "the pier heads should retain the reference's floor-by-floor steps");
       // The crown's ribs bridge the centre of each ridge, rather than leaving a
       // slit when two neighboring roof faces are displaced apart. The cladding
       // and louvers must also be real raised surfaces, not flat painted stripes.
