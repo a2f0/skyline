@@ -214,10 +214,11 @@ export function createTwoPrudentialPlazaBuilding() {
       ? Math.max(gable(cover, a), gable(cover, b)) : 0;
     // Each head has one floor level; its small cap slopes within that step.
     for (const centre of centres) {
+      const headStation = centre + width / 2;
+      const headAt = (u) => topAt(headStation) + heightAt(u) - heightAt(headStation);
       for (const [a, b] of pieces(centre - pierWidth / 2, centre + pierWidth / 2)) {
         const s = (a + b + width) / 2, at = station(run, s);
         const y0 = floorAt(a, b) + 0.1;
-        const headAt = (u) => topAt(s) + heightAt(u) - heightAt(s);
         const points = [[a + width / 2, y0], [b + width / 2, y0],
           [b + width / 2, headAt(b + width / 2)], [a + width / 2, headAt(a + width / 2)]]
           .map(([s, y]) => { const p = run.at(s); return [p[0], y, p[1]]; });

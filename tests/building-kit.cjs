@@ -368,6 +368,17 @@ async function main() {
       assert.equal(hit([-20.143, 260.9, 40], [0, 0, -1])?.object.name, "vertical piers and chevrons");
       assert.equal(hit([-20.143, 261.7, 40], [0, 0, -1])?.object.name, "tower and setback shells",
         "the pier heads should retain the reference's floor-by-floor steps");
+      // Clipping a pier around the setback must not introduce a second step
+      // halfway across its cap. Check both sides of all four affected seams.
+      const pierSurfaces = surfaces.filter((mesh) => mesh.name === "vertical piers and chevrons");
+      for (const x of [-24.799, 24.799]) {
+        for (const z of [-19.58, 19.58]) {
+          const left = hit([x - 0.01, 270, z], [0, -1, 0], pierSurfaces);
+          const right = hit([x + 0.01, 270, z], [0, -1, 0], pierSurfaces);
+          assert.ok(left && right && Math.abs(left.point.y - right.point.y) < 0.05,
+            "a split pier should have a continuous angled cap across the setback edge");
+        }
+      }
       // The crown's ribs bridge the centre of each ridge, rather than leaving a
       // slit when two neighboring roof faces are displaced apart. The cladding
       // and louvers must also be real raised surfaces, not flat painted stripes.
