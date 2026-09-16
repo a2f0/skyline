@@ -102,6 +102,7 @@ export function createBuilder(name, buildingId, { gradient = [70, 135, 200, 255]
     return data;
   };
 
+  const always = () => true;
   const white = new THREE.Color(1, 1, 1);
   // Winding follows the first normal, so every helper stays outward-facing.
   function triangle(target, points, normals, color = white) {
@@ -152,57 +153,64 @@ export function createBuilder(name, buildingId, { gradient = [70, 135, 200, 255]
   // A projecting band along consecutive runs, chamfered at convex corners. It is closed
   // by its back, soffit, top, and start and end returns unless `omit` names them; a
   // `closed` band, such as a parapet around a whole roof, turns its last corner onto its
-  // first run instead of ending. `visible` skips pieces buried inside another volume.
-  function band(target, runs, y0, y1, proud, { omit = [], from = 0, to = Infinity, closed = false, visible = () => true } = {}) {
+  // first run instead of ending. `visible` skips pieces buried inside another volume, and
+  // the band closes itself wherever it stops and reopens.
+  function band(target, runs, y0, y1, proud, { omit = [], from = 0, to = Infinity, closed = false, visible = always } = {}) {
     if (closed && (from !== 0 || to !== Infinity)) throw new Error("A closed band wraps whole runs, so it takes no from or to.");
+    if (closed && visible !== always) throw new Error("A closed band cannot also be trimmed by visible; split it into open bands.");
     const faceNames = ["back", "soffit", "top", "start", "end"];
     checkOmit(omit, faceNames, "band");
     const [back, soffit, top, start, end] = faceNames.map((name) => !omit.includes(name));
-    const endFace = (run, s, sign, keep, check = true) => {
-      if (check && !visible(run.at(s, proud + 0.2), y0)) return;
+    const endFace = (run, s, sign, keep) => {
       const [inner, outer] = [run.at(s), run.at(s, proud)], n = run.normal(s);
       face(target, [point(inner, y0), point(outer, y0), point(outer, y1), point(inner, y1)], [n[1] * sign, 0, -n[0] * sign], !keep);
     };
-    // Whether the band is running, so a piece `visible` skips closes it and the next
-    // piece reopens it. The first piece takes the start return instead.
-    let drawn = false, opening = true;
-    runs.forEach((run, index) => {
-      const first = index === 0 ? from : 0, last = Math.min(run.length, index === runs.length - 1 ? to : Infinity);
-      const n = run.pieces(first, last);
-      for (let i = 0; i < n; i += 1) {
-        const sa = first + (last - first) * i / n, sb = first + (last - first) * (i + 1) / n;
-        const shown = visible(run.at((sa + sb) / 2, proud + 0.2), y0);
-        if (shown !== drawn && !opening) endFace(run, sa, shown ? -1 : 1, true, false);
-        opening = false;
-        drawn = shown;
-        if (!shown) continue;
-        panel(target, run, sa, sb, y0, y1, proud);
-        const [ia, ib, oa, ob] = [run.at(sa), run.at(sb), run.at(sa, proud), run.at(sb, proud)];
-        if (soffit) ledge(target, run, sa, sb, y0, 0, proud, false);
-        else omitted.push({ batch: target.name, corners: [point(ia, y0), point(ib, y0), point(ob, y0), point(oa, y0)], normal: [0, -1, 0] });
-        if (top) ledge(target, run, sa, sb, y1, 0, proud, true);
-        else omitted.push({ batch: target.name, corners: [point(ia, y1), point(ib, y1), point(ob, y1), point(oa, y1)], normal: [0, 1, 0] });
-        const [na, nb] = [run.normal(sa), run.normal(sb)].map(([x, z]) => [-x, 0, -z]);
-        const backCorners = [point(ib, y0), point(ia, y0), point(ia, y1), point(ib, y1)];
-        if (back) quad(target, backCorners, [nb, na, na, nb]);
-        else omitted.push({ batch: target.name, corners: backCorners, normal: [(na[0] + nb[0]) / 2, 0, (na[2] + nb[2]) / 2] });
-      }
-      if (index === 0 && !closed) endFace(run, first, -1, start);
-      if (index === runs.length - 1 && !closed) endFace(run, last, 1, end);
-      const next = runs[index + 1] || (closed ? runs[0] : null);
-      if (!next) return;
-      // Outward normals turn counterclockwise from above at a convex corner, opening a wedge to fill.
-      const corner = run.at(run.length), n1 = run.normal(run.length), n2 = next.normal(0);
+    // Outward normals turn counterclockwise from above at a convex corner, opening a wedge to fill.
+    const cornerWedge = (run, next) => {
+      const at = run.at(run.length), n1 = run.normal(run.length), n2 = next.normal(0);
       const turn = n1[0] * n2[1] - n1[1] * n2[0];
       if (turn > 1e-6) throw new Error("A band cannot turn a concave corner; split it into two bands there.");
-      if (turn >= -1e-6 || !visible(corner, y0)) return;
+      if (turn >= -1e-6) return;
       const a = run.at(run.length, proud), b = next.at(0, proud), mitre = cornerNormal(n1, n2);
       quad(target, [point(a, y0), point(b, y0), point(b, y1), point(a, y1)], [[mitre[0], 0, mitre[1]]]);
-      if (soffit) triangle(target, [point(corner, y0), point(b, y0), point(a, y0)], [[0, -1, 0], [0, -1, 0], [0, -1, 0]]);
-      else omitted.push({ batch: target.name, corners: [point(corner, y0), point(b, y0), point(a, y0)], normal: [0, -1, 0] });
-      if (top) triangle(target, [point(corner, y1), point(a, y1), point(b, y1)], [[0, 1, 0], [0, 1, 0], [0, 1, 0]]);
-      else omitted.push({ batch: target.name, corners: [point(corner, y1), point(a, y1), point(b, y1)], normal: [0, 1, 0] });
+      if (soffit) triangle(target, [point(at, y0), point(b, y0), point(a, y0)], [[0, -1, 0], [0, -1, 0], [0, -1, 0]]);
+      else omitted.push({ batch: target.name, corners: [point(at, y0), point(b, y0), point(a, y0)], normal: [0, -1, 0] });
+      if (top) triangle(target, [point(at, y1), point(a, y1), point(b, y1)], [[0, 1, 0], [0, 1, 0], [0, 1, 0]]);
+      else omitted.push({ batch: target.name, corners: [point(at, y1), point(a, y1), point(b, y1)], normal: [0, 1, 0] });
+    };
+    const pieces = [];
+    runs.forEach((run, index) => {
+      const first = index === 0 ? from : 0, last = Math.min(run.length, index === runs.length - 1 ? to : Infinity);
+      const count = run.pieces(first, last);
+      for (let i = 0; i < count; i += 1) {
+        const sa = first + (last - first) * i / count, sb = first + (last - first) * (i + 1) / count;
+        pieces.push({ run, index, sa, sb, shown: visible(run.at((sa + sb) / 2, proud + 0.2), y0) });
+      }
     });
+    let drawn = false, opened = false, previous = null;
+    for (const piece of pieces) {
+      const { run, sa, sb, shown } = piece;
+      // A closed band opens with no return: its wrap-around corner closes it instead.
+      if (shown && !drawn && !(closed && !opened)) endFace(run, sa, -1, opened ? true : start);
+      if (!shown && drawn) endFace(previous.run, previous.sb, 1, true);
+      if (shown && drawn && previous.index !== piece.index) cornerWedge(previous.run, run);
+      drawn = shown;
+      previous = piece;
+      if (!shown) continue;
+      opened = true;
+      panel(target, run, sa, sb, y0, y1, proud);
+      const [ia, ib, oa, ob] = [run.at(sa), run.at(sb), run.at(sa, proud), run.at(sb, proud)];
+      if (soffit) ledge(target, run, sa, sb, y0, 0, proud, false);
+      else omitted.push({ batch: target.name, corners: [point(ia, y0), point(ib, y0), point(ob, y0), point(oa, y0)], normal: [0, -1, 0] });
+      if (top) ledge(target, run, sa, sb, y1, 0, proud, true);
+      else omitted.push({ batch: target.name, corners: [point(ia, y1), point(ib, y1), point(ob, y1), point(oa, y1)], normal: [0, 1, 0] });
+      const [na, nb] = [run.normal(sa), run.normal(sb)].map(([x, z]) => [-x, 0, -z]);
+      const backCorners = [point(ib, y0), point(ia, y0), point(ia, y1), point(ib, y1)];
+      if (back) quad(target, backCorners, [nb, na, na, nb]);
+      else omitted.push({ batch: target.name, corners: backCorners, normal: [(na[0] + nb[0]) / 2, 0, (na[2] + nb[2]) / 2] });
+    }
+    if (drawn && closed) cornerWedge(previous.run, runs[0]);
+    else if (drawn) endFace(previous.run, previous.sb, 1, end);
   }
   // A box on a local frame: fins, mullions, posts, and rooftop masses. Depths run along
   // the frame's normal from `back` to `front`.
