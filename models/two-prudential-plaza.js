@@ -3,7 +3,8 @@ import { createBuilder, rectangle, station } from "./building-kit.js";
 // Two Prudential Plaza, fitted to the SVG rather than surveyed dimensions. +x is east,
 // +z south, in metres above the study's platform. The drawing stretches this tower:
 // its spire fits at 345.79 m above the platform, versus 303.3 m above the real street.
-// The front chevrons project south in two shallow setbacks; hidden faces are inferred.
+// The paired north/south setbacks and crown construction are informed by reference photos;
+// proportions still follow the drawing. See docs/two-prudential-reference.md for sources.
 export const towerWidth = 59.01, towerDepth = 38.86;
 export const eave = 250.916, chevronTop = 286.78, eastChevronTop = 284.955, pyramidTop = 315.71, spireTop = 345.786;
 const west = -towerWidth / 2, east = towerWidth / 2, north = -towerDepth / 2, south = towerDepth / 2;
@@ -16,7 +17,7 @@ const proud = 0.3, pierWidth = 1.6, arrowWidth = 11.7;
 const pitch = 5.23, paneHeight = 3.0;
 const gable = (tier, x) => tier.peak - (tier.peak - tier.eave) * Math.abs(x) / tier.half;
 const southPiers = [-28.7, -24.645, -20.143, -15.648, -11.158, -6.674, 6.614, 11.045, 15.472, 20.045, 24.453, 28.7];
-const eastPiers = [-18.525, -15.67, -12.333, -9.128, 12.044, 15.057, 18.625];
+const eastPiers = [-18.525, -15.67, -12.333, -9.128, -6.35, 6.35, 12.044, 15.057, 18.625];
 const lowerPiers = [-20.04, -15.69, -11.205, -6.705, 7.341, 11.797, 16.247, 20.04];
 
 export const twoPrudentialFeatures = {
@@ -43,7 +44,7 @@ export const twoPrudentialFeatures = {
 
 export function createTwoPrudentialPlazaBuilding() {
   const kit = createBuilder("Two Prudential Plaza", "building-two-prudential-plaza");
-  const { material, batch, prism, slab, panel, box, triangle } = kit;
+  const { material, batch, prism, slab, panel, triangle } = kit;
   const stone = material(0x868686), glass = material(0x4c4c4c), metal = material(0x535353);
   const shell = batch("tower and setback shells", stone);
   const roof = batch("pyramid and chevron roofs", metal);
@@ -51,6 +52,11 @@ export function createTwoPrudentialPlazaBuilding() {
   const windows = batch("window panes", glass);
   const piers = batch("vertical piers and chevrons", metal);
   const spire = batch("spire", material(0xe9e9e9));
+  const glazing = batch("chevron glazing", material(0x424242, { vertexColors: true }));
+  const frames = batch("glazing mullions and crown ribs", material(0x929292));
+  const spirePanels = batch("spire inset panels", material(0x575757));
+  const louvers = batch("crown louvers", material(0x727272));
+  const batches = [shell, roof, bands, windows, piers, spire, glazing, frames, spirePanels, louvers];
 
   // A geometric face normal, also used for the sloping caps and tapered spire.
   const normal = ([a, b, c]) => {
@@ -59,12 +65,49 @@ export function createTwoPrudentialPlazaBuilding() {
     const length = Math.hypot(...n);
     return n.map((v) => v / length);
   };
-  const face = (target, vertices, outward) => {
+  const face = (target, vertices, outward, color) => {
     for (let i = 1; i < vertices.length - 1; i += 1) {
       const points = [vertices[0], vertices[i], vertices[i + 1]];
       const n = outward || normal(points);
-      triangle(target, points, [n, n, n]);
+      triangle(target, points, [n, n, n], color);
     }
+  };
+  // A shallow closed solid on an arbitrary facade/roof plane. Its back sits inside
+  // the underlying shell; the front and returns give trim real depth in side views.
+  const relief = (target, polygon, n, depth, buried = 0.06) => {
+    const moved = (distance) => polygon.map((p) => p.map((v, k) => v + n[k] * distance));
+    const front = moved(depth), back = moved(-buried);
+    face(target, front, n);
+    face(target, [...back].reverse(), n.map((v) => -v));
+    for (let i = 0; i < polygon.length; i += 1) {
+      const j = (i + 1) % polygon.length;
+      const edge = front[j].map((v, k) => v - front[i][k]);
+      const side = [edge[1] * n[2] - edge[2] * n[1], edge[2] * n[0] - edge[0] * n[2], edge[0] * n[1] - edge[1] * n[0]];
+      face(target, [back[i], back[j], front[j], front[i]], side);
+    }
+  };
+  // Clip convex polygons by a half-space. Used for roof strips and glazing which
+  // reaches the sloping heads; no full window bay is discarded at a chevron.
+  const clip = (polygon, distance) => polygon.flatMap((a, i) => {
+    const b = polygon[(i + 1) % polygon.length], da = distance(a), db = distance(b);
+    const points = da >= 0 ? [a] : [];
+    if ((da >= 0) !== (db >= 0)) {
+      const t = da / (da - db);
+      points.push(a.map((v, k) => v + t * (b[k] - v)));
+    }
+    return points;
+  });
+  const clipY = (polygon, y, above) => clip(polygon, (p) => (above ? 1 : -1) * (p[1] - y));
+  // Rotate newly authored south-facing details by 180 degrees for the north side.
+  // Both facade builders emit closed solids and panels, without named omissions.
+  const onNorth = (draw) => {
+    const starts = batches.map((target) => target.positions.length);
+    draw();
+    batches.forEach((target, batchIndex) => {
+      for (let i = starts[batchIndex]; i < target.positions.length; i += 3) {
+        for (const axis of [0, 2]) { target.positions[i + axis] *= -1; target.normals[i + axis] *= -1; }
+      }
+    });
   };
   // Closed gabled extrusion: a real projecting setback or a pointed central pier.
   // Back, bottom, and sloping caps are present even where another volume hides them.
@@ -94,41 +137,73 @@ export function createTwoPrudentialPlazaBuilding() {
     [east, eastChevronTop, 0], [east, eave, north], [0, chevronTop, north],
     [west, eave, north], [west, eastChevronTop, 0]];
   slab(roof, [[west, south], [east, south], [east, north], [west, north]], eave, false);
-  // Partition the roof triangles into horizontal bands. Adjacent bands share an edge,
-  // never a coplanar overlay, so the stripes remain sound when orbiting or zooming.
-  const clipY = (polygon, y, above) => polygon.flatMap((a, i) => {
-    const b = polygon[(i + 1) % polygon.length], ina = above ? a[1] >= y : a[1] <= y, inb = above ? b[1] >= y : b[1] <= y;
-    const points = ina ? [a] : [];
-    if (ina !== inb) { const t = (y - a[1]) / (b[1] - a[1]); points.push(a.map((v, k) => v + t * (b[k] - v))); }
-    return points;
-  });
-  const bandedFace = (polygon, n, dark, light) => {
-    for (let y = eave; y < pyramidTop; y += pitch) {
-      for (const [lo, hi, target] of [[y, y + 1.8, dark], [y + 1.8, Math.min(y + pitch, pyramidTop), light]]) {
-        const clipped = clipY(clipY(polygon, lo, true), hi, false);
-        if (clipped.length >= 3) face(target, clipped, n);
-      }
-    }
-  };
+  // A continuous dark enclosure under raised cladding. Photo references show
+  // deep louver recesses and diagonal ribs, not stripes painted on one surface.
+  // The eight facets retain the SVG's slightly inconsistent eave/chevron heights.
   for (let i = 0; i < 4; i += 1) {
-    const a = rim[2 * i], b = rim[2 * i + 1], c = rim[(2 * i + 2) % 8];
-    const n = plan[i].normal(0);
-    // Match the roof's edge subdivisions to avoid long wall edges meeting several
-    // shorter roof edges, which can open pixel-sized cracks when projected.
-    bandedFace([a, b, c], [n[0], 0, n[1]], shell, shell);
+    const a = rim[2 * i], b = rim[2 * i + 1], c = rim[(2 * i + 2) % 8], n = plan[i].normal(0);
+    face(shell, [a, b, c], [n[0], 0, n[1]]);
   }
   for (let i = 0; i < rim.length; i += 1) {
-    // The rim runs counterclockwise from above; these normals face up and out.
-    const polygon = [apex, rim[i], rim[(i + 1) % 8]];
-    bandedFace(polygon, normal(polygon), roof, bands);
+    const polygon = [apex, rim[i], rim[(i + 1) % 8]], n = normal(polygon);
+    face(roof, polygon, n);
+    // Each roof facet meets one of the four ridges at a facade's centre.
+    const ridge = rim[i % 2 ? i : (i + 1) % 8], axis = ridge[0] === 0 ? 0 : 2;
+    const sign = Math.sign(rim[i % 2 ? (i + 1) % 8 : i][axis]);
+    const field = clip(polygon, (p) => sign * p[axis] - (1.10 - 0.55 * (p[1] - ridge[1]) / (pyramidTop - ridge[1])));
+    // End the small support struts inside the perimeter. Their caps must not
+    // coincide with the blades' caps where both would meet the roof's edge.
+    const insetField = polygon.reduce((part, a, j) => {
+      const b = polygon[(j + 1) % polygon.length], edge = b.map((v, k) => v - a[k]), length = Math.hypot(...edge);
+      const inward = [n[1] * edge[2] - n[2] * edge[1], n[2] * edge[0] - n[0] * edge[2], n[0] * edge[1] - n[1] * edge[0]].map((v) => v / length);
+      return clip(part, (p) => p.reduce((sum, v, k) => sum + (v - a[k]) * inward[k], 0) - 0.05);
+    }, field);
+    for (let y = eave; y < pyramidTop; y += pitch) {
+      const strip = clipY(clipY(field, y + 1.8, true), Math.min(y + pitch - 0.12, pyramidTop), false);
+      if (strip.length >= 3) relief(bands, strip, n, 0.78);
+      // Two fine blades in each dark opening make the mechanical crown legible
+      // up close. They stay below the silver band's face, with open gaps between.
+      for (const dy of [0.48, 1.12]) {
+        const blade = clipY(clipY(field, y + dy, true), y + dy + 0.13, false);
+        if (blade.length >= 3) relief(louvers, blade, n, 0.20, 0.1);
+      }
+      // The photo's mechanical openings have a fine supporting grid behind the
+      // broad cladding. These struts sit between the recessed blades and fascia.
+      const opening = clipY(clipY(insetField, y + 0.25, true), y + 1.55, false);
+      for (let across = 3.4; across < Math.max(east, south); across += 3.4) {
+        const strut = clip(clip(opening, (p) => sign * p[axis] - across), (p) => across + 0.09 - sign * p[axis]);
+        if (strut.length >= 3) relief(frames, strut, n, 0.23, 0.12);
+      }
+    }
   }
-  for (const tier of [middle, lower]) gabled(shell, tier.half, tier.back, tier.front, tier.eave, tier.peak);
+  // One closed beam spans each ridge. Extruding its two neighboring roof faces
+  // independently would pull them apart and leave a slit down the ridge's centre.
+  for (const start of rim.filter((_, i) => i % 2)) {
+    const direction = apex.map((v, i) => v - start[i]), length = Math.hypot(...direction);
+    const d = direction.map((v) => v / length);
+    const lateral = [Math.sign(start[2]), 0, -Math.sign(start[0])];
+    const n = [lateral[1] * d[2] - lateral[2] * d[1], lateral[2] * d[0] - lateral[0] * d[2], lateral[0] * d[1] - lateral[1] * d[0]];
+    const section = (at, width, buried) => [[-width, -buried], [width, -buried], [width, 0.75], [-width, 0.75]]
+      .map(([across, depth]) => at.map((v, i) => v + across * lateral[i] + depth * n[i]));
+    // Shallower at the apex: a full-depth cap crosses the axis and pokes through
+    // the opposite beam's top beside the spire, despite both solids being closed.
+    const bottom = section(start, 1.25, 2.8), top = section(apex, 0.7, 1.2);
+    face(frames, bottom, d.map((v) => -v));
+    face(frames, [...top].reverse(), d);
+    for (let i = 0; i < 4; i += 1) {
+      const j = (i + 1) % 4;
+      face(frames, [bottom[i], top[i], top[j], bottom[j]]);
+    }
+  }
 
   // Detail is clipped above each projecting tier. Panes stand just outside the solid
   // shell; a recessed pane would be buried because these walls contain no openings.
   const decorate = (run, width, peak, shoulder, centres, cover = null) => {
     const heightAt = (s) => peak - (peak - shoulder) * Math.abs(s - width / 2) / (width / 2);
-    const topAt = (s) => Math.min(heightAt(s) - 1.5, shoulder + Math.floor((heightAt(s) - shoulder) / pitch) * pitch);
+    // The photos and SVG show floor-by-floor steps, each with a short angled
+    // pier cap. A continuous diagonal loses that characteristic sawtooth edge.
+    const topAt = (s) => Math.min(heightAt(s) - 0.35,
+      shoulder + Math.floor((heightAt(s) - shoulder) / pitch) * pitch);
     const boundaries = [-arrowWidth / 2, arrowWidth / 2, ...(cover ? [-cover.half, cover.half] : [])];
     const pieces = (from, to) => {
       if (to <= from) return [];
@@ -137,12 +212,17 @@ export function createTwoPrudentialPlazaBuilding() {
     };
     const floorAt = (a, b) => cover && Math.abs((a + b) / 2) < cover.half
       ? Math.max(gable(cover, a), gable(cover, b)) : 0;
-    // Each strip stops one floor at a time, making the chevron's stepped window edges.
+    // Each head has one floor level; its small cap slopes within that step.
     for (const centre of centres) {
+      const headStation = centre + width / 2;
+      const headAt = (u) => topAt(headStation) + heightAt(u) - heightAt(headStation);
       for (const [a, b] of pieces(centre - pierWidth / 2, centre + pierWidth / 2)) {
         const s = (a + b + width) / 2, at = station(run, s);
-        const y0 = floorAt(a, b) + 0.1, y1 = topAt(s);
-        box(piers, at.at, at.normal, (b - a) / 2, 0, proud, y0, y1, { omit: ["back"] });
+        const y0 = floorAt(a, b) + 0.1;
+        const points = [[a + width / 2, y0], [b + width / 2, y0],
+          [b + width / 2, headAt(b + width / 2)], [a + width / 2, headAt(a + width / 2)]]
+          .map(([s, y]) => { const p = run.at(s); return [p[0], y, p[1]]; });
+        relief(piers, points, [at.normal[0], 0, at.normal[1]], proud, 0.004);
       }
     }
     const edges = [-width / 2, ...centres, width / 2].sort((a, b) => a - b);
@@ -152,37 +232,83 @@ export function createTwoPrudentialPlazaBuilding() {
       for (const [x0, x1] of pieces(edges[i] + pierWidth / 2, edges[i + 1] - pierWidth / 2)) {
         const s0 = x0 + width / 2, s1 = x1 + width / 2;
         const top = Math.min(topAt(s0), topAt(s1)), floor = floorAt(x0, x1);
-        for (let y = 3; y + paneHeight < top; y += pitch) {
+        for (let y = 3; y + 0.25 < top; y += pitch) {
           if (y <= floor) continue;
-          panel(windows, run, s0, s1, y, y + paneHeight, 0.025);
+          panel(windows, run, s0, s1, y, Math.min(y + paneHeight, top), 0.025);
         }
       }
     }
   };
-  // Main tower: all four faces, with the rear grid inferred from the visible faces.
-  decorate(plan[0], towerWidth, chevronTop - 7, eave, southPiers, middle);
-  decorate(plan[1], towerDepth, eastChevronTop - 7, eave, eastPiers.map((z) => -z));
-  decorate(plan[2], towerWidth, chevronTop - 7, eave, southPiers);
-  decorate(plan[3], towerDepth, eastChevronTop - 7, eave, eastPiers.map((z) => -z));
-  for (const [i, tier] of [middle, lower].entries()) {
-    const runs = rectangle(-tier.half, tier.half, tier.back, tier.front), run = runs[0];
-    const centres = i === 0 ? [-23.3, -18.85, -14.4, -9.95, -6.5, 6.5, 10.95, 15.4, 19.85, 23.3] : lowerPiers;
-    decorate(run, tier.half * 2, tier.peak - 7, tier.eave, centres, tiers[i + 2]);
-    // The shallow returns become visible when orbiting; their windows use the same grid.
-    for (const side of [runs[1], runs[3]]) {
-      for (let y = 3; y + paneHeight < tier.eave; y += pitch) {
-        panel(windows, side, 0.5, side.length - 0.5, y, y + paneHeight, 0.025);
+  // Narrow panes and thin mullions break up the broad glazed chevrons. The
+  // measured outline remains the solid underneath; no transparent material or
+  // photographic texture is needed for the monochrome illustration.
+  const glazedArrow = (width, front, shoulder, peak, floor = () => 0, turn = false) => {
+    const n = turn ? [1, 0, 0] : [0, 0, 1];
+    const at = ([s, y]) => turn ? [front, y, -s] : [s, y, front];
+    const height = (x) => peak - (peak - shoulder) * Math.abs(x) / (width / 2);
+    const bays = 4, half = width / 2 - 0.32, bay = half * 2 / bays;
+    for (let column = 0; column < bays; column += 1) {
+      const a = -half + column * bay + 0.10, b = -half + (column + 1) * bay - 0.10;
+      const y1 = Math.max(height(a), height(b)) - 0.35;
+      for (let y = 3, row = 0; y < y1; y += pitch, row += 1) {
+        let pane = [[a, y], [b, y], [b, y + pitch - 0.24], [a, y + pitch - 0.24]];
+        pane = clip(pane, ([x, h]) => h - floor(x) - 0.12);
+        pane = clip(pane, ([x, h]) => height(x) - 0.35 - h);
+        if (pane.length < 3) continue;
+        const tone = 0.82 + ((row * 13 + column * 7) % 11) * 0.025;
+        const color = { r: tone, g: tone, b: tone };
+        face(glazing, pane.map(at), n, color);
       }
     }
-  }
-  // The broad dark central arrows sit on the face, and stop at their pointed caps.
-  // Bury the closed backs slightly in the shaft so independently rounded roof
-  // edges cannot leave coplanar slivers against the next setback's back face.
-  tiers.forEach((tier, i) => gabled(piers, arrowWidth / 2, tier.front - (i < 2 ? 0.01 : 0), tier.front + 0.6,
-    tier.peak - 7, tier.peak, i < 2 ? (x) => gable(tiers[i + 1], x) : 0));
-  gabled(piers, arrowWidth / 2, east, east + 0.6, eastChevronTop - 10, eastChevronTop, 0, true);
-  gabled(piers, arrowWidth / 2, north - 0.6, north, chevronTop - 7, chevronTop);
-  gabled(piers, arrowWidth / 2, west - 0.6, west, eastChevronTop - 10, eastChevronTop, 0, true);
+    for (let column = 1; column < bays; column += 1) {
+      const x = -half + column * bay, a = x - 0.075, b = x + 0.075;
+      const lo = Math.max(floor(a), floor(b)) + 0.1;
+      const polygon = [[a, lo], [b, lo], [b, height(b) - 0.2], [a, height(a) - 0.2]].map(at);
+      relief(frames, polygon, n, 0.065, 0.05);
+    }
+  };
+  const southFacade = () => {
+    decorate(plan[0], towerWidth, chevronTop, eave, southPiers, middle);
+    for (const [i, tier] of tiers.entries()) {
+      const next = tiers[i + 1], bottom = next ? (x) => gable(next, x) : () => 0;
+      if (i) {
+        gabled(shell, tier.half, tier.back, tier.front, tier.eave, tier.peak);
+        const runs = rectangle(-tier.half, tier.half, tier.back, tier.front);
+        const centres = i === 1 ? [-23.3, -18.85, -14.4, -9.95, -6.5, 6.5, 10.95, 15.4, 19.85, 23.3] : lowerPiers;
+        decorate(runs[0], tier.half * 2, tier.peak, tier.eave, centres, next);
+        // Glazed returns make the real depth of both projecting setbacks readable.
+        for (const side of [runs[1], runs[3]]) {
+          for (let y = 3; y + paneHeight < tier.eave; y += pitch) {
+            panel(windows, side, 0.25, side.length - 0.25, y, y + paneHeight, 0.025);
+          }
+        }
+        // A thin closed coping follows each gable, with a darker exposed return.
+        for (const sign of [-1, 1]) {
+          const a = sign * (arrowWidth / 2 + 0.06), b = sign * (tier.half - 0.08);
+          const polygon = [[Math.min(a, b), gable(tier, Math.min(a, b)) - 0.75],
+            [Math.max(a, b), gable(tier, Math.max(a, b)) - 0.75],
+            [Math.max(a, b), gable(tier, Math.max(a, b)) + 0.06],
+            [Math.min(a, b), gable(tier, Math.min(a, b)) + 0.06]].map(([x, y]) => [x, y, tier.front]);
+          relief(bands, polygon, [0, 0, 1], 0.48, 0.1);
+        }
+      }
+      // Closed backs sit inside the shaft to avoid coplanar slivers at cap joins.
+      gabled(piers, arrowWidth / 2, tier.front - (next ? 0.01 : 0), tier.front + 0.6,
+        tier.peak - 7, tier.peak, bottom);
+      glazedArrow(arrowWidth, tier.front + 0.625, tier.peak - 7, tier.peak, bottom);
+    }
+  };
+  southFacade();
+  onNorth(southFacade);
+  // East and west each have a continuous glazed chevron and two flanking strips
+  // that were omitted from the first pass. Rear detailing mirrors the front.
+  const eastFacade = () => {
+    decorate(plan[1], towerDepth, eastChevronTop, eave, eastPiers.map((z) => -z));
+    gabled(piers, arrowWidth / 2, east, east + 0.6, eastChevronTop - 10, eastChevronTop, 0, true);
+    glazedArrow(arrowWidth, east + 0.625, eastChevronTop - 10, eastChevronTop, () => 0, true);
+  };
+  eastFacade();
+  onNorth(eastFacade);
 
   // A closed four-sided spire, with a small square foot seated around the pyramid tip.
   // At the foot's corners the roof is about 3.8 m below its apex, so the whole
@@ -190,7 +316,19 @@ export function createTwoPrudentialPlazaBuilding() {
   const half = 1.4, footY = pyramidTop - 4;
   const foot = [[-half, footY, half], [half, footY, half], [half, footY, -half], [-half, footY, -half]];
   const tip = [0, spireTop, 0];
-  for (let i = 0; i < 4; i += 1) face(spire, [foot[i], foot[(i + 1) % 4], tip]);
+  for (let i = 0; i < 4; i += 1) {
+    const polygon = [foot[i], foot[(i + 1) % 4], tip], n = normal(polygon);
+    face(spire, polygon, n);
+    // A dark inset between the bright folded edges of each tapered face. Two
+    // small joints and the exposed final tip retain the metal spire's scale.
+    const middle = foot[i].map((v, k) => (v + foot[(i + 1) % 4][k]) / 2);
+    const inset = [foot[i], foot[(i + 1) % 4]].map((p) => p.map((v, k) => middle[k] + (v - middle[k]) * 0.62));
+    const panelTip = tip.map((v, k) => v + (middle[k] - v) * 0.13);
+    for (const [lo, hi] of [[pyramidTop + 0.65, pyramidTop + 8], [pyramidTop + 8.25, pyramidTop + 16], [pyramidTop + 16.25, spireTop - 3.5]]) {
+      const section = clipY(clipY([...inset, panelTip], lo, true), hi, false);
+      if (section.length >= 3) face(spirePanels, section.map((p) => p.map((v, k) => v + n[k] * 0.025)), n);
+    }
+  }
   slab(spire, [[-half, half], [half, half], [half, -half], [-half, -half]], footY, false);
 
   return kit.finish({ height: spireTop, outlines: [shell], opacity: 0.22 });

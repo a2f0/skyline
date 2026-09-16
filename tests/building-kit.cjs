@@ -360,8 +360,50 @@ async function main() {
       ]) assert.equal(hit(origin, direction)?.object.name, "window panes", label);
       // Upper arrows continue to the sloping cap below them, including its shoulders.
       for (const y of [231, 185]) {
-        assert.equal(hit([4.5, y, 40], [0, 0, -1])?.object.name, "vertical piers and chevrons", `the arrow at y=${y} should reach the next gable`);
+        assert.equal(hit([4.5, y, 40], [0, 0, -1])?.object.name, "chevron glazing", `the arrow at y=${y} should reach the next gable`);
       }
+      // A visible main-shaft step in the references: the pier is present below
+      // its floor stop and absent above it. Smoothing the heads into one gable
+      // fills this notch even though the overall roof landmarks still match.
+      assert.equal(hit([-20.143, 260.9, 40], [0, 0, -1])?.object.name, "vertical piers and chevrons");
+      assert.equal(hit([-20.143, 261.7, 40], [0, 0, -1])?.object.name, "tower and setback shells",
+        "the pier heads should retain the reference's floor-by-floor steps");
+      // Clipping a pier around the setback must not introduce a second step
+      // halfway across its cap. Check both sides of all four affected seams.
+      const pierSurfaces = surfaces.filter((mesh) => mesh.name === "vertical piers and chevrons");
+      for (const x of [-24.799, 24.799]) {
+        for (const z of [-19.58, 19.58]) {
+          const left = hit([x - 0.01, 270, z], [0, -1, 0], pierSurfaces);
+          const right = hit([x + 0.01, 270, z], [0, -1, 0], pierSurfaces);
+          assert.ok(left && right && Math.abs(left.point.y - right.point.y) < 0.05,
+            "a split pier should have a continuous angled cap across the setback edge");
+        }
+      }
+      // The crown's ribs bridge the centre of each ridge, rather than leaving a
+      // slit when two neighboring roof faces are displaced apart. The cladding
+      // and louvers must also be real raised surfaces, not flat painted stripes.
+      const enclosure = surfaces.filter((mesh) => mesh.name === "pyramid and chevron roofs");
+      for (const [origin, name, minimumDepth] of [
+        [[0, 340, 12], "glazing mullions and crown ribs", 1],
+        [[10, 340, 10], "pyramid silver bands", 1],
+        [[4, 340, 8.5], "crown louvers", 0.2],
+      ]) {
+        const visible = hit(origin, [0, -1, 0]), backing = hit(origin, [0, -1, 0], enclosure);
+        assert.equal(visible?.object.name, name, "crown detail should be the visible first surface");
+        assert.ok(visible.point.y - backing.point.y > minimumDepth, "crown detail should stand clear of its dark backing");
+      }
+      for (const z of [-2, 2]) {
+        const ridge = hit([0, 322, z], [0, -1, 0]);
+        assert.equal(ridge?.object.name, "glazing mullions and crown ribs");
+        assert.ok(ridge.face.normal.y > 0.5 && ridge.face.normal.z * Math.sign(z) > ridge.face.normal.y,
+          "the ridge beside the spire should expose its own top, not the opposite beam's penetrating cap");
+      }
+      for (const [origin, name] of [
+        [[0, 328, 4], "spire inset panels"], [[0.65, 328, 4], "spire"], [[0, 344, 4], "spire"],
+      ]) assert.equal(hit(origin, [0, 0, -1])?.object.name, name, "the spire should have inset panels, bright folded edges, and a bare tip");
+      const rearChevron = hit([4.5, 185, -40], [0, 0, 1]);
+      assert.equal(rearChevron?.object.name, "chevron glazing", "the north setback should carry the same glazed chevron");
+      assert.ok(rearChevron.point.z < -23, "the north chevron must project beyond the main shaft");
       const spirePositions = surfaces.find((mesh) => mesh.name === "spire").geometry.getAttribute("position");
       const foot = Math.min(...Array.from({ length: spirePositions.count }, (_, i) => spirePositions.getY(i)));
       const roof = surfaces.filter((mesh) => ["pyramid and chevron roofs", "pyramid silver bands"].includes(mesh.name));
