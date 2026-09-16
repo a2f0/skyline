@@ -3,7 +3,7 @@
 // collapsed, and the viewBox, title, and description come from tests/skyline-landmarks.cjs.
 const { readFileSync, writeFileSync } = require("node:fs");
 const path = require("node:path");
-const { command } = require("./lib/study-page.cjs");
+const { command } = require("./lib/command.cjs");
 const { reference } = require("../tests/skyline-landmarks.cjs");
 
 const usage = `Usage: node scripts/reference-svg.cjs [--check]

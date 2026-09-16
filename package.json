@@ -7,7 +7,8 @@
     "build:site": "node scripts/build-site.cjs",
     "fidelity": "node scripts/fidelity-report.cjs",
     "renders": "node scripts/render-study.cjs",
-    "deploy": "scripts/deploy.sh"
+    "deploy": "scripts/deploy.sh",
+    "verify:deploy": "node scripts/verify-deploy.cjs"
   },
   "devDependencies": {
     "playwright": "1.63.0",
