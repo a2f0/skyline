@@ -48,7 +48,21 @@ function measure({ key, shapes }) {
   }
   function flatten(element) {
     const number = (name) => element[name].baseVal.value;
-    if (element.tagName === "rect") { const [x, y, w, h] = ["x", "y", "width", "height"].map(number); return [[[x, y], [x + w, y], [x + w, y + h], [x, y + h]]]; }
+    if (element.tagName === "rect") {
+      const [x, y, w, h] = ["x", "y", "width", "height"].map(number);
+      // An unset corner radius takes the other's value, and each clamps to half its side.
+      let [rx, ry] = [number("rx"), number("ry")];
+      [rx, ry] = [Math.min(rx || ry, w / 2), Math.min(ry || rx, h / 2)];
+      if (!(rx > 0 && ry > 0)) return [[[x, y], [x + w, y], [x + w, y + h], [x, y + h]]];
+      // Each corner runs from the edge it leaves to the edge it meets, so the straight sides
+      // fall out as the segments between them and the closing segment along the top.
+      const corner = (cx, cy, from) => Array.from({ length: 9 }, (_, i) => {
+        const t = from + Math.PI / 2 * i / 8;
+        return [cx + rx * Math.cos(t), cy + ry * Math.sin(t)];
+      });
+      return [[...corner(x + w - rx, y + ry, -Math.PI / 2), ...corner(x + w - rx, y + h - ry, 0),
+        ...corner(x + rx, y + h - ry, Math.PI / 2), ...corner(x + rx, y + ry, Math.PI)]];
+    }
     if (element.tagName === "line") return [[[number("x1"), number("y1")], [number("x2"), number("y2")]]];
     if (["polygon", "polyline"].includes(element.tagName)) return [[...element.points].map((p) => [p.x, p.y])];
     if (["circle", "ellipse"].includes(element.tagName)) {
