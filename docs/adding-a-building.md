@@ -275,11 +275,11 @@ by hand:
 - **The triangle budget**, a two-sided exclusive range. Adding detail can breach the ceiling and
   removing it the floor. Raise it deliberately and say so.
 
-One assertion here has no structural tie to the building it names: the side-view occlusion check
-probes Crain and expects whichever building sits furthest right in the drawing, because the side
-view turns the skyline view's lateral spacing into depth. Adding a building to the right of One
-Prudential will change its expected owner. That is correct behaviour, not a regression — but
-establish which it is with evidence before touching the expectation.
+The side-view occlusion check probes Crain, but its owner depends on both lateral spacing and
+depth. The side view turns the skyline view's lateral spacing into depth and its depth into lateral
+spacing. Two Prudential sits farther right in the drawing, yet its rearward placement leaves this
+probe owned by One Prudential. Establish the owner by raycast before changing the expectation;
+being the rightmost tower alone does not establish occlusion.
 
 **Never weaken an assertion to make a build pass.** If a pre-existing one starts failing, prove
 whether the scene legitimately changed or your build is wrong.
