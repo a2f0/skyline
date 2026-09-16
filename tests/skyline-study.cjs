@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const { pathToFileURL } = require("node:url");
 const path = require("node:path");
 const { chromium } = require("playwright");
-const { heritage, kemper, crain, michigan, reference, models, landmarks, landmarkTolerance, fitted } = require("./skyline-landmarks.cjs");
+const { heritage, kemper, crain, michigan, prudential, reference, models, landmarks, landmarkTolerance, fitted } = require("./skyline-landmarks.cjs");
 const { viewports, checkSpec, measureStudy, above } = require("./study-fidelity.cjs");
 
 const origin = process.env.SKYLINE_TEST_URL || "http://127.0.0.1:8000";
@@ -12,6 +12,8 @@ const cameraPosition = (page) => page.evaluate(() => window.__buildingStudy.came
 const patch = (page, point) => page.screenshot({ style: "#tooltip { visibility: hidden !important; }", clip: { x: Math.floor(point.x) - 4, y: Math.floor(point.y) - 4, width: 8, height: 8 } });
 const heritageModule = models.find((model) => model.id === heritage).module;
 const heritageSpec = fitted.find((spec) => spec.id === heritage);
+const prudentialModule = models.find((model) => model.id === prudential).module;
+const prudentialSpec = fitted.find((spec) => spec.id === prudential);
 // The layouts come from the shared list, so scripts/fidelity-report.cjs measures the same pages.
 const [desktop, laptop, tablet, tall, phone] = viewports;
 
@@ -31,14 +33,16 @@ async function checkReferenceMatch(page) {
   assert.ok(above(deviations, "Michigan near roof", "Michigan left roof", "Michigan right roof"), "Michigan Plaza's near roof corner should rise above both neighboring corners");
   assert.ok(above(deviations, "screenFrontTop", "screenNorthTop", "screenSouthTop"), "Heritage's screen front corner should rise above both screen ends");
   assert.ok(above(deviations, "stubFrontRoof", "stubLeftRoof"), "Heritage's stub front corner should rise above its left silhouette corner");
+  assert.ok(above(deviations, "roofNear", "roofLeft", "roofRight"), "One Prudential's near roof corner should rise above both neighboring corners, as in the SVG");
+  assert.ok(above(deviations, "penthouseTopEast", "penthouseTopWest"), "One Prudential's penthouse should rise toward its east end, as drawn");
   const cap = { apex: projected.capApex, ends: [projected.capSouthEnd, projected.capNorthEnd] };
   assert.ok(cap.ends.every((end) => cap.apex[1] < end[1]), `Heritage's crown cap should crest over the joint, above both of its ends: ${JSON.stringify(cap)}`);
   for (const building of buildings) {
     const spec = fitted.find((entry) => entry.id === building.id);
     for (const [name, list] of Object.entries(building.columns)) {
-      const { batch, drawn } = spec.columns[name];
+      const { batch, drawn, tolerance = spec.columnTolerance } = spec.columns[name];
       assert.equal(list.length, drawn.length, `${spec.label} should export every drawn ${name}`);
-      list.forEach((column, index) => assert.ok(Math.abs(column.actual - column.expected) < spec.columnTolerance, `${spec.label} ${name} ${index + 1} should line up with the drawing: ${JSON.stringify(column)}`));
+      list.forEach((column, index) => assert.ok(Math.abs(column.actual - column.expected) < tolerance, `${spec.label} ${name} ${index + 1} should line up with the drawing: ${JSON.stringify(column)}`));
       building.sightGaps[name].forEach(({ gap, mesh }, index) => assert.ok(gap > spec.sightGap[0] && gap < spec.sightGap[1] && mesh === batch, `${spec.label} ${name} ${index + 1} should stand proud as the first surface on its sight line: ${gap} m on ${mesh}`));
     }
   }
@@ -49,6 +53,13 @@ async function checkReferenceMatch(page) {
   }
   const lowerSouthWest = projected.lowerSouthWest.map((uv) => uv[0]);
   assert.ok(lowerSouthWest.every((u) => u >= silhouette - 0.001), `Heritage's trimmed lower tier and its cap and band overhangs should stay inside the drawn left silhouette: ${JSON.stringify({ lowerSouthWest, silhouette })}`);
+  // One Prudential's wing ends the drawn silhouette on the right, so the model is held to it.
+  const wing = buildings.find((building) => building.id === prudential);
+  // The wall's north-east corner reaches furthest, its foot furthest of all at 2.80 layer
+  // units past the drawn edge, against the 3.06 this slack allows. The ribs stand proud of
+  // that wall but land well inside it; they are checked to keep them there.
+  const wingEdge = [wing.projected.wingCorner, wing.projected.wingEastEnd, ...wing.projected.wingRibEdge].map(([u]) => u);
+  assert.ok(wingEdge.every((u) => u <= wing.silhouette + 0.001), `One Prudential's wing and its ribs should stay inside the drawn right silhouette: ${JSON.stringify({ wingEdge, silhouette: wing.silhouette })}`);
 }
 
 async function checkCameraFloor(page, screenshotPath) {
@@ -101,7 +112,7 @@ async function main() {
     assert.equal(await page.evaluate(() => window.__buildingStudy.activeView), "skyline");
     // A budget for the whole scene; raise it deliberately when a detailed building lands.
     const triangles = await page.evaluate(() => window.__buildingStudy.triangleCount);
-    assert.ok(triangles > 24000 && triangles < 36000, `the scene should stay within 24,000-36,000 triangles: ${triangles}`);
+    assert.ok(triangles > 24000 && triangles < 40000, `the scene should stay within 24,000-40,000 triangles: ${triangles}`);
     await checkReferenceMatch(page);
     assert.equal(await page.evaluate(async ({ groups, path, sourcePath }) => {
       const parse = async (url) => new DOMParser().parseFromString(await (await fetch(url)).text(), "image/svg+xml");
@@ -121,10 +132,11 @@ async function main() {
     assert.equal(await page.evaluate(() => window.__buildingStudy.renderCount), idle);
 
     const heritageFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [heritageModule, heritageSpec.features]);
-    const points = [await screenPoint(page, heritage, heritageFeatures.bowFacade), await screenPoint(page, kemper, [-5, 75, 26.8]), await screenPoint(page, crain, [0, 65, 27.1]), await screenPoint(page, michigan, [0, 120, 23.4])];
+    const prudentialFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [prudentialModule, prudentialSpec.features]);
+    const points = [await screenPoint(page, heritage, heritageFeatures.bowFacade), await screenPoint(page, kemper, [-5, 75, 26.8]), await screenPoint(page, crain, [0, 65, 27.1]), await screenPoint(page, michigan, [0, 120, 23.4]), await screenPoint(page, prudential, prudentialFeatures.southFacade)];
     const before = [];
     for (const point of points) before.push(await patch(page, point));
-    for (const [index, id, label] of [[0, heritage, "The Heritage at Millennium Park"], [1, kemper, "Kemper Building"], [2, crain, "Crain Communications Building"], [3, michigan, "Michigan Plaza South"]]) {
+    for (const [index, id, label] of [[0, heritage, "The Heritage at Millennium Park"], [1, kemper, "Kemper Building"], [2, crain, "Crain Communications Building"], [3, michigan, "Michigan Plaza South"], [4, prudential, "One Prudential Plaza"]]) {
       await page.mouse.move(points[index].x, points[index].y);
       await settle(page);
       assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), id);
@@ -134,6 +146,12 @@ async function main() {
         if (neighbor !== index) assert.deepEqual(await patch(page, points[neighbor]), before[neighbor], `neighbor ${neighbor} should stay unlit while hovering ${label}`);
       }
     }
+    // The drawing covers Michigan Plaza's rightmost 47 layer units with One Prudential, so
+    // the nearer slab owns those pixels.
+    const hiddenMichigan = await screenPoint(page, michigan, [23.35, 120, -20]);
+    await page.mouse.move(hiddenMichigan.x, hiddenMichigan.y);
+    await settle(page);
+    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), prudential, "One Prudential should own the hover where the drawing covers Michigan Plaza's right edge");
     // Heritage's north strip continues behind Kemper's left face, so Kemper owns that hover.
     const hiddenHeritage = await screenPoint(page, heritage, heritageFeatures.northStripFacade);
     await page.mouse.move(hiddenHeritage.x, hiddenHeritage.y);
@@ -153,7 +171,11 @@ async function main() {
     const hiddenCrain = await screenPoint(page, crain, [0, 70, 0]);
     await page.mouse.move(hiddenCrain.x, hiddenCrain.y);
     await settle(page);
-    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), michigan, "Michigan Plaza should own the hover where it occludes Crain in side view");
+    // The side view turns the skyline view's lateral spacing into depth, so whichever
+    // building sits furthest right in the drawing stands nearest the camera here. One
+    // Prudential is 154 m right of Crain, so it takes this hover; Michigan owned it while
+    // it was the rightmost tower.
+    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), prudential, "One Prudential should own the hover where it occludes Crain in side view");
     await page.locator("#reset").click();
     assert.deepEqual(await cameraPosition(page), initial);
     await page.locator("canvas").focus();
@@ -231,7 +253,7 @@ async function main() {
     await fallback.waitForFunction(() => document.querySelector("#loading").textContent.includes("WebGL 2"));
     assert.equal(await fallback.locator("#turntable").isDisabled(), true);
     assert.deepEqual(errors, []);
-    console.log("PASS: four 3D buildings, SVG landmarks with Heritage's geometry, columns, and bow curvature, independent illumination and occlusion, view/reset/zoom, idle rendering, reduced motion, mobile touch, local assets, navigation, and fallbacks.");
+    console.log("PASS: five 3D buildings, SVG landmarks with Heritage's and One Prudential's geometry, columns, and bow curvature, independent illumination and occlusion, view/reset/zoom, idle rendering, reduced motion, mobile touch, local assets, navigation, and fallbacks.");
   } finally { await browser.close(); }
 }
 main().catch((error) => { console.error(error); process.exitCode = 1; });
