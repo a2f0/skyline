@@ -35,7 +35,9 @@ faces (z-fighting) across a fitted model's meshes. Drawing measurements live in
 `tests/study-fidelity.cjs`. The unshipped `scripts/measure-group.cjs`,
 `reference-svg.cjs`, `fidelity-report.cjs`, and `render-study.cjs` cover
 measuring, fitting, and review; README's "Adding a building to the skyline
-study" gives the loop.
+study" gives the loop, and `docs/adding-a-building.md` the long form: the
+drawing's projection, the platform datum, how the fit is found, and the
+traps that cost time.
 
 The PR workflow skills live in `.agents/skills`; `.claude/skills` links to the
 same files. For an open-PR request use `open-pr`. For an explicit end-to-end
