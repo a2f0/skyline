@@ -139,22 +139,46 @@ function faceTriangles(corners, normal) {
   ears.push([...ring]);
   return ears.map((ear) => ({ points: ear.map((k) => corners[k]), normal }));
 }
-// How much of an omitted face no coplanar surface covers. Covers that face the same way
-// cannot overlap each other, because the suite already forbids that, so their clipped
-// areas add up exactly.
+// How much of an omitted face no coplanar surface covers: the face, triangulated, with
+// every coplanar surface clipped away from what is left. Subtracting rather than adding
+// areas means overlapping covers cannot count twice, so covers a millimetre apart cannot
+// hide a hole between them, and a cover facing either way still closes the interior.
 function uncoveredArea({ corners }, lookup) {
   const newell = [0, 1, 2].map((axis) => corners.reduce((sum, p, i) => {
     const q = corners[(i + 1) % corners.length], [j, k] = [(axis + 1) % 3, (axis + 2) % 3];
     return sum + (p[j] - q[j]) * (p[k] + q[k]);
   }, 0));
   const plane = newell.map((value) => value / Math.hypot(...newell)), offset = dot(plane, corners[0]);
+  const axis = Math.abs(plane[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+  const u = cross(plane, axis), e1 = u.map((value) => value / Math.hypot(...u)), e2 = cross(plane, e1);
+  const flat = (p) => [dot(p, e1), dot(p, e2)];
+  const signed = (polygon) => polygon.reduce((sum, p, i) => { const q = polygon[(i + 1) % polygon.length]; return sum + p[0] * q[1] - q[0] * p[1]; }, 0) / 2;
+  const ccw = (polygon) => (signed(polygon) < 0 ? [...polygon].reverse() : polygon);
+  // Sutherland-Hodgman against one edge, keeping whichever side the caller asks for.
+  const clip = (polygon, [p0, p1], inside) => polygon.flatMap((p, i) => {
+    const q = polygon[(i + 1) % polygon.length];
+    const side = (point) => ((p1[0] - p0[0]) * (point[1] - p0[1]) - (p1[1] - p0[1]) * (point[0] - p0[0])) * (inside ? 1 : -1);
+    const sp = side(p), sq = side(q), kept = sp >= 0 ? [p] : [];
+    return (sp >= 0) !== (sq >= 0) ? [...kept, lerp(p, q, sp / (sp - sq))] : kept;
+  });
   const faces = faceTriangles(corners, plane);
   const area = faces.reduce((sum, face) => sum + Math.hypot(...cross(sub(face.points[1], face.points[0]), sub(face.points[2], face.points[0]))) / 2, 0);
-  const candidates = lookup(plane, offset).filter((triangle) => onPlane(triangle, { normal: plane, offset }));
-  const covered = [1, -1].map((facing) => faces.reduce((sum, face) => sum + candidates
-    .filter((triangle) => Math.sign(dot(triangle.normal, plane)) === facing)
-    .reduce((area, triangle) => area + overlapArea(face, triangle), 0), 0));
-  return { area, uncovered: area - Math.max(...covered) };
+  let pieces = faces.map((face) => ccw(face.points.map(flat)));
+  for (const cover of lookup(plane, offset).filter((triangle) => onPlane(triangle, { normal: plane, offset }))) {
+    const clipper = ccw(cover.points.map(flat)), next = [];
+    for (const piece of pieces) {
+      let remaining = piece;
+      for (let i = 0; i < 3 && remaining.length >= 3; i += 1) {
+        const edge = [clipper[i], clipper[(i + 1) % 3]];
+        const outside = clip(remaining, edge, false);
+        if (outside.length >= 3 && Math.abs(signed(outside)) > 1e-12) next.push(outside);
+        remaining = clip(remaining, edge, true);
+      }
+    }
+    pieces = next;
+    if (!pieces.length) break;
+  }
+  return { area, uncovered: pieces.reduce((sum, piece) => sum + Math.abs(signed(piece)), 0) };
 }
 
 async function main() {
@@ -257,6 +281,15 @@ async function main() {
     panel(target, line([-7.25, 1], [8, 1]), 0, 15.25, 0, 2, 0);
   });
   assert.ok(Math.abs(slit.uncovered - 1) < 1e-6, `a slit between two covers should be uncovered: ${JSON.stringify(slit)}`);
+  // Two covers a few millimetres apart, each over only half the face, leave the other half
+  // open: their areas must not add up to a whole cover.
+  const split = uncoveredOf(({ box, panel }, target) => {
+    box(target, [0, 0], [0, 1], 1, 0, 1, 0, 2, { omit: ["front"] });
+    panel(target, line([-1, 0.9985], [0, 0.9985]), 0, 1, 0, 2, 0);
+    panel(target, line([-1, 1.0015], [0, 1.0015]), 0, 1, 0, 2, 0);
+  });
+  assert.ok(Math.abs(split.uncovered - 2) < 1e-6, `two covers at different depths should not add up: ${JSON.stringify(split)}`);
+
   // A concave roof covered exactly by its own slab is covered, though its average is outside it.
   const uShape = [[0, 0], [3, 0], [3, -3], [2, -3], [2, -1], [1, -1], [1, -3], [0, -3]];
   const uCover = uncoveredOf(({ prism, slab }, target) => {
