@@ -158,6 +158,12 @@ export function createBuilder(name, buildingId, { gradient = [70, 135, 200, 255]
   function band(target, runs, y0, y1, proud, { omit = [], from = 0, to = Infinity, closed = false, visible = always } = {}) {
     if (closed && (from !== 0 || to !== Infinity)) throw new Error("A closed band wraps whole runs, so it takes no from or to.");
     if (closed && visible !== always) throw new Error("A closed band cannot also be trimmed by visible; split it into open bands.");
+    const joins = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) <= 1e-6;
+    runs.forEach((run, index) => {
+      const next = runs[index + 1];
+      if (next && !joins(run.at(run.length), next.at(0))) throw new Error("A band's runs must join end to start.");
+    });
+    if (closed && !joins(runs.at(-1).at(runs.at(-1).length), runs[0].at(0))) throw new Error("A closed band's runs must return to their start.");
     const faceNames = ["back", "soffit", "top", "start", "end"];
     checkOmit(omit, faceNames, "band");
     const [back, soffit, top, start, end] = faceNames.map((name) => !omit.includes(name));
@@ -181,6 +187,7 @@ export function createBuilder(name, buildingId, { gradient = [70, 135, 200, 255]
     const pieces = [];
     runs.forEach((run, index) => {
       const first = index === 0 ? from : 0, last = Math.min(run.length, index === runs.length - 1 ? to : Infinity);
+      if (last - first <= 1e-9) return;
       const count = run.pieces(first, last);
       for (let i = 0; i < count; i += 1) {
         const sa = first + (last - first) * i / count, sb = first + (last - first) * (i + 1) / count;

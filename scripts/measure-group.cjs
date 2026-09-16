@@ -64,7 +64,8 @@ function measure({ key, shapes }) {
     const cubic = (p0, p1, p2, p3) => Array.from({ length: 8 }, (_, k) => { const t = (k + 1) / 8, u = 1 - t; return [0, 1].map((a) => u * u * u * p0[a] + 3 * u * u * t * p1[a] + 3 * u * t * t * p2[a] + t * t * t * p3[a]); });
     const quadratic = (p0, p1, p2) => Array.from({ length: 8 }, (_, k) => { const t = (k + 1) / 8, u = 1 - t; return [0, 1].map((a) => u * u * p0[a] + 2 * u * t * p1[a] + t * t * p2[a]); });
     while (i < tokens.length) {
-      if (/[a-zA-Z]/.test(tokens[i])) command = tokens[i++];
+      // Anchored: a lone letter is a command, while the e in 9.8e-4 belongs to its number.
+      if (/^[a-zA-Z]$/.test(tokens[i])) command = tokens[i++];
       const relative = command === command.toLowerCase(), type = command.toUpperCase();
       const offset = (p) => (relative ? [p[0] + current[0], p[1] + current[1]] : p);
       if (type === "Z") {

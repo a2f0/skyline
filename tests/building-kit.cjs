@@ -290,6 +290,24 @@ async function main() {
   });
   assert.ok(Math.abs(split.uncovered - 2) < 1e-6, `two covers at different depths should not add up: ${JSON.stringify(split)}`);
 
+  // A small hole in a large face is still a hole: the allowance cannot scale with the face.
+  const pinhole = uncoveredOf(({ box, panel }, target) => {
+    box(target, [0, 0], [0, 1], 10, 0, 1, 0, 200, { omit: ["front"] });
+    panel(target, line([-10, 1], [10, 1]), 0, 20, 0, 99.75, 0);
+    panel(target, line([-10, 1], [10, 1]), 0, 20, 100.25, 200, 0);
+    panel(target, line([-10, 1], [-0.25, 1]), 0, 9.75, 99.75, 100.25, 0);
+    panel(target, line([0.25, 1], [10, 1]), 0, 9.75, 99.75, 100.25, 0);
+  });
+  assert.ok(Math.abs(pinhole.uncovered - 0.25) < 1e-6 && pinhole.uncovered > 1e-4, `a 0.5 m hole in a 4000 m2 face should fail: ${JSON.stringify(pinhole)}`);
+
+  // A closed band must close, and a band's runs must join.
+  assert.throws(() => build(({ band }, target) => band(target, [line([0, 0], [1, 0])], 0, 1, 0.3, { closed: true })), /return to their start/);
+  assert.throws(() => build(({ band }, target) => band(target, [line([0, 0], [1, 0]), line([2, 0], [3, 0])], 0, 1, 0.3)), /join end to start/);
+
+  // from or to may leave a run empty; it contributes nothing rather than degenerate faces.
+  const trimmed = build(({ band }, target) => band(target, [line([0, 0], [1, 0]), line([1, 0], [1, 1])], 0, 1, 0.3, { from: 1 }));
+  assertClosed("band whose first run is trimmed away", trimmed.target);
+
   // A concave roof covered exactly by its own slab is covered, though its average is outside it.
   const uShape = [[0, 0], [3, 0], [3, -3], [2, -3], [2, -1], [1, -1], [1, -3], [0, -3]];
   const uCover = uncoveredOf(({ prism, slab }, target) => {
@@ -328,7 +346,9 @@ async function main() {
       // A floor on the ground needs no cover: the camera never goes below the platform.
       if (normal[1] === -1 && corners.every((corner) => corner[1] === 0)) continue;
       const { area, uncovered } = uncoveredArea(omission, lookup);
-      assert.ok(uncovered <= Math.max(1e-6, area * 1e-4), `${model.building.name} ${batch}: an omitted face at ${JSON.stringify(corners[0])} leaves ${uncovered.toFixed(6)} m2 of its ${area.toFixed(6)} m2 uncovered`);
+      // Arc facets cut chords inside a straight-edged face, which leaves slivers: the worst
+      // across Heritage is 1.3e-5 m2. A hole worth finding is orders of magnitude larger.
+      assert.ok(uncovered <= 1e-4, `${model.building.name} ${batch}: an omitted face at ${JSON.stringify(corners[0])} leaves ${uncovered.toFixed(6)} m2 of its ${area.toFixed(6)} m2 uncovered`);
     }
   }
   console.log("PASS: closed kit solids (box, bands, prism, slab), analytic arc normals, and fitted models without same-facing coplanar overlaps or uncovered omissions.");
