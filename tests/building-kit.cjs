@@ -369,11 +369,17 @@ async function main() {
       for (const [origin, name, minimumDepth] of [
         [[0, 340, 12], "glazing mullions and crown ribs", 1],
         [[10, 340, 10], "pyramid silver bands", 1],
-        [[4, 340, 8.5], "vertical piers and chevrons", 0.2],
+        [[4, 340, 8.5], "crown louvers", 0.2],
       ]) {
         const visible = hit(origin, [0, -1, 0]), backing = hit(origin, [0, -1, 0], enclosure);
         assert.equal(visible?.object.name, name, "crown detail should be the visible first surface");
         assert.ok(visible.point.y - backing.point.y > minimumDepth, "crown detail should stand clear of its dark backing");
+      }
+      for (const z of [-2, 2]) {
+        const ridge = hit([0, 322, z], [0, -1, 0]);
+        assert.equal(ridge?.object.name, "glazing mullions and crown ribs");
+        assert.ok(ridge.face.normal.y > 0.5 && ridge.face.normal.z * Math.sign(z) > ridge.face.normal.y,
+          "the ridge beside the spire should expose its own top, not the opposite beam's penetrating cap");
       }
       for (const [origin, name] of [
         [[0, 328, 4], "spire inset panels"], [[0.65, 328, 4], "spire"], [[0, 344, 4], "spire"],

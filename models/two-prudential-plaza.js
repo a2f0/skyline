@@ -55,7 +55,8 @@ export function createTwoPrudentialPlazaBuilding() {
   const glazing = batch("chevron glazing", material(0x424242, { vertexColors: true }));
   const frames = batch("glazing mullions and crown ribs", material(0x929292));
   const spirePanels = batch("spire inset panels", material(0x575757));
-  const batches = [shell, roof, bands, windows, piers, spire, glazing, frames, spirePanels];
+  const louvers = batch("crown louvers", material(0x727272));
+  const batches = [shell, roof, bands, windows, piers, spire, glazing, frames, spirePanels, louvers];
 
   // A geometric face normal, also used for the sloping caps and tapered spire.
   const normal = ([a, b, c]) => {
@@ -98,19 +99,15 @@ export function createTwoPrudentialPlazaBuilding() {
   });
   const clipY = (polygon, y, above) => clip(polygon, (p) => (above ? 1 : -1) * (p[1] - y));
   // Rotate newly authored south-facing details by 180 degrees for the north side.
-  // Rotate the omission records too, so the kit's coverage checks see the same solid.
+  // Both facade builders emit closed solids and panels, without named omissions.
   const onNorth = (draw) => {
-    const starts = batches.map((target) => target.positions.length), firstOmission = kit.building.userData.omitted.length;
+    const starts = batches.map((target) => target.positions.length);
     draw();
     batches.forEach((target, batchIndex) => {
       for (let i = starts[batchIndex]; i < target.positions.length; i += 3) {
         for (const axis of [0, 2]) { target.positions[i + axis] *= -1; target.normals[i + axis] *= -1; }
       }
     });
-    for (const omission of kit.building.userData.omitted.slice(firstOmission)) {
-      omission.corners.forEach((p) => { p[0] *= -1; p[2] *= -1; });
-      omission.normal[0] *= -1; omission.normal[2] *= -1;
-    }
   };
   // Closed gabled extrusion: a real projecting setback or a pointed central pier.
   // Back, bottom, and sloping caps are present even where another volume hides them.
@@ -168,7 +165,7 @@ export function createTwoPrudentialPlazaBuilding() {
       // up close. They stay below the silver band's face, with open gaps between.
       for (const dy of [0.48, 1.12]) {
         const blade = clipY(clipY(field, y + dy, true), y + dy + 0.13, false);
-        if (blade.length >= 3) relief(piers, blade, n, 0.20, 0.1);
+        if (blade.length >= 3) relief(louvers, blade, n, 0.20, 0.1);
       }
       // The photo's mechanical openings have a fine supporting grid behind the
       // broad cladding. These struts sit between the recessed blades and fascia.
@@ -186,9 +183,11 @@ export function createTwoPrudentialPlazaBuilding() {
     const d = direction.map((v) => v / length);
     const lateral = [Math.sign(start[2]), 0, -Math.sign(start[0])];
     const n = [lateral[1] * d[2] - lateral[2] * d[1], lateral[2] * d[0] - lateral[0] * d[2], lateral[0] * d[1] - lateral[1] * d[0]];
-    const section = (at, width) => [[-width, -2.8], [width, -2.8], [width, 0.75], [-width, 0.75]]
+    const section = (at, width, buried) => [[-width, -buried], [width, -buried], [width, 0.75], [-width, 0.75]]
       .map(([across, depth]) => at.map((v, i) => v + across * lateral[i] + depth * n[i]));
-    const bottom = section(start, 1.25), top = section(apex, 0.7);
+    // Shallower at the apex: a full-depth cap crosses the axis and pokes through
+    // the opposite beam's top beside the spire, despite both solids being closed.
+    const bottom = section(start, 1.25, 2.8), top = section(apex, 0.7, 1.2);
     face(frames, bottom, d.map((v) => -v));
     face(frames, [...top].reverse(), d);
     for (let i = 0; i < 4; i += 1) {
@@ -246,7 +245,7 @@ export function createTwoPrudentialPlazaBuilding() {
     for (let column = 0; column < bays; column += 1) {
       const a = -half + column * bay + 0.10, b = -half + (column + 1) * bay - 0.10;
       const y1 = Math.max(height(a), height(b)) - 0.35;
-      for (let y = 0.5, row = 0; y < y1; y += pitch, row += 1) {
+      for (let y = 3, row = 0; y < y1; y += pitch, row += 1) {
         let pane = [[a, y], [b, y], [b, y + pitch - 0.24], [a, y + pitch - 0.24]];
         pane = clip(pane, ([x, h]) => h - floor(x) - 0.12);
         pane = clip(pane, ([x, h]) => height(x) - 0.35 - h);
@@ -315,7 +314,7 @@ export function createTwoPrudentialPlazaBuilding() {
   for (let i = 0; i < 4; i += 1) {
     const polygon = [foot[i], foot[(i + 1) % 4], tip], n = normal(polygon);
     face(spire, polygon, n);
-    // A dark inset between the bright folded edges of each tapered face. Three
+    // A dark inset between the bright folded edges of each tapered face. Two
     // small joints and the exposed final tip retain the metal spire's scale.
     const middle = foot[i].map((v, k) => (v + foot[(i + 1) % 4][k]) / 2);
     const inset = [foot[i], foot[(i + 1) % 4]].map((p) => p.map((v, k) => middle[k] + (v - middle[k]) * 0.62));
