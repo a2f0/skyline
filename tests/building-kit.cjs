@@ -360,8 +360,27 @@ async function main() {
       ]) assert.equal(hit(origin, direction)?.object.name, "window panes", label);
       // Upper arrows continue to the sloping cap below them, including its shoulders.
       for (const y of [231, 185]) {
-        assert.equal(hit([4.5, y, 40], [0, 0, -1])?.object.name, "vertical piers and chevrons", `the arrow at y=${y} should reach the next gable`);
+        assert.equal(hit([4.5, y, 40], [0, 0, -1])?.object.name, "chevron glazing", `the arrow at y=${y} should reach the next gable`);
       }
+      // The crown's ribs bridge the centre of each ridge, rather than leaving a
+      // slit when two neighboring roof faces are displaced apart. The cladding
+      // and louvers must also be real raised surfaces, not flat painted stripes.
+      const enclosure = surfaces.filter((mesh) => mesh.name === "pyramid and chevron roofs");
+      for (const [origin, name, minimumDepth] of [
+        [[0, 340, 12], "glazing mullions and crown ribs", 1],
+        [[10, 340, 10], "pyramid silver bands", 1],
+        [[4, 340, 8.5], "vertical piers and chevrons", 0.2],
+      ]) {
+        const visible = hit(origin, [0, -1, 0]), backing = hit(origin, [0, -1, 0], enclosure);
+        assert.equal(visible?.object.name, name, "crown detail should be the visible first surface");
+        assert.ok(visible.point.y - backing.point.y > minimumDepth, "crown detail should stand clear of its dark backing");
+      }
+      for (const [origin, name] of [
+        [[0, 328, 4], "spire inset panels"], [[0.65, 328, 4], "spire"], [[0, 344, 4], "spire"],
+      ]) assert.equal(hit(origin, [0, 0, -1])?.object.name, name, "the spire should have inset panels, bright folded edges, and a bare tip");
+      const rearChevron = hit([4.5, 185, -40], [0, 0, 1]);
+      assert.equal(rearChevron?.object.name, "chevron glazing", "the north setback should carry the same glazed chevron");
+      assert.ok(rearChevron.point.z < -23, "the north chevron must project beyond the main shaft");
       const spirePositions = surfaces.find((mesh) => mesh.name === "spire").geometry.getAttribute("position");
       const foot = Math.min(...Array.from({ length: spirePositions.count }, (_, i) => spirePositions.getY(i)));
       const roof = surfaces.filter((mesh) => ["pyramid and chevron roofs", "pyramid silver bands"].includes(mesh.name));

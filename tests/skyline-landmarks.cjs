@@ -172,10 +172,10 @@ const fitted = [
     onGeometryTolerance: 0.02,
     columns: {
       // Intersections of the filled pier polygons with layer y=1200 (south),
-      // y=1330 (east), and y=1880 (lower). Duplicate outlines and the east strips
-      // covered by the broad central arrow are not additional columns.
+      // y=1330 (east), and y=1880 (lower). Duplicate outlines are counted once;
+      // the two narrow east strips flanking the central glazing are included.
       twoSouthPiers: { batch: "vertical piers and chevrons", drawn: [4262.98, 4283.676, 4304.373, 4325.069, 4345.765, 4366.462, 4427.964, 4448.529, 4469.097, 4490.376, 4510.915, 4530.912] },
-      twoEastPiers: { batch: "vertical piers and chevrons", drawn: [4687.698, 4676.347, 4663.073, 4650.31, 4565.876, 4553.532, 4538.582] },
+      twoEastPiers: { batch: "vertical piers and chevrons", drawn: [4687.698, 4676.347, 4663.073, 4650.31, 4638.036, 4590.444, 4565.876, 4553.532, 4538.582] },
       twoLowerPiers: { batch: "vertical piers and chevrons", drawn: [4263.919, 4284.925, 4305.622, 4326.418, 4391.515, 4412.221, 4432.928, 4453.634] },
     },
     // Measured at all five layouts: the tallest layout is worst, near 0.00292

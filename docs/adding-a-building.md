@@ -2,7 +2,7 @@
 
 README's [Adding a building](../README.md#adding-a-building-to-the-skyline-study) gives the loop in
 seven steps. This is the long companion to it: what the drawing actually is, how
-the fit is found, and the traps that cost real time on the two buildings fitted so far. Read the
+the fit is found, and the traps that cost real time while fitting the buildings. Read the
 README steps for what to do; read this for why, and for what will bite.
 
 Two models are worked examples. `models/heritage-at-millennium-park.js` was built by hand and later
