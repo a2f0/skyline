@@ -50,10 +50,13 @@ function measure({ key, shapes }) {
     const number = (name) => element[name].baseVal.value;
     if (element.tagName === "rect") {
       const [x, y, w, h] = ["x", "y", "width", "height"].map(number);
-      // An unset corner radius takes the other's value, and each clamps to half its side.
-      let [rx, ry] = [number("rx"), number("ry")];
-      [rx, ry] = [Math.min(rx || ry, w / 2), Math.min(ry || rx, h / 2)];
+      // An unset radius takes the other's value, but an explicit zero disables rounding,
+      // so the attribute's presence decides, not its value. Each radius clamps to half its side.
+      const given = (name) => element.hasAttribute(name);
+      let rx = given("rx") ? number("rx") : (given("ry") ? number("ry") : 0);
+      let ry = given("ry") ? number("ry") : (given("rx") ? number("rx") : 0);
       if (!(rx > 0 && ry > 0)) return [[[x, y], [x + w, y], [x + w, y + h], [x, y + h]]];
+      [rx, ry] = [Math.min(rx, w / 2), Math.min(ry, h / 2)];
       // Each corner runs from the edge it leaves to the edge it meets, so the straight sides
       // fall out as the segments between them and the closing segment along the top.
       const corner = (cx, cy, from) => Array.from({ length: 9 }, (_, i) => {
