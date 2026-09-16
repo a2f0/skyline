@@ -103,6 +103,17 @@ export function createBuilder(name, buildingId, { gradient = [70, 135, 200, 255]
   };
 
   const always = () => true;
+  // Runs must hand over end to start, and a loop must come back to where it began;
+  // otherwise the walls leave a gap no omission records.
+  const joins = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) <= 1e-6;
+  function checkJoins(runs, label, loop) {
+    runs.forEach((run, index) => {
+      const next = runs[index + 1];
+      if (next && !joins(run.at(run.length), next.at(0))) throw new Error(`A ${label}'s runs must join end to start.`);
+    });
+    const last = runs.at(-1);
+    if (loop && !joins(last.at(last.length), runs[0].at(0))) throw new Error(`A ${label}'s runs must return to their start.`);
+  }
   const white = new THREE.Color(1, 1, 1);
   // Winding follows the first normal, so every helper stays outward-facing.
   function triangle(target, points, normals, color = white) {
@@ -158,12 +169,7 @@ export function createBuilder(name, buildingId, { gradient = [70, 135, 200, 255]
   function band(target, runs, y0, y1, proud, { omit = [], from = 0, to = Infinity, closed = false, visible = always } = {}) {
     if (closed && (from !== 0 || to !== Infinity)) throw new Error("A closed band wraps whole runs, so it takes no from or to.");
     if (closed && visible !== always) throw new Error("A closed band cannot also be trimmed by visible; split it into open bands.");
-    const joins = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) <= 1e-6;
-    runs.forEach((run, index) => {
-      const next = runs[index + 1];
-      if (next && !joins(run.at(run.length), next.at(0))) throw new Error("A band's runs must join end to start.");
-    });
-    if (closed && !joins(runs.at(-1).at(runs.at(-1).length), runs[0].at(0))) throw new Error("A closed band's runs must return to their start.");
+    checkJoins(runs, closed ? "closed band" : "band", closed);
     const faceNames = ["back", "soffit", "top", "start", "end"];
     checkOmit(omit, faceNames, "band");
     const [back, soffit, top, start, end] = faceNames.map((name) => !omit.includes(name));
@@ -257,6 +263,7 @@ export function createBuilder(name, buildingId, { gradient = [70, 135, 200, 255]
   // Walls rise through the given heights, so a seam can land on a drawn corner; a roof
   // and a floor close the volume. Returns the plan polygon.
   function prism(target, runs, heights, { omit = [] } = {}) {
+    checkJoins(runs, "prism", true);
     const polygon = polygonOf(runs);
     if (shoelace(polygon) >= 0) throw new Error("A prism's plan must run counterclockwise from above, or its walls face inward.");
     runs.forEach((run) => heights.slice(1).forEach((top, i) => panel(target, run, 0, run.length, heights[i], top, 0)));

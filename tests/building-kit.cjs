@@ -308,6 +308,14 @@ async function main() {
   const trimmed = build(({ band }, target) => band(target, [line([0, 0], [1, 0]), line([1, 0], [1, 1])], 0, 1, 0.3, { from: 1 }));
   assertClosed("band whose first run is trimmed away", trimmed.target);
 
+  // A face too small for the absolute ceiling still needs a cover.
+  const tiny = uncoveredOf(({ box }, target) => box(target, [0, 0], [0, 1], 0.0045, 0, 0.01, 0, 1, { omit: ["top"] }));
+  assert.ok(tiny.uncovered > Math.min(1e-4, tiny.area * 1e-3), `a small uncovered face should still fail: ${JSON.stringify(tiny)}`);
+
+  // A prism's plan must close, exactly as a band's must.
+  assert.throws(() => build(({ prism }, target) => prism(target, kit.rectangle(-1, 1, -1, 1).slice(0, 3), [0, 10])), /return to their start/);
+  assert.throws(() => build(({ prism }, target) => prism(target, [line([0, 0], [1, 0]), line([2, 0], [2, 1]), line([2, 1], [0, 0])], [0, 10])), /join end to start/);
+
   // A concave roof covered exactly by its own slab is covered, though its average is outside it.
   const uShape = [[0, 0], [3, 0], [3, -3], [2, -3], [2, -1], [1, -1], [1, -3], [0, -3]];
   const uCover = uncoveredOf(({ prism, slab }, target) => {
@@ -346,9 +354,10 @@ async function main() {
       // A floor on the ground needs no cover: the camera never goes below the platform.
       if (normal[1] === -1 && corners.every((corner) => corner[1] === 0)) continue;
       const { area, uncovered } = uncoveredArea(omission, lookup);
-      // Arc facets cut chords inside a straight-edged face, which leaves slivers: the worst
-      // across Heritage is 1.3e-5 m2. A hole worth finding is orders of magnitude larger.
-      assert.ok(uncovered <= 1e-4, `${model.building.name} ${batch}: an omitted face at ${JSON.stringify(corners[0])} leaves ${uncovered.toFixed(6)} m2 of its ${area.toFixed(6)} m2 uncovered`);
+      // Arc facets cut chords inside a straight-edged face, leaving slivers: across the
+      // fitted models the worst is 1.3e-5 m2 and 6.9e-6 of a face. The ceiling keeps a
+      // large face honest; the fraction keeps a small face from passing uncovered.
+      assert.ok(uncovered <= Math.min(1e-4, area * 1e-3), `${model.building.name} ${batch}: an omitted face at ${JSON.stringify(corners[0])} leaves ${uncovered.toFixed(6)} m2 of its ${area.toFixed(6)} m2 uncovered`);
     }
   }
   console.log("PASS: closed kit solids (box, bands, prism, slab), analytic arc normals, and fitted models without same-facing coplanar overlaps or uncovered omissions.");
