@@ -36,7 +36,8 @@ Honor narrower user instructions, cancellation, and existing permissions.
    commits local until review passes, on both the new and resumed paths.
 3. Follow `cross-agent-review`. Integrate the fetched base unless report-only,
    review the full branch diff, repair blockers, validate, commit, and re-review
-   every changed head. Record the final **reviewed SHA, base ref, base SHA,
+   every changed head. Honor its 20-minute timeout per Claude or Codex review
+   attempt. Record the final **reviewed SHA, base ref, base SHA,
    verdict, reviewer/fallback, and repair rounds**.
 4. Continue only with a clean or non-blocking verdict. A failed or incomplete
    review is not a clean review. Check that local HEAD still equals the reviewed

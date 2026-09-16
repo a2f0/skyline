@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const { pathToFileURL } = require("node:url");
 const path = require("node:path");
 const { chromium } = require("playwright");
-const { heritage, kemper, crain, michigan, prudential, reference, models, landmarks, landmarkTolerance, fitted } = require("./skyline-landmarks.cjs");
+const { heritage, kemper, crain, michigan, prudential, twoPrudential, reference, models, landmarks, landmarkTolerance, fitted } = require("./skyline-landmarks.cjs");
 const { viewports, checkSpec, measureStudy, above } = require("./study-fidelity.cjs");
 
 const origin = process.env.SKYLINE_TEST_URL || "http://127.0.0.1:8000";
@@ -14,6 +14,8 @@ const heritageModule = models.find((model) => model.id === heritage).module;
 const heritageSpec = fitted.find((spec) => spec.id === heritage);
 const prudentialModule = models.find((model) => model.id === prudential).module;
 const prudentialSpec = fitted.find((spec) => spec.id === prudential);
+const twoPrudentialModule = models.find((model) => model.id === twoPrudential).module;
+const twoPrudentialSpec = fitted.find((spec) => spec.id === twoPrudential);
 // The layouts come from the shared list, so scripts/fidelity-report.cjs measures the same pages.
 const [desktop, laptop, tablet, tall, phone] = viewports;
 
@@ -35,6 +37,10 @@ async function checkReferenceMatch(page) {
   assert.ok(above(deviations, "stubFrontRoof", "stubLeftRoof"), "Heritage's stub front corner should rise above its left silhouette corner");
   assert.ok(above(deviations, "roofNear", "roofLeft", "roofRight"), "One Prudential's near roof corner should rise above both neighboring corners, as in the SVG");
   assert.ok(above(deviations, "penthouseTopEast", "penthouseTopWest"), "One Prudential's penthouse should rise toward its east end, as drawn");
+  assert.ok(above(deviations, "twoSpire", "twoPyramid", "mastTip"), "Two Prudential's spire should rise above its pyramid and One Prudential's antenna");
+  assert.ok(above(deviations, "twoPyramid", "twoSouthChevron", "twoEastChevron"), "Two Prudential's pyramid should rise above the facade chevrons");
+  assert.ok(above(deviations, "twoSouthChevron", "twoEastChevron", "twoMiddleChevron"), "Two Prudential's south chevron should rise above the east and middle chevrons, as drawn");
+  assert.ok(above(deviations, "twoMiddleChevron", "twoLowerChevron"), "Two Prudential's projecting chevrons should descend toward the podium");
   const cap = { apex: projected.capApex, ends: [projected.capSouthEnd, projected.capNorthEnd] };
   assert.ok(cap.ends.every((end) => cap.apex[1] < end[1]), `Heritage's crown cap should crest over the joint, above both of its ends: ${JSON.stringify(cap)}`);
   for (const building of buildings) {
@@ -112,7 +118,9 @@ async function main() {
     assert.equal(await page.evaluate(() => window.__buildingStudy.activeView), "skyline");
     // A budget for the whole scene; raise it deliberately when a detailed building lands.
     const triangles = await page.evaluate(() => window.__buildingStudy.triangleCount);
-    assert.ok(triangles > 24000 && triangles < 40000, `the scene should stay within 24,000-40,000 triangles: ${triangles}`);
+    assert.ok(triangles > 40000 && triangles < 44000, `the six-building scene should stay within 40,000-44,000 triangles: ${triangles}`);
+    const shadowBounds = await page.evaluate(() => window.__buildingStudy.shadowBounds);
+    assert.ok(shadowBounds.min.every((v) => v > -1) && shadowBounds.max.every((v) => v < 1), `all buildings and the platform should stay within the light's shadow camera: ${JSON.stringify(shadowBounds)}`);
     await checkReferenceMatch(page);
     assert.equal(await page.evaluate(async ({ groups, path, sourcePath }) => {
       const parse = async (url) => new DOMParser().parseFromString(await (await fetch(url)).text(), "image/svg+xml");
@@ -133,10 +141,11 @@ async function main() {
 
     const heritageFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [heritageModule, heritageSpec.features]);
     const prudentialFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [prudentialModule, prudentialSpec.features]);
-    const points = [await screenPoint(page, heritage, heritageFeatures.bowFacade), await screenPoint(page, kemper, [-5, 75, 26.8]), await screenPoint(page, crain, [0, 65, 27.1]), await screenPoint(page, michigan, [0, 120, 23.4]), await screenPoint(page, prudential, prudentialFeatures.southFacade)];
+    const twoPrudentialFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [twoPrudentialModule, twoPrudentialSpec.features]);
+    const points = [await screenPoint(page, heritage, heritageFeatures.bowFacade), await screenPoint(page, kemper, [-5, 75, 26.8]), await screenPoint(page, crain, [0, 65, 27.1]), await screenPoint(page, michigan, [0, 120, 23.4]), await screenPoint(page, prudential, prudentialFeatures.southFacade), await screenPoint(page, twoPrudential, twoPrudentialFeatures.twoFacade)];
     const before = [];
     for (const point of points) before.push(await patch(page, point));
-    for (const [index, id, label] of [[0, heritage, "The Heritage at Millennium Park"], [1, kemper, "Kemper Building"], [2, crain, "Crain Communications Building"], [3, michigan, "Michigan Plaza South"], [4, prudential, "One Prudential Plaza"]]) {
+    for (const [index, id, label] of [[0, heritage, "The Heritage at Millennium Park"], [1, kemper, "Kemper Building"], [2, crain, "Crain Communications Building"], [3, michigan, "Michigan Plaza South"], [4, prudential, "One Prudential Plaza"], [5, twoPrudential, "Two Prudential Plaza"]]) {
       await page.mouse.move(points[index].x, points[index].y);
       await settle(page);
       assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), id);
@@ -152,6 +161,10 @@ async function main() {
     await page.mouse.move(hiddenMichigan.x, hiddenMichigan.y);
     await settle(page);
     assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), prudential, "One Prudential should own the hover where the drawing covers Michigan Plaza's right edge");
+    const hiddenTwoPrudential = await screenPoint(page, twoPrudential, twoPrudentialFeatures.twoBehindPodium);
+    await page.mouse.move(hiddenTwoPrudential.x, hiddenTwoPrudential.y);
+    await settle(page);
+    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), prudential, "One Prudential's podium should own the hover where it covers Two Prudential's lower facade");
     // Heritage's north strip continues behind Kemper's left face, so Kemper owns that hover.
     const hiddenHeritage = await screenPoint(page, heritage, heritageFeatures.northStripFacade);
     await page.mouse.move(hiddenHeritage.x, hiddenHeritage.y);
@@ -171,10 +184,9 @@ async function main() {
     const hiddenCrain = await screenPoint(page, crain, [0, 70, 0]);
     await page.mouse.move(hiddenCrain.x, hiddenCrain.y);
     await settle(page);
-    // The side view turns the skyline view's lateral spacing into depth, so whichever
-    // building sits furthest right in the drawing stands nearest the camera here. One
-    // Prudential is 154 m right of Crain, so it takes this hover; Michigan owned it while
-    // it was the rightmost tower.
+    // Raycasting confirms One Prudential still covers this point in side view. Two
+    // Prudential is farther right in the skyline but its rearward placement separates
+    // it sideways in this view; lateral ordering alone cannot determine the owner.
     assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), prudential, "One Prudential should own the hover where it occludes Crain in side view");
     await page.locator("#reset").click();
     assert.deepEqual(await cameraPosition(page), initial);
@@ -253,7 +265,7 @@ async function main() {
     await fallback.waitForFunction(() => document.querySelector("#loading").textContent.includes("WebGL 2"));
     assert.equal(await fallback.locator("#turntable").isDisabled(), true);
     assert.deepEqual(errors, []);
-    console.log("PASS: five 3D buildings, SVG landmarks with Heritage's and One Prudential's geometry, columns, and bow curvature, independent illumination and occlusion, view/reset/zoom, idle rendering, reduced motion, mobile touch, local assets, navigation, and fallbacks.");
+    console.log("PASS: six 3D buildings, SVG landmarks with Heritage's and both Prudential towers' geometry and columns, bow curvature and chevrons, independent illumination and occlusion, view/reset/zoom, idle rendering, reduced motion, mobile touch, local assets, navigation, and fallbacks.");
   } finally { await browser.close(); }
 }
 main().catch((error) => { console.error(error); process.exitCode = 1; });

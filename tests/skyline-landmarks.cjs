@@ -4,15 +4,16 @@
 const heritage = "building-heritage-at-millennium-park", kemper = "building-kemper";
 const crain = "building-crain-communications", michigan = "building-michigan-plaza-south-tower";
 const prudential = "building-one-prudential-plaza", prudentialPodium = "building-prudential-plaza-podium";
+const twoPrudential = "building-two-prudential-plaza";
 
 // The excerpt the study shows beside the scene; scripts/reference-svg.cjs regenerates it.
 const reference = {
   path: "models/skyline-reference.svg",
   source: "skyline-animated.svg",
-  viewBox: "1761.407 717.629 3055.662 2114.271",
-  title: "The Heritage at Millennium Park, Kemper, Crain, Michigan Plaza South, and One Prudential Plaza: original skyline geometry",
+  viewBox: "1761.407 393.513 3055.662 2438.357",
+  title: "The Heritage at Millennium Park, Kemper, Crain, Michigan Plaza South, and One and Two Prudential Plaza: original skyline geometry",
   description: "Unmodified tower groups from skyline-animated.svg, preserving their positions, transforms, and draw order. Unidentified foreground buildings are omitted.",
-  groups: [heritage, kemper, michigan, crain, prudential, prudentialPodium],
+  groups: [heritage, kemper, michigan, crain, prudential, twoPrudential, prudentialPodium],
 };
 
 // Every model in the scene, in the study's order.
@@ -22,6 +23,7 @@ const models = [
   { id: crain, name: "Crain Communications Building", module: "./models/crain-communications.js", factory: "createCrainBuilding" },
   { id: michigan, name: "Michigan Plaza South", module: "./models/michigan-plaza-south.js", factory: "createMichiganPlazaSouthBuilding" },
   { id: prudential, name: "One Prudential Plaza", module: "./models/one-prudential-plaza.js", factory: "createOnePrudentialPlazaBuilding" },
+  { id: twoPrudential, name: "Two Prudential Plaza", module: "./models/two-prudential-plaza.js", factory: "createTwoPrudentialPlazaBuilding" },
 ];
 
 // Corresponding roof features measured in the original SVG, not derived from the
@@ -148,6 +150,41 @@ const fitted = [
     // The right silhouette is the wing's drawn east end.
     silhouette: 4507.699,
   },
+  {
+    id: twoPrudential,
+    label: "Two Prudential",
+    features: "twoPrudentialFeatures",
+    landmarks: {
+      twoEaveWest: [4261.006, 1151.884],
+      twoEaveNear: [4534.685, 1127.577],
+      twoEaveEast: [4690.631, 1140.245],
+      twoSouthChevron: [4396.967, 919.462],
+      twoEastChevron: [4614.133, 928.384],
+      twoPyramid: [4475.207, 748.347],
+      twoSpire: [4475.207, 565.047],
+      twoMiddleChevron: [4377.239, 1235.333],
+      twoLowerChevron: [4359.209, 1517.331],
+      twoMiddleWest: [4267.302, 1418.647],
+      twoMiddleEast: [4497.328, 1420.013],
+      twoLowerWest: [4259.584, 1683.254],
+      twoLowerEast: [4452.565, 1671.119],
+    },
+    onGeometryTolerance: 0.02,
+    columns: {
+      // Intersections of the filled pier polygons with layer y=1200 (south),
+      // y=1330 (east), and y=1880 (lower). Duplicate outlines and the east strips
+      // covered by the broad central arrow are not additional columns.
+      twoSouthPiers: { batch: "vertical piers and chevrons", drawn: [4262.98, 4283.676, 4304.373, 4325.069, 4345.765, 4366.462, 4427.964, 4448.529, 4469.097, 4490.376, 4510.915, 4530.912] },
+      twoEastPiers: { batch: "vertical piers and chevrons", drawn: [4687.698, 4676.347, 4663.073, 4650.31, 4565.876, 4553.532, 4538.582] },
+      twoLowerPiers: { batch: "vertical piers and chevrons", drawn: [4263.919, 4284.925, 4305.622, 4326.418, 4391.515, 4412.221, 4432.928, 4453.634] },
+    },
+    // Measured at all five layouts: the tallest layout is worst, near 0.00292
+    // for landmarks and 0.00317 for columns. Parallel SVG edges cannot coincide
+    // with perspective projections at every camera distance.
+    tolerance: 0.0035,
+    columnTolerance: 0.0035,
+    sightGap: [0.05, 1],
+  },
 ];
 
-module.exports = { heritage, kemper, crain, michigan, prudential, prudentialPodium, reference, models, landmarks, landmarkTolerance, fitted };
+module.exports = { heritage, kemper, crain, michigan, prudential, prudentialPodium, twoPrudential, reference, models, landmarks, landmarkTolerance, fitted };
