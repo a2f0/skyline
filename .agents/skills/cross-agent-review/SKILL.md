@@ -43,6 +43,15 @@ available; all repairs belong to the current session.
    reviewer run. If the selected reviewer is unavailable, try the other one;
    finally fall back to an in-session file-by-file review and disclose that it
    was not independent.
+
+   Allow **20 minutes (1,200 seconds) per review attempt** for both Claude and
+   Codex. Set an external process timeout to at least that duration; poll in
+   short intervals so user updates remain possible. A quiet output file while
+   the reviewer is running is not a failed review: CLI output may be buffered
+   until completion. At the deadline, check for completion and collect any
+   verdict before terminating the exact process started for that attempt. An
+   attempt that times out without a complete verdict follows step 4's retry
+   and fallback path; never count it as clean.
 4. Require findings with file/line, impact, and severity, ending in
    `VERDICT: BLOCKER|MAJOR|MINOR|SUGGESTION|CLEAN`. Empty output, intent-only
    output, or missing verdict is incomplete: retry once, then use fallback.

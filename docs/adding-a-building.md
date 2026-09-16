@@ -92,8 +92,14 @@ hand-placed trio — Crain's near valley went from 0.02012 to 0.01355 — while 
 layout pairs moved *further* from the drawing. Check both directions before claiming an improvement.
 
 **`clippingMargin` is set by the farthest vertex from the orbit target, which is a platform corner,
-not a tower.** With a 450 × 300 platform the corner sits 308 units from the target; the near plane's
-own 600 floor never binds until the margin passes about 968.
+not a tower.** With the six-building study's 450 × 400 platform, the corner sits 348 units from
+the target at y = 172.5; its 370-unit margin clears that corner. At the minimum fitted distance
+of `197.5 / tan(3°)`, the near plane's own 600 floor binds only beyond a margin of about 1209.
+
+**Reframe the light as well as the viewer.** `shadowCamera` controls the key light's shadow
+frustum separately from the viewing camera. Two Prudential's upper facade initially fell outside
+it, causing shadows to stop partway up the tower. The skyline suite checks every building and
+platform vertex in the actual shadow camera; the solo study retains its smaller bounds.
 
 `models/skyline-reference.svg` is generated and byte-compared. Edit `reference.viewBox`, `title`,
 `description` or `groups` and then run `node scripts/reference-svg.cjs`, or `npm run check` fails

@@ -69,4 +69,7 @@ createBuildingStudy({
   minimumCameraHeight: 1,
   fit: { height: 395, width: 495 },
   platform: { width: 450, depth: 400, color: 0x222222 },
+  // Cover the taller, rearward tower and the platform in the key light's view.
+  // The solo study retains the shared viewer's smaller shadow camera.
+  shadowCamera: { left: -330, right: 330, top: 360, bottom: -270, near: 1, far: 850 },
 });

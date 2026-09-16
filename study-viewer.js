@@ -18,6 +18,7 @@ export function createBuildingStudy({
   minimumCameraHeight = null,
   fit = { height: 230, width: 98 },
   platform = { width: 76, depth: 76 },
+  shadowCamera = { left: -140, right: 140, top: 160, bottom: -160, near: 1, far: 600 },
 }) {
   const viewport = document.querySelector("#viewport");
   const canvas = document.querySelector("#building");
@@ -48,7 +49,7 @@ export function createBuildingStudy({
   keyLight.target.position.set(0, 80, 0);
   keyLight.castShadow = true;
   keyLight.shadow.mapSize.set(2048, 2048);
-  Object.assign(keyLight.shadow.camera, { left: -140, right: 140, top: 160, bottom: -160, near: 1, far: 600 });
+  Object.assign(keyLight.shadow.camera, shadowCamera);
   keyLight.shadow.normalBias = 0.2;
   scene.add(keyLight, keyLight.target);
   const fillLight = new THREE.DirectionalLight(0xffffff, 0.55);
@@ -287,6 +288,22 @@ export function createBuildingStudy({
     triangleCount: models.reduce((total, model) => total + model.triangleCount, 0),
     get activeView() { return activeView; },
     get selectedBuilding() { return selectedModel?.building.userData.buildingId || null; },
+    get shadowBounds() {
+      // Actual rendered geometry in the shadow camera's clip space, for coverage checks.
+      const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+      const point = new THREE.Vector3();
+      for (const object of [...models.map((model) => model.building), base]) {
+        object.traverse((child) => {
+          if (!child.isMesh) return;
+          const positions = child.geometry.getAttribute("position");
+          for (let i = 0; i < positions.count; i += 1) {
+            point.fromBufferAttribute(positions, i).applyMatrix4(child.matrixWorld).project(keyLight.shadow.camera);
+            point.toArray().forEach((value, axis) => { min[axis] = Math.min(min[axis], value); max[axis] = Math.max(max[axis], value); });
+          }
+        });
+      }
+      return { min, max };
+    },
     projectPoint(buildingId, coordinates) {
       const model = models.find((entry) => entry.building.userData.buildingId === buildingId);
       const point = model.building.localToWorld(new THREE.Vector3(...coordinates)).project(camera);

@@ -10,7 +10,7 @@ const { pathToFileURL } = require("node:url");
 process.removeAllListeners("warning");
 process.on("warning", (warning) => { if (warning.code !== "MODULE_TYPELESS_PACKAGE_JSON") console.warn(warning); });
 const load = (file) => import(pathToFileURL(path.resolve(__dirname, "..", file)).href);
-const { models, fitted } = require("./skyline-landmarks.cjs");
+const { models, fitted, twoPrudential } = require("./skyline-landmarks.cjs");
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -343,6 +343,34 @@ async function main() {
       name: mesh.name, triangles: trianglesOf({ positions: mesh.geometry.getAttribute("position").array, normals: mesh.geometry.getAttribute("normal").array }),
     }));
     assert.equal(model.triangleCount, meshes.reduce((sum, mesh) => sum + mesh.triangles.length, 0), `${model.building.name} should count every triangle`);
+    if (id === twoPrudential) {
+      const THREE = await load("./vendor/three-r186.js"), ray = new THREE.Raycaster();
+      model.building.updateMatrixWorld(true);
+      const surfaces = model.building.children.filter((child) => child.isMesh);
+      const hit = (origin, direction, objects = surfaces) => {
+        ray.set(new THREE.Vector3(...origin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(objects, false)[0];
+      };
+      // These points are in exposed portions of bays that cross an arrow or setback
+      // boundary. Dropping the entire bay leaves the shell as the first surface.
+      for (const [label, origin, direction] of [
+        ["east glass beside the arrow's south edge", [35, 56.8, 9], [-1, 0, 0]],
+        ["east glass beside the arrow's north edge", [35, 56.8, -7.2], [-1, 0, 0]],
+        ["middle glass beyond the lower setback", [21.6, 56.8, 40], [0, 0, -1]],
+      ]) assert.equal(hit(origin, direction)?.object.name, "window panes", label);
+      // Upper arrows continue to the sloping cap below them, including its shoulders.
+      for (const y of [231, 185]) {
+        assert.equal(hit([4.5, y, 40], [0, 0, -1])?.object.name, "vertical piers and chevrons", `the arrow at y=${y} should reach the next gable`);
+      }
+      const spirePositions = surfaces.find((mesh) => mesh.name === "spire").geometry.getAttribute("position");
+      const foot = Math.min(...Array.from({ length: spirePositions.count }, (_, i) => spirePositions.getY(i)));
+      const roof = surfaces.filter((mesh) => ["pyramid and chevron roofs", "pyramid silver bands"].includes(mesh.name));
+      for (let i = 0; i < spirePositions.count; i += 1) {
+        if (spirePositions.getY(i) !== foot) continue;
+        const contact = hit([spirePositions.getX(i), model.height + 1, spirePositions.getZ(i)], [0, -1, 0], roof);
+        assert.ok(contact && contact.point.y >= foot, "every spire foot corner should be seated in the roof");
+      }
+    }
     for (const mesh of meshes) assertSound(mesh.name, mesh.triangles);
     // Materials are single-sided, so two same-facing surfaces in one plane z-fight whichever
     // batches they belong to. A pair counts when either lies within 2 mm of the other's plane:
