@@ -129,7 +129,7 @@ const fitted = [
       eastPiers: { batch: "piers, ribs, and louvers", drawn: [4130.77, 4141.45, 4152.13, 4162.81, 4173.49, 4184.18, 4194.86, 4205.54] },
       screenLouvers: { batch: "piers, ribs, and louvers", drawn: [3660.59, 3667.26, 3673.94, 3680.62, 3687.29, 3693.97, 3700.64, 3707.32, 3714, 3720.67, 3727.35, 3734.03, 3740.7, 3747.38, 3754.06, 3760.73, 3767.41, 3774.08, 3780.76, 3787.44, 3794.11, 3800.79, 3807.47, 3814.14, 3820.82, 3827.49, 3834.17, 3840.85, 3847.52, 3854.2, 3860.88, 3867.55, 3874.23, 3880.9, 3887.58, 3894.26, 3900.93, 3907.61, 3914.29, 3920.96, 3927.64, 3934.32, 3940.99, 3947.67, 3954.34, 3961.02, 3967.7, 3974.37, 3981.05] },
       // The drawn podium does not share its tower's projection: its top is flat where
-      // every east-west tower edge slopes -0.0333. Its ribs therefore land about three
+      // the tower's own window rows slope -0.0333. Its ribs therefore land about three
       // times looser than the tower's piers, worst at the ends and at the narrowest
       // viewport, so they carry their own bound rather than relaxing the tower's.
       southRibs: { tolerance: 0.009, batch: "piers, ribs, and louvers", drawn: [3990.9, 4007.05, 4023.21, 4039.37, 4055.52, 4071.68, 4087.84, 4103.99, 4120.15, 4136.31, 4152.46, 4168.62, 4184.78, 4200.93, 4217.09, 4233.25] },
