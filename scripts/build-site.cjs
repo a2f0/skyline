@@ -65,4 +65,8 @@ async function main() {
   console.log(`Staged ${entries.length} files (${(bytes / 1024 / 1024).toFixed(2)} MB) into dist/.`);
 }
 
-main().catch((error) => { console.error(error.message); process.exitCode = 1; });
+// scripts/verify-deploy.cjs reads the same allowlist, so the published set and the
+// checked set cannot drift apart.
+module.exports = { collect, root, dist };
+
+if (require.main === module) main().catch((error) => { console.error(error.message); process.exitCode = 1; });

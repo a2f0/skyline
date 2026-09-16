@@ -18,6 +18,7 @@ async function main() {
   await run("git", ["diff", "--cached", "--check"]);
   if (baseSha) await run("git", ["diff", "--check", `${baseSha}...HEAD`]);
   await run(process.execPath, ["tests/squash-merge.cjs"]);
+  await run(process.execPath, ["tests/verify-deploy.cjs"]);
   await run(process.execPath, ["scripts/reference-svg.cjs", "--check"]);
   await run(process.execPath, ["tests/building-kit.cjs"]);
   const server = await startServer(root);

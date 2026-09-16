@@ -315,6 +315,10 @@ file listing is not success and a failed run still leaves PNGs behind. Run `test
 three consecutive times as a flake check; both `npm run fidelity` and `npm run renders` need the npm
 `--` separator to pass flags.
 
+Once it is deployed, `npm run verify:deploy` confirms the site serves the new model byte for byte
+and that nothing outside the allowlist became reachable. `scripts/deploy.sh` runs it after wrangler,
+because wrangler reporting success is not the same as the edge serving the files.
+
 ## Three instruments, three blind spots
 
 The defects found building One Prudential split cleanly by what caught them, and no instrument
