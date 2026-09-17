@@ -71,8 +71,10 @@ back to **original drawing**, aligned at Crain so changes in position and scale
 remain visible. The original skyline camera and fitted models are retained.
 
 The table below the viewer compares original and mapped ground extents, east/north
-coordinates, and modeled top heights, with source links and assumptions. Measured
-outlines replace the illustration's facade detail in this variation. Intermediate
+coordinates, and modeled top heights, with source links and assumptions. Heritage
+has a detailed geographic facade, with terrace elevations from city design
+drawings and the published 192.4 m top; see its [reference audit](docs/heritage-geographic-reference.md).
+The other seven buildings use simple massing on mapped outlines. Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
 for the coordinate system, eight footprint records, height definitions, OSM
