@@ -4,6 +4,7 @@ import { createHeritageAtMillenniumParkBuilding } from "./models/heritage-at-mil
 import { createKemperBuilding } from "./models/kemper.js";
 import { createMichiganPlazaSouthBuilding } from "./models/michigan-plaza-south.js";
 import { createOnePrudentialPlazaBuilding } from "./models/one-prudential-plaza.js";
+import { createTrumpInternationalTowerBuilding } from "./models/trump-international-tower.js";
 import { createTwoPrudentialPlazaBuilding } from "./models/two-prudential-plaza.js";
 
 // The SVG's Crain facade widths suggest a ~42° azimuth. Kemper's near roof
@@ -16,6 +17,7 @@ const kemper = createKemperBuilding();
 const michigan = createMichiganPlazaSouthBuilding();
 const heritage = createHeritageAtMillenniumParkBuilding();
 const prudential = createOnePrudentialPlazaBuilding();
+const trump = createTrumpInternationalTowerBuilding();
 const twoPrudential = createTwoPrudentialPlazaBuilding();
 function place(model, across, towardCamera) {
   // Center the wider group while retaining the drawing's relative spacing.
@@ -44,13 +46,17 @@ place(heritage, -91.9, -31.85);
 // right-silhouette bound at the laptop layout.
 place(prudential, 178.75, 25);
 prudential.building.rotation.y = 6.07 * Math.PI / 180;
+// Trump stands behind One Prudential in the SVG. Its depth maintains that lower-facade
+// occlusion while the fitted crown and spire remain visible above the foreground slab.
+place(trump, 200.5, -40);
+trump.building.rotation.y = 1.8 * Math.PI / 180;
 // Two Prudential stands behind the shared podium; its plan and roof features were
 // fitted through this camera to the drawing, with depth fixed by that occlusion.
 place(twoPrudential, 270.727, -45);
 twoPrudential.building.rotation.y = -1.758 * Math.PI / 180;
 
 createBuildingStudy({
-  models: [heritage, kemper, crain, michigan, prudential, twoPrudential],
+  models: [heritage, kemper, crain, michigan, trump, prudential, twoPrudential],
   defaultView: "skyline",
   views: {
     skyline: { azimuth, polar: Math.PI / 2 - elevation, label: "skyline view" },
@@ -62,14 +68,15 @@ createBuildingStudy({
   // Keep fine facade layers distinct at maximum mobile zoom-out as well.
   near: 600,
   far: 10000,
-  // The deeper platform accommodates Two Prudential behind the shared podium. Its
-  // farthest corner is 348 m from the raised target, inside the clipping margin.
-  clippingMargin: 370,
+  // The reference frame grew around the same centre to clear Trump's spire. Scaling the
+  // platform with the fit preserves its screen footprint; its farthest corner is inside
+  // this margin at every allowed camera distance.
+  clippingMargin: 460,
   target: [0, 172.5, 0],
   minimumCameraHeight: 1,
-  fit: { height: 395, width: 495 },
-  platform: { width: 450, depth: 400, color: 0x222222 },
-  // Cover the taller, rearward tower and the platform in the key light's view.
+  fit: { height: 477.297, width: 598.132 },
+  platform: { width: 543.756, depth: 483.339, color: 0x222222 },
+  // Cover the supertall, rearward tower and the enlarged platform in the key light's view.
   // The solo study retains the shared viewer's smaller shadow camera.
-  shadowCamera: { left: -330, right: 330, top: 360, bottom: -270, near: 1, far: 850 },
+  shadowCamera: { left: -390, right: 390, top: 480, bottom: -350, near: 1, far: 1050 },
 });

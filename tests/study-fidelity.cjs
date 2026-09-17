@@ -20,6 +20,7 @@ function checkSpec({ fitted, models }) {
     if (missing) throw new Error(`The fitted spec for ${spec.id || spec.label || "a building"} in tests/skyline-landmarks.cjs is missing ${missing}.`);
     if (!models.some((model) => model.id === spec.id)) throw new Error(`The fitted spec ${spec.id} has no entry in models.`);
     for (const [name, column] of Object.entries(spec.columns)) if (!column.batch || !column.drawn) throw new Error(`The fitted spec ${spec.id} column ${name} needs a batch and drawn positions.`);
+    for (const [name, row] of Object.entries(spec.rows || {})) if (!row.drawn || row.tolerance === undefined) throw new Error(`The fitted spec ${spec.id} row ${name} needs drawn positions and a tolerance.`);
   }
 }
 
@@ -52,6 +53,10 @@ async function measureStudy({ landmarks, landmarkTolerance, fitted, models, repo
     if (!features) throw new Error(`${entry.module} has no export named ${spec.features}, which the ${spec.id} spec lists as its features.`);
     for (const [name, list] of Object.entries(spec.columns)) {
       if (!Array.isArray(features[name])) throw new Error(`${spec.features} has no ${name} array, which the ${spec.id} spec lists as a column.`);
+      if (features[name].length !== list.drawn.length) throw new Error(`${spec.id} exports ${features[name].length} ${name} but the spec draws ${list.drawn.length}.`);
+    }
+    for (const [name, list] of Object.entries(spec.rows || {})) {
+      if (!Array.isArray(features[name])) throw new Error(`${spec.features} has no ${name} array, which the ${spec.id} spec lists as a row.`);
       if (features[name].length !== list.drawn.length) throw new Error(`${spec.id} exports ${features[name].length} ${name} but the spec draws ${list.drawn.length}.`);
     }
     for (const [name, drawing] of Object.entries(spec.landmarks)) {
@@ -103,6 +108,10 @@ async function measureStudy({ landmarks, landmarkTolerance, fitted, models, repo
       columns: Object.fromEntries(Object.entries(spec.columns).map(([name, { drawn }]) => [name, features[name].map((point, index) => {
         const actual = project(spec.id, point)[0], expected = expect([drawn[index], 0])[0];
         return { actual, expected, residual: layer([actual, 0])[0] - drawn[index] };
+      })])),
+      rows: Object.fromEntries(Object.entries(spec.rows || {}).map(([name, { drawn }]) => [name, features[name].map((point, index) => {
+        const actual = project(spec.id, point)[1], expected = expect([0, drawn[index]])[1];
+        return { actual, expected, residual: layer([0, actual])[1] - drawn[index] };
       })])),
       sightGaps: Object.fromEntries(Object.keys(spec.columns).map((name) => [name, features[name].map(sightGap)])),
       onGeometry: Object.fromEntries([...Object.keys(spec.landmarks), ...(spec.onGeometry || [])].map((name) => [name, offGeometry(features[name])])),

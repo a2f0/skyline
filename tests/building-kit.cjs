@@ -10,7 +10,7 @@ const { pathToFileURL } = require("node:url");
 process.removeAllListeners("warning");
 process.on("warning", (warning) => { if (warning.code !== "MODULE_TYPELESS_PACKAGE_JSON") console.warn(warning); });
 const load = (file) => import(pathToFileURL(path.resolve(__dirname, "..", file)).href);
-const { models, fitted, twoPrudential } = require("./skyline-landmarks.cjs");
+const { models, fitted, trump, twoPrudential } = require("./skyline-landmarks.cjs");
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -343,6 +343,66 @@ async function main() {
       name: mesh.name, triangles: trianglesOf({ positions: mesh.geometry.getAttribute("position").array, normals: mesh.geometry.getAttribute("normal").array }),
     }));
     assert.equal(model.triangleCount, meshes.reduce((sum, mesh) => sum + mesh.triangles.length, 0), `${model.building.name} should count every triangle`);
+    if (id === trump) {
+      const THREE = await load("./vendor/three-r186.js"), ray = new THREE.Raycaster();
+      model.building.updateMatrixWorld(true);
+      const surfaces = model.building.children.filter((child) => child.isMesh);
+      const hit = (origin, direction, objects = surfaces) => {
+        ray.set(new THREE.Vector3(...origin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(objects, false)[0];
+      };
+      const shell = surfaces.filter((mesh) => mesh.name === "closed glass shells and roof steps");
+      const { trumpFeatures } = await load(entry.module);
+      // The cap above the east drop must stay seated on the shaft all the way through the source
+      // step. These shell-only horizontal rays cannot be satisfied by facade panes or mullions.
+      for (const z of [4, 1, -2]) {
+        const contact = hit([24, 325.7, z], [-1, 0, 0], shell);
+        assert.equal(contact?.object.name, "closed glass shells and roof steps",
+          `Trump east-drop cap should close the shaft at z=${z}`);
+        assert.ok(Math.abs(contact.point.x - 22.75) < 0.02,
+          `Trump east-drop cap should meet its east wall at z=${z}`);
+      }
+      // The shell has no curved runs, so each stored normal must align with its geometric face.
+      // This catches a roof that looks sloped but still shades as a horizontal surface.
+      const shellTriangles = trianglesOf({
+        positions: shell[0].geometry.getAttribute("position").array,
+        normals: shell[0].geometry.getAttribute("normal").array,
+      });
+      for (const { index, normal, normals } of shellTriangles) {
+        for (const vertexNormal of normals) assert.ok(dot(normal, vertexNormal) > 0.9999,
+          `Trump shell triangle ${index} should carry a geometric surface normal`);
+      }
+      // These row samples sit in an open south bay, so each ray must meet the raised horizontal
+      // band itself rather than a nearby mullion or the recessed glazing behind it.
+      const facadeBands = surfaces.filter((mesh) => mesh.name === "raised mullions and floor bands");
+      for (const point of trumpFeatures.trumpFloorBands) {
+        const contact = hit([point[0], point[1], 40], [0, 0, -1], facadeBands);
+        assert.equal(contact?.object.name, "raised mullions and floor bands", "each sampled Trump floor row should be a raised band");
+        assert.ok(Math.abs(contact.point.z - point[2]) < 0.02, "each sampled Trump floor band should meet its measured south face");
+      }
+      // All four corners of the bottom mast section must meet the crown roof. This catches a
+      // visually plausible antenna whose plan drifts outside or beside its supporting crown.
+      const spirePositions = surfaces.find((mesh) => mesh.name === "segmented spire").geometry.getAttribute("position");
+      const foot = Math.min(...Array.from({ length: spirePositions.count }, (_, i) => spirePositions.getY(i)));
+      const roof = surfaces.filter((mesh) => mesh.name === "crown enclosure");
+      for (let i = 0; i < spirePositions.count; i += 1) {
+        if (Math.abs(spirePositions.getY(i) - foot) > 1e-6) continue;
+        const contact = hit([spirePositions.getX(i), model.height + 1, spirePositions.getZ(i)], [0, -1, 0], roof);
+        assert.ok(contact && Math.abs(contact.point.y - foot) < 0.02,
+          "every Trump spire foot corner should sit on the crown roof");
+      }
+      // The crown reaches farther north than its visible south face. Its base still needs a
+      // real shaft roof below every perimeter corner, instead of an unsupported overhang.
+      const crownPositions = surfaces.find((mesh) => mesh.name === "crown enclosure").geometry.getAttribute("position");
+      const crownFoot = Math.min(...Array.from({ length: crownPositions.count }, (_, i) => crownPositions.getY(i)));
+      const support = shell;
+      for (let i = 0; i < crownPositions.count; i += 1) {
+        if (Math.abs(crownPositions.getY(i) - crownFoot) > 1e-6) continue;
+        const contact = hit([crownPositions.getX(i), model.height + 1, crownPositions.getZ(i)], [0, -1, 0], support);
+        assert.ok(contact && Math.abs(contact.point.y - crownFoot) < 0.02,
+          "every Trump crown base corner should sit on a shaft roof");
+      }
+    }
     if (id === twoPrudential) {
       const THREE = await load("./vendor/three-r186.js"), ray = new THREE.Raycaster();
       model.building.updateMatrixWorld(true);
