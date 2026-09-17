@@ -337,8 +337,13 @@ async function main() {
   // Every fitted model in the study spec: sound triangles, no same-facing coplanar overlaps
   // (z-fighting) in or across meshes, and every omitted face covered by coplanar geometry or
   // facing the ground.
-  for (const { id } of fitted) {
-    const entry = models.find((model) => model.id === id), model = (await load(entry.module))[entry.factory]();
+  const { geographicBuildings } = await load("models/skyline-geography-data.js");
+  const { createGeographicBuilding } = await load("models/skyline-geography.js");
+  for (const { id } of [...fitted, { id: "heritage-geographic" }]) {
+    const entry = models.find((model) => model.id === id);
+    const model = id === "heritage-geographic"
+      ? createGeographicBuilding(geographicBuildings.find((record) => record.shortName === "Heritage"))
+      : (await load(entry.module))[entry.factory]();
     const meshes = model.building.children.filter((child) => child.isMesh).map((mesh) => ({
       name: mesh.name, triangles: trianglesOf({ positions: mesh.geometry.getAttribute("position").array, normals: mesh.geometry.getAttribute("normal").array }),
     }));

@@ -11,6 +11,7 @@ const near = (a, b, tolerance, message) => assert.ok(Math.abs(a - b) < tolerance
 async function main() {
   const { geographicBuildings, geographicStreets } = await import("../models/skyline-geography-data.js");
   const { projectGround, footprintMetrics, createGeographicBuilding } = await import("../models/skyline-geography.js");
+  const THREE = await import("../vendor/three-r186.js");
   // Independent geographic anchors catch swapped coordinates, reversed north,
   // degrees-as-meters, and the temptation to retain the drawing's tower order.
   near(projectGround([-87.62497155, 41.88582645])[1], 111.07, 0.02, "one millidegree north");
@@ -29,11 +30,18 @@ async function main() {
     assert.ok(metrics.area > 500 && metrics.area < 10000, `${record.shortName} plausible footprint area`);
     const model = createGeographicBuilding(record);
     const bounds = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] };
+    const groundBounds = { min: [Infinity, Infinity], max: [-Infinity, -Infinity] };
     model.building.traverse((child) => {
       if (!child.isMesh) return;
       const position = child.geometry.getAttribute("position"), edges = new Map();
       const key = (i) => [position.getX(i), position.getY(i), position.getZ(i)].map((n) => n.toFixed(3)).join(",");
       for (let i = 0; i < position.count; i += 1) {
+        // Facade relief and balconies can project above the mapped ground
+        // outline. Only vertices at grade determine street-level coverage.
+        if (position.getY(i) < 0.2) [position.getX(i), position.getZ(i)].forEach((n, axis) => {
+          groundBounds.min[axis] = Math.min(groundBounds.min[axis], n);
+          groundBounds.max[axis] = Math.max(groundBounds.max[axis], n);
+        });
         [position.getX(i), position.getY(i), position.getZ(i)].forEach((n, axis) => {
           assert.ok(Number.isFinite(n), `${record.shortName} finite vertex`);
           bounds.min[axis] = Math.min(bounds.min[axis], n); bounds.max[axis] = Math.max(bounds.max[axis], n);
@@ -51,10 +59,36 @@ async function main() {
     });
     near(bounds.min[1], 0, 1e-5, `${record.shortName} grounded`);
     near(bounds.max[1], height, 0.001, `${record.shortName} rendered top`);
-    near(bounds.min[0], metrics.min[0], 0.03, `${record.shortName} west boundary`);
-    near(bounds.max[0], metrics.max[0], 0.03, `${record.shortName} east boundary`);
-    near(-bounds.max[2], metrics.min[1], 0.03, `${record.shortName} south boundary`);
-    near(-bounds.min[2], metrics.max[1], 0.03, `${record.shortName} north boundary`);
+    near(groundBounds.min[0], metrics.min[0], 0.03, `${record.shortName} west boundary`);
+    near(groundBounds.max[0], metrics.max[0], 0.03, `${record.shortName} east boundary`);
+    near(-groundBounds.max[1], metrics.min[1], 0.03, `${record.shortName} south boundary`);
+    near(-groundBounds.min[1], metrics.max[1], 0.03, `${record.shortName} north boundary`);
+    if (record.shortName === "Heritage") {
+      model.building.updateMatrixWorld(true);
+      const ray = new THREE.Raycaster();
+      const meshes = model.building.children.filter((child) => child.isMesh);
+      const hit = (origin, direction, targets = meshes) => {
+        ray.set(new THREE.Vector3(...origin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(targets, false)[0];
+      };
+      // Independent samples in the city's section and plans. A tower extruded
+      // to 192.4 m everywhere, or the old level-count estimates, cannot pass.
+      near(hit([-82, 220, 85], [0, -1, 0]).point.y, 32.8176, 0.001, "Heritage ninth-floor terrace");
+      near(hit([-53, 220, 120], [0, -1, 0]).point.y, 89.5096, 0.001, "Heritage 28th-floor terrace");
+      near(hit([-57, 220, 92], [0, -1, 0]).point.y, 181.2036, 0.001, "Heritage main roof below mechanical screen");
+      const eastWing = hit([0, 60, 110], [-1, 0, 0]);
+      assert.ok(eastWing.point.x < -41.5 && eastWing.point.x > -44, "Heritage lower east facade bows inward from the map chord");
+      assert.equal(hit([0, 120, 110], [-1, 0, 0]), undefined, "Heritage lower wing stops below upper tower");
+      const groundMesh = meshes.find((mesh) => mesh.name === "Heritage · mapped ground footprint");
+      const vertices = groundMesh.geometry.getAttribute("position");
+      const grade = new Set();
+      for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set(record.footprint.coordinates.map((p) => {
+        const [east, north] = projectGround(p);
+        return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
+      }));
+      assert.deepEqual(grade, mapped, "Heritage keeps every ground-plan corner, not just its bounding box");
+    }
   }
   assert.ok(geographicStreets.some((street) => street.name === "North Michigan Avenue"));
   assert.ok(geographicStreets.every((street) => !street.name.includes("Lower")));
