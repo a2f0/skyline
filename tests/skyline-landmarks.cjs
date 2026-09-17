@@ -3,6 +3,7 @@
 // each building group's parent.
 const heritage = "building-heritage-at-millennium-park", kemper = "building-kemper";
 const crain = "building-crain-communications", michigan = "building-michigan-plaza-south-tower";
+const trump = "building-trump-tower-only";
 const prudential = "building-one-prudential-plaza", prudentialPodium = "building-prudential-plaza-podium";
 const twoPrudential = "building-two-prudential-plaza";
 
@@ -10,10 +11,12 @@ const twoPrudential = "building-two-prudential-plaza";
 const reference = {
   path: "models/skyline-reference.svg",
   source: "skyline-animated.svg",
-  viewBox: "1761.407 393.513 3055.662 2438.357",
-  title: "The Heritage at Millennium Park, Kemper, Crain, Michigan Plaza South, and One and Two Prudential Plaza: original skyline geometry",
+  // The centered expansion clears Trump's spire while retaining the prior frame centre.
+  // Its aspect stays aligned with skyline-study.js's fit dimensions.
+  viewBox: "1443.087 139.5 3692.303 2946.383",
+  title: "The Heritage at Millennium Park, Kemper, Crain, Michigan Plaza South, Trump International Hotel and Tower, and One and Two Prudential Plaza: original skyline geometry",
   description: "Unmodified tower groups from skyline-animated.svg, preserving their positions, transforms, and draw order. Unidentified foreground buildings are omitted.",
-  groups: [heritage, kemper, michigan, crain, prudential, twoPrudential, prudentialPodium],
+  groups: [heritage, kemper, michigan, crain, trump, prudential, twoPrudential, prudentialPodium],
 };
 
 // Every model in the scene, in the study's order.
@@ -22,6 +25,7 @@ const models = [
   { id: kemper, name: "Kemper Building", module: "./models/kemper.js", factory: "createKemperBuilding" },
   { id: crain, name: "Crain Communications Building", module: "./models/crain-communications.js", factory: "createCrainBuilding" },
   { id: michigan, name: "Michigan Plaza South", module: "./models/michigan-plaza-south.js", factory: "createMichiganPlazaSouthBuilding" },
+  { id: trump, name: "Trump International Hotel and Tower", module: "./models/trump-international-tower.js", factory: "createTrumpInternationalTowerBuilding" },
   { id: prudential, name: "One Prudential Plaza", module: "./models/one-prudential-plaza.js", factory: "createOnePrudentialPlazaBuilding" },
   { id: twoPrudential, name: "Two Prudential Plaza", module: "./models/two-prudential-plaza.js", factory: "createTwoPrudentialPlazaBuilding" },
 ];
@@ -41,10 +45,10 @@ const landmarks = [
   ["Michigan near roof", michigan, [23.35, 180, 23.35], [3466, 1572]],
   ["Michigan right roof", michigan, [23.35, 180, -23.35], [3662, 1589]],
 ];
-// Widening the viewBox for a fifth building divided every normalized error by 1.375, so
+// Widening the viewBox for the new tower divides every normalized error by 1.20834767, so
 // these bounds are divided to match: they assert the same fidelity against the drawing as
-// they did in the four-building frame, not 37.5% less.
-const landmarkTolerance = 0.0218;
+// they did in the prior frame, not 20.8% less.
+const landmarkTolerance = 0.01804;
 
 // Fitted buildings export their features. Each landmark pairs a feature with a vertex of
 // the drawn group, and must also lie on an edge of the built model, so moving the
@@ -98,12 +102,39 @@ const fitted = [
     // hit 0.1-1 m toward the camera. A missing one leaves the facade at 0 or panes behind it.
     sightGap: [0.1, 1],
     // Heritage was fitted numerically, so it holds a tighter bound than the hand-placed trio.
-    // Both are the four-building frame's 0.008 and 0.006 divided by the 1.375 the viewBox
-    // widened, so they hold Heritage to the same distance on the drawing as before.
-    tolerance: 0.0058,
-    columnTolerance: 0.0044,
+    // Both are the four-building frame's 0.008 and 0.006 divided by the 1.375 and then the
+    // 1.20834767 that the two later viewBox expansions widened, preserving drawing distance.
+    tolerance: 0.0048,
+    columnTolerance: 0.00364,
     // The left silhouette is the stub's drawn edge.
     silhouette: 2062.84,
+  },
+  {
+    id: trump,
+    label: "Trump International Hotel and Tower",
+    features: "trumpFeatures",
+    // The tower's inset roof, narrow offset crown, and segmented spire are all sharp SVG
+    // vertices. Their placement is fitted through the real skyline camera rather than a
+    // parallel approximation of the source drawing.
+    landmarks: {
+      trumpTowerWestRoof: [3890.364, 621.787],
+      trumpEastShoulder: [4217.391, 683.364],
+      trumpCrownWest: [4037.91, 561.188],
+      trumpCrownEast: [4207.711, 567.37],
+      trumpSpireTip: [4141.449, 187.538],
+    },
+    onGeometry: ["trumpTowerEastRoof"],
+    onGeometryTolerance: 0.02,
+    columns: {
+      // Five unobscured vertical mullions in the upper shaft, measured where the SVG's
+      // long, near-vertical facade lines cross layer y≈1024.
+      trumpFrontMullions: { batch: "raised mullions and floor bands", drawn: [3907.5, 3924.0, 3939.7, 3957.1, 3979.0] },
+    },
+    sightGap: [0.05, 1],
+    // The compact crown's hand-drawn sloping edge is the limiting landmark; all five
+    // layouts remain within this measured 0.0032 canvas-unit bound.
+    tolerance: 0.0032,
+    columnTolerance: 0.0021,
   },
   {
     id: prudential,
@@ -134,8 +165,8 @@ const fitted = [
       // the tower's own window rows slope -0.0333. Its ribs therefore land about three
       // times looser than the tower's piers, worst at the ends and at the narrowest
       // viewport, so they carry their own bound rather than relaxing the tower's.
-      southRibs: { tolerance: 0.009, batch: "piers, ribs, and louvers", drawn: [3990.9, 4007.05, 4023.21, 4039.37, 4055.52, 4071.68, 4087.84, 4103.99, 4120.15, 4136.31, 4152.46, 4168.62, 4184.78, 4200.93, 4217.09, 4233.25] },
-      eastRibs: { tolerance: 0.009, batch: "piers, ribs, and louvers", drawn: [4252.78, 4263.33, 4273.88, 4284.43, 4294.98, 4305.52, 4316.07, 4326.62, 4337.17, 4347.72, 4358.27, 4368.82, 4379.36, 4389.91, 4400.46, 4411.01, 4421.56, 4432.11, 4442.66, 4453.2, 4463.75, 4474.3, 4484.85, 4495.4] },
+      southRibs: { tolerance: 0.00745, batch: "piers, ribs, and louvers", drawn: [3990.9, 4007.05, 4023.21, 4039.37, 4055.52, 4071.68, 4087.84, 4103.99, 4120.15, 4136.31, 4152.46, 4168.62, 4184.78, 4200.93, 4217.09, 4233.25] },
+      eastRibs: { tolerance: 0.00745, batch: "piers, ribs, and louvers", drawn: [4252.78, 4263.33, 4273.88, 4284.43, 4294.98, 4305.52, 4316.07, 4326.62, 4337.17, 4347.72, 4358.27, 4368.82, 4379.36, 4389.91, 4400.46, 4411.01, 4421.56, 4432.11, 4442.66, 4453.2, 4463.75, 4474.3, 4484.85, 4495.4] },
     },
     // Each column point sits at half its pier's depth, so a present pier is met a little
     // before the point and a missing one leaves the wall behind it.
@@ -145,8 +176,8 @@ const fitted = [
     // The wing's corners are the worst landmarks, at 0.00607: the drawn podium does not
     // share its tower's projection, so it cannot sit as tightly as the tower does. The
     // tower's own landmarks are inside 0.0026.
-    tolerance: 0.009,
-    columnTolerance: 0.003,
+    tolerance: 0.00745,
+    columnTolerance: 0.00248,
     // The right silhouette is the wing's drawn east end.
     silhouette: 4507.699,
   },
@@ -181,10 +212,10 @@ const fitted = [
     // Measured at all five layouts: the tallest layout is worst, near 0.00292
     // for landmarks and 0.00317 for columns. Parallel SVG edges cannot coincide
     // with perspective projections at every camera distance.
-    tolerance: 0.0035,
-    columnTolerance: 0.0035,
+    tolerance: 0.0029,
+    columnTolerance: 0.0029,
     sightGap: [0.05, 1],
   },
 ];
 
-module.exports = { heritage, kemper, crain, michigan, prudential, prudentialPodium, twoPrudential, reference, models, landmarks, landmarkTolerance, fitted };
+module.exports = { heritage, kemper, crain, michigan, trump, prudential, prudentialPodium, twoPrudential, reference, models, landmarks, landmarkTolerance, fitted };

@@ -84,17 +84,18 @@ landmark must be re-measured afterwards.
 the viewBox by a factor divides every measured error by that factor. Adding One Prudential widened
 it from 2222.3 to 3055.662, a ratio of exactly 1.375, which made every pre-existing bound 37.5% more
 permissive while the numbers in the file looked untouched. **Divide the existing tolerances by the
-same factor** and re-verify. The current values are the four-building ones divided by 1.375; a
-further reframe means dividing again.
+same factor** and re-verify. Trump International Hotel and Tower then widened the frame by another
+1.20834767; current inherited values include both reductions. A further reframe means dividing
+again.
 
 Measured that way, reframing is a trade rather than a free win. Adding One Prudential improved the
 hand-placed trio — Crain's near valley went from 0.02012 to 0.01355 — while 56 of 115 landmark and
 layout pairs moved *further* from the drawing. Check both directions before claiming an improvement.
 
 **`clippingMargin` is set by the farthest vertex from the orbit target, which is a platform corner,
-not a tower.** With the six-building study's 450 × 400 platform, the corner sits 348 units from
-the target at y = 172.5; its 370-unit margin clears that corner. At the minimum fitted distance
-of `197.5 / tan(3°)`, the near plane's own 600 floor binds only beyond a margin of about 1209.
+not a tower.** The seven-building study scales the platform to 543.756 × 483.339 and uses a
+460-unit margin; calculate the farthest corner again after every reframe instead of carrying an
+earlier margin forward. At the minimum fitted distance, check the near plane separately too.
 
 **Reframe the light as well as the viewer.** `shadowCamera` controls the key light's shadow
 frustum separately from the viewing camera. Two Prudential's upper facade initially fell outside
