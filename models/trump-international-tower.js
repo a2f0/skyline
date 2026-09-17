@@ -159,12 +159,12 @@ export const trumpFeatures = {
 export function createTrumpInternationalTowerBuilding() {
   const kit = createBuilder("Trump International Hotel and Tower", "building-trump-tower-only");
   const { material, batch, panel, band, box, prism, triangle } = kit;
-  const facade = material(0x333638);
+  const facade = material(0x333333);
   const glass = material(0xffffff, { vertexColors: true });
-  const frame = material(0x777a79);
-  const dark = material(0x202325);
+  const frame = material(0x777777);
+  const dark = material(0x202020);
   const crownFrame = material(0x7c7c7c);
-  const spireMetal = material(0xd0d0cd);
+  const spireMetal = material(0xd0d0d0);
   const shell = batch("closed glass shells and roof steps", facade);
   const panes = batch("glazed floor panels", glass);
   const ribs = batch("raised mullions and floor bands", frame);
@@ -202,10 +202,10 @@ export function createTrumpInternationalTowerBuilding() {
   loft(shell, shoulderCapPlan, [eastShoulder, eastShoulder, eastShoulder, eastShoulder], [326.775863, 325.440945, 325.440945, 326.775863]);
   prism(crownShell, crownPlan, [eastShoulder, crownTop]);
 
-  const tones = [0x30353b, 0x353a3f, 0x3a3e42, 0x292e33].map((hex) => new THREE.Color(hex));
-  const warm = new THREE.Color(0xc2aa82);
-  const cool = new THREE.Color(0x89959e);
-  const shade = new THREE.Color(0x22272c);
+  const tones = [0x303030, 0x343434, 0x383838, 0x2c2c2c].map((hex) => new THREE.Color(hex));
+  const lit = new THREE.Color(0x707070);
+  const dim = new THREE.Color(0x5c5c5c);
+  const shade = new THREE.Color(0x242424);
   const addFacade = ({ runs, paneFractions, mullions, y0, y1, seed = 0, bands = true }) => {
     for (const [runIndex, run] of runs.entries()) {
       const stations = paneFractions[runIndex].map((fraction) => run.length * fraction);
@@ -219,7 +219,7 @@ export function createTrumpInternationalTowerBuilding() {
             ^ Math.imul(runIndex + seed + 3, 0xc2b2ae3d)) >>> 0;
           const hash = mixed % 97;
           panel(panes, run, s0, s1, from, to, 0.035,
-            hash < 2 ? warm : hash < 4 ? cool : hash < 9 ? shade : tones[hash % tones.length]);
+            hash < 2 ? lit : hash < 4 ? dim : hash < 9 ? shade : tones[hash % tones.length]);
         }
       }
     }
