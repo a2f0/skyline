@@ -362,6 +362,17 @@ async function main() {
         assert.ok(contact && Math.abs(contact.point.y - foot) < 0.02,
           "every Trump spire foot corner should sit on the crown roof");
       }
+      // The crown reaches farther north than its visible south face. Its base still needs a
+      // real shaft roof below every perimeter corner, instead of an unsupported overhang.
+      const crownPositions = surfaces.find((mesh) => mesh.name === "crown enclosure").geometry.getAttribute("position");
+      const crownFoot = Math.min(...Array.from({ length: crownPositions.count }, (_, i) => crownPositions.getY(i)));
+      const support = surfaces.filter((mesh) => mesh.name === "closed glass shells and roof steps");
+      for (let i = 0; i < crownPositions.count; i += 1) {
+        if (Math.abs(crownPositions.getY(i) - crownFoot) > 1e-6) continue;
+        const contact = hit([crownPositions.getX(i), model.height + 1, crownPositions.getZ(i)], [0, -1, 0], support);
+        assert.ok(contact && Math.abs(contact.point.y - crownFoot) < 0.02,
+          "every Trump crown base corner should sit on a shaft roof");
+      }
     }
     if (id === twoPrudential) {
       const THREE = await load("./vendor/three-r186.js"), ray = new THREE.Raycaster();

@@ -20,6 +20,7 @@ const twoPrudentialModule = models.find((model) => model.id === twoPrudential).m
 const twoPrudentialSpec = fitted.find((spec) => spec.id === twoPrudential);
 // The layouts come from the shared list, so scripts/fidelity-report.cjs measures the same pages.
 const [desktop, laptop, tablet, tall, phone] = viewports;
+const silhouetteSlack = 0.001 / 1.20834767;
 
 async function checkReferenceMatch(page) {
   // Landmarks, columns, and sight lines come from tests/skyline-landmarks.cjs through the
@@ -61,14 +62,14 @@ async function checkReferenceMatch(page) {
     assert.ok(fins[index + 1] - fins[index] < fins[index] - fins[index - 1], `Heritage's crown fin spacing should narrow across the bow: ${JSON.stringify(fins)}`);
   }
   const lowerSouthWest = projected.lowerSouthWest.map((uv) => uv[0]);
-  assert.ok(lowerSouthWest.every((u) => u >= silhouette - 0.001), `Heritage's trimmed lower tier and its cap and band overhangs should stay inside the drawn left silhouette: ${JSON.stringify({ lowerSouthWest, silhouette })}`);
+  assert.ok(lowerSouthWest.every((u) => u >= silhouette - silhouetteSlack), `Heritage's trimmed lower tier and its cap and band overhangs should stay inside the drawn left silhouette: ${JSON.stringify({ lowerSouthWest, silhouette })}`);
   // One Prudential's wing ends the drawn silhouette on the right, so the model is held to it.
   const wing = buildings.find((building) => building.id === prudential);
   // The wall's north-east corner reaches furthest, its foot furthest of all at 2.80 layer
   // units past the drawn edge, against the 3.06 this slack allows. The ribs stand proud of
   // that wall but land well inside it; they are checked to keep them there.
   const wingEdge = [wing.projected.wingCorner, wing.projected.wingEastEnd, ...wing.projected.wingRibEdge].map(([u]) => u);
-  assert.ok(wingEdge.every((u) => u <= wing.silhouette + 0.001), `One Prudential's wing and its ribs should stay inside the drawn right silhouette: ${JSON.stringify({ wingEdge, silhouette: wing.silhouette })}`);
+  assert.ok(wingEdge.every((u) => u <= wing.silhouette + silhouetteSlack), `One Prudential's wing and its ribs should stay inside the drawn right silhouette: ${JSON.stringify({ wingEdge, silhouette: wing.silhouette })}`);
 }
 
 async function checkCameraFloor(page, screenshotPath) {

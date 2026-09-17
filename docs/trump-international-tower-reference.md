@@ -19,22 +19,24 @@ or published with the study.
 
 ## Model choices
 
-- A continuous closed clipped shaft reaches the short east shoulder. A separate raised west roof
-  creates the source's asymmetric roof step without adding unobserved lower setbacks.
-- Glazed floor panels, horizontal bands, and proud mullions cover the south and east faces. The
-  shoulder and roof are physical surfaces, so the source's step has geometry for raycasts and
+- A continuous closed clipped shaft reaches the low east shoulder. Closed roof-cap pieces continue
+  the higher south face and bevel, then form the source's vertical drop and sloped low roof on the
+  east face without adding broad lower setbacks.
+- Glazed floor panels, horizontal bands, and proud mullions carry the measured grid across the
+  south, bevel, and east faces. The four roof-step vertices are physical geometry for raycasts and
   elevated views to inspect.
-- A narrower, east-offset crown enclosure has dense dark ribs and four seams. Three nested closed
-  mast sections rise from its roof to reproduce the visible antenna joints.
+- A narrower, east-offset crown enclosure stays inside the shaft's east wall and rests on a hidden
+  roof plinth. Twenty-three light ribs and three seams follow its south face, bevel, and east face;
+  three nested closed mast sections rise from its roof to reproduce the visible antenna joints.
 - North and west faces continue the visible massing as closed, simplified volumes. They are an
   inference for orbit views rather than a survey of the building's concealed facades.
 
 ## Fit and limits
 
-The model's tip is 405.8 m above the study platform. That is a fitted drawing datum, while CTBUH's
+The model's tip is 406.6 m above the study platform. That is a fitted drawing datum, while CTBUH's
 423.2 m is an architectural height above the building's street datum, so the two figures are not
-directly interchangeable. The model is constrained by seven sharp source vertices and twenty-nine
-upper-shaft mullions across every tested layout. Trump stands behind One Prudential in the skyline
+directly interchangeable. The model is constrained by ten sharp source vertices and fifty-two
+upper-shaft and crown mullions across every tested layout. Trump stands behind One Prudential in the skyline
 view, preserving the source drawing's lower-facade occlusion while keeping the crown and spire
 available for independent hover.
 

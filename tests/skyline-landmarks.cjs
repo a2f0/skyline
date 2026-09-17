@@ -113,11 +113,14 @@ const fitted = [
     id: trump,
     label: "Trump International Hotel and Tower",
     features: "trumpFeatures",
-    // The tower's inset roof, narrow offset crown, and segmented spire are all sharp SVG
-    // vertices. Their placement is fitted through the real skyline camera rather than a
-    // parallel approximation of the source drawing.
+    // The tower's high south roof, east-face drop, narrow offset crown, and segmented spire
+    // are all sharp SVG vertices. Their placement is fitted through the real skyline camera
+    // rather than a parallel approximation of the source drawing.
     landmarks: {
       trumpTowerWestRoof: [3890.364, 621.787],
+      trumpTowerEastStart: [4131.601, 615.557],
+      trumpRoofStepTop: [4170.768, 624.612],
+      trumpRoofStepBottom: [4170.768, 671.792],
       trumpEastShoulder: [4217.391, 683.364],
       trumpCrownWest: [4037.91, 561.188],
       trumpCrownEast: [4207.711, 567.37],
@@ -125,14 +128,14 @@ const fitted = [
       trumpSpireUpperJoint: [4141.448, 324.736],
       trumpSpireLowerJoint: [4141.448, 486.302],
     },
-    onGeometry: ["trumpTowerEastRoof"],
     onGeometryTolerance: 0.02,
     columns: {
-      // Twenty-nine unobscured upper-shaft mullions, measured where their source lines
-      // cross layer y≈1052. The pitch opens across the front, bevel, and east face.
+      // Fifty-two unobscured upper-shaft and crown mullions, measured where their source lines
+      // cross layer y≈1052 or at the crown's upper edge. The pitch opens across each face.
       trumpFrontMullions: { batch: "raised mullions and floor bands", drawn: [3901.538, 3907.527, 3915.549, 3923.569, 3931.591, 3939.612, 3947.632, 3956.976, 3967.882, 3979.035, 3991.065, 4003.399, 4015.431, 4028.17, 4041.953, 4057.076] },
       trumpCornerMullions: { batch: "raised mullions and floor bands", drawn: [4073.889, 4090.699, 4107.844] },
       trumpEastMullions: { batch: "raised mullions and floor bands", drawn: [4132.294, 4143.203, 4153.301, 4163.411, 4172.917, 4179.801, 4187.73, 4196.078, 4204.42, 4210.454] },
+      trumpCrownMullions: { batch: "ribbed crown", drawn: [4042.783, 4047.166, 4051.336, 4056.356, 4061.407, 4068.232, 4076.372, 4084.83, 4094.737, 4103.839, 4113.424, 4123.676, 4133.78, 4144.157, 4154.945, 4164.957, 4174.571, 4182.598, 4189.196, 4193.491, 4196.86, 4200.233, 4203.905] },
     },
     sightGap: [0.05, 1],
     // The compact crown's hand-drawn sloping edge is the limiting landmark; all five
