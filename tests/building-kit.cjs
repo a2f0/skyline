@@ -351,6 +351,26 @@ async function main() {
         ray.set(new THREE.Vector3(...origin), new THREE.Vector3(...direction));
         return ray.intersectObjects(objects, false)[0];
       };
+      const shell = surfaces.filter((mesh) => mesh.name === "closed glass shells and roof steps");
+      // The cap above the east drop must stay seated on the shaft all the way through the source
+      // step. These shell-only horizontal rays cannot be satisfied by facade panes or mullions.
+      for (const z of [4, 1, -2]) {
+        const contact = hit([24, 325.7, z], [-1, 0, 0], shell);
+        assert.equal(contact?.object.name, "closed glass shells and roof steps",
+          `Trump east-drop cap should close the shaft at z=${z}`);
+        assert.ok(Math.abs(contact.point.x - 22.75) < 0.02,
+          `Trump east-drop cap should meet its east wall at z=${z}`);
+      }
+      // The shell has no curved runs, so each stored normal must align with its geometric face.
+      // This catches a roof that looks sloped but still shades as a horizontal surface.
+      const shellTriangles = trianglesOf({
+        positions: shell[0].geometry.getAttribute("position").array,
+        normals: shell[0].geometry.getAttribute("normal").array,
+      });
+      for (const { index, normal, normals } of shellTriangles) {
+        for (const vertexNormal of normals) assert.ok(dot(normal, vertexNormal) > 0.9999,
+          `Trump shell triangle ${index} should carry a geometric surface normal`);
+      }
       // All four corners of the bottom mast section must meet the crown roof. This catches a
       // visually plausible antenna whose plan drifts outside or beside its supporting crown.
       const spirePositions = surfaces.find((mesh) => mesh.name === "segmented spire").geometry.getAttribute("position");
@@ -366,7 +386,7 @@ async function main() {
       // real shaft roof below every perimeter corner, instead of an unsupported overhang.
       const crownPositions = surfaces.find((mesh) => mesh.name === "crown enclosure").geometry.getAttribute("position");
       const crownFoot = Math.min(...Array.from({ length: crownPositions.count }, (_, i) => crownPositions.getY(i)));
-      const support = surfaces.filter((mesh) => mesh.name === "closed glass shells and roof steps");
+      const support = shell;
       for (let i = 0; i < crownPositions.count; i += 1) {
         if (Math.abs(crownPositions.getY(i) - crownFoot) > 1e-6) continue;
         const contact = hit([crownPositions.getX(i), model.height + 1, crownPositions.getZ(i)], [0, -1, 0], support);

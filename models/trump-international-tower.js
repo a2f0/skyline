@@ -74,6 +74,22 @@ const east = (plan) => plan[2];
 const visibleRuns = (plan) => [plan[0], plan[1], plan[2]];
 const stationsAt = (run, fractions) => fractions.map((fraction) => station(run, run.length * fraction));
 
+// Every loft face carries the normal from its actual corners. The roof pieces slope through the
+// east drop, so a conventional horizontal normal would light their surfaces incorrectly.
+const faceNormal = (corners, outward) => {
+  const [a, b, c] = corners;
+  const u = b.map((value, axis) => value - a[axis]);
+  const v = c.map((value, axis) => value - a[axis]);
+  const raw = [
+    u[1] * v[2] - u[2] * v[1],
+    u[2] * v[0] - u[0] * v[2],
+    u[0] * v[1] - u[1] * v[0],
+  ];
+  const sign = raw[0] * outward[0] + raw[1] * outward[1] + raw[2] * outward[2] < 0 ? -1 : 1;
+  const length = Math.hypot(...raw);
+  return raw.map((value) => sign * value / length);
+};
+
 // The source's apparent column pitch opens across the south face, turns through the short
 // south-east bevel, and then continues down the east face. These measured fractions preserve
 // that rhythm instead of replacing it with a perspective-blind evenly spaced grid.
@@ -133,7 +149,7 @@ export const trumpFeatures = {
 
 export function createTrumpInternationalTowerBuilding() {
   const kit = createBuilder("Trump International Hotel and Tower", "building-trump-tower-only");
-  const { material, batch, panel, band, box, prism, quad } = kit;
+  const { material, batch, panel, band, box, prism, triangle } = kit;
   const facade = material(0x333638);
   const glass = material(0x4a4c4d, { vertexColors: true });
   const frame = material(0x777a79);
@@ -150,21 +166,30 @@ export function createTrumpInternationalTowerBuilding() {
   // A closed four-corner loft allows the east roof to step at the source's actual vertices.
   // Its gently sloped top and base remain solids, unlike a flat decal that only works head-on.
   const loft = (target, plan, bottoms, tops) => {
+    const bottom = plan.map((at, index) => point(at, bottoms[index]));
+    const top = plan.map((at, index) => point(at, tops[index]));
+    const addFace = (corners, outward) => {
+      const first = faceNormal([corners[0], corners[1], corners[2]], outward);
+      const second = faceNormal([corners[0], corners[2], corners[3]], outward);
+      triangle(target, [corners[0], corners[1], corners[2]], [first, first, first]);
+      triangle(target, [corners[0], corners[2], corners[3]], [second, second, second]);
+    };
     for (let index = 0; index < plan.length; index += 1) {
       const next = (index + 1) % plan.length, [a, b] = [plan[index], plan[next]];
       const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      const normal = [-(b[1] - a[1]) / length, 0, (b[0] - a[0]) / length];
-      quad(target, [point(a, bottoms[index]), point(b, bottoms[next]), point(b, tops[next]), point(a, tops[index])], [normal]);
+      const outward = [-(b[1] - a[1]) / length, 0, (b[0] - a[0]) / length];
+      const corners = [bottom[index], bottom[next], top[next], top[index]];
+      addFace(corners, outward);
     }
-    quad(target, plan.map((at, index) => point(at, tops[index])), [[0, 1, 0]]);
-    quad(target, plan.map((at, index) => point(at, bottoms[index])), [[0, -1, 0]]);
+    addFace(top, [0, 1, 0]);
+    addFace(bottom, [0, -1, 0]);
   };
 
   prism(shell, shaftPlan, [0, eastShoulder]);
   prism(shell, frontCapPlan, [eastShoulder, highRoof]);
   prism(shell, bevelCapPlan, [eastShoulder, highRoof]);
   loft(shell, eastHighCapPlan, [eastShoulder, eastShoulder, eastShoulder, eastShoulder], [highRoof, 335.474065, 335.474065, highRoof]);
-  loft(shell, eastDropCapPlan, [eastShoulder, 326.775863, 326.775863, eastShoulder], [335.474065, 334.475439, 334.475439, 335.474065]);
+  loft(shell, eastDropCapPlan, [eastShoulder, eastShoulder, eastShoulder, eastShoulder], [335.474065, 334.475439, 334.475439, 335.474065]);
   loft(shell, shoulderCapPlan, [eastShoulder, eastShoulder, eastShoulder, eastShoulder], [326.775863, 325.440945, 325.440945, 326.775863]);
   prism(crownShell, crownPlan, [eastShoulder, crownTop]);
 
