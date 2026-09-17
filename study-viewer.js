@@ -330,7 +330,7 @@ export function createBuildingStudy({
     if (name === layout || (name !== "original" && !layouts?.[name])) return;
     const previousView = activeView;
     const keepPose = camera.isOrthographicCamera;
-    const pose = { position: camera.position.clone(), target: controls.target.clone(), zoom: camera.zoom };
+    const pose = { position: camera.position.clone(), target: controls.target.clone(), zoom: camera.zoom, groundShadows: base.receiveShadow };
     clearHighlight();
     setTurning(false);
     models.forEach((model) => scene.remove(model.building));
@@ -355,6 +355,7 @@ export function createBuildingStudy({
     setView(keepPose ? previousView || "top" : nextView);
     if (keepPose && camera.isOrthographicCamera) {
       camera.position.copy(pose.position); controls.target.copy(pose.target); camera.zoom = pose.zoom;
+      base.receiveShadow = pose.groundShadows;
       camera.updateProjectionMatrix(); controls.update();
       if (!previousView) markView(null);
     }
@@ -411,6 +412,7 @@ export function createBuildingStudy({
     get layout() { return layout; },
     get projection() { return camera.isOrthographicCamera ? "orthographic" : "perspective"; },
     get zoom() { return camera.zoom; },
+    get groundShadows() { return base.receiveShadow; },
     get activeView() { return activeView; },
     get selectedBuilding() { return selectedModel?.building.userData.buildingId || null; },
     get shadowBounds() {

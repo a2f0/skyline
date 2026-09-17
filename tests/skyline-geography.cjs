@@ -105,6 +105,7 @@ async function main() {
       await page.locator(`[data-layout="${layout}"]`).click();
       await settle(page);
       near(await page.evaluate(() => __buildingStudy.zoom), zoom, 1e-8, "toggle preserves zoom");
+      assert.equal(await page.evaluate(() => __buildingStudy.groundShadows), false, "plan toggles retain the uncluttered ground");
       const camera = await page.evaluate(() => __buildingStudy.cameraPosition);
       camera.forEach((value, axis) => near(value, pose[axis], 1e-5, "toggle preserves pose"));
     }
@@ -119,6 +120,13 @@ async function main() {
     await page.locator("#streets").click();
     assert.equal(await page.locator("#streets").getAttribute("aria-pressed"), "false");
     await page.locator('[data-view="heights"]').click();
+    await page.locator("#building").focus();
+    await page.keyboard.press("+");
+    assert.equal(await page.evaluate(() => __buildingStudy.activeView), null, "zoom leaves the height preset");
+    for (const layout of ["original", "geographic"]) {
+      await page.locator(`[data-layout="${layout}"]`).click();
+      assert.equal(await page.evaluate(() => __buildingStudy.groundShadows), true, "toggle preserves ground shadows in an elevated custom view");
+    }
     await settle(page);
     await page.screenshot({ path: "/tmp/skyline-geographic-heights-tested.png" });
     await page.locator('[data-layout="original"]').click();
