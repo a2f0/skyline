@@ -156,6 +156,21 @@ async function main() {
     await page.mouse.up();
     await page.keyboard.up("Shift");
     assert.notDeepEqual(await cameraPosition(page), panBefore, "perspective view can pan to a different building");
+    // Lower the orbit target below grade, then zoom until a fixed target would
+    // make the camera-floor and minimum-angle constraints incompatible.
+    for (let drag = 0; drag < 3; drag += 1) {
+      await page.mouse.move(panBox.x + panBox.width / 2, panBox.y + panBox.height * 0.85);
+      await page.keyboard.down("Shift");
+      await page.mouse.down();
+      await page.mouse.move(panBox.x + panBox.width / 2, panBox.y + panBox.height * 0.15, { steps: 8 });
+      await page.mouse.up();
+      await page.keyboard.up("Shift");
+    }
+    await page.locator("canvas").focus();
+    for (let step = 0; step < 40; step += 1) await page.keyboard.press("+");
+    const pannedClose = await cameraPosition(page);
+    assert.ok(pannedClose.every(Number.isFinite) && pannedClose[1] >= 0.999, "zooming toward a below-ground target stays above grade");
+    assert.deepEqual(errors, [], "panning and zooming cannot recursively overflow the camera-floor guard");
     await page.locator("#reset").click();
     await page.emulateMedia({ reducedMotion: "reduce" });
     assert.deepEqual(await page.evaluate(() => window.__buildingStudy.modelNames), models.map((model) => model.name));

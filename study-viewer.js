@@ -251,10 +251,16 @@ export function createBuildingStudy({
     if (minimumCameraHeight !== null && camera.position.y < minimumCameraHeight - 1e-6) {
       const offset = camera.position.clone().sub(controls.target);
       const distance = offset.length();
-      const vertical = minimumCameraHeight - controls.target.y;
+      // Panning can place the target so far below grade that no allowed polar
+      // angle reaches the floor at this radius. Raise the target only enough
+      // to make the constraint feasible before asking OrbitControls to update.
+      // Otherwise its angle clamp undoes our correction and recurses forever.
+      const vertical = Math.min(minimumCameraHeight - controls.target.y, distance * Math.cos(controls.minPolarAngle));
+      controls.target.y = minimumCameraHeight - vertical;
       const horizontal = Math.sqrt(Math.max(0, distance * distance - vertical * vertical));
-      const scale = horizontal / Math.hypot(offset.x, offset.z);
-      camera.position.set(controls.target.x + offset.x * scale, minimumCameraHeight, controls.target.z + offset.z * scale);
+      const oldHorizontal = Math.hypot(offset.x, offset.z);
+      const direction = oldHorizontal > 1e-9 ? [offset.x / oldHorizontal, offset.z / oldHorizontal] : [0, 1];
+      camera.position.set(controls.target.x + direction[0] * horizontal, minimumCameraHeight, controls.target.z + direction[1] * horizontal);
       controls.update();
     }
     updateClipping();
