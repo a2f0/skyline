@@ -11,26 +11,31 @@ service is used.
 | --- | --- |
 | `skyline.jpg`, cropped with `node scripts/measure-group.cjs building-trump-tower-only` | The aligned source image establishes the stepped silhouette, narrow dark crown, offset spire, visible south-east faces, and the lower facade hidden by One Prudential Plaza. |
 | The same script's drawing crop and per-path measurements | The group contains eight paths with layer-space bounds `3890.4, 187.5, 4217.4, 1805.5`; its roof corners, crown corners, spire tip, and upper-shaft mullions anchor the fitted features. |
-| [CTBUH / The Skyscraper Center](https://www.skyscrapercenter.com/building/wd/203) | The published architectural height is 423.2 m (1,389 ft) and the building has 98 floors. |
-| [Chicago Architecture Center](https://www.architecture.org/online-resources/buildings-of-chicago/trump-tower) | The design's tapering setbacks, riverfront site, and Skidmore, Owings & Merrill authorship provide the architectural reading used to resolve the drawing. |
+| [CTBUH / The Skyscraper Center](https://www.skyscrapercenter.com/building/wd/203) | The published architectural height is 423.2 m (1,389 ft), the building has 98 floors, and its curtain wall uses glass panels in aluminum frames. |
+| [Chicago Architecture Center](https://www.architecture.org/online-resources/buildings-of-chicago/trump-tower) | The design's rounded edges, colored glass, tapering setbacks, riverfront site, and Skidmore, Owings & Merrill authorship provide the architectural reading used to resolve the drawing. |
 
 The external material is reference only. Its imagery and text are not copied into the repository
 or published with the study.
 
 ## Model choices
 
-- A continuous closed clipped shaft reaches the low east shoulder. Closed roof-cap pieces continue
-  the higher south face and bevel, then form the source's vertical drop and sloped low roof on the
-  east face without adding broad lower setbacks.
+- A continuous closed shaft with a 2.7 m bow on its broad south face reaches the low east shoulder.
+  The curve follows the source roof's softened front contour and the aligned photograph; the
+  measured front mullions were refitted through the camera after the bow was introduced. Closed
+  roof-cap pieces continue the higher south face and bevel, then form the source's vertical drop
+  and sloped low roof on the east face without adding broad lower setbacks.
 - Glazed floor panels, horizontal bands, and proud mullions carry the measured grid across the
   south, bevel, and east faces. The source's forty-one regular shaft strokes repeat every 21.3645
   layer units; their camera fit gives a 3.482373 m model pitch and a 2.161462 m platform-relative
-  phase. The four roof-step vertices are physical geometry for raycasts and elevated views to inspect.
+  phase. Dark blue-gray panes with scattered warm and cool occupied windows echo the aligned night
+  photograph without adding a texture. The four roof-step vertices are physical geometry for
+  raycasts and elevated views to inspect.
 - A narrower, east-offset crown enclosure stays inside the shaft's east wall and rests on a hidden
   roof plinth. Twenty-three light ribs and three seams follow its south face, bevel, and east face;
-  three nested closed mast sections rise from its roof to reproduce the visible antenna joints.
-- North and west faces continue the visible massing as closed, simplified volumes. They are an
-  inference for orbit views rather than a survey of the building's concealed facades.
+  matching rear ribs and a shallow parapet finish the elevated orbit. Three nested closed mast
+  sections rise from its roof to reproduce the visible antenna joints.
+- North and west faces continue the grid with inferred bays and slim transoms. They are a consistent
+  curtain-wall treatment for orbit views rather than a survey of the building's concealed facades.
 
 ## Fit and limits
 
@@ -42,7 +47,8 @@ view, preserving the source drawing's lower-facade occlusion while keeping the c
 available for independent hover.
 
 Validation combines the five-layout landmark, column, and sampled floor-row measurements,
-first-surface raycasts to the raised mullions and floor bands, closed-solid and coplanar-overlap
-checks, and front, rear, and elevated render review. The broad lower facade is deliberately
-continuous where the drawing leaves it obscured; matching unseen floors or an exact structural
-survey is outside this visual study's scope.
+first-surface raycasts to the raised mullions, floor bands, bowed front, and rear glazing,
+closed-solid and coplanar-overlap checks, and front, rear, and elevated render review. The
+additional orbit geometry raises the scene to 75,441 triangles. The broad lower facade is
+deliberately continuous where the drawing leaves it obscured; matching unseen floors or an exact
+structural survey is outside this visual study's scope.

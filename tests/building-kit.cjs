@@ -362,14 +362,19 @@ async function main() {
         assert.ok(Math.abs(contact.point.x - 22.75) < 0.02,
           `Trump east-drop cap should meet its east wall at z=${z}`);
       }
-      // The shell has no curved runs, so each stored normal must align with its geometric face.
-      // This catches a roof that looks sloped but still shades as a horizontal surface.
+      const frontMiddle = hit([0, 200, 35], [0, 0, -1], shell);
+      const frontEdge = hit([-17, 200, 35], [0, 0, -1], shell);
+      assert.ok(frontMiddle && frontEdge && frontMiddle.point.z - frontEdge.point.z > 1.5,
+        "Trump's glazed south face should form a visible bow, not a flat wall");
+      // The curved south wall shades smoothly across its 2.4-degree facets; the sloped roof
+      // faces still need their actual geometric normals, not flat horizontal placeholders.
       const shellTriangles = trianglesOf({
         positions: shell[0].geometry.getAttribute("position").array,
         normals: shell[0].geometry.getAttribute("normal").array,
       });
       for (const { index, normal, normals } of shellTriangles) {
-        for (const vertexNormal of normals) assert.ok(dot(normal, vertexNormal) > 0.9999,
+        const minimumAlignment = Math.abs(normal[1]) < 0.01 ? 0.9997 : 0.9999;
+        for (const vertexNormal of normals) assert.ok(dot(normal, vertexNormal) > minimumAlignment,
           `Trump shell triangle ${index} should carry a geometric surface normal`);
       }
       // These row samples sit in an open south bay, so each ray must meet the raised horizontal
@@ -380,6 +385,9 @@ async function main() {
         assert.equal(contact?.object.name, "raised mullions and floor bands", "each sampled Trump floor row should be a raised band");
         assert.ok(Math.abs(contact.point.z - point[2]) < 0.02, "each sampled Trump floor band should meet its measured south face");
       }
+      const rearWindow = hit([6.5, 200, -50], [0, 0, 1]);
+      assert.equal(rearWindow?.object.name, "glazed floor panels",
+        "the north-facing orbit should see actual glazed floors instead of the bare shell");
       // All four corners of the bottom mast section must meet the crown roof. This catches a
       // visually plausible antenna whose plan drifts outside or beside its supporting crown.
       const spirePositions = surfaces.find((mesh) => mesh.name === "segmented spire").geometry.getAttribute("position");

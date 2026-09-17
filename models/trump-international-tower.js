@@ -1,5 +1,5 @@
 import * as THREE from "../vendor/three-r186.js";
-import { along, createBuilder, line, point, station } from "./building-kit.js";
+import { along, bulge, createBuilder, line, point, station } from "./building-kit.js";
 
 // Trump International Hotel and Tower: the SVG's continuous glazed shaft, high south roof,
 // east-face step, ribbed crown, and three-section spire are fitted through the skyline camera.
@@ -17,6 +17,7 @@ const crownTop = 345;
 const floorHeight = 3.482373;
 const floorOrigin = 2.161462;
 const mullionDepth = 0.2;
+const frontBow = 2.7;
 
 const planOf = (points) => points.map((at, index) => line(at, points[(index + 1) % points.length]));
 
@@ -49,13 +50,15 @@ const innerShoulderEnd = [18.75, -15.661558];
 
 // The lower shaft remains broad and continuous. Its northward plinth is hidden from the skyline
 // view, but it keeps the deeper crown physically seated rather than leaving it over open air.
-const shaftPlan = planOf([
+const shaftCorners = [
   southWest, southEast, eastSouth, eastShoulderEnd, [18.75, -19.662], [15.9, -21],
   [15.9, -23.2], [13.5, -26], [0.5, -26], [-18.75, -19.662], [-22.75, -15.662], [-22.75, 14],
-]);
+];
+const shaftPlan = [bulge(southWest, southEast, frontBow), ...planOf(shaftCorners).slice(1)];
 // Separate closed cap pieces preserve the source's high south face and bevel, then follow the
 // two distinct heights on the east face without inventing lower setbacks across the facade.
-const frontCapPlan = planOf([southWest, southEast, innerFrontEast, innerFrontWest]);
+const frontCapCorners = [southWest, southEast, innerFrontEast, innerFrontWest];
+const frontCapPlan = [bulge(southWest, southEast, frontBow), ...planOf(frontCapCorners).slice(1)];
 const bevelCapPlan = planOf([southEast, eastSouth, innerBevelEast, innerFrontEast]);
 const eastHighCapPlan = [eastSouth, eastRoofStart, innerRoofStart, innerBevelEast];
 const eastDropCapPlan = [eastRoofStart, eastRoofStep, innerRoofStep, innerRoofStart];
@@ -63,7 +66,8 @@ const shoulderCapPlan = [eastRoofStep, eastShoulderEnd, innerShoulderEnd, innerR
 
 // The narrow crown is drawn farther north than the shaft's visible face. Its east side remains
 // inside the shaft's east wall, while the hidden plinth above supplies its full base support.
-const crownPlan = clippedPlan(14.023614, 33.315081, 2.8, [8.571132, -8.396334]);
+const crownFlatPlan = clippedPlan(14.023614, 33.315081, 2.8, [8.571132, -8.396334]);
+const crownPlan = [bulge(crownFlatPlan[0].at(0), crownFlatPlan[0].at(crownFlatPlan[0].length), 0.8), ...crownFlatPlan.slice(1)];
 
 const front = (plan) => plan[0];
 const east = (plan) => plan[2];
@@ -89,7 +93,7 @@ const faceNormal = (corners, outward) => {
 // The source's apparent column pitch opens across the south face, turns through the short
 // south-east bevel, and then continues down the east face. These measured fractions preserve
 // that rhythm instead of replacing it with a perspective-blind evenly spaced grid.
-const frontFractions = [0.06532, 0.098685, 0.143357, 0.188, 0.232636, 0.277253, 0.321845, 0.373778, 0.434365, 0.496291, 0.563046, 0.631448, 0.698138, 0.768704, 0.845007, 0.928664];
+const frontFractions = [0.085632, 0.126903, 0.180352, 0.231934, 0.281897, 0.330404, 0.377609, 0.431147, 0.491866, 0.552221, 0.615588, 0.678912, 0.739271, 0.801833, 0.86815, 0.93948];
 const cornerFractions = [0.1, 0.586, 1];
 const eastFractions = [0.241763, 0.338342, 0.42781, 0.51745, 0.601796, 0.662913, 0.733346, 0.807545, 0.881737, 0.935429];
 const capEastRun = line(eastSouth, eastRoofStep);
@@ -117,7 +121,7 @@ const capStations = [
 // Twenty-three visible crown ribs are measured from paths 484, 486, and 488. They gather at the
 // east end and cross the south face, bevel, and east face instead of appearing as a sparse stripe.
 const crownRibStations = [
-  ...stationsAt(front(crownPlan), [0.120361, 0.228619, 0.331595, 0.455533, 0.580207, 0.748621, 0.949412]),
+  ...stationsAt(front(crownPlan), [0.182851, 0.308851, 0.41791, 0.539387, 0.653744, 0.799301, 0.963584]),
   ...stationsAt(crownPlan[1], [0.265268, 0.675484, 1]),
   ...stationsAt(east(crownPlan), [0.102843, 0.200092, 0.296008, 0.394589, 0.497154, 0.592414, 0.683952, 0.760429, 0.823325, 0.864284, 0.896421, 0.928604, 0.963649]),
 ];
@@ -156,7 +160,7 @@ export function createTrumpInternationalTowerBuilding() {
   const kit = createBuilder("Trump International Hotel and Tower", "building-trump-tower-only");
   const { material, batch, panel, band, box, prism, triangle } = kit;
   const facade = material(0x333638);
-  const glass = material(0x4a4c4d, { vertexColors: true });
+  const glass = material(0xffffff, { vertexColors: true });
   const frame = material(0x777a79);
   const dark = material(0x202325);
   const crownFrame = material(0x7c7c7c);
@@ -198,10 +202,11 @@ export function createTrumpInternationalTowerBuilding() {
   loft(shell, shoulderCapPlan, [eastShoulder, eastShoulder, eastShoulder, eastShoulder], [326.775863, 325.440945, 325.440945, 326.775863]);
   prism(crownShell, crownPlan, [eastShoulder, crownTop]);
 
-  const tones = [0x45494a, 0x4a4d4d, 0x505253, 0x3f4344].map((hex) => new THREE.Color(hex));
-  const lit = new THREE.Color(0x8a8b82);
-  const shade = new THREE.Color(0x303335);
-  const addFacade = ({ runs, paneFractions, mullions, y0, y1 }) => {
+  const tones = [0x30353b, 0x353a3f, 0x3a3e42, 0x292e33].map((hex) => new THREE.Color(hex));
+  const warm = new THREE.Color(0xc2aa82);
+  const cool = new THREE.Color(0x89959e);
+  const shade = new THREE.Color(0x22272c);
+  const addFacade = ({ runs, paneFractions, mullions, y0, y1, seed = 0, bands = true }) => {
     for (const [runIndex, run] of runs.entries()) {
       const stations = paneFractions[runIndex].map((fraction) => run.length * fraction);
       for (let bay = 0; bay < stations.length - 1; bay += 1) {
@@ -210,23 +215,49 @@ export function createTrumpInternationalTowerBuilding() {
         for (let row = Math.floor((y0 - floorOrigin) / floorHeight); floorAt(row) < y1; row += 1) {
           const y = floorAt(row), from = Math.max(y + 0.26, y0 + 0.16), to = Math.min(y + floorHeight - 0.42, y1 - 0.16);
           if (to - from < 0.25) continue;
-          const hash = (row * 37 + bay * 17 + runIndex * 23) % 29;
+          const mixed = (Math.imul(row + 17, 0x9e3779b1) ^ Math.imul(bay + 23, 0x85ebca77)
+            ^ Math.imul(runIndex + seed + 3, 0xc2b2ae3d)) >>> 0;
+          const hash = mixed % 97;
           panel(panes, run, s0, s1, from, to, 0.035,
-            hash === 0 ? lit : hash < 3 ? shade : tones[hash % tones.length]);
+            hash < 2 ? warm : hash < 4 ? cool : hash < 9 ? shade : tones[hash % tones.length]);
         }
       }
     }
-    for (let row = Math.ceil((y0 - floorOrigin) / floorHeight); floorAt(row) + 0.12 < y1; row += 1) {
-      const y = floorAt(row);
-      band(ribs, runs, y - 0.12, y + 0.07, 0.095, { omit: ["back"] });
+    if (bands) {
+      for (let row = Math.ceil((y0 - floorOrigin) / floorHeight); floorAt(row) + 0.12 < y1; row += 1) {
+        const y = floorAt(row);
+        band(ribs, runs, y - 0.12, y + 0.07, 0.095, { omit: ["back"] });
+      }
     }
     for (const where of mullions) box(ribs, where.at, where.normal, 0.11, 0, mullionDepth, y0 + 0.14, y1 - 0.14);
   };
 
   const shaftRuns = visibleRuns(shaftPlan);
+  const hiddenRuns = shaftPlan.slice(3);
   const shaftPanes = [[0, ...frontFractions, 1], [0, ...cornerFractions], [0, ...eastFractions, 1]];
   const shaftMullions = [...shaftFrontStations, ...shaftCornerStations, ...shaftEastStations];
   addFacade({ runs: shaftRuns, paneFractions: shaftPanes, mullions: shaftMullions, y0: 0, y1: eastShoulder });
+
+  // Continue the curtain-wall rhythm around the faceted north and west closures. These
+  // sides are inferred from the visible grid, but must read as occupied architecture in
+  // rear and elevated orbit views rather than as an unbroken dark extrusion.
+  hiddenRuns.forEach((run, index) => {
+    const bays = Math.max(1, Math.round(run.length / 3.2));
+    const fractions = Array.from({ length: bays - 1 }, (_, bay) => (bay + 1) / bays);
+    addFacade({
+      runs: [run], paneFractions: [[0, ...fractions, 1]],
+      mullions: stationsAt(run, fractions), y0: 0, y1: eastShoulder, seed: index + 7, bands: false,
+    });
+  });
+  // On the inferred rear faces, slim metal transoms keep the window rhythm without
+  // duplicating thousands of unseen closed ledges. Short corner joints avoid a false
+  // mitre across the recessed north-east face.
+  for (let row = Math.ceil(-floorOrigin / floorHeight); floorAt(row) + 0.12 < eastShoulder; row += 1) {
+    const y = floorAt(row);
+    for (const run of hiddenRuns) {
+      if (run.length > 0.4) panel(ribs, run, 0.15, run.length - 0.15, y - 0.12, y + 0.07, 0.095);
+    }
+  }
 
   // The high grid follows the same measured front, bevel, and east-face column rhythm through
   // the roof cap. It therefore continues the source lines instead of jogging at the shoulder.
@@ -244,6 +275,15 @@ export function createTrumpInternationalTowerBuilding() {
   // three visible crown faces and the seams preserve its shallow mechanical-floor rhythm.
   for (const where of crownRibStations) box(crown, where.at, where.normal, 0.12, 0, 0.22, eastShoulder + 0.12, crownTop - 0.12);
   for (const y of [eastShoulder + 4.5, eastShoulder + 9.2, eastShoulder + 14.1]) band(crown, visibleRuns(crownPlan), y - 0.11, y + 0.08, 0.11, { omit: ["back"] });
+  for (const run of crownPlan.slice(3)) {
+    const count = Math.max(1, Math.round(run.length / 2));
+    const fractions = Array.from({ length: count - 1 }, (_, rib) => (rib + 1) / count);
+    for (const where of stationsAt(run, fractions)) box(crown, where.at, where.normal, 0.06, 0, 0.22, eastShoulder + 0.12, crownTop - 0.12);
+    for (const y of [eastShoulder + 4.5, eastShoulder + 9.2, eastShoulder + 14.1]) {
+      if (run.length > 0.4) panel(crown, run, 0.15, run.length - 0.15, y - 0.11, y + 0.08, 0.11);
+    }
+  }
+  band(crown, crownPlan, crownTop - 0.45, crownTop, 0.18, { closed: true, omit: ["back"] });
 
   // Three nested boxes reproduce the source's segmented white antenna. The mast's plan is
   // inside the crown, and the geometry test casts every foot corner onto its roof.
