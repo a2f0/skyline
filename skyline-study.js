@@ -6,6 +6,7 @@ import { createMichiganPlazaSouthBuilding } from "./models/michigan-plaza-south.
 import { createOnePrudentialPlazaBuilding } from "./models/one-prudential-plaza.js";
 import { createTrumpInternationalTowerBuilding } from "./models/trump-international-tower.js";
 import { createTwoPrudentialPlazaBuilding } from "./models/two-prudential-plaza.js";
+import { createAonCenterBuilding } from "./models/aon-center.js";
 
 // The SVG's Crain facade widths suggest a ~42° azimuth. Kemper's near roof
 // corner rises above its neighbors, placing the eye below the roof. A long
@@ -19,6 +20,7 @@ const heritage = createHeritageAtMillenniumParkBuilding();
 const prudential = createOnePrudentialPlazaBuilding();
 const trump = createTrumpInternationalTowerBuilding();
 const twoPrudential = createTwoPrudentialPlazaBuilding();
+const aon = createAonCenterBuilding();
 function place(model, across, towardCamera) {
   // Center the wider group while retaining the drawing's relative spacing.
   across -= 76.5;
@@ -54,9 +56,10 @@ trump.building.rotation.y = 1.8 * Math.PI / 180;
 // fitted through this camera to the drawing, with depth fixed by that occlusion.
 place(twoPrudential, 270.727, -45);
 twoPrudential.building.rotation.y = -1.758 * Math.PI / 180;
+place(aon, 370, 40);
 
 createBuildingStudy({
-  models: [heritage, kemper, crain, michigan, trump, prudential, twoPrudential],
+  models: [heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon],
   defaultView: "skyline",
   views: {
     skyline: { azimuth, polar: Math.PI / 2 - elevation, label: "skyline view" },
@@ -68,15 +71,15 @@ createBuildingStudy({
   // Keep fine facade layers distinct at maximum mobile zoom-out as well.
   near: 600,
   far: 10000,
-  // The reference frame grew around the same centre to clear Trump's spire. Scaling the
-  // platform with the fit preserves its screen footprint; its farthest corner is inside
-  // this margin at every allowed camera distance.
-  clippingMargin: 460,
+  // The reference frame grew around the same centre to include Aon. Its platform
+  // footprint and farthest corner remain inside the clipping margin at every zoom.
+  clippingMargin: 560,
   target: [0, 172.5, 0],
   minimumCameraHeight: 1,
-  fit: { height: 477.297, width: 598.132 },
-  platform: { width: 543.756, depth: 483.339, color: 0x222222 },
-  // Cover the supertall, rearward tower and the enlarged platform in the key light's view.
-  // The solo study retains the shared viewer's smaller shadow camera.
-  shadowCamera: { left: -390, right: 390, top: 480, bottom: -350, near: 1, far: 1050 },
+  fit: { height: 572.658, width: 717.635 },
+  platform: { width: 750, depth: 580, color: 0x222222 },
+  lightPosition: [-330, 560, 510],
+  // Keep the key light's direction while moving it back far enough that Aon's
+  // upper corner does not cross its near plane. The solo study keeps its preset.
+  shadowCamera: { left: -540, right: 560, top: 550, bottom: -400, near: 1, far: 1300 },
 });
