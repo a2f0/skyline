@@ -121,7 +121,7 @@ async function main() {
     const geographicBounds = await page.evaluate(() => __buildingStudy.modelBounds);
     for (const record of geographicBuildings) near(geographicBounds.find((b) => b.id === record.id).max[1], record.tipHeight, 0.001, "published height in rendered scene");
     await page.locator("#building").focus();
-    await page.keyboard.press("+");
+    for (let i = 0; i < 40; i += 1) await page.keyboard.press("+");
     const planBounds = await page.locator("#building").boundingBox();
     const panStart = await page.evaluate(() => __buildingStudy.cameraPosition);
     await page.keyboard.down("Shift");
@@ -133,7 +133,7 @@ async function main() {
     await settle(page);
     assert.notDeepEqual(await page.evaluate(() => __buildingStudy.cameraPosition), panStart, "plan can pan to inspect streets at larger scale");
     const zoom = await page.evaluate(() => __buildingStudy.zoom);
-    assert.ok(zoom > 1, "keyboard zoom changes orthographic scale");
+    near(zoom, 24, 1e-8, "orthographic zoom reaches the new close-up limit");
     const pose = await page.evaluate(() => __buildingStudy.cameraPosition);
     for (const layout of ["original", "geographic", "original", "geographic"]) {
       await page.locator(`[data-layout="${layout}"]`).click();
