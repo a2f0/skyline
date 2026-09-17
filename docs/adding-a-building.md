@@ -76,34 +76,36 @@ pitches. Fit the massing first; the facade follows from it.
 
 ## 2. Reframe, if the building falls outside the viewBox
 
-This is not a local edit. The reference viewBox aspect equals the `fit` aspect to six decimals, so
-moving one forces `fit`, `target`, `platform` and `clippingMargin` together, and every existing
-landmark must be re-measured afterwards.
+This is not a local edit. Keep the reference viewBox and `fit` aspects aligned, then revisit the
+camera target, platform, clipping margin, and light coverage. Every existing landmark must be
+re-measured afterwards; the target can stay put if the expanded frame keeps the same center.
 
 **Reframing silently loosens every tolerance.** Tolerances are normalized canvas units, so widening
 the viewBox by a factor divides every measured error by that factor. Adding One Prudential widened
 it from 2222.3 to 3055.662, a ratio of exactly 1.375, which made every pre-existing bound 37.5% more
 permissive while the numbers in the file looked untouched. **Divide the existing tolerances by the
 same factor** and re-verify. Trump International Hotel and Tower then widened the frame by another
-1.20834767; current inherited values include both reductions. A further reframe means dividing
-again.
+1.20834767; Aon Center widened it by another 1.19979319. Inherited normalized
+limits were tightened after each expansion, with small allowances only where the
+new perspective fit measurably moved an existing feature.
 
 Measured that way, reframing is a trade rather than a free win. Adding One Prudential improved the
 hand-placed trio — Crain's near valley went from 0.02012 to 0.01355 — while 56 of 115 landmark and
 layout pairs moved *further* from the drawing. Check both directions before claiming an improvement.
 
 **`clippingMargin` is set by the farthest vertex from the orbit target, which is a platform corner,
-not a tower.** The seven-building study scales the platform to 543.756 × 483.339 and uses a
-460-unit margin; calculate the farthest corner again after every reframe instead of carrying an
+not a tower.** The eight-building study uses a 750 × 580 platform and a 560-unit
+margin; calculate the farthest corner again after every reframe instead of carrying an
 earlier margin forward. At the minimum fitted distance, check the near plane separately too.
 
 **Reframe the light as well as the viewer.** `shadowCamera` controls the key light's shadow
 frustum separately from the viewing camera. Two Prudential's upper facade initially fell outside
-it, causing shadows to stop partway up the tower. The skyline suite checks every building and
-platform vertex in the actual shadow camera; the solo study retains its smaller bounds.
+it, causing shadows to stop partway up the tower. Aon's top also crossed the light's near plane;
+the skyline scene moves `lightPosition` back along the same direction. The skyline suite checks
+every building and platform vertex in the actual shadow camera; the solo study retains its preset.
 
 `models/skyline-reference.svg` is generated and byte-compared. Edit `reference.viewBox`, `title`,
-`description` or `groups` and then run `node scripts/reference-svg.cjs`, or `npm run check` fails
+`description`, `groups`, or source definition ids in `defs` and then run `node scripts/reference-svg.cjs`, or `npm run check` fails
 early. Note that `reference-svg.cjs` matches a group by its `id` attribute **only** — the same
 string that works for `measure-group.cjs` may not work here.
 
@@ -284,9 +286,9 @@ by hand:
 
 The side-view occlusion check probes Crain, but its owner depends on both lateral spacing and
 depth. The side view turns the skyline view's lateral spacing into depth and its depth into lateral
-spacing. Two Prudential sits farther right in the drawing, yet its rearward placement leaves this
-probe owned by One Prudential. Establish the owner by raycast before changing the expectation;
-being the rightmost tower alone does not establish occlusion.
+spacing. Adding Aon moved the first raycast hit at this probe from One Prudential to Aon;
+being the rightmost tower alone does not establish occlusion. Establish the owner by raycast
+before changing the expectation.
 
 **Never weaken an assertion to make a build pass.** If a pre-existing one starts failing, prove
 whether the scene legitimately changed or your build is wrong.

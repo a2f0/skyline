@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const { pathToFileURL } = require("node:url");
 const path = require("node:path");
 const { chromium } = require("playwright");
-const { heritage, kemper, crain, michigan, trump, prudential, twoPrudential, reference, models, landmarks, landmarkTolerance, fitted } = require("./skyline-landmarks.cjs");
+const { heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, fitted } = require("./skyline-landmarks.cjs");
 const { viewports, checkSpec, measureStudy, above } = require("./study-fidelity.cjs");
 
 const origin = process.env.SKYLINE_TEST_URL || "http://127.0.0.1:8000";
@@ -18,9 +18,11 @@ const prudentialModule = models.find((model) => model.id === prudential).module;
 const prudentialSpec = fitted.find((spec) => spec.id === prudential);
 const twoPrudentialModule = models.find((model) => model.id === twoPrudential).module;
 const twoPrudentialSpec = fitted.find((spec) => spec.id === twoPrudential);
+const aonModule = models.find((model) => model.id === aon).module;
+const aonSpec = fitted.find((spec) => spec.id === aon);
 // The layouts come from the shared list, so scripts/fidelity-report.cjs measures the same pages.
 const [desktop, laptop, tablet, tall, phone] = viewports;
-const silhouetteSlack = 0.001 / 1.20834767;
+const silhouetteSlack = 0.001 / 1.20834767 / 1.19979319;
 
 async function checkReferenceMatch(page) {
   // Landmarks, columns, and sight lines come from tests/skyline-landmarks.cjs through the
@@ -45,6 +47,18 @@ async function checkReferenceMatch(page) {
   assert.ok(above(deviations, "twoPyramid", "twoSouthChevron", "twoEastChevron"), "Two Prudential's pyramid should rise above the facade chevrons");
   assert.ok(above(deviations, "twoSouthChevron", "twoEastChevron", "twoMiddleChevron"), "Two Prudential's south chevron should rise above the east and middle chevrons, as drawn");
   assert.ok(above(deviations, "twoMiddleChevron", "twoLowerChevron"), "Two Prudential's projecting chevrons should descend toward the podium");
+  assert.ok(above(deviations, "aonRoofNear", "aonRoofWest", "aonRoofEast"), "Aon's near roof corner should rise above both ends in the source view");
+  assert.ok(above(deviations, "aonRoofNear", "trumpSpireTip"), "Aon's drawn roof should rise above Trump's spire");
+  // The three full-height strips between Aon's near corner and first slim east
+  // pier must occupy the source's measured width, not become a window bay.
+  const aonStripEdges = buildings.find((building) => building.id === aon).projected.aonCornerStripEdges;
+  const aonLayerUnit = (deviations.aonRoofEast.expected[0] - deviations.aonRoofNear.expected[0]) / (5401.877 - 5148.845);
+  [21.142, 24.925, 11.349].forEach((width, index) => {
+    const actual = aonStripEdges[2 * index + 1][0] - aonStripEdges[2 * index][0];
+    assert.ok(Math.abs(actual - width * aonLayerUnit) < 0.00035, `Aon corner strip ${index + 1} should keep its measured stone width: ${actual}`);
+  });
+  const aonStoneSpan = aonStripEdges.at(-1)[0] - aonStripEdges[0][0];
+  assert.ok(Math.abs(aonStoneSpan - 59.867 * aonLayerUnit) < 0.0005, `Aon's corner should stay stone across its full drawn span: ${aonStoneSpan}`);
   const cap = { apex: projected.capApex, ends: [projected.capSouthEnd, projected.capNorthEnd] };
   assert.ok(cap.ends.every((end) => cap.apex[1] < end[1]), `Heritage's crown cap should crest over the joint, above both of its ends: ${JSON.stringify(cap)}`);
   for (const building of buildings) {
@@ -127,7 +141,7 @@ async function main() {
     assert.equal(await page.evaluate(() => window.__buildingStudy.activeView), "skyline");
     // A budget for the whole scene; raise it deliberately when a detailed building lands.
     const triangles = await page.evaluate(() => window.__buildingStudy.triangleCount);
-    assert.ok(triangles > 74000 && triangles < 77000, `the seven-building scene should stay within 74,000-77,000 triangles: ${triangles}`);
+    assert.ok(triangles > 85000 && triangles < 87000, `the eight-building scene should stay within 85,000-87,000 triangles: ${triangles}`);
     const shadowBounds = await page.evaluate(() => window.__buildingStudy.shadowBounds);
     assert.ok(shadowBounds.min.every((v) => v > -1) && shadowBounds.max.every((v) => v < 1), `all buildings and the platform should stay within the light's shadow camera: ${JSON.stringify(shadowBounds)}`);
     await checkReferenceMatch(page);
@@ -152,10 +166,11 @@ async function main() {
     const trumpFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [trumpModule, trumpSpec.features]);
     const prudentialFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [prudentialModule, prudentialSpec.features]);
     const twoPrudentialFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [twoPrudentialModule, twoPrudentialSpec.features]);
-    const points = [await screenPoint(page, heritage, heritageFeatures.bowFacade), await screenPoint(page, kemper, [-5, 75, 26.8]), await screenPoint(page, crain, [0, 65, 27.1]), await screenPoint(page, michigan, [0, 120, 23.4]), await screenPoint(page, trump, trumpFeatures.trumpFacadeProbe), await screenPoint(page, prudential, prudentialFeatures.southFacade), await screenPoint(page, twoPrudential, twoPrudentialFeatures.twoFacade)];
+    const aonFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [aonModule, aonSpec.features]);
+    const points = [await screenPoint(page, heritage, heritageFeatures.bowFacade), await screenPoint(page, kemper, [-5, 75, 26.8]), await screenPoint(page, crain, [0, 65, 27.1]), await screenPoint(page, michigan, [0, 120, 23.4]), await screenPoint(page, trump, trumpFeatures.trumpFacadeProbe), await screenPoint(page, prudential, prudentialFeatures.southFacade), await screenPoint(page, twoPrudential, twoPrudentialFeatures.twoFacade), await screenPoint(page, aon, aonFeatures.aonFrontFacade)];
     const before = [];
     for (const point of points) before.push(await patch(page, point));
-    for (const [index, id, label] of [[0, heritage, "The Heritage at Millennium Park"], [1, kemper, "Kemper Building"], [2, crain, "Crain Communications Building"], [3, michigan, "Michigan Plaza South"], [4, trump, "Trump International Hotel and Tower"], [5, prudential, "One Prudential Plaza"], [6, twoPrudential, "Two Prudential Plaza"]]) {
+    for (const [index, id, label] of [[0, heritage, "The Heritage at Millennium Park"], [1, kemper, "Kemper Building"], [2, crain, "Crain Communications Building"], [3, michigan, "Michigan Plaza South"], [4, trump, "Trump International Hotel and Tower"], [5, prudential, "One Prudential Plaza"], [6, twoPrudential, "Two Prudential Plaza"], [7, aon, "Aon Center"]]) {
       await page.mouse.move(points[index].x, points[index].y);
       await settle(page);
       assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), id);
@@ -198,10 +213,9 @@ async function main() {
     const hiddenCrain = await screenPoint(page, crain, [0, 70, 0]);
     await page.mouse.move(hiddenCrain.x, hiddenCrain.y);
     await settle(page);
-    // Raycasting confirms One Prudential still covers this point in side view. Two
-    // Prudential is farther right in the skyline but its rearward placement separates
-    // it sideways in this view; lateral ordering alone cannot determine the owner.
-    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), prudential, "One Prudential should own the hover where it occludes Crain in side view");
+    // Aon's new foreground depth puts its broad west face over this Crain point
+    // from the side. The owner is the raycast result, not skyline x ordering.
+    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), aon, "Aon should own the hover where it occludes Crain in side view");
     await page.locator("#reset").click();
     assert.deepEqual(await cameraPosition(page), initial);
     await page.locator("canvas").focus();
@@ -279,7 +293,7 @@ async function main() {
     await fallback.waitForFunction(() => document.querySelector("#loading").textContent.includes("WebGL 2"));
     assert.equal(await fallback.locator("#turntable").isDisabled(), true);
     assert.deepEqual(errors, []);
-    console.log("PASS: seven 3D buildings, SVG landmarks with Trump and both Prudential towers' geometry and columns, bow curvature and chevrons, independent illumination and occlusion, view/reset/zoom, idle rendering, reduced motion, mobile touch, local assets, navigation, and fallbacks.");
+    console.log("PASS: eight 3D buildings, SVG landmarks with Aon, Trump, and both Prudential towers' geometry and columns, bow curvature and chevrons, independent illumination and occlusion, view/reset/zoom, idle rendering, reduced motion, mobile touch, local assets, navigation, and fallbacks.");
   } finally { await browser.close(); }
 }
 main().catch((error) => { console.error(error); process.exitCode = 1; });

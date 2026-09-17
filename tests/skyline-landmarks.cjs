@@ -6,6 +6,7 @@ const crain = "building-crain-communications", michigan = "building-michigan-pla
 const trump = "building-trump-tower-only";
 const prudential = "building-one-prudential-plaza", prudentialPodium = "building-prudential-plaza-podium";
 const twoPrudential = "building-two-prudential-plaza";
+const aon = "layer3";
 
 // The excerpt the study shows beside the scene; scripts/reference-svg.cjs regenerates it.
 const reference = {
@@ -13,10 +14,12 @@ const reference = {
   source: "skyline-animated.svg",
   // The centered expansion clears Trump's spire while retaining the prior frame centre.
   // Its aspect stays aligned with skyline-study.js's fit dimensions.
-  viewBox: "1443.087 139.5 3692.303 2946.383",
-  title: "The Heritage at Millennium Park, Kemper, Crain, Michigan Plaza South, Trump International Hotel and Tower, and One and Two Prudential Plaza: original skyline geometry",
+  viewBox: "1074.238 -154.834 4430 3535.05",
+  title: "The Heritage at Millennium Park, Kemper, Crain, Michigan Plaza South, Trump International Hotel and Tower, One and Two Prudential Plaza, and Aon Center: original skyline geometry",
   description: "Unmodified tower groups from skyline-animated.svg, preserving their positions, transforms, and draw order. Unidentified foreground buildings are omitted.",
-  groups: [heritage, kemper, michigan, crain, trump, prudential, twoPrudential, prudentialPodium],
+  // Aon's in-group tonal overlays refer to these source definitions.
+  defs: ["facade-depth", "facade-height", "clip-aon-center"],
+  groups: [heritage, kemper, michigan, crain, trump, prudential, twoPrudential, prudentialPodium, aon],
 };
 
 // Every model in the scene, in the study's order.
@@ -28,6 +31,7 @@ const models = [
   { id: trump, name: "Trump International Hotel and Tower", module: "./models/trump-international-tower.js", factory: "createTrumpInternationalTowerBuilding" },
   { id: prudential, name: "One Prudential Plaza", module: "./models/one-prudential-plaza.js", factory: "createOnePrudentialPlazaBuilding" },
   { id: twoPrudential, name: "Two Prudential Plaza", module: "./models/two-prudential-plaza.js", factory: "createTwoPrudentialPlazaBuilding" },
+  { id: aon, name: "Aon Center", module: "./models/aon-center.js", factory: "createAonCenterBuilding" },
 ];
 
 // Corresponding roof features measured in the original SVG, not derived from the
@@ -45,10 +49,9 @@ const landmarks = [
   ["Michigan near roof", michigan, [23.35, 180, 23.35], [3466, 1572]],
   ["Michigan right roof", michigan, [23.35, 180, -23.35], [3662, 1589]],
 ];
-// Widening the viewBox for the new tower divides every normalized error by 1.20834767, so
-// these bounds are divided to match: they assert the same fidelity against the drawing as
-// they did in the prior frame, not 20.8% less.
-const landmarkTolerance = 0.01804;
+// The Aon reframe is 1.19979x wider. Scale inherited limits to retain their
+// layer-space meaning; fitted limits below allow only measured layout drift.
+const landmarkTolerance = 0.0151;
 
 // Fitted buildings export their features. Each landmark pairs a feature with a vertex of
 // the drawn group, and must also lie on an edge of the built model, so moving the
@@ -102,10 +105,11 @@ const fitted = [
     // hit 0.1-1 m toward the camera. A missing one leaves the facade at 0 or panes behind it.
     sightGap: [0.1, 1],
     // Heritage was fitted numerically, so it holds a tighter bound than the hand-placed trio.
-    // Both are the four-building frame's 0.008 and 0.006 divided by the 1.375 and then the
-    // 1.20834767 that the two later viewBox expansions widened, preserving drawing distance.
-    tolerance: 0.0048,
-    columnTolerance: 0.00364,
+    // Both descend from the four-building frame's 0.008 and 0.006 limits after
+    // successive 1.375x, 1.20835x, and 1.19979x viewBox expansions. The landmark
+    // limit includes the measured perspective shift at the laptop layout.
+    tolerance: 0.00435,
+    columnTolerance: 0.00305,
     // The left silhouette is the stub's drawn edge.
     silhouette: 2062.84,
   },
@@ -141,13 +145,13 @@ const fitted = [
     // eighth and ninth mullions. They span the One Prudential occlusion edge to the upper shaft, so a
     // wrong pitch or phase cannot hide behind the foreground building.
     rows: {
-      trumpFloorBands: { drawn: [1723.07, 1573.522, 1423.974, 1274.426, 1124.877, 975.329, 868.509], tolerance: 0.0009 },
+      trumpFloorBands: { drawn: [1723.07, 1573.522, 1423.974, 1274.426, 1124.877, 975.329, 868.509], tolerance: 0.00083 },
     },
     sightGap: [0.05, 1],
     // The compact crown's hand-drawn sloping edge is the limiting landmark; all five
-    // layouts remain within this measured 0.0032 canvas-unit bound.
-    tolerance: 0.0032,
-    columnTolerance: 0.0021,
+    // layouts remain within this measured 0.0027 canvas-unit bound.
+    tolerance: 0.0027,
+    columnTolerance: 0.0018,
   },
   {
     id: prudential,
@@ -178,8 +182,8 @@ const fitted = [
       // the tower's own window rows slope -0.0333. Its ribs therefore land about three
       // times looser than the tower's piers, worst at the ends and at the narrowest
       // viewport, so they carry their own bound rather than relaxing the tower's.
-      southRibs: { tolerance: 0.00745, batch: "piers, ribs, and louvers", drawn: [3990.9, 4007.05, 4023.21, 4039.37, 4055.52, 4071.68, 4087.84, 4103.99, 4120.15, 4136.31, 4152.46, 4168.62, 4184.78, 4200.93, 4217.09, 4233.25] },
-      eastRibs: { tolerance: 0.00745, batch: "piers, ribs, and louvers", drawn: [4252.78, 4263.33, 4273.88, 4284.43, 4294.98, 4305.52, 4316.07, 4326.62, 4337.17, 4347.72, 4358.27, 4368.82, 4379.36, 4389.91, 4400.46, 4411.01, 4421.56, 4432.11, 4442.66, 4453.2, 4463.75, 4474.3, 4484.85, 4495.4] },
+      southRibs: { tolerance: 0.0063, batch: "piers, ribs, and louvers", drawn: [3990.9, 4007.05, 4023.21, 4039.37, 4055.52, 4071.68, 4087.84, 4103.99, 4120.15, 4136.31, 4152.46, 4168.62, 4184.78, 4200.93, 4217.09, 4233.25] },
+      eastRibs: { tolerance: 0.0063, batch: "piers, ribs, and louvers", drawn: [4252.78, 4263.33, 4273.88, 4284.43, 4294.98, 4305.52, 4316.07, 4326.62, 4337.17, 4347.72, 4358.27, 4368.82, 4379.36, 4389.91, 4400.46, 4411.01, 4421.56, 4432.11, 4442.66, 4453.2, 4463.75, 4474.3, 4484.85, 4495.4] },
     },
     // Each column point sits at half its pier's depth, so a present pier is met a little
     // before the point and a missing one leaves the wall behind it.
@@ -189,8 +193,8 @@ const fitted = [
     // The wing's corners are the worst landmarks, near 0.00551: the drawn podium does not
     // share its tower's projection, so it cannot sit as tightly as the tower does. The
     // tower's own landmarks are inside 0.0026.
-    tolerance: 0.00745,
-    columnTolerance: 0.00248,
+    tolerance: 0.0063,
+    columnTolerance: 0.0021,
     // The right silhouette is the wing's drawn east end.
     silhouette: 4507.699,
   },
@@ -222,13 +226,36 @@ const fitted = [
       twoEastPiers: { batch: "vertical piers and chevrons", drawn: [4687.698, 4676.347, 4663.073, 4650.31, 4638.036, 4590.444, 4565.876, 4553.532, 4538.582] },
       twoLowerPiers: { batch: "vertical piers and chevrons", drawn: [4263.919, 4284.925, 4305.622, 4326.418, 4391.515, 4412.221, 4432.928, 4453.634] },
     },
-    // Measured at all five layouts: the tallest layout is worst, near 0.00262
-    // for landmarks and 0.00280 for columns. Parallel SVG edges cannot coincide
+    // Measured at all five layouts: the desktop eave is near 0.00260 for landmarks,
+    // and the tall layout's south piers near 0.00245 for columns. Parallel SVG edges cannot coincide
     // with perspective projections at every camera distance.
-    tolerance: 0.0029,
-    columnTolerance: 0.0029,
+    tolerance: 0.0027,
+    columnTolerance: 0.00255,
     sightGap: [0.05, 1],
+  },
+  {
+    id: aon,
+    label: "Aon Center",
+    features: "aonFeatures",
+    landmarks: {
+      aonRoofWest: [4807.686, 115.434],
+      aonRoofNear: [5148.845, 88.061],
+      aonRoofEast: [5401.877, 155.047],
+    },
+    onGeometryTolerance: 0.02,
+    columns: {
+      aonFrontPiers: { batch: "granite perimeter piers", drawn: [4834.765, 4856.53, 4878.294, 4900.059, 4921.824, 4943.589, 4965.354, 4987.118, 5008.883, 5030.648, 5052.412, 5074.177, 5095.942] },
+      aonSidePiers: { batch: "granite perimeter piers", drawn: [5228.75, 5241.034, 5253.318, 5265.603, 5277.887, 5290.171, 5302.456, 5314.74, 5327.025, 5339.309, 5351.593, 5363.878, 5376.162] },
+      aonCornerStrips: { batch: "wide granite corner piers", drawn: [5159.416, 5181.56, 5201.257] },
+    },
+    rows: {
+      // Centers of six source front-face dark bands, spanning the shaft.
+      aonFloorRows: { drawn: [2380.034, 1987.468, 1594.902, 1202.335, 777.055, 384.489], tolerance: 0.005 },
+    },
+    tolerance: 0.008,
+    columnTolerance: 0.0034,
+    sightGap: [0.05, 0.7],
   },
 ];
 
-module.exports = { heritage, kemper, crain, michigan, trump, prudential, prudentialPodium, twoPrudential, reference, models, landmarks, landmarkTolerance, fitted };
+module.exports = { heritage, kemper, crain, michigan, trump, prudential, prudentialPodium, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, fitted };

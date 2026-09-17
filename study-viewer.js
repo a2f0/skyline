@@ -18,6 +18,7 @@ export function createBuildingStudy({
   minimumCameraHeight = null,
   fit = { height: 230, width: 98 },
   platform = { width: 76, depth: 76 },
+  lightPosition = [-110, 240, 170],
   shadowCamera = { left: -140, right: 140, top: 160, bottom: -160, near: 1, far: 600 },
 }) {
   const viewport = document.querySelector("#viewport");
@@ -45,7 +46,7 @@ export function createBuildingStudy({
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.7));
   const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
-  keyLight.position.set(-110, 240, 170);
+  keyLight.position.fromArray(lightPosition);
   keyLight.target.position.set(0, 80, 0);
   keyLight.castShadow = true;
   keyLight.shadow.mapSize.set(2048, 2048);
