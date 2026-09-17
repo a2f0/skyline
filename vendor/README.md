@@ -4,6 +4,10 @@
 
 Source: [three.js / r186](https://github.com/mrdoob/three.js/tree/r186), distributed by the [`three` npm package](https://www.npmjs.com/package/three/v/0.186.0). License: MIT; the full notice is in `THREE-LICENSE.txt`, with upstream license comments retained in the bundle.
 
+The geographic study also exports `OrthographicCamera` for ground plans with a
+constant scale at every building height. The bundle was regenerated with the
+same pinned versions below; upstream code is unchanged.
+
 To regenerate from the repository root (Node.js required):
 
 ```sh

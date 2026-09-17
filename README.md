@@ -28,9 +28,9 @@ Drag to orbit, scroll or pinch to zoom, and hover to illuminate the building and
 
 The model has a closed tower shell, a diagonal diamond roof, a roof grid and dark split, and clipped window cells on all four façades. It uses grayscale toon materials, real perspective, depth testing, directional shadows, and raycast hover selection. The model builder lives in `models/crain-communications.js`; it can be reused in a larger scene.
 
-This is an art-directed shape study, not a surveyed or georeferenced reconstruction. The 177.4 m height comes from the [Skyscraper Center's building record](https://www.skyscrapercenter.com/building/150-north-michigan-avenue/2441); width, roof slope, window arrangement, and hidden sides are approximations guided by the repository's SVG. `models/crain-reference.svg` is an excerpt of the existing `building-crain-communications` group, with a padded viewBox and no third-party artwork. The model is authored locally; no external model, photographic texture, map tiles, or footprint dataset is included.
+This is an art-directed shape study, not a surveyed or georeferenced reconstruction. The 177.4 m height comes from the [Skyscraper Center's building record](https://www.skyscrapercenter.com/building/150-north-michigan-avenue/2441); width, roof slope, window arrangement, and hidden sides are approximations guided by the repository's SVG. `models/crain-reference.svg` is an excerpt of the existing `building-crain-communications` group, with a padded viewBox and no third-party artwork. The solo model is authored locally and uses no external model, photographic texture, map tiles, or footprint dataset.
 
-For this experiment, local Three.js was chosen to explore the custom geometry and materials with little scene setup. The existing raw WebGL renderer remains useful for the SVG layers, but would need its own camera, mesh, lighting, and picking implementation for this study. Cesium is still a candidate for a later georeferenced city comparison; streamed OSM or footprint extrusions would need custom roof geometry to reproduce this landmark. This experiment does **not** settle the engine or data choice for the full skyline in #4. Matching the skyline camera, testing geographic data and Cesium, and modeling the other buildings remain future work.
+For this experiment, local Three.js was chosen to explore the custom geometry and materials with little scene setup. The existing raw WebGL renderer remains useful for the SVG layers, but would need its own camera, mesh, lighting, and picking implementation for this study. Cesium is still a candidate for a later georeferenced city comparison; streamed OSM or footprint extrusions would need custom roof geometry to reproduce this landmark. This experiment does **not** settle the engine or data choice for the full skyline in #4. The skyline study below now compares a fitted camera and local geographic data. A larger city scene, evaluation of Cesium, and additional buildings remain future work.
 
 Three.js is vendored under its MIT license; see `vendor/README.md` for provenance and regeneration. The study loads entirely from the local server without API keys, paid services, or CDN access. The enhanced, original, and 2.5D WebGL viewer modes remain available through **back to skyline**.
 
@@ -59,6 +59,24 @@ Its spire is 345.79 m above the study platform, compared with the real building�
 The Heritage plan, heights, and placement were fitted numerically through the skyline camera to the drawn corners, mullions, fins, and lower cap. The camera-facing flat face and bow radius are about 1.3 times the OpenStreetMap trace, and the whole tower plan about 1.1–1.2 times, because the drawing is wider relative to its heights than the real building; the hidden north and west faces are simplified closures rather than that outline, and the lower tier keeps roughly its traced size; the 3.79 m floor pitch likewise follows the drawing rather than the building's 3.37 m average. The drawing also exaggerates how far the curved bands sag toward the right, roughly twice what any camera consistent with the other towers produces, so the model matches horizontal positions and corners and leaves that sag as a residual: the crown cap's north end sits about 14 layer units above its drawn corner in the desktop layout, and up to about 21 in the tall one. Framing the earlier five-building scene moved those from about 9 and 19: the sag is unchanged, but the wider frame places the camera differently. The real lower tier extends farther south, unlit and hidden in the photo; the model trims it along the skyline view's line of sight so nothing appears left of the drawn silhouette.
 
 `models/skyline-reference.svg` contains the unmodified `building-heritage-at-millennium-park`, `building-kemper`, `building-michigan-plaza-south-tower`, `building-crain-communications`, `building-trump-tower-only`, `building-one-prudential-plaza`, `building-two-prudential-plaza`, `building-prudential-plaza-podium`, and Aon's `layer3` groups from `skyline-animated.svg`, preserving their positions, nested transforms, and draw order. It also carries the source definitions used by Aon's in-group tonal overlays. Its padded viewBox matches the study's framing. The unidentified historic facade in front of the Heritage and the three unidentified buildings in front of Michigan Plaza are omitted; the drawing's blank lower façade and uneven base extend into those obscured areas. The 3D study infers continuous windows and a shared ground plane there. No photo texture, external model, or runtime service is used.
+
+## Geographic skyline comparison
+
+In `skyline-study.html`, **geographic layout** switches the same eight buildings
+to local OpenStreetMap footprints and parts, with published overall heights
+(Kemper uses OSM's height). It opens a north-up orthographic ground plan with
+street centerlines and a 100 m grid. **Height comparison** gives an elevated
+orthographic view. Both comparison views preserve camera and zoom when toggling
+back to **original drawing**, aligned at Crain so changes in position and scale
+remain visible. The original skyline camera and fitted models are retained.
+
+The table below the viewer compares original and mapped ground extents, east/north
+coordinates, and modeled top heights, with source links and assumptions. Measured
+outlines replace the illustration's facade detail in this variation. Intermediate
+podium heights and some crowns are estimates; street lines have no curb widths
+and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
+for the coordinate system, eight footprint records, height definitions, OSM
+attribution, and limitations. All runtime data is checked in locally.
 
 ## Adding a building to the skyline study
 

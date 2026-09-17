@@ -22,13 +22,20 @@
       </nav>
     </header>
     <main>
+      <div class="layout-controls">
+        <div class="button-group" role="group" aria-label="Building layout">
+          <button type="button" data-layout="original" aria-pressed="true">original drawing</button>
+          <button type="button" data-layout="geographic" aria-pressed="false">geographic layout</button>
+        </div>
+        <p id="layout-status" role="status">Original layout · proportions and spacing fitted to the drawing. Switch to geographic layout to inspect the ground plan.</p>
+      </div>
       <div class="comparison">
         <figure class="reference">
           <figcaption class="caption">01 / source SVG</figcaption>
           <img src="models/skyline-reference.svg" alt="Original SVG geometry showing the Heritage at Millennium Park's bowed, finned crown and rooftop screen, Kemper's vertical ribs, Crain's diamond roof, the dark, gridded Michigan Plaza South tower, Trump International Hotel and Tower's stepped shaft and spire, One Prudential Plaza's punch-card slab under a tall antenna mast, Two Prudential Plaza's chevrons and spire, and Aon Center's granite piers" />
         </figure>
         <figure>
-          <figcaption class="caption">02 / 3D study</figcaption>
+          <figcaption class="caption" id="model-caption">02 / original 3D study</figcaption>
           <div class="viewport" id="viewport">
             <canvas id="building" tabindex="0" role="img" aria-label="Interactive 3D study of the Heritage at Millennium Park, Kemper, Crain Communications, Michigan Plaza South, Trump International Hotel and Tower, One and Two Prudential Plaza, and Aon Center" aria-describedby="camera-hint"></canvas>
             <span class="view-label" id="view-label">skyline view</span>
@@ -42,13 +49,28 @@
           <button type="button" data-view="skyline" aria-pressed="true">skyline view</button>
           <button type="button" data-view="quarter">three-quarter</button>
           <button type="button" data-view="side">side</button>
+          <button type="button" data-view="top" aria-pressed="false">ground plan ↓</button>
+          <button type="button" data-view="heights" aria-pressed="false">height comparison</button>
           <button type="button" id="reset">reset view</button>
         </div>
         <div class="button-group" role="group" aria-label="Model display">
+          <button type="button" id="streets" aria-pressed="true" disabled>street centerlines</button>
           <button type="button" id="wireframe" aria-pressed="false">wireframe</button>
           <button type="button" id="turntable" aria-pressed="false" aria-describedby="motion-status">turntable</button>
         </div>
       </div>
+      <details class="geographic-details" open>
+        <summary>Footprints, coordinates &amp; height differences</summary>
+        <p>Ground plan uses an orthographic camera: roofs do not grow with height. Both layouts align at Crain and keep the same camera and zoom when toggled in ground plan or height comparison. The drawing’s other positions are artistic. Only the geographic layout is mapped.</p>
+        <p>All values are meters. Ground extents are east–west × north–south bounding dimensions, including mapped podiums, rather than facade lengths. Coordinates are east and north of Crain (<span id="coordinate-origin"></span>). Top heights include modeled spires and antennas; architectural heights exclude antennas.</p>
+        <div class="dimension-scroll" tabindex="0" role="region" aria-label="Building dimension comparison">
+          <table class="dimension-table">
+            <thead><tr><th scope="col">Building / footprint source</th><th scope="col">East, north</th><th scope="col">Original ground extent</th><th scope="col">Mapped ground extent</th><th scope="col">Original → geographic top (Δ)</th><th scope="col">Height source &amp; assumptions</th></tr></thead>
+            <tbody id="dimensions-body"></tbody>
+          </table>
+        </div>
+        <p>Footprints and streets: <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors · ODbL</a>, local snapshot from September 17, 2026. Mapped outlines are not a survey. Street lines show location, not curb width; they are flattened to one ground plane, with lower streets omitted. Roofs are simplified and some podium heights are estimated. This lets you inspect spacing; exact street widths and Chicago’s multiple road levels need additional data.</p>
+      </details>
       <div class="notes">
         <p>The starting view follows the SVG’s angle, proportions, and spacing. Orbit around the Heritage’s curved bow and finned crown, Kemper’s ribs, Crain’s diamond roof, Michigan Plaza’s window grid, Trump’s stepped shaft and spire, One Prudential’s punch-card slab and antenna, Two Prudential’s projecting chevrons and spire, and Aon’s granite piers and roof screens. Depth, hidden sides, and lower floors obscured in the drawing are approximate.</p>
         <p id="motion-status" role="status">Camera moves only when you interact or start the turntable.</p>

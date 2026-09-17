@@ -20,7 +20,13 @@ export function createBuildingStudy({
   platform = { width: 76, depth: 76 },
   lightPosition = [-110, 240, 170],
   shadowCamera = { left: -140, right: 140, top: 160, bottom: -160, near: 1, far: 600 },
+  layouts = null,
+  onLayoutChange = () => {},
+  labels = [],
 }) {
+  const original = { models, fit, target, platform, lightPosition, shadowCamera, clippingMargin };
+  let layout = "original";
+  let extras = [];
   const viewport = document.querySelector("#viewport");
   const canvas = document.querySelector("#building");
   const tooltip = document.querySelector("#tooltip");
@@ -34,7 +40,38 @@ export function createBuildingStudy({
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(fov, 1, near, far);
+  const labelLayer = document.createElement("div");
+  labelLayer.className = "study-annotations";
+  labelLayer.hidden = true;
+  labelLayer.setAttribute("aria-hidden", "true");
+  viewport.append(labelLayer);
+  let modelLabels = [];
+  function prepareLabels() {
+    labelLayer.replaceChildren();
+    modelLabels = labels.map(({ id, text, placement = "above" }) => {
+      const model = models.find((entry) => entry.building.userData.buildingId === id);
+      const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+      model.building.updateMatrixWorld(true);
+      model.building.traverse((child) => {
+        if (!child.isMesh) return;
+        const positions = child.geometry.getAttribute("position"), point = new THREE.Vector3();
+        for (let i = 0; i < positions.count; i += 1) {
+          point.fromBufferAttribute(positions, i).applyMatrix4(child.matrixWorld).toArray().forEach((n, axis) => {
+            min[axis] = Math.min(min[axis], n); max[axis] = Math.max(max[axis], n);
+          });
+        }
+      });
+      const element = document.createElement("span");
+      element.textContent = text;
+      element.dataset.placement = placement;
+      labelLayer.append(element);
+      return { element, position: new THREE.Vector3((min[0] + max[0]) / 2, max[1] + 5, (min[2] + max[2]) / 2) };
+    });
+  }
+  prepareLabels();
+  const perspectiveCamera = new THREE.PerspectiveCamera(fov, 1, near, far);
+  const planCamera = new THREE.OrthographicCamera(-500, 500, 500, -500, near, far);
+  let camera = perspectiveCamera;
   const controls = new THREE.OrbitControls(camera, canvas);
   controls.enablePan = false;
   controls.enableDamping = false;
@@ -57,7 +94,7 @@ export function createBuildingStudy({
   fillLight.position.set(100, 140, -140);
   scene.add(fillLight);
 
-  const modelOwners = new Map(models.map((model) => [model.building, model]));
+  let modelOwners = new Map(models.map((model) => [model.building, model]));
   models.forEach((model) => scene.add(model.building));
   const base = new THREE.Mesh(new THREE.BoxGeometry(platform.width, 2, platform.depth), new THREE.MeshToonMaterial({ color: platform.color ?? 0x3a3a3a }));
   base.position.y = -1.1;
@@ -77,6 +114,7 @@ export function createBuildingStudy({
   let lastTime = 0;
   let fittedDistance = 400;
   let activeView = defaultView;
+  let frameFit = fit;
 
 
   function requestRender() {
@@ -94,6 +132,13 @@ export function createBuildingStudy({
     }
     lastTime = time;
     renderer.render(scene, camera);
+    labelLayer.hidden = !camera.isOrthographicCamera;
+    for (const { element, position } of modelLabels) {
+      const point = position.clone().project(camera);
+      element.hidden = Math.abs(point.x) > 0.95 || Math.abs(point.y) > 0.95 || Math.abs(point.z) > 1;
+      element.style.left = `${(point.x + 1) * 50}%`;
+      element.style.top = `${(1 - point.y) * 50}%`;
+    }
     if (turning) requestRender();
   }
 
@@ -124,28 +169,54 @@ export function createBuildingStudy({
     requestRender();
   }
 
-  function setView(name) {
-    setTurning(false);
-    const view = views[name];
-    if (!view) return;
+  function viewFor(name) {
+    return { ...views[name], ...layouts?.[layout]?.views?.[name] };
+  }
+
+  function positionView(name) {
+    const view = viewFor(name);
     camera.position.set(
       fittedDistance * Math.sin(view.polar) * Math.sin(view.azimuth),
       fittedDistance * Math.cos(view.polar),
       fittedDistance * Math.sin(view.polar) * Math.cos(view.azimuth),
     ).add(controls.target);
     controls.update();
+  }
+
+  function setView(name) {
+    setTurning(false);
+    if (!views[name]) return;
+    const view = viewFor(name);
+    camera = view.projection === "orthographic" ? planCamera : perspectiveCamera;
+    controls.object = camera;
+    controls.enablePan = camera.isOrthographicCamera;
+    controls.minPolarAngle = camera.isOrthographicCamera ? 0 : Math.PI * 0.12;
+    controls.minZoom = 0.5;
+    controls.maxZoom = 4;
+    camera.zoom = 1;
+    base.receiveShadow = name !== "top";
+    frameFit = view.fit || fit;
+    controls.target.fromArray(view.target || target);
     markView(name);
+    updateCameraHint();
+    resize();
     clearHighlight();
   }
 
   function resize() {
     const { width, height } = canvas.getBoundingClientRect();
     const previousFit = fittedDistance;
-    camera.aspect = width / Math.max(height, 1);
+    const aspect = width / Math.max(height, 1);
+    camera.aspect = aspect;
     renderer.setSize(width, height, false);
     // Fit both the tower's height and its footprint at narrow mobile widths.
-    const tangent = Math.tan(camera.fov * Math.PI / 360);
-    fittedDistance = Math.max(fit.height / 2 / tangent, fit.width / 2 / (tangent * camera.aspect));
+    const tangent = Math.tan(fov * Math.PI / 360);
+    fittedDistance = Math.max(frameFit.height / 2 / tangent, frameFit.width / 2 / (tangent * aspect));
+    if (camera.isOrthographicCamera) {
+      const height = Math.max(frameFit.height, frameFit.width / aspect);
+      camera.top = height / 2; camera.bottom = -height / 2;
+      camera.left = -height * aspect / 2; camera.right = height * aspect / 2;
+    }
     controls.minDistance = fittedDistance * 0.48;
     controls.maxDistance = fittedDistance * 2;
     if (clippingMargin !== null) {
@@ -155,7 +226,7 @@ export function createBuildingStudy({
       camera.far = Math.max(far, controls.maxDistance + clippingMargin);
     }
     camera.updateProjectionMatrix();
-    if (activeView) setView(activeView);
+    if (activeView) positionView(activeView);
     else {
       camera.position.sub(controls.target).multiplyScalar(fittedDistance / previousFit).add(controls.target);
       controls.update();
@@ -191,7 +262,7 @@ export function createBuildingStudy({
     pointer.set((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1);
     raycaster.setFromCamera(pointer, camera);
     // Intersect the full scene so the pedestal can occlude the tower base.
-    const hit = raycaster.intersectObjects(scene.children, true).find((intersection) => intersection.object.isMesh);
+    const hit = raycaster.intersectObjects(scene.children, true).find((intersection) => intersection.object.isMesh && intersection.object.visible);
     let owner = hit?.object;
     while (owner && !modelOwners.has(owner)) owner = owner.parent;
     const nextModel = modelOwners.get(owner) || null;
@@ -203,7 +274,8 @@ export function createBuildingStudy({
     }
     tooltip.hidden = !selectedModel;
     if (selectedModel) {
-      tooltip.textContent = selectedModel.building.name;
+      const data = selectedModel.building.userData.geography;
+      tooltip.textContent = data ? `${data.name} · ${data.height} m${data.tipHeight !== data.height ? ` / tip ${data.tipHeight} m` : ""}` : selectedModel.building.name;
       const tooltipBounds = tooltip.getBoundingClientRect();
       const x = event.clientX + 18 + tooltipBounds.width > innerWidth - 6 ? event.clientX - tooltipBounds.width - 18 : event.clientX + 18;
       const y = event.clientY + 18 + tooltipBounds.height > innerHeight - 6 ? event.clientY - tooltipBounds.height - 18 : event.clientY + 18;
@@ -218,7 +290,7 @@ export function createBuildingStudy({
   canvas.addEventListener("keydown", (event) => {
     if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "+", "=", "-", "Home"].includes(event.key)) return;
     event.preventDefault();
-    if (event.key === "Home") return setView(defaultView);
+    if (event.key === "Home") return setView(layouts?.[layout]?.defaultView || defaultView);
     setTurning(false);
     const offset = camera.position.clone().sub(controls.target);
     const distance = offset.length();
@@ -229,8 +301,13 @@ export function createBuildingStudy({
     if (event.key === "ArrowRight") azimuth += Math.PI / 18;
     if (event.key === "ArrowUp") polar -= Math.PI / 36;
     if (event.key === "ArrowDown") polar += Math.PI / 36;
-    if (event.key === "+" || event.key === "=") nextDistance *= 0.9;
-    if (event.key === "-") nextDistance /= 0.9;
+    if (camera.isOrthographicCamera && ["+", "=", "-"].includes(event.key)) {
+      camera.zoom = Math.max(controls.minZoom, Math.min(controls.maxZoom, camera.zoom * (event.key === "-" ? 0.9 : 1 / 0.9)));
+      camera.updateProjectionMatrix();
+    } else {
+      if (event.key === "+" || event.key === "=") nextDistance *= 0.9;
+      if (event.key === "-") nextDistance /= 0.9;
+    }
     polar = Math.max(controls.minPolarAngle, Math.min(controls.maxPolarAngle, polar));
     nextDistance = Math.max(controls.minDistance, Math.min(controls.maxDistance, nextDistance));
     camera.position.set(nextDistance * Math.sin(polar) * Math.sin(azimuth), nextDistance * Math.cos(polar), nextDistance * Math.sin(polar) * Math.cos(azimuth)).add(controls.target);
@@ -240,7 +317,7 @@ export function createBuildingStudy({
   });
 
   document.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
-  document.querySelector("#reset").addEventListener("click", () => setView(defaultView));
+  document.querySelector("#reset").addEventListener("click", () => setView(layouts?.[layout]?.defaultView || defaultView));
   wireframeButton.addEventListener("click", () => {
     wireframe = !wireframe;
     models.forEach((model) => model.setWireframe(wireframe));
@@ -249,6 +326,53 @@ export function createBuildingStudy({
   });
   turntableButton.addEventListener("click", () => setTurning(!turning));
 
+  function setLayout(name) {
+    if (name === layout || (name !== "original" && !layouts?.[name])) return;
+    const previousView = activeView;
+    const keepPose = camera.isOrthographicCamera;
+    const pose = { position: camera.position.clone(), target: controls.target.clone(), zoom: camera.zoom, groundShadows: base.receiveShadow };
+    clearHighlight();
+    setTurning(false);
+    models.forEach((model) => scene.remove(model.building));
+    extras.forEach((object) => scene.remove(object));
+    const next = { ...original, ...layouts?.[name] };
+    layout = name;
+    ({ models, fit, target, platform, lightPosition, shadowCamera, clippingMargin } = next);
+    extras = next.extras || [];
+    models.forEach((model) => { scene.add(model.building); model.setWireframe(wireframe); });
+    extras.forEach((object) => scene.add(object));
+    modelOwners = new Map(models.map((model) => [model.building, model]));
+    prepareLabels();
+    base.geometry.dispose(); baseEdges.geometry.dispose();
+    base.geometry = new THREE.BoxGeometry(platform.width, 2, platform.depth);
+    baseEdges.geometry = new THREE.EdgesGeometry(base.geometry);
+    base.position.set(platform.x || 0, -1.1, platform.z || 0);
+    baseEdges.position.copy(base.position);
+    keyLight.position.fromArray(lightPosition);
+    Object.assign(keyLight.shadow.camera, shadowCamera);
+    keyLight.shadow.camera.updateProjectionMatrix();
+    const nextView = previousView && previousView !== defaultView ? previousView : next.defaultView || defaultView;
+    setView(keepPose ? previousView || "top" : nextView);
+    if (keepPose && camera.isOrthographicCamera) {
+      camera.position.copy(pose.position); controls.target.copy(pose.target); camera.zoom = pose.zoom;
+      base.receiveShadow = pose.groundShadows;
+      camera.updateProjectionMatrix(); controls.update();
+      if (!previousView) markView(null);
+    }
+    document.querySelectorAll("[data-layout]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.layout === name)));
+    onLayoutChange(name);
+    requestRender();
+  }
+  document.querySelectorAll("[data-layout]").forEach((button) => button.addEventListener("click", () => setLayout(button.dataset.layout)));
+
+  function updateCameraHint() {
+    document.querySelector("#camera-hint").innerHTML = reducedMotion.matches
+      ? '<span class="wide-hint">Use the view buttons or arrow keys to inspect<br />+ / − zoom · Home resets</span><span class="narrow-hint">Use the view buttons to inspect</span>'
+      : camera.isOrthographicCamera
+        ? '<span class="wide-hint">Drag to orbit · shift-drag to pan · scroll to zoom<br />Arrow keys rotate · + / − zoom · Home resets</span><span class="narrow-hint">Drag to orbit · two fingers pan / zoom</span>'
+        : '<span class="wide-hint">Drag to orbit · scroll or pinch to zoom<br />Arrow keys rotate · + / − zoom · Home resets</span><span class="narrow-hint">Drag to orbit · pinch to zoom</span>';
+  }
+
   function updateMotionPreference() {
     controls.enabled = !reducedMotion.matches;
     turntableButton.disabled = reducedMotion.matches;
@@ -256,9 +380,7 @@ export function createBuildingStudy({
     motionStatus.textContent = reducedMotion.matches
       ? "Reduced motion: turntable and drag movement paused. View buttons and keyboard controls change the view immediately."
       : "Camera moves only when you interact or start the turntable.";
-    document.querySelector("#camera-hint").innerHTML = reducedMotion.matches
-      ? '<span class="wide-hint">Use the view buttons or arrow keys to inspect<br />+ / − zoom · Home resets</span><span class="narrow-hint">Use the view buttons to inspect</span>'
-      : '<span class="wide-hint">Drag to orbit · scroll or pinch to zoom<br />Arrow keys rotate · + / − zoom · Home resets</span><span class="narrow-hint">Drag to orbit · pinch to zoom</span>';
+    updateCameraHint();
     clearHighlight();
   }
   reducedMotion.addEventListener("change", updateMotionPreference);
@@ -284,9 +406,13 @@ export function createBuildingStudy({
   document.querySelector("#loading").hidden = true;
   window.__buildingStudy = {
     ready: true,
-    modelName: models[0].building.name,
-    modelNames: models.map((model) => model.building.name),
-    triangleCount: models.reduce((total, model) => total + model.triangleCount, 0),
+    get modelName() { return models[0].building.name; },
+    get modelNames() { return models.map((model) => model.building.name); },
+    get triangleCount() { return models.reduce((total, model) => total + model.triangleCount, 0); },
+    get layout() { return layout; },
+    get projection() { return camera.isOrthographicCamera ? "orthographic" : "perspective"; },
+    get zoom() { return camera.zoom; },
+    get groundShadows() { return base.receiveShadow; },
     get activeView() { return activeView; },
     get selectedBuilding() { return selectedModel?.building.userData.buildingId || null; },
     get shadowBounds() {
@@ -314,5 +440,22 @@ export function createBuildingStudy({
     get highlighted() { return Boolean(selectedModel); },
     get turning() { return turning; },
     get renderCount() { return renderer.info.render.frame; },
+    get modelBounds() {
+      return models.map((model) => {
+        const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+        model.building.updateMatrixWorld(true);
+        model.building.traverse((child) => {
+          if (!child.isMesh) return;
+          const positions = child.geometry.getAttribute("position"), point = new THREE.Vector3();
+          for (let i = 0; i < positions.count; i += 1) {
+            point.fromBufferAttribute(positions, i).applyMatrix4(child.matrixWorld).toArray().forEach((n, axis) => {
+              min[axis] = Math.min(min[axis], n); max[axis] = Math.max(max[axis], n);
+            });
+          }
+        });
+        return { id: model.building.userData.buildingId, min, max };
+      });
+    },
   };
+  return { setLayout, setView, requestRender };
 }
