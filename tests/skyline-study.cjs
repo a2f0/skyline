@@ -121,7 +121,7 @@ async function main() {
     assert.equal(await page.evaluate(() => window.__buildingStudy.activeView), "skyline");
     // A budget for the whole scene; raise it deliberately when a detailed building lands.
     const triangles = await page.evaluate(() => window.__buildingStudy.triangleCount);
-    assert.ok(triangles > 56000 && triangles < 59000, `the seven-building scene should stay within 56,000-59,000 triangles: ${triangles}`);
+    assert.ok(triangles > 58000 && triangles < 60000, `the seven-building scene should stay within 58,000-60,000 triangles: ${triangles}`);
     const shadowBounds = await page.evaluate(() => window.__buildingStudy.shadowBounds);
     assert.ok(shadowBounds.min.every((v) => v > -1) && shadowBounds.max.every((v) => v < 1), `all buildings and the platform should stay within the light's shadow camera: ${JSON.stringify(shadowBounds)}`);
     await checkReferenceMatch(page);

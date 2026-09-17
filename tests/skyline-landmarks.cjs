@@ -122,13 +122,17 @@ const fitted = [
       trumpCrownWest: [4037.91, 561.188],
       trumpCrownEast: [4207.711, 567.37],
       trumpSpireTip: [4141.449, 187.538],
+      trumpSpireUpperJoint: [4141.448, 324.736],
+      trumpSpireLowerJoint: [4141.448, 486.302],
     },
     onGeometry: ["trumpTowerEastRoof"],
     onGeometryTolerance: 0.02,
     columns: {
-      // Five unobscured vertical mullions in the upper shaft, measured where the SVG's
-      // long, near-vertical facade lines cross layer y≈1024.
-      trumpFrontMullions: { batch: "raised mullions and floor bands", drawn: [3907.5, 3924.0, 3939.7, 3957.1, 3979.0] },
+      // Twenty-nine unobscured upper-shaft mullions, measured where their source lines
+      // cross layer y≈1052. The pitch opens across the front, bevel, and east face.
+      trumpFrontMullions: { batch: "raised mullions and floor bands", drawn: [3901.538, 3907.527, 3915.549, 3923.569, 3931.591, 3939.612, 3947.632, 3956.976, 3967.882, 3979.035, 3991.065, 4003.399, 4015.431, 4028.17, 4041.953, 4057.076] },
+      trumpCornerMullions: { batch: "raised mullions and floor bands", drawn: [4073.889, 4090.699, 4107.844] },
+      trumpEastMullions: { batch: "raised mullions and floor bands", drawn: [4132.294, 4143.203, 4153.301, 4163.411, 4172.917, 4179.801, 4187.73, 4196.078, 4204.42, 4210.454] },
     },
     sightGap: [0.05, 1],
     // The compact crown's hand-drawn sloping edge is the limiting landmark; all five
@@ -173,7 +177,7 @@ const fitted = [
     sightGap: [0.05, 1],
     // Measured across all five layouts. The tower's piers are the tight set; the wing's
     // ribs are three times looser and carry their own bound below.
-    // The wing's corners are the worst landmarks, at 0.00607: the drawn podium does not
+    // The wing's corners are the worst landmarks, near 0.00551: the drawn podium does not
     // share its tower's projection, so it cannot sit as tightly as the tower does. The
     // tower's own landmarks are inside 0.0026.
     tolerance: 0.00745,
@@ -209,8 +213,8 @@ const fitted = [
       twoEastPiers: { batch: "vertical piers and chevrons", drawn: [4687.698, 4676.347, 4663.073, 4650.31, 4638.036, 4590.444, 4565.876, 4553.532, 4538.582] },
       twoLowerPiers: { batch: "vertical piers and chevrons", drawn: [4263.919, 4284.925, 4305.622, 4326.418, 4391.515, 4412.221, 4432.928, 4453.634] },
     },
-    // Measured at all five layouts: the tallest layout is worst, near 0.00292
-    // for landmarks and 0.00317 for columns. Parallel SVG edges cannot coincide
+    // Measured at all five layouts: the tallest layout is worst, near 0.00262
+    // for landmarks and 0.00280 for columns. Parallel SVG edges cannot coincide
     // with perspective projections at every camera distance.
     tolerance: 0.0029,
     columnTolerance: 0.0029,

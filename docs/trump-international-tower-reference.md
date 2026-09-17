@@ -19,21 +19,21 @@ or published with the study.
 
 ## Model choices
 
-- Four closed clipped prisms form the broad river base, hotel setback, residential setback, and
-  upper shaft. Their exposed roof ledges remain actual surfaces instead of painted shade.
+- A continuous closed clipped shaft reaches the short east shoulder. A separate raised west roof
+  creates the source's asymmetric roof step without adding unobserved lower setbacks.
 - Glazed floor panels, horizontal bands, and proud mullions cover the south and east faces. The
-  short east shoulder is a physical band, so the source's step has geometry for the raycast and
+  shoulder and roof are physical surfaces, so the source's step has geometry for raycasts and
   elevated views to inspect.
-- A narrower, east-offset pavilion has dense dark ribs and two seams. Three nested closed mast
-  sections rise from it to reproduce the visible antenna joints.
+- A narrower, east-offset crown enclosure has dense dark ribs and four seams. Three nested closed
+  mast sections rise from its roof to reproduce the visible antenna joints.
 - North and west faces continue the visible massing as closed, simplified volumes. They are an
   inference for orbit views rather than a survey of the building's concealed facades.
 
 ## Fit and limits
 
-The model's tip is 405 m above the study platform. That is a fitted drawing datum, while CTBUH's
+The model's tip is 405.8 m above the study platform. That is a fitted drawing datum, while CTBUH's
 423.2 m is an architectural height above the building's street datum, so the two figures are not
-directly interchangeable. The model is constrained by five sharp source vertices and five
+directly interchangeable. The model is constrained by seven sharp source vertices and twenty-nine
 upper-shaft mullions across every tested layout. Trump stands behind One Prudential in the skyline
 view, preserving the source drawing's lower-facade occlusion while keeping the crown and spire
 available for independent hover.

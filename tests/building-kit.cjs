@@ -10,7 +10,7 @@ const { pathToFileURL } = require("node:url");
 process.removeAllListeners("warning");
 process.on("warning", (warning) => { if (warning.code !== "MODULE_TYPELESS_PACKAGE_JSON") console.warn(warning); });
 const load = (file) => import(pathToFileURL(path.resolve(__dirname, "..", file)).href);
-const { models, fitted, twoPrudential } = require("./skyline-landmarks.cjs");
+const { models, fitted, trump, twoPrudential } = require("./skyline-landmarks.cjs");
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -343,6 +343,26 @@ async function main() {
       name: mesh.name, triangles: trianglesOf({ positions: mesh.geometry.getAttribute("position").array, normals: mesh.geometry.getAttribute("normal").array }),
     }));
     assert.equal(model.triangleCount, meshes.reduce((sum, mesh) => sum + mesh.triangles.length, 0), `${model.building.name} should count every triangle`);
+    if (id === trump) {
+      const THREE = await load("./vendor/three-r186.js"), ray = new THREE.Raycaster();
+      model.building.updateMatrixWorld(true);
+      const surfaces = model.building.children.filter((child) => child.isMesh);
+      const hit = (origin, direction, objects = surfaces) => {
+        ray.set(new THREE.Vector3(...origin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(objects, false)[0];
+      };
+      // All four corners of the bottom mast section must meet the crown roof. This catches a
+      // visually plausible antenna whose plan drifts outside or beside its supporting crown.
+      const spirePositions = surfaces.find((mesh) => mesh.name === "segmented spire").geometry.getAttribute("position");
+      const foot = Math.min(...Array.from({ length: spirePositions.count }, (_, i) => spirePositions.getY(i)));
+      const roof = surfaces.filter((mesh) => mesh.name === "crown enclosure");
+      for (let i = 0; i < spirePositions.count; i += 1) {
+        if (Math.abs(spirePositions.getY(i) - foot) > 1e-6) continue;
+        const contact = hit([spirePositions.getX(i), model.height + 1, spirePositions.getZ(i)], [0, -1, 0], roof);
+        assert.ok(contact && Math.abs(contact.point.y - foot) < 0.02,
+          "every Trump spire foot corner should sit on the crown roof");
+      }
+    }
     if (id === twoPrudential) {
       const THREE = await load("./vendor/three-r186.js"), ray = new THREE.Raycaster();
       model.building.updateMatrixWorld(true);
