@@ -27,8 +27,8 @@ or published with the study.
 - Glazed floor panels, horizontal bands, and proud mullions carry the measured grid across the
   south, bevel, and east faces. The source's forty-one regular shaft strokes repeat every 21.3645
   layer units; their camera fit gives a 3.482373 m model pitch and a 2.161462 m platform-relative
-  phase. Dark blue-gray panes with scattered warm and cool occupied windows echo the aligned night
-  photograph without adding a texture. The four roof-step vertices are physical geometry for
+  phase. Charcoal panes with scattered muted gray occupied windows retain the study's grayscale
+  night treatment without adding a texture. The four roof-step vertices are physical geometry for
   raycasts and elevated views to inspect.
 - A narrower, east-offset crown enclosure stays inside the shaft's east wall and rests on a hidden
   roof plinth. Twenty-three light ribs and three seams follow its south face, bevel, and east face;
