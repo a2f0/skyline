@@ -13,6 +13,9 @@ const plan = rectangle(west, east, north, south);
 const shaftTop = aonRoof - 2.8;
 const frontPiers = Array.from({ length: 15 }, (_, i) => 0.018 + i * 0.0635);
 const sidePiers = Array.from({ length: 15 }, (_, i) => 0.245 + i * 0.0504);
+// The drawing puts three wide granite strips between the near corner and the
+// first narrow east-face pier (paths 1032, 1030, and 1034).
+const eastCornerStrips = [[0.15, 5.55], [5.75, 12.05], [12.25, 15.15]];
 const floorCount = 76;
 const floorPitch = shaftTop / floorCount;
 const pierDepth = 0.48;
@@ -29,6 +32,8 @@ export const aonFeatures = {
   aonFrontFacade: [0, 230, south + pierDepth],
   aonFrontPiers: frontPiers.slice(1, -1).map((fraction) => on(frontRun, fraction, 220, pierDepth / 2)),
   aonSidePiers: sidePiers.slice(1, -1).map((fraction) => on(sideRun, fraction, 220, pierDepth / 2)),
+  aonCornerStrips: eastCornerStrips.map(([a, b]) => on(sideRun, (a + b) / 2 / sideRun.length, 220, 0.275)),
+  aonCornerStripEdges: eastCornerStrips.flatMap(([a, b]) => [a, b].map((s) => on(sideRun, s / sideRun.length, 220, 0.55))),
   aonFloorRows: [8, 20, 32, 44, 56, 68].map((row) => on(frontRun, 0.5, (row + 0.5) * floorPitch, 0.04)),
 };
 
@@ -72,9 +77,10 @@ export function createAonCenterBuilding() {
   const tones = [0x303030, 0x343434, 0x393939, 0x2c2c2c].map((hex) => new THREE.Color(hex));
   const occupied = new THREE.Color(0x696969);
   const subdued = new THREE.Color(0x505050);
-  const facade = (run, seed, fractions) => {
+  const facade = (run, seed, fractions, skipFirstBay = false) => {
     const edges = [0, ...fractions, 1].map((fraction) => fraction * run.length);
     for (let bay = 0; bay < edges.length - 1; bay += 1) {
+      if (skipFirstBay && bay === 0) continue;
       const left = edges[bay] + 0.13, right = edges[bay + 1] - 0.13;
       if (right - left < 0.4) continue;
       for (let row = 0; row < floorCount; row += 1) {
@@ -89,13 +95,17 @@ export function createAonCenterBuilding() {
     }
   };
   facade(frontRun, 1, frontPiers);
-  facade(sideRun, 19, sidePiers);
+  facade(sideRun, 19, sidePiers, true);
   // The unseen north and west sides continue the structural rhythm for orbit views.
   facade(plan[2], 37, frontPiers);
   facade(plan[3], 53, sidePiers);
   for (const run of plan) {
     const where = station(run, run.length - 1.2);
     box(corners, where.at, where.normal, 1.15, -0.12, 0.55, 0, shaftTop - 0.2);
+  }
+  for (const [start, end] of eastCornerStrips) {
+    const where = station(sideRun, (start + end) / 2);
+    box(corners, where.at, where.normal, (end - start) / 2, -0.12, 0.55, 0, shaftTop - 0.2);
   }
   return kit.finish({ outlines: [rim, corners] });
 }

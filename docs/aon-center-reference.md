@@ -16,9 +16,12 @@ camera fit grew around their previous center by a factor of 1.19979.
 
 The two faces have independent pier rhythms in the drawing: the front's 15
 granite strips begin at x 4807.910 and step by 21.765 layer units; the east
-face's 15 strips begin at x 5212.048 and step by 12.284. The fitted test probes
-13 interior piers on each face as actual raised geometry, plus six band centers
-spread over the tower's height. The rendered skyline, elevated, rear, and mobile
+face's 15 slim strips begin at x 5212.048 and step by 12.284. Three broad
+full-height stone strips occupy the east face between the near corner and that
+first slim pier. The fitted test probes 13 interior piers on each face and all
+three broad strips as raised geometry, checks their projected widths against
+paths 1032, 1030, and 1034, and samples six band centers through the height.
+The rendered skyline, elevated, rear, and mobile
 views were inspected for the roof rim, windows, closure, and overlap.
 
 The [Aon Center tenant portal](https://www.aoncenter.info/main.cfm?pid=aboutaon&sid=about)

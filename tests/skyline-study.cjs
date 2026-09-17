@@ -49,6 +49,16 @@ async function checkReferenceMatch(page) {
   assert.ok(above(deviations, "twoMiddleChevron", "twoLowerChevron"), "Two Prudential's projecting chevrons should descend toward the podium");
   assert.ok(above(deviations, "aonRoofNear", "aonRoofWest", "aonRoofEast"), "Aon's near roof corner should rise above both ends in the source view");
   assert.ok(above(deviations, "aonRoofNear", "trumpSpireTip"), "Aon's drawn roof should rise above Trump's spire");
+  // The three full-height strips between Aon's near corner and first slim east
+  // pier must occupy the source's measured width, not become a window bay.
+  const aonStripEdges = buildings.find((building) => building.id === aon).projected.aonCornerStripEdges;
+  const aonLayerUnit = (deviations.aonRoofEast.expected[0] - deviations.aonRoofNear.expected[0]) / (5401.877 - 5148.845);
+  [21.142, 24.925, 11.349].forEach((width, index) => {
+    const actual = aonStripEdges[2 * index + 1][0] - aonStripEdges[2 * index][0];
+    assert.ok(Math.abs(actual - width * aonLayerUnit) < 0.00035, `Aon corner strip ${index + 1} should keep its measured stone width: ${actual}`);
+  });
+  const aonStoneSpan = aonStripEdges.at(-1)[0] - aonStripEdges[0][0];
+  assert.ok(Math.abs(aonStoneSpan - 59.867 * aonLayerUnit) < 0.0005, `Aon's corner should stay stone across its full drawn span: ${aonStoneSpan}`);
   const cap = { apex: projected.capApex, ends: [projected.capSouthEnd, projected.capNorthEnd] };
   assert.ok(cap.ends.every((end) => cap.apex[1] < end[1]), `Heritage's crown cap should crest over the joint, above both of its ends: ${JSON.stringify(cap)}`);
   for (const building of buildings) {

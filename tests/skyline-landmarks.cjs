@@ -246,6 +246,7 @@ const fitted = [
     columns: {
       aonFrontPiers: { batch: "granite perimeter piers", drawn: [4834.765, 4856.53, 4878.294, 4900.059, 4921.824, 4943.589, 4965.354, 4987.118, 5008.883, 5030.648, 5052.412, 5074.177, 5095.942] },
       aonSidePiers: { batch: "granite perimeter piers", drawn: [5228.75, 5241.034, 5253.318, 5265.603, 5277.887, 5290.171, 5302.456, 5314.74, 5327.025, 5339.309, 5351.593, 5363.878, 5376.162] },
+      aonCornerStrips: { batch: "wide granite corner piers", drawn: [5159.416, 5181.56, 5201.257] },
     },
     rows: {
       // Centers of six source front-face dark bands, spanning the shaft.
