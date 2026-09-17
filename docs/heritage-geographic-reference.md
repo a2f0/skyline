@@ -53,7 +53,9 @@ condition. They supersede the initial generic 84.4 m lower wing and 20.3 m podiu
 - Window modules, mullions, six-floor bands, crown fins, balcony rails, and
   roof louvers are rebuilt at meter scale using the existing building kit.
   They reuse the original model's modeling approach rather than stretching its
-  exaggerated facade. Window counts, relief depths and colors are approximations.
+  exaggerated facade. Window counts and relief depths are approximations. Colors
+  follow the original artwork's neutral gray palette: charcoal glazing and trim,
+  gray precast, and occasional lighter windows, rather than photographic colors.
 - The upper crown has inset glazing behind taller fins. A separate mechanical
   enclosure and louver screen reach the published top; the whole tower footprint
   is no longer extruded to that height.

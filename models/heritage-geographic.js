@@ -24,14 +24,20 @@ export function heritageFloorHeight(floor) {
 export function createHeritageGeographicBuilding(record, projectPlan, offset) {
   const h = heritageGeographicLevels;
   const kit = createBuilder(record.name, record.id);
-  const shell = kit.batch("Heritage · tower and lower wing", kit.material(0x414c4d));
-  const base = kit.batch("Heritage · mapped ground footprint", kit.material(0x939084));
-  const stone = kit.batch("Heritage · limestone frame", kit.material(0xc0b9a5));
-  const trim = kit.batch("Heritage · bronze mullions and slab edges", kit.material(0x62645d));
-  const roof = kit.batch("Heritage · roof terraces", kit.material(0x666d69));
-  const mechanical = kit.batch("Heritage · mechanical penthouses", kit.material(0x777e78));
-  const glass = [0x455b60, 0x50666a, 0x3d5358, 0x5b6e70].map((color, i) => kit.batch(`Heritage · glazing ${i + 1}`, kit.material(color)));
-  const masonry = [0xb1a695, 0x8b8070, 0xb9b2a0, 0x908a7d].map((color, i) => kit.batch(`Heritage · Wabash facade ${i + 1}`, kit.material(color)));
+  // Match the original artwork's neutral palette, using the same toon-lighting
+  // compensation as heritage-at-millennium-park.js for glass, trim and precast.
+  const shell = kit.batch("Heritage · tower and lower wing", kit.material(0x363636));
+  const base = kit.batch("Heritage · mapped ground footprint", kit.material(0x787878));
+  const stone = kit.batch("Heritage · limestone frame", kit.material(0x8c8c8c));
+  const trim = kit.batch("Heritage · bronze mullions and slab edges", kit.material(0x141414));
+  const roof = kit.batch("Heritage · roof terraces", kit.material(0x363636));
+  const mechanical = kit.batch("Heritage · mechanical penthouses", kit.material(0xa4a4a4));
+  const glass = [0x444444, 0x474747, 0x4a4a4a, 0x3a3a3a, 0x7a7a7a].map((color, i) => kit.batch(`Heritage · glazing ${i + 1}`, kit.material(color)));
+  const masonry = [0x8c8c8c, 0x787878, 0x919191, 0x808080].map((color, i) => kit.batch(`Heritage · Wabash facade ${i + 1}`, kit.material(color)));
+  const pane = (floor, bay, side = 0) => {
+    const hash = (floor * 131 + bay * 37 + side * 59 + 11) % 97;
+    return glass[hash < 5 ? 4 : hash < 8 ? 3 : hash % 3];
+  };
 
   const ground = projectPlan(record.footprint.coordinates);
   const tower = projectPlan(record.parts.find((p) => p.way === 686199648).coordinates);
@@ -104,7 +110,7 @@ export function createHeritageGeographicBuilding(record, projectPlan, offset) {
         if (!exposed(run, bottom, other, otherTop)) continue;
         for (let bay = 0; bay < bays; bay += 1) {
           const from = bay * width + 0.20, to = (bay + 1) * width - 0.20;
-          strip(glass[(floor * 7 + bay * 3 + side) % glass.length], run, from, to, bottom + 0.28, top - 0.24, 0.015, 0.055);
+          strip(pane(floor, bay, side), run, from, to, bottom + 0.28, top - 0.24, 0.015, 0.055);
           strip(trim, run, (from + to) / 2 - 0.035, (from + to) / 2 + 0.035, bottom + 0.28, top - 0.24, 0.06, 0.10);
         }
         const major = (floor - 9) % 6 === 0;
@@ -176,8 +182,8 @@ export function createHeritageGeographicBuilding(record, projectPlan, offset) {
       for (let floor = 0; floor < 6; floor += 1) {
         const y = floor === 0 ? 0.65 : 5.3 + (floor - 1) * 3.7;
         const top = y + (floor === 0 ? 3.95 : 2.75);
-        if (historic && block !== 1 && floor > 0) archedPane(glass[(bay + floor) % glass.length], run, s, width * 0.31, y, top);
-        else strip(glass[(bay + floor) % glass.length], run, s - width * 0.31, s + width * 0.31, y, top, 0.10, 0.14);
+        if (historic && block !== 1 && floor > 0) archedPane(pane(floor, bay), run, s, width * 0.31, y, top);
+        else strip(pane(floor, bay), run, s - width * 0.31, s + width * 0.31, y, top, 0.10, 0.14);
         if (historic) {
           strip(stone, run, s - width * 0.34, s + width * 0.34, top + 0.03, top + 0.19, 0.15, 0.26);
           strip(stone, run, s - width * 0.34, s + width * 0.34, y - 0.15, y - 0.02, 0.15, 0.25);
