@@ -62,6 +62,11 @@ command(usage, { json: { type: "string" }, root: { type: "string" } }, async ({ 
       rows((b, group, i) => (b.columns[group][i]?.residual ?? NaN).toFixed(2)));
     table(`${fitted.label} sight-line gaps (m toward the camera; ${fitted.sightGap.join("-")} m on the column's batch)`, names,
       rows((b, group, i) => { const hit = b.sightGaps[group][i]; return `${hit.gap.toFixed(3)}${hit.mesh === fitted.columns[group].batch ? "" : ` on ${hit.mesh}`}`; }));
+    if (Object.keys(fitted.rows || {}).length) {
+      const rowValues = (pick) => Object.keys(fitted.rows).flatMap((group) => fitted.rows[group].drawn.map((_, i) => [`${group} ${i + 1}`, ...names.map((name) => pick(results[name].buildings[index], group, i))]));
+      table(`${fitted.label} row residuals (layer units; tolerance in normalized canvas units)`, names,
+        rowValues((b, group, i) => b.rows[group][i].residual.toFixed(2)));
+    }
     table(`${fitted.label} distance from features to built edges (m; tolerance ${fitted.onGeometryTolerance})`, names,
       Object.keys(building.onGeometry).map((feature) => [feature, ...names.map((name) => results[name].buildings[index].onGeometry[feature].toExponential(2))]));
   }

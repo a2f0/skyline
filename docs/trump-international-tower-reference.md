@@ -23,8 +23,9 @@ or published with the study.
   the higher south face and bevel, then form the source's vertical drop and sloped low roof on the
   east face without adding broad lower setbacks.
 - Glazed floor panels, horizontal bands, and proud mullions carry the measured grid across the
-  south, bevel, and east faces. The four roof-step vertices are physical geometry for raycasts and
-  elevated views to inspect.
+  south, bevel, and east faces. The source's forty-one regular shaft strokes repeat every 21.3645
+  layer units; their camera fit gives a 3.482373 m model pitch and a 2.161462 m platform-relative
+  phase. The four roof-step vertices are physical geometry for raycasts and elevated views to inspect.
 - A narrower, east-offset crown enclosure stays inside the shaft's east wall and rests on a hidden
   roof plinth. Twenty-three light ribs and three seams follow its south face, bevel, and east face;
   three nested closed mast sections rise from its roof to reproduce the visible antenna joints.
@@ -40,8 +41,8 @@ upper-shaft and crown mullions across every tested layout. Trump stands behind O
 view, preserving the source drawing's lower-facade occlusion while keeping the crown and spire
 available for independent hover.
 
-Validation combines the five-layout landmark and column measurements, first-surface raycasts to
-the raised mullions and floor bands, closed-solid and coplanar-overlap checks, and front, rear,
-and elevated render review. The broad lower facade is deliberately continuous where the drawing
-leaves it obscured; matching unseen floors or an exact structural survey is outside this visual
-study's scope.
+Validation combines the five-layout landmark, column, and sampled floor-row measurements,
+first-surface raycasts to the raised mullions and floor bands, closed-solid and coplanar-overlap
+checks, and front, rear, and elevated render review. The broad lower facade is deliberately
+continuous where the drawing leaves it obscured; matching unseen floors or an exact structural
+survey is outside this visual study's scope.

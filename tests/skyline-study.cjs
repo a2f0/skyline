@@ -55,6 +55,11 @@ async function checkReferenceMatch(page) {
       list.forEach((column, index) => assert.ok(Math.abs(column.actual - column.expected) < tolerance, `${spec.label} ${name} ${index + 1} should line up with the drawing: ${JSON.stringify(column)}`));
       building.sightGaps[name].forEach(({ gap, mesh }, index) => assert.ok(gap > spec.sightGap[0] && gap < spec.sightGap[1] && mesh === batch, `${spec.label} ${name} ${index + 1} should stand proud as the first surface on its sight line: ${gap} m on ${mesh}`));
     }
+    for (const [name, list] of Object.entries(building.rows)) {
+      const { drawn, tolerance } = spec.rows[name];
+      assert.equal(list.length, drawn.length, `${spec.label} should export every drawn ${name}`);
+      list.forEach((row, index) => assert.ok(Math.abs(row.actual - row.expected) < tolerance, `${spec.label} ${name} ${index + 1} should match the source row: ${JSON.stringify(row)}`));
+    }
   }
   // Fin 3 stands on the joint and fin 11 on the bow's end; bays narrow as the bow turns away.
   const fins = columns.crownFins.map((column) => column.actual);

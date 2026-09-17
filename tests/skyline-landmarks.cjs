@@ -137,6 +137,12 @@ const fitted = [
       trumpEastMullions: { batch: "raised mullions and floor bands", drawn: [4132.294, 4143.203, 4153.301, 4163.411, 4172.917, 4179.801, 4187.73, 4196.078, 4204.42, 4210.454] },
       trumpCrownMullions: { batch: "ribbed crown", drawn: [4042.783, 4047.166, 4051.336, 4056.356, 4061.407, 4068.232, 4076.372, 4084.83, 4094.737, 4103.839, 4113.424, 4123.676, 4133.78, 4144.157, 4154.945, 4164.957, 4174.571, 4182.598, 4189.196, 4193.491, 4196.86, 4200.233, 4203.905] },
     },
+    // Samples of the forty-one regular shaft rows, measured through a south bay between the
+    // eighth and ninth mullions. They span the One Prudential occlusion edge to the upper shaft, so a
+    // wrong pitch or phase cannot hide behind the foreground building.
+    rows: {
+      trumpFloorBands: { drawn: [1723.07, 1573.522, 1423.974, 1274.426, 1124.877, 975.329, 868.509], tolerance: 0.0009 },
+    },
     sightGap: [0.05, 1],
     // The compact crown's hand-drawn sloping edge is the limiting landmark; all five
     // layouts remain within this measured 0.0032 canvas-unit bound.

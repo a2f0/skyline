@@ -352,6 +352,7 @@ async function main() {
         return ray.intersectObjects(objects, false)[0];
       };
       const shell = surfaces.filter((mesh) => mesh.name === "closed glass shells and roof steps");
+      const { trumpFeatures } = await load(entry.module);
       // The cap above the east drop must stay seated on the shaft all the way through the source
       // step. These shell-only horizontal rays cannot be satisfied by facade panes or mullions.
       for (const z of [4, 1, -2]) {
@@ -370,6 +371,14 @@ async function main() {
       for (const { index, normal, normals } of shellTriangles) {
         for (const vertexNormal of normals) assert.ok(dot(normal, vertexNormal) > 0.9999,
           `Trump shell triangle ${index} should carry a geometric surface normal`);
+      }
+      // These row samples sit in an open south bay, so each ray must meet the raised horizontal
+      // band itself rather than a nearby mullion or the recessed glazing behind it.
+      const facadeBands = surfaces.filter((mesh) => mesh.name === "raised mullions and floor bands");
+      for (const point of trumpFeatures.trumpFloorBands) {
+        const contact = hit([point[0], point[1], 40], [0, 0, -1], facadeBands);
+        assert.equal(contact?.object.name, "raised mullions and floor bands", "each sampled Trump floor row should be a raised band");
+        assert.ok(Math.abs(contact.point.z - point[2]) < 0.02, "each sampled Trump floor band should meet its measured south face");
       }
       // All four corners of the bottom mast section must meet the crown roof. This catches a
       // visually plausible antenna whose plan drifts outside or beside its supporting crown.

@@ -12,7 +12,10 @@ const tip = 406.55327;
 const highRoof = 335.4;
 const eastShoulder = 325.4;
 const crownTop = 345;
-const floorHeight = 4.05;
+// The SVG's regular shaft rows repeat every 21.3645 layer units. Fitting the middle south bay
+// through the skyline camera gives this platform-relative pitch and its first visible phase.
+const floorHeight = 3.482373;
+const floorOrigin = 2.161462;
 const mullionDepth = 0.2;
 
 const planOf = (points) => points.map((at, index) => line(at, points[(index + 1) % points.length]));
@@ -58,13 +61,6 @@ const eastHighCapPlan = [eastSouth, eastRoofStart, innerRoofStart, innerBevelEas
 const eastDropCapPlan = [eastRoofStart, eastRoofStep, innerRoofStep, innerRoofStart];
 const shoulderCapPlan = [eastRoofStep, eastShoulderEnd, innerShoulderEnd, innerRoofStep];
 
-const tiers = [
-  { name: "lower shaft", y0: 0, y1: 64 },
-  { name: "hotel floors", y0: 64, y1: 123 },
-  { name: "residential floors", y0: 123, y1: 204 },
-  { name: "upper shaft", y0: 204, y1: eastShoulder },
-].map((tier) => ({ ...tier, plan: shaftPlan }));
-
 // The narrow crown is drawn farther north than the shaft's visible face. Its east side remains
 // inside the shaft's east wall, while the hidden plinth above supplies its full base support.
 const crownPlan = clippedPlan(14.023614, 33.315081, 2.8, [8.571132, -8.396334]);
@@ -103,6 +99,14 @@ const capEastFractions = eastFractions.filter((fraction) => fraction < capEastCo
 const shaftFrontStations = stationsAt(front(shaftPlan), frontFractions);
 const shaftCornerStations = stationsAt(shaftPlan[1], cornerFractions);
 const shaftEastStations = stationsAt(east(shaftPlan), eastFractions);
+const floorAt = (index) => floorOrigin + floorHeight * index;
+// Source rows 44 through 84 are the forty-one regular visible facade strokes. These samples span
+// the occlusion edge through the upper shaft and keep both pitch and phase tied to the drawing.
+const floorRowSamples = [44, 51, 58, 65, 72, 79, 84];
+const floorBandStation = {
+  at: shaftFrontStations[7].at.map((value, axis) => (value + shaftFrontStations[8].at[axis]) / 2),
+  normal: shaftFrontStations[7].normal,
+};
 const capRuns = [front(frontCapPlan), front(bevelCapPlan), capEastRun];
 const capStations = [
   ...stationsAt(capRuns[0], frontFractions),
@@ -142,6 +146,7 @@ export const trumpFeatures = {
   trumpFrontMullions: shaftFrontStations.map((where) => mullionFeature(where, 204.25, eastShoulder - 0.3)),
   trumpCornerMullions: shaftCornerStations.map((where) => mullionFeature(where, 204.25, eastShoulder - 0.3)),
   trumpEastMullions: shaftEastStations.map((where) => mullionFeature(where, 204.25, eastShoulder - 0.3)),
+  trumpFloorBands: floorRowSamples.map((row) => point(along(floorBandStation, 0.095), floorAt(row))),
   // The front roof cap hides the crown's lower ribs in the skyline view. Probe their exposed
   // upper section, where each light rib must be the first surface on its sight line.
   trumpCrownMullions: crownRibStations.map((where) => point(along(where, 0.11), crownTop - 0.35)),
@@ -196,27 +201,32 @@ export function createTrumpInternationalTowerBuilding() {
   const tones = [0x45494a, 0x4a4d4d, 0x505253, 0x3f4344].map((hex) => new THREE.Color(hex));
   const lit = new THREE.Color(0x8a8b82);
   const shade = new THREE.Color(0x303335);
-  const addFacade = ({ runs, paneFractions, mullions, y0, y1, phase }) => {
+  const addFacade = ({ runs, paneFractions, mullions, y0, y1 }) => {
     for (const [runIndex, run] of runs.entries()) {
       const stations = paneFractions[runIndex].map((fraction) => run.length * fraction);
       for (let bay = 0; bay < stations.length - 1; bay += 1) {
         const s0 = stations[bay] + 0.16, s1 = stations[bay + 1] - 0.16;
         if (s1 - s0 < 0.25) continue;
-        for (let y = y0 + 0.26, row = 0; y + 0.28 < y1; y += floorHeight, row += 1) {
-          const hash = (row * 37 + bay * 17 + runIndex * 23 + Math.round(phase)) % 29;
-          panel(panes, run, s0, s1, y, Math.min(y + floorHeight - 0.42, y1 - 0.16), 0.035,
+        for (let row = Math.floor((y0 - floorOrigin) / floorHeight); floorAt(row) < y1; row += 1) {
+          const y = floorAt(row), from = Math.max(y + 0.26, y0 + 0.16), to = Math.min(y + floorHeight - 0.42, y1 - 0.16);
+          if (to - from < 0.25) continue;
+          const hash = (row * 37 + bay * 17 + runIndex * 23) % 29;
+          panel(panes, run, s0, s1, from, to, 0.035,
             hash === 0 ? lit : hash < 3 ? shade : tones[hash % tones.length]);
         }
       }
     }
-    for (let y = y0 + floorHeight; y + 0.12 < y1; y += floorHeight) band(ribs, runs, y - 0.12, y + 0.07, 0.095, { omit: ["back"] });
+    for (let row = Math.ceil((y0 - floorOrigin) / floorHeight); floorAt(row) + 0.12 < y1; row += 1) {
+      const y = floorAt(row);
+      band(ribs, runs, y - 0.12, y + 0.07, 0.095, { omit: ["back"] });
+    }
     for (const where of mullions) box(ribs, where.at, where.normal, 0.11, 0, mullionDepth, y0 + 0.14, y1 - 0.14);
   };
 
   const shaftRuns = visibleRuns(shaftPlan);
   const shaftPanes = [[0, ...frontFractions, 1], [0, ...cornerFractions], [0, ...eastFractions, 1]];
   const shaftMullions = [...shaftFrontStations, ...shaftCornerStations, ...shaftEastStations];
-  for (const tier of tiers) addFacade({ runs: shaftRuns, paneFractions: shaftPanes, mullions: shaftMullions, y0: tier.y0, y1: tier.y1, phase: tier.y0 });
+  addFacade({ runs: shaftRuns, paneFractions: shaftPanes, mullions: shaftMullions, y0: 0, y1: eastShoulder });
 
   // The high grid follows the same measured front, bevel, and east-face column rhythm through
   // the roof cap. It therefore continues the source lines instead of jogging at the shoulder.
@@ -226,7 +236,6 @@ export function createTrumpInternationalTowerBuilding() {
     mullions: capStations,
     y0: eastShoulder,
     y1: 334.3,
-    phase: eastShoulder,
   });
   band(ribs, [front(shaftPlan)], eastShoulder - 0.24, eastShoulder - 0.05, 0.095, { omit: ["back"] });
   band(ribs, [shaftPlan[1], shaftPlan[2]], eastShoulder - 0.24, eastShoulder - 0.05, 0.11, { omit: ["back"] });
