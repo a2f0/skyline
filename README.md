@@ -70,6 +70,11 @@ orthographic view. Both comparison views preserve camera and zoom when toggling
 back to **original drawing**, aligned at Crain so changes in position and scale
 remain visible. The original skyline camera and fitted models are retained.
 
+Scroll, pinch, or use **+ / −** for close inspection. Perspective views can zoom
+to one tenth of their fitted camera distance; orthographic views support 24×
+zoom. **Shift-drag** (or two fingers on touch screens) pans between buildings in
+either mode. **Home** or **Reset** restores the layout's starting view.
+
 The table below the viewer compares original and mapped ground extents, east/north
 coordinates, and modeled top heights, with source links and assumptions. Heritage
 has a detailed geographic facade, with terrace elevations from city design

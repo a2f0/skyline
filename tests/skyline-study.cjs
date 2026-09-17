@@ -101,13 +101,21 @@ async function checkCameraFloor(page, screenshotPath) {
   assert.ok((await cameraPosition(page))[1] >= 0.999, "lowest orbit at maximum distance should stay above ground");
   await checkVisibleHighlight(page, "far");
   if (screenshotPath) await page.locator("canvas").screenshot({ path: screenshotPath });
-  for (let index = 0; index < 24; index += 1) await page.keyboard.press("+");
+  for (let index = 0; index < 13; index += 1) await page.keyboard.press("+");
   await checkVisibleHighlight(page, "near");
+  await page.keyboard.press("Home");
+  const before = await cameraPosition(page);
+  const distance = (position) => Math.hypot(position[0], position[1] - 172.5, position[2]);
+  for (let index = 0; index < 40; index += 1) await page.keyboard.press("+");
+  const close = await cameraPosition(page);
+  assert.ok(Math.abs(distance(close) / distance(before) - 0.1) < 1e-6, "perspective zoom reaches one tenth of the fitted distance");
+  assert.ok(close.every(Number.isFinite) && close[1] >= 0.999, "close-up camera stays finite and above ground");
+  await checkVisibleHighlight(page, "close-up", [0, 165, 23.4]);
   await page.keyboard.press("Home");
 }
 
-async function checkVisibleHighlight(page, clippingPlane) {
-  const point = await screenPoint(page, michigan, [0, 120, 23.4]);
+async function checkVisibleHighlight(page, clippingPlane, modelPoint = [0, 120, 23.4]) {
+  const point = await screenPoint(page, michigan, modelPoint);
   await page.mouse.move(5, 5);
   await settle(page);
   const unlit = await patch(page, point);
@@ -137,6 +145,34 @@ async function main() {
     await page.goto(`${origin}/skyline-study.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     await settle(page);
+    // Pan must work on first load, before a view button initializes controls.
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.locator("canvas").scrollIntoViewIfNeeded();
+    const panBefore = await cameraPosition(page), panBox = await page.locator("canvas").boundingBox();
+    await page.mouse.move(panBox.x + panBox.width / 2, panBox.y + panBox.height / 2);
+    await page.keyboard.down("Shift");
+    await page.mouse.down();
+    await page.mouse.move(panBox.x + panBox.width / 2 + 40, panBox.y + panBox.height / 2, { steps: 4 });
+    await page.mouse.up();
+    await page.keyboard.up("Shift");
+    assert.notDeepEqual(await cameraPosition(page), panBefore, "perspective view can pan to a different building");
+    // Lower the orbit target below grade, then zoom until a fixed target would
+    // make the camera-floor and minimum-angle constraints incompatible.
+    for (let drag = 0; drag < 3; drag += 1) {
+      await page.mouse.move(panBox.x + panBox.width / 2, panBox.y + panBox.height * 0.85);
+      await page.keyboard.down("Shift");
+      await page.mouse.down();
+      await page.mouse.move(panBox.x + panBox.width / 2, panBox.y + panBox.height * 0.15, { steps: 8 });
+      await page.mouse.up();
+      await page.keyboard.up("Shift");
+    }
+    await page.locator("canvas").focus();
+    for (let step = 0; step < 40; step += 1) await page.keyboard.press("+");
+    const pannedClose = await cameraPosition(page);
+    assert.ok(pannedClose.every(Number.isFinite) && pannedClose[1] >= 0.999, "zooming toward a below-ground target stays above grade");
+    assert.deepEqual(errors, [], "panning and zooming cannot recursively overflow the camera-floor guard");
+    await page.locator("#reset").click();
+    await page.emulateMedia({ reducedMotion: "reduce" });
     assert.deepEqual(await page.evaluate(() => window.__buildingStudy.modelNames), models.map((model) => model.name));
     assert.equal(await page.evaluate(() => window.__buildingStudy.activeView), "skyline");
     // A budget for the whole scene; raise it deliberately when a detailed building lands.

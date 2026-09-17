@@ -14,6 +14,9 @@ export function createBuildingStudy({
   near = 1,
   far = 2000,
   clippingMargin = null,
+  minimumDistanceRatio = 0.48,
+  maximumZoom = 4,
+  enablePan = false,
   target = [0, 85, 0],
   minimumCameraHeight = null,
   fit = { height: 230, width: 98 },
@@ -73,7 +76,7 @@ export function createBuildingStudy({
   const planCamera = new THREE.OrthographicCamera(-500, 500, 500, -500, near, far);
   let camera = perspectiveCamera;
   const controls = new THREE.OrbitControls(camera, canvas);
-  controls.enablePan = false;
+  controls.enablePan = enablePan;
   controls.enableDamping = false;
   controls.minPolarAngle = Math.PI * 0.12;
   controls.maxPolarAngle = Math.PI * 0.52;
@@ -189,10 +192,10 @@ export function createBuildingStudy({
     const view = viewFor(name);
     camera = view.projection === "orthographic" ? planCamera : perspectiveCamera;
     controls.object = camera;
-    controls.enablePan = camera.isOrthographicCamera;
+    controls.enablePan = enablePan || camera.isOrthographicCamera;
     controls.minPolarAngle = camera.isOrthographicCamera ? 0 : Math.PI * 0.12;
     controls.minZoom = 0.5;
-    controls.maxZoom = 4;
+    controls.maxZoom = maximumZoom;
     camera.zoom = 1;
     base.receiveShadow = name !== "top";
     frameFit = view.fit || fit;
@@ -217,14 +220,9 @@ export function createBuildingStudy({
       camera.top = height / 2; camera.bottom = -height / 2;
       camera.left = -height * aspect / 2; camera.right = height * aspect / 2;
     }
-    controls.minDistance = fittedDistance * 0.48;
+    controls.minDistance = fittedDistance * minimumDistanceRatio;
     controls.maxDistance = fittedDistance * 2;
-    if (clippingMargin !== null) {
-      // Enclose the scene throughout the permitted zoom range. Moving the
-      // near plane with the fit also preserves precision in narrow layouts.
-      camera.near = Math.max(near, controls.minDistance - clippingMargin);
-      camera.far = Math.max(far, controls.maxDistance + clippingMargin);
-    }
+    updateClipping();
     camera.updateProjectionMatrix();
     if (activeView) positionView(activeView);
     else {
@@ -234,18 +232,38 @@ export function createBuildingStudy({
     requestRender();
   }
 
+  function updateClipping() {
+    if (clippingMargin === null) return;
+    // Follow the eye's distance from the scene, including after panning.
+    // A close near plane allows detail inspection; moving it out again at
+    // wider views preserves depth precision between thin facade layers.
+    const distance = Math.hypot(camera.position.x - target[0], camera.position.y - target[1], camera.position.z - target[2]);
+    const nextNear = Math.max(near, distance - clippingMargin);
+    const nextFar = Math.max(far, distance + clippingMargin);
+    if (camera.near === nextNear && camera.far === nextFar) return;
+    camera.near = nextNear; camera.far = nextFar;
+    camera.updateProjectionMatrix();
+  }
+
   controls.addEventListener("change", () => {
     // Long-lens scenes can reach below ground even at a shallow polar angle.
     // Preserve zoom distance and azimuth while keeping the eye above the base.
     if (minimumCameraHeight !== null && camera.position.y < minimumCameraHeight - 1e-6) {
       const offset = camera.position.clone().sub(controls.target);
       const distance = offset.length();
-      const vertical = minimumCameraHeight - controls.target.y;
+      // Panning can place the target so far below grade that no allowed polar
+      // angle reaches the floor at this radius. Raise the target only enough
+      // to make the constraint feasible before asking OrbitControls to update.
+      // Otherwise its angle clamp undoes our correction and recurses forever.
+      const vertical = Math.min(minimumCameraHeight - controls.target.y, distance * Math.cos(controls.minPolarAngle));
+      controls.target.y = minimumCameraHeight - vertical;
       const horizontal = Math.sqrt(Math.max(0, distance * distance - vertical * vertical));
-      const scale = horizontal / Math.hypot(offset.x, offset.z);
-      camera.position.set(controls.target.x + offset.x * scale, minimumCameraHeight, controls.target.z + offset.z * scale);
+      const oldHorizontal = Math.hypot(offset.x, offset.z);
+      const direction = oldHorizontal > 1e-9 ? [offset.x / oldHorizontal, offset.z / oldHorizontal] : [0, 1];
+      camera.position.set(controls.target.x + direction[0] * horizontal, minimumCameraHeight, controls.target.z + direction[1] * horizontal);
       controls.update();
     }
+    updateClipping();
     requestRender();
   });
   controls.addEventListener("start", () => {
@@ -368,7 +386,7 @@ export function createBuildingStudy({
   function updateCameraHint() {
     document.querySelector("#camera-hint").innerHTML = reducedMotion.matches
       ? '<span class="wide-hint">Use the view buttons or arrow keys to inspect<br />+ / − zoom · Home resets</span><span class="narrow-hint">Use the view buttons to inspect</span>'
-      : camera.isOrthographicCamera
+      : controls.enablePan
         ? '<span class="wide-hint">Drag to orbit · shift-drag to pan · scroll to zoom<br />Arrow keys rotate · + / − zoom · Home resets</span><span class="narrow-hint">Drag to orbit · two fingers pan / zoom</span>'
         : '<span class="wide-hint">Drag to orbit · scroll or pinch to zoom<br />Arrow keys rotate · + / − zoom · Home resets</span><span class="narrow-hint">Drag to orbit · pinch to zoom</span>';
   }

@@ -74,9 +74,11 @@ const viewer = createBuildingStudy({
     ...comparison.views,
   },
   fov: 6,
-  // Even at minimum zoom distance the nearest surface is >800 units away.
-  // Keep fine facade layers distinct at maximum mobile zoom-out as well.
-  near: 600,
+  minimumDistanceRatio: 0.1,
+  maximumZoom: 24,
+  enablePan: true,
+  // The viewer moves the near plane outward at wider views to retain precision.
+  near: 10,
   far: 10000,
   // The reference frame grew around the same centre to include Aon. Its platform
   // footprint and farthest corner remain inside the clipping margin at every zoom.
