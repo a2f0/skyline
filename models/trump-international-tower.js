@@ -152,8 +152,8 @@ export const trumpFeatures = {
   trumpEastMullions: shaftEastStations.map((where) => mullionFeature(where, 204.25, eastShoulder - 0.3)),
   trumpFloorBands: floorRowSamples.map((row) => point(along(floorBandStation, 0.095), floorAt(row))),
   // The front roof cap hides the crown's lower ribs in the skyline view. Probe their exposed
-  // upper section, where each light rib must be the first surface on its sight line.
-  trumpCrownMullions: crownRibStations.map((where) => point(along(where, 0.11), crownTop - 0.35)),
+  // upper section below the parapet, so only a rib can satisfy the sight-line check.
+  trumpCrownMullions: crownRibStations.map((where) => point(along(where, 0.11), crownTop - 1)),
 };
 
 export function createTrumpInternationalTowerBuilding() {
