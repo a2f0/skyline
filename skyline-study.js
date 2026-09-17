@@ -1,4 +1,5 @@
 import { createBuildingStudy } from "./study-viewer.js";
+import { createSkylineComparison } from "./skyline-comparison.js";
 import { createCrainBuilding } from "./models/crain-communications.js";
 import { createHeritageAtMillenniumParkBuilding } from "./models/heritage-at-millennium-park.js";
 import { createKemperBuilding } from "./models/kemper.js";
@@ -58,13 +59,19 @@ place(twoPrudential, 270.727, -45);
 twoPrudential.building.rotation.y = -1.758 * Math.PI / 180;
 place(aon, 370, 40);
 
-createBuildingStudy({
-  models: [heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon],
+const models = [heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon];
+const comparison = createSkylineComparison(models, crain.building.position);
+const viewer = createBuildingStudy({
+  models,
+  layouts: comparison.layouts,
+  labels: comparison.labels,
+  onLayoutChange: comparison.onLayoutChange,
   defaultView: "skyline",
   views: {
     skyline: { azimuth, polar: Math.PI / 2 - elevation, label: "skyline view" },
     quarter: { azimuth: azimuth + 0.3, polar: Math.PI / 2 - 0.28, label: "three-quarter view" },
     side: { azimuth: azimuth + Math.PI / 2, polar: Math.PI / 2 - 0.14, label: "side view" },
+    ...comparison.views,
   },
   fov: 6,
   // Even at minimum zoom distance the nearest surface is >800 units away.
@@ -83,3 +90,4 @@ createBuildingStudy({
   // upper corner does not cross its near plane. The solo study keeps its preset.
   shadowCamera: { left: -540, right: 560, top: 550, bottom: -400, near: 1, far: 1300 },
 });
+comparison.connect(viewer);

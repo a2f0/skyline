@@ -27,6 +27,7 @@ async function main() {
     await run(process.execPath, ["tests/building-hover.cjs"], env);
     await run(process.execPath, ["tests/building-study.cjs"], env);
     await run(process.execPath, ["tests/skyline-study.cjs"], env);
+    await run(process.execPath, ["tests/skyline-geography.cjs"], env);
   } finally {
     await server.close();
   }

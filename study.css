@@ -34,7 +34,25 @@ button:disabled { cursor: default; opacity: 0.35; }
 [hidden] { display: none !important; }
 .skyline-study .comparison { grid-template-columns: 1fr 1fr; }
 .skyline-study .reference img { left: 0; transform: none; width: 100%; height: calc(100% - 44px); padding: 0; }
+.layout-controls { display: flex; gap: 24px; align-items: center; padding: 0 0 18px; }
+.layout-controls p { color: #a2b5b8; font-size: 11px; line-height: 1.7; max-width: 85ch; margin: 0; }
+.layout-controls .button-group { flex-shrink: 0; }
+.geographic-details { margin-top: 20px; border-top: 1px solid #292929; padding-top: 16px; color: #999; font-size: 11px; line-height: 1.8; }
+.geographic-details summary { color: #ddd; cursor: pointer; }
+.geographic-details p { max-width: 120ch; }
+.dimension-scroll { overflow-x: auto; margin: 20px 0; }
+.dimension-table { width: 100%; border-collapse: collapse; font-size: 10px; text-align: left; }
+.dimension-table th, .dimension-table td { padding: 12px; vertical-align: top; border-bottom: 1px solid #292929; }
+.dimension-table thead th { color: #ccc; font-weight: 400; }
+.dimension-table tbody th { color: #bdd3d7; font-weight: 400; min-width: 135px; }
+.dimension-table td:not(:last-child) { white-space: nowrap; }
+.dimension-table td:last-child { min-width: 240px; max-width: 370px; }
+.study-annotations { position: absolute; inset: 0 0 44px; pointer-events: none; overflow: hidden; }
+.study-annotations span { position: absolute; transform: translate(-50%, -100%); margin-top: -10px; padding: 3px 5px; color: #d0e5e8; background: #0a1113d9; font-size: 9px; white-space: nowrap; }
+.study-annotations [data-placement="below"] { transform: translate(-50%, 0); margin-top: 12px; }
+.study-annotations [data-placement="right"] { transform: translate(0, -50%); margin-top: 0; margin-left: 14px; }
 @media (max-width: 600px) {
+  .layout-controls { align-items: start; flex-direction: column; gap: 12px; }
   header { padding: 24px 5vw; flex-wrap: wrap; gap: 18px; }
   h1 { max-width: 300px; }
   .comparison { grid-template-columns: 0.55fr 1fr; }

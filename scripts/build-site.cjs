@@ -23,6 +23,7 @@ const files = [
   "study-loader.js",
   "study-viewer.js",
   "skyline-study.js",
+  "skyline-comparison.js",
   "building-study.js",
   "vendor/three-r186.js",
   "vendor/THREE-LICENSE.txt",
