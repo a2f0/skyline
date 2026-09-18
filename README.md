@@ -79,7 +79,11 @@ The table below the viewer compares original and mapped ground extents, east/nor
 coordinates, and modeled top heights, with source links and assumptions. Heritage
 has a detailed geographic facade, with terrace elevations from city design
 drawings and the published 192.4 m top; see its [reference audit](docs/heritage-geographic-reference.md).
-The other seven buildings use simple massing on mapped outlines. Intermediate
+Trump International Hotel and Tower has a detailed one too: its mapped tier
+outlines, setback terraces, ribbed crown and three-section mast carry the fitted
+model's glazing vocabulary at meter scale, with window rows and bays estimated;
+see its [reference audit](docs/trump-geographic-reference.md). The other six
+buildings use simple massing on mapped outlines. Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
 for the coordinate system, eight footprint records, height definitions, OSM

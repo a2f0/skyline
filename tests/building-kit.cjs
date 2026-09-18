@@ -339,10 +339,14 @@ async function main() {
   // facing the ground.
   const { geographicBuildings } = await load("models/skyline-geography-data.js");
   const { createGeographicBuilding } = await load("models/skyline-geography.js");
-  for (const { id } of [...fitted, { id: "heritage-geographic" }]) {
+  const geographic = {
+    "heritage-geographic": "Heritage",
+    "trump-geographic": "Trump",
+  };
+  for (const { id } of [...fitted, { id: "heritage-geographic" }, { id: "trump-geographic" }]) {
     const entry = models.find((model) => model.id === id);
-    const model = id === "heritage-geographic"
-      ? createGeographicBuilding(geographicBuildings.find((record) => record.shortName === "Heritage"))
+    const model = geographic[id]
+      ? createGeographicBuilding(geographicBuildings.find((record) => record.shortName === geographic[id]))
       : (await load(entry.module))[entry.factory]();
     const meshes = model.building.children.filter((child) => child.isMesh).map((mesh) => ({
       name: mesh.name, triangles: trianglesOf({ positions: mesh.geometry.getAttribute("position").array, normals: mesh.geometry.getAttribute("normal").array }),

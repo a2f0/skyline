@@ -89,6 +89,42 @@ async function main() {
       }));
       assert.deepEqual(grade, mapped, "Heritage keeps every ground-plan corner, not just its bounding box");
     }
+    if (record.shortName === "Trump") {
+      model.building.updateMatrixWorld(true);
+      const ray = new THREE.Raycaster();
+      const meshes = model.building.children.filter((child) => child.isMesh);
+      const hit = (origin, direction, targets = meshes) => {
+        ray.set(new THREE.Vector3(...origin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(targets, false)[0];
+      };
+      // The mapped tier boundaries: a downward ray meets each tier's roof at its
+      // OSM part height where the next tier does not cover it.
+      near(hit([-95, 100, -450], [0, -1, 0]).point.y, 60, 0.001, "Trump podium roof");
+      near(hit([-150, 150, -430], [0, -1, 0]).point.y, 120, 0.001, "Trump base tier roof");
+      near(hit([-104, 250, -450], [0, -1, 0]).point.y, 200, 0.001, "Trump lower tier roof");
+      near(hit([-115, 360, -450], [0, -1, 0]).point.y, 345, 0.001, "Trump shaft roof");
+      near(hit([-126, 370, -450], [0, -1, 0]).point.y, 357, 0.001, "Trump crown roof");
+      // The three-section mast: mapped joints at 380 and 400, the published tip
+      // above them, and a seated base on the crown roof.
+      near(hit([-121.45, 430, -461.04], [0, -1, 0]).point.y, 423.2, 0.001, "Trump spire tip");
+      near(hit([-121.45, 410, -461.04], [0, -1, 0]).point.y, 400, 0.001, "Trump upper spire joint");
+      near(hit([-121.45, 390, -461.04], [0, -1, 0]).point.y, 380, 0.001, "Trump lower spire joint");
+      near(hit([-121.45, 350, -461.04], [0, 1, 0]).point.y, 357, 0.001, "Trump mast base on the crown roof");
+      // The mapped setbacks: the east wall stands on the base tier line, then
+      // steps 15 m west for the shaft, while the west wall leaves the Wabash lot
+      // line for the shaft. Glazed facade detail must be the first surface.
+      near(hit([-90, 90, -455], [-1, 0, 0]).point.x, -98.509, 0.02, "Trump base east wall");
+      near(hit([-90, 150, -455], [-1, 0, 0]).point.x, -98.579, 0.02, "Trump lower east wall");
+      near(hit([-90, 250, -455], [-1, 0, 0]).point.x, -113.464, 0.02, "Trump shaft east wall");
+      near(hit([-90, 350, -455], [-1, 0, 0]).point.x, -115.182, 0.02, "Trump crown east face");
+      near(hit([-165, 90, -430], [1, 0, 0]).point.x, -161.684, 0.02, "Trump base west lot-line wall");
+      near(hit([-165, 150, -430], [1, 0, 0]).point.x, -146.86, 0.02, "Trump lower west setback wall");
+      // The glazed south face carries panes, bands and mullions rather than a
+      // bare mapped shell.
+      const south = hit([-120, 300, -380], [0, 0, -1]);
+      assert.match(south.object.name, /glaz|mullion/, "Trump south face should be glazed");
+      near(south.point.z, -427.198, 0.02, "Trump glazed south face position");
+    }
   }
   assert.ok(geographicStreets.some((street) => street.name === "North Michigan Avenue"));
   assert.ok(geographicStreets.every((street) => !street.name.includes("Lower")));

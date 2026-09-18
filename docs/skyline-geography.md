@@ -2,8 +2,8 @@
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings. The geographic layout uses mapped polygon
-outlines, a detailed Heritage reconstruction, and simple massing for the other
-seven buildings. The original factories, placement and camera remain intact.
+outlines, detailed Heritage and Trump reconstructions, and simple massing for
+the other six buildings. The original factories, placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Switching layouts
 in those views preserves the camera position, target and zoom, including after an
@@ -93,9 +93,12 @@ Intermediate parts have less certainty than the overall height:
 - Kemper's two-floor podium is estimated at 7.8 m
   using 159/41. One Prudential's ten- and three-floor parts are estimated at
   44.7 and 13.4 m using 183.2/41. Brown material identifies these volumes.
-- Trump's mapped tiers use 60, 120, 200, 345, 357, 380 and 400 m heights, then
-  the published 423.2 m tip. Nested tiers start at the previous tier's top,
-  avoiding coincident exterior walls over their full height.
+- Trump's mapped tiers keep their OSM part heights of 60, 120, 200, 345, 357,
+  380 and 400 m, then the published 423.2 m tip. The tier outlines now carry a
+  glazed facade with panes, mullions and floor bands, terrace parapets, a ribbed
+  crown, and a tapered mast; see the [Trump reference audit](trump-geographic-reference.md).
+  Nested tiers start at the previous tier's top, avoiding coincident exterior
+  walls over their full height.
 - Crain's two sloping roof parts use OSM's downhill bearing of 133° and roof
   heights of 75 and 73 m. These are map data, not a surveyed roof model.
 - Two Prudential lacks mapped roof subdivisions. Its 240 m eave, 277 m pyramid
