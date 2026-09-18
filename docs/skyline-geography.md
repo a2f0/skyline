@@ -47,7 +47,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Heritage | [147397547](https://www.openstreetmap.org/way/147397547) | 686199648, 686199649, 686199650 |
 | Kemper | [64389514](https://www.openstreetmap.org/way/64389514) | 685494066, 685494067 |
 | Crain | [210671717](https://www.openstreetmap.org/way/210671717) | 284816227, 284816228, 284816229 |
-| Michigan Plaza South | [127107024](https://www.openstreetmap.org/way/127107024) | Outline extruded |
+| Michigan Plaza South | [127107024](https://www.openstreetmap.org/way/127107024) | Outline with detailed grid |
 | Trump | [64594680](https://www.openstreetmap.org/way/64594680) | Podium plus 188338549, 188338550, 188338548, 188338859, 188356529, 284773992, 284773991 |
 | One Prudential | [127107034](https://www.openstreetmap.org/way/127107034) | 685493609, 685493610, 685493612, 685493614 |
 | Two Prudential | [64388666](https://www.openstreetmap.org/way/64388666) | Outline plus inferred crown |

@@ -33,8 +33,8 @@ survey or a construction model.
 | Roof | 168.6 m | Published CTBUH architectural height |
 
 The 44 rows use a 3.81 m pitch (167.8/44), so the pane count reads as the
-published 44 stories. The top two floors' worth of parapet and roof equipment
-zone is simplified to the projecting parapet at the published top.
+published 44 stories. The parapet is 0.8 m tall at the published top; roof
+equipment is omitted.
 
 ## Plan and detail choices
 
