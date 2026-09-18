@@ -7,13 +7,13 @@
 // root space, not the animated root, and it is the space the skyline test's drawing
 // points use. The photo crop hides skyline.svg's vector shapes and frames the shapes with
 // the same ids, so both crops show the same rectangle.
-const { mkdirSync, writeFileSync } = require("node:fs");
-const os = require("node:os");
-const path = require("node:path");
-const { startServer } = require("./lib/static-server.cjs");
-const { launch, command } = require("./lib/study-page.cjs");
+import { mkdirSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { startServer } from "./lib/static-server.js";
+import { launch, command } from "./lib/study-page.js";
 
-const usage = `Usage: node scripts/measure-group.cjs <group-id> [--out dir] [--padding fraction]
+const usage = `Usage: bun scripts/measure-group.js <group-id> [--out dir] [--padding fraction]
   <group-id> is a group id (building-kemper) or a data-building-id (one-prudential-plaza);
   every .interactive-building group that matches is measured. Writes <key>.json,
   <key>-drawing.png, and <key>-photo.png to --out (default: ${path.join(os.tmpdir(), "skyline-measure")}).`;
@@ -171,7 +171,7 @@ command(usage, { out: { type: "string" }, padding: { type: "string", default: "0
   if (!Number.isFinite(padding) || padding < 0) throw new Error(`--padding takes a fraction of the group's size, not ${values.padding}.`);
   const name = key.replace(/^building-/, "");
   mkdirSync(out, { recursive: true });
-  const server = await startServer(path.join(__dirname, ".."));
+  const server = await startServer(path.join(import.meta.dirname, ".."));
   let browser;
   try {
     browser = await launch();

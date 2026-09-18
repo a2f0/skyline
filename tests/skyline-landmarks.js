@@ -1,4 +1,4 @@
-// Drawing measurements for the skyline study, shared by tests/skyline-study.cjs and the
+// Drawing measurements for the skyline study, shared by tests/skyline-study.test.js and the
 // scripts in scripts/. Drawing points are in the source SVG's layer space, the space of
 // each building group's parent.
 const heritage = "building-heritage-at-millennium-park", kemper = "building-kemper";
@@ -8,7 +8,7 @@ const prudential = "building-one-prudential-plaza", prudentialPodium = "building
 const twoPrudential = "building-two-prudential-plaza";
 const aon = "layer3";
 
-// The excerpt the study shows beside the scene; scripts/reference-svg.cjs regenerates it.
+// The excerpt the study shows beside the scene; scripts/reference-svg.js regenerates it.
 const reference = {
   path: "models/skyline-reference.svg",
   source: "skyline-animated.svg",
@@ -71,7 +71,7 @@ const landmarkTolerance = 0.0151;
 //     building is drawn less consistently than the rest; keep the building's own bound
 //     tight rather than slackening it for every set.
 //   silhouette (optional): a drawn x that nothing checks generically; it feeds a
-//     building-specific assertion in tests/skyline-study.cjs.
+//     building-specific assertion in tests/skyline-study.test.js.
 const fitted = [
   {
     id: heritage,
@@ -258,4 +258,4 @@ const fitted = [
   },
 ];
 
-module.exports = { heritage, kemper, crain, michigan, trump, prudential, prudentialPodium, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, fitted };
+export { heritage, kemper, crain, michigan, trump, prudential, prudentialPodium, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, fitted };

@@ -18,7 +18,7 @@ PR repository/number, reviewed head SHA, reviewed base ref/SHA, and optional
    it, validate, re-review and push. Use the new review's SHAs. Invoke:
 
    ```sh
-   node scripts/squash-merge.cjs <owner/repo> <number> <reviewed-head-sha> <base-ref> <reviewed-base-sha>
+   bun scripts/squash-merge.js <owner/repo> <number> <reviewed-head-sha> <base-ref> <reviewed-base-sha>
    ```
 
    The helper re-checks these identities, sends a synchronous GraphQL mutation

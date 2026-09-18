@@ -123,7 +123,7 @@ heights, curbs, tunnels, the river and surrounding buildings are absent. The
 fits. Checking curb clearances or Chicago's stacked streets requires additional
 width and elevation data.
 
-`tests/skyline-geography.cjs`, included in `npm run check`, checks independent
+`tests/skyline-geography.test.js`, included in `bun run check`, checks independent
 coordinate anchors, meter scale and north direction, all eight rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the

@@ -1,22 +1,22 @@
 // Reports how closely the skyline study follows its drawing at every layout the skyline
 // test checks: each landmark's error with per-viewport and per-building maxima, column
 // residuals in layer units, sight-line gaps, each model's projected silhouette in layer
-// space, and triangle counts. It reads tests/skyline-landmarks.cjs through the same maths
-// as tests/skyline-study.cjs, so its numbers are the ones the test asserts on. --root
+// space, and triangle counts. It reads tests/skyline-landmarks.js through the same maths
+// as tests/skyline-study.test.js, so its numbers are the ones the test asserts on. --root
 // serves another checkout, such as an archive of main, with this checkout's spec.
-const { writeFileSync } = require("node:fs");
-const path = require("node:path");
-const { startServer } = require("./lib/static-server.cjs");
-const { launch, openStudy, command } = require("./lib/study-page.cjs");
-const spec = require("../tests/skyline-landmarks.cjs");
-const { viewports, checkSpec, measureStudy } = require("../tests/study-fidelity.cjs");
+import { writeFileSync } from "node:fs";
+import path from "node:path";
+import { startServer } from "./lib/static-server.js";
+import { launch, openStudy, command } from "./lib/study-page.js";
+import { fitted, landmarks, landmarkTolerance, models } from "../tests/skyline-landmarks.js";
+import { viewports, checkSpec, measureStudy } from "../tests/study-fidelity.js";
 
-const usage = `Usage: node scripts/fidelity-report.cjs [--json file] [--root dir]
+const usage = `Usage: bun scripts/fidelity-report.js [--json file] [--root dir]
   Prints landmark errors, column residuals, sight-line gaps, silhouettes, and triangles
   at the skyline test's five layouts. --json also writes the raw numbers; --root serves
   another checkout (default: this one).`;
 
-const label = (id) => spec.fitted.find((entry) => entry.id === id)?.label || spec.models.find((model) => model.id === id).name;
+const label = (id) => fitted.find((entry) => entry.id === id)?.label || models.find((model) => model.id === id).name;
 const table = (title, columns, rows) => {
   const cells = [["", ...columns], ...rows];
   const widths = cells[0].map((_, i) => Math.max(...cells.map((row) => String(row[i]).length)));
@@ -25,15 +25,15 @@ const table = (title, columns, rows) => {
 };
 
 command(usage, { json: { type: "string" }, root: { type: "string" } }, async ({ values }) => {
-  checkSpec(spec);
-  const root = path.resolve(values.root || path.join(__dirname, ".."));
+  checkSpec({ fitted, models });
+  const root = path.resolve(values.root || path.join(import.meta.dirname, ".."));
   const server = await startServer(root), results = {};
   let browser;
   try {
     browser = await launch();
     for (const { name, options } of viewports) {
       const { context, page, errors } = await openStudy(browser, server.origin, options);
-      results[name] = await page.evaluate(measureStudy, { ...spec, report: true });
+      results[name] = await page.evaluate(measureStudy, { landmarks, landmarkTolerance, fitted, models, report: true });
       results[name].errors = errors;
       await context.close();
     }
@@ -56,22 +56,22 @@ command(usage, { json: { type: "string" }, root: { type: "string" } }, async ({ 
   ]);
 
   for (const [index, building] of first.buildings.entries()) {
-    const fitted = spec.fitted.find((entry) => entry.id === building.id);
-    const rows = (pick) => Object.keys(fitted.columns).flatMap((group) => fitted.columns[group].drawn.map((_, i) => [`${group} ${i + 1}`, ...names.map((name) => pick(results[name].buildings[index], group, i))]));
-    table(`${fitted.label} column residuals (layer units, model minus drawing; tolerance ${fitted.columnTolerance} canvas units)`, names,
+    const spec = fitted.find((entry) => entry.id === building.id);
+    const rows = (pick) => Object.keys(spec.columns).flatMap((group) => spec.columns[group].drawn.map((_, i) => [`${group} ${i + 1}`, ...names.map((name) => pick(results[name].buildings[index], group, i))]));
+    table(`${spec.label} column residuals (layer units, model minus drawing; tolerance ${spec.columnTolerance} canvas units)`, names,
       rows((b, group, i) => (b.columns[group][i]?.residual ?? NaN).toFixed(2)));
-    table(`${fitted.label} sight-line gaps (m toward the camera; ${fitted.sightGap.join("-")} m on the column's batch)`, names,
-      rows((b, group, i) => { const hit = b.sightGaps[group][i]; return `${hit.gap.toFixed(3)}${hit.mesh === fitted.columns[group].batch ? "" : ` on ${hit.mesh}`}`; }));
-    if (Object.keys(fitted.rows || {}).length) {
-      const rowValues = (pick) => Object.keys(fitted.rows).flatMap((group) => fitted.rows[group].drawn.map((_, i) => [`${group} ${i + 1}`, ...names.map((name) => pick(results[name].buildings[index], group, i))]));
-      table(`${fitted.label} row residuals (layer units; tolerance in normalized canvas units)`, names,
+    table(`${spec.label} sight-line gaps (m toward the camera; ${spec.sightGap.join("-")} m on the column's batch)`, names,
+      rows((b, group, i) => { const hit = b.sightGaps[group][i]; return `${hit.gap.toFixed(3)}${hit.mesh === spec.columns[group].batch ? "" : ` on ${hit.mesh}`}`; }));
+    if (Object.keys(spec.rows || {}).length) {
+      const rowValues = (pick) => Object.keys(spec.rows).flatMap((group) => spec.rows[group].drawn.map((_, i) => [`${group} ${i + 1}`, ...names.map((name) => pick(results[name].buildings[index], group, i))]));
+      table(`${spec.label} row residuals (layer units; tolerance in normalized canvas units)`, names,
         rowValues((b, group, i) => b.rows[group][i].residual.toFixed(2)));
     }
-    table(`${fitted.label} distance from features to built edges (m; tolerance ${fitted.onGeometryTolerance})`, names,
+    table(`${spec.label} distance from features to built edges (m; tolerance ${spec.onGeometryTolerance})`, names,
       Object.keys(building.onGeometry).map((feature) => [feature, ...names.map((name) => results[name].buildings[index].onGeometry[feature].toExponential(2))]));
   }
 
-  table("Projected silhouettes (layer space: left, right, top, bottom)", names, spec.models.map((model, i) => [
+  table("Projected silhouettes (layer space: left, right, top, bottom)", names, models.map((model, i) => [
     model.name, ...names.map((name) => Object.values(results[name].models[i].silhouette).map((v) => v.toFixed(1)).join(" ")),
   ]));
   table("Triangles", ["count"], [...first.models.map((model) => [label(model.id), model.triangles]), ["scene", first.sceneTriangles]]);

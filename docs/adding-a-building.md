@@ -25,7 +25,7 @@ and record the disagreement. Splitting the difference makes both worse.
 
 **One drawn building can be several SVG groups.** One Prudential's podium is a separate group,
 `building-prudential-plaza-podium`. It belongs in `reference.groups`, has no `models` entry of its
-own, and is modelled as the tower's east wing. `measure-group.cjs` resolves a `data-building-id` to
+own, and is modelled as the tower's east wing. `measure-group.js` resolves a `data-building-id` to
 every group carrying it, so one call measures them together.
 
 **Heights are measured from the study's platform, not the street.** Model `y = 0` projects to layer
@@ -51,7 +51,7 @@ produces errors that look like a bad fit rather than a unit error.
 ## 1. Measure
 
 ```
-node scripts/measure-group.cjs <group-id> [--out dir] [--padding fraction]
+bun scripts/measure-group.js <group-id> [--out dir] [--padding fraction]
 ```
 
 It accepts a group id, a `data-building-id`, or the id without its `building-` prefix, and writes
@@ -105,9 +105,9 @@ the skyline scene moves `lightPosition` back along the same direction. The skyli
 every building and platform vertex in the actual shadow camera; the solo study retains its preset.
 
 `models/skyline-reference.svg` is generated and byte-compared. Edit `reference.viewBox`, `title`,
-`description`, `groups`, or source definition ids in `defs` and then run `node scripts/reference-svg.cjs`, or `npm run check` fails
-early. Note that `reference-svg.cjs` matches a group by its `id` attribute **only** — the same
-string that works for `measure-group.cjs` may not work here.
+`description`, `groups`, or source definition ids in `defs` and then run `bun scripts/reference-svg.js`, or `bun run check` fails
+early. Note that `reference-svg.js` matches a group by its `id` attribute **only** — the same
+string that works for `measure-group.js` may not work here.
 
 ## 3. Fit numerically, through the real camera
 
@@ -147,7 +147,7 @@ wing 1.327× and 1.267×. One consistent exaggeration is a sign of a sound fit; 
 a sign of a drifting one.
 
 ```
-node scripts/fidelity-report.cjs [--json file] [--root dir]
+bun scripts/fidelity-report.js [--json file] [--root dir]
 ```
 
 `--json` takes a **file path**, not a boolean, and writes relative to the current directory.
@@ -170,7 +170,7 @@ facing the band inward; that mistake surfaces later at a prism, or never.
 ### What `omit` means
 
 An omitted face is **a claim that another surface lies in its plane and covers it**, and
-`tests/building-kit.cjs` will fail the model if none does. Only geometry within 2 mm of the omitted
+`tests/building-kit.test.js` will fail the model if none does. Only geometry within 2 mm of the omitted
 face's own plane counts, so a volume that hides the face from every camera half a metre in front of
 it still reads as entirely uncovered. It is not a way to skip geometry you would rather not draw.
 The only exemption is a downward floor whose every corner sits at `y = 0`, which no camera sees
@@ -223,7 +223,7 @@ with `towerVisible`/`lowerVisible` and One Prudential does for the east face bel
 
 ## 5. Add the spec
 
-In `tests/skyline-landmarks.cjs`, add the model to `models` and a `fitted` entry. The comment above
+In `tests/skyline-landmarks.js`, add the model to `models` and a `fitted` entry. The comment above
 `fitted` lists the fields; these are the ones that catch people.
 
 - **Landmark names are one global namespace across all buildings.** A generic name like `roofLeft`
@@ -263,11 +263,11 @@ penthouse's south face, whose top edge is the near one. On the correct edge the 
 0.011 to 0.002 and the bound came down with it.
 
 **Until the spec entry exists, the geometry suite checks nothing about the new model.** A passing
-`tests/building-kit.cjs` before that point says only that the other models are still sound.
+`tests/building-kit.test.js` before that point says only that the other models are still sound.
 
 ## 6. Extend the building-specific assertions
 
-`tests/skyline-study.cjs` holds what the shared spec cannot express. Each of these must be extended
+`tests/skyline-study.test.js` holds what the shared spec cannot express. Each of these must be extended
 by hand:
 
 - **The hover loop keeps two parallel arrays** — screen `points` and `[index, id, label]` tuples.
@@ -296,7 +296,7 @@ whether the scene legitimately changed or your build is wrong.
 ## 7. Verify
 
 ```
-SKYLINE_BASE_SHA=<40-char sha> node scripts/check.cjs     # or npm run check
+SKYLINE_BASE_SHA=<40-char sha> bun scripts/check.js     # or bun run check
 ```
 
 `SKYLINE_BASE_SHA` must be a full forty-character lowercase hex SHA; a short SHA or a branch name
@@ -304,12 +304,12 @@ aborts the whole run before any suite. The runner runs, in order: the whitespace
 checks, the reference excerpt check, and the kit's Node suite; then, once it has started its own
 server, all three browser suites — the hover regressions, the single-building study, and the
 skyline study. It needs Node 22.12+ and system Google Chrome;
-`npm ci --ignore-scripts` installs no browser.
+`bun install --ignore-scripts` installs no browser.
 
 Then, and this is not optional:
 
 ```
-node scripts/render-study.cjs [--out dir] [--building id] [--root dir]
+bun scripts/render-study.js [--out dir] [--building id] [--root dir]
 ```
 
 Stills land in `/tmp/skyline-renders` by default. `--building` accepts an id from the `models`
@@ -318,13 +318,13 @@ panes here, which no assertion could see, because invisible geometry is neither 
 anything nor an uncovered omission. Look for holes, z-fighting, anything outside the drawn
 silhouette, and any detail you expected to see that is not there.
 
-`render-study.cjs` exits non-zero if the page threw an uncaught error — it watches `pageerror`
+`render-study.js` exits non-zero if the page threw an uncaught error — it watches `pageerror`
 only, so an error merely logged to the console will not fail it — *after* writing the stills, so a
-file listing is not success and a failed run still leaves PNGs behind. Run `tests/skyline-study.cjs`
-three consecutive times as a flake check; both `npm run fidelity` and `npm run renders` need the npm
+file listing is not success and a failed run still leaves PNGs behind. Run `tests/skyline-study.test.js`
+three consecutive times as a flake check; both `bun run fidelity` and `bun run renders` need the
 `--` separator to pass flags.
 
-Once it is deployed, `npm run verify:deploy` confirms the site serves the new model byte for byte
+Once it is deployed, `bun run verify:deploy` confirms the site serves the new model byte for byte
 and that nothing outside the allowlist became reachable. `scripts/deploy.sh` runs it after wrangler,
 because wrangler reporting success is not the same as the edge serving the files.
 
@@ -335,7 +335,7 @@ subsumed another:
 
 | Instrument | Catches | Cannot see |
 | --- | --- | --- |
-| `tests/building-kit.cjs` | uncovered omissions, same-facing coplanar faces, degenerate or back-wound triangles — watertightness only for the kit's own fixtures, never for a fitted model | a hole no omission records, and geometry that is sound but invisible or buried |
+| `tests/building-kit.test.js` | uncovered omissions, same-facing coplanar faces, degenerate or back-wound triangles — watertightness only for the kit's own fixtures, never for a fitted model | a hole no omission records, and geometry that is sound but invisible or buried |
 | Renders | anything that looks wrong | anything that looks right but is measured wrong |
 | Cross-agent review | claims that outrun the code: false comments, tolerances justified by reasoning the measurements refute, stale numbers | nothing it does not think to run |
 

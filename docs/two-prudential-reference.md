@@ -9,7 +9,7 @@ silhouettes, and no streamed map or photo-texture dependency.
 
 | Reference | What it establishes |
 | --- | --- |
-| `skyline.jpg`, cropped with `node scripts/measure-group.cjs building-two-prudential-plaza` | The original night photograph, aligned with the SVG, establishes which faces the composition shows. |
+| `skyline.jpg`, cropped with `bun scripts/measure-group.js building-two-prudential-plaza` | The original night photograph, aligned with the SVG, establishes which faces the composition shows. |
 | The same script's drawing crop and per-path measurements | The composition's silhouette, three south chevrons, floor rhythm, facade strips, pyramid and spire landmarks. |
 | [Building owner's tower photograph](https://www.theprulife.com/wp-content/uploads/2022/07/dsc08667_shift.jpg), from [The Pru Life's history](https://www.theprulife.com/a-chicago-landmark-reborn-the-history-of-one-two-pru/) | The crown's broad raised ribs, recessed mechanical openings, horizontal cladding, and continuous glazing inside the pointed chevrons. |
 | [Steven Henry's crown close-up](https://images.skyscrapercenter.com/building/two-prudential-plaza_ext-crown_%28c%29stevenhenry.jpg), via [CTBUH / The Skyscraper Center](https://www.skyscrapercenter.com/building/two-prudential-plaza/489) | Louver blades and supporting frames inside the dark crown openings, folded spire edges, inset faces, and spire joints. |

@@ -77,7 +77,7 @@ the site.
 
 ## Verification
 
-`npm run check` checks geographic position, street-level extents, rendered tip
+`bun run check` checks geographic position, street-level extents, rendered tip
 heights, closed meshes, triangle winding, coplanar overlaps, and the existing
 layout-toggle/browser regressions. The geographic suite also raycasts the model:
 each tier roof at its mapped part height, the spire joints and tip, the mast

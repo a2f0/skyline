@@ -1,12 +1,12 @@
 // Browser helpers for the dev scripts: system Chrome, a settled study page, and the
 // usual command-line handling.
-const { chromium } = require("playwright");
-const { command } = require("./command.cjs");
+import { chromium } from "playwright";
+import { command } from "./command.js";
 
 const launch = () => chromium.launch({ channel: "chrome", headless: true });
 const settle = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 
-async function openStudy(browser, origin, options) {
+export async function openStudy(browser, origin, options) {
   const context = await browser.newContext(options);
   const page = await context.newPage();
   const errors = [];
@@ -18,4 +18,4 @@ async function openStudy(browser, origin, options) {
   return { context, page, errors };
 }
 
-module.exports = { launch, settle, openStudy, command };
+export { launch, settle, command };

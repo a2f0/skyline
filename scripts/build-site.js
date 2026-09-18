@@ -4,10 +4,10 @@
 // holds credentials (.secrets/), test fixtures, and the 18MB source photograph
 // that the site never requests, so an ignore list that fell out of date would
 // publish them. Anything not named here does not reach Cloudflare.
-const { cp, mkdir, readdir, rm, stat } = require("node:fs/promises");
-const path = require("node:path");
+import { cp, mkdir, readdir, rm, stat } from "node:fs/promises";
+import path from "node:path";
 
-const root = path.resolve(__dirname, "..");
+const root = path.resolve(import.meta.dirname, "..");
 const dist = path.join(root, "dist");
 
 // Reachable from index.html, the two study pages, and the WebGL viewer.
@@ -53,7 +53,7 @@ async function main() {
     try {
       return (await stat(path.join(root, entry))).size;
     } catch {
-      throw new Error(`Cannot publish ${entry}: it is missing. Update scripts/build-site.cjs if it was renamed.`);
+      throw new Error(`Cannot publish ${entry}: it is missing. Update scripts/build-site.js if it was renamed.`);
     }
   }));
   await rm(dist, { recursive: true, force: true });
@@ -66,8 +66,8 @@ async function main() {
   console.log(`Staged ${entries.length} files (${(bytes / 1024 / 1024).toFixed(2)} MB) into dist/.`);
 }
 
-// scripts/verify-deploy.cjs reads the same allowlist, so the published set and the
+// scripts/verify-deploy.js reads the same allowlist, so the published set and the
 // checked set cannot drift apart.
-module.exports = { collect, root, dist };
+export { collect, root, dist };
 
-if (require.main === module) main().catch((error) => { console.error(error.message); process.exitCode = 1; });
+if (import.meta.main) main().catch((error) => { console.error(error.message); process.exitCode = 1; });

@@ -1,4 +1,4 @@
-const { execFileSync } = require("node:child_process");
+import { execFileSync } from "node:child_process";
 
 const PR_QUERY = `query($owner: String!, $name: String!, $number: Int!) {
   repository(owner: $owner, name: $name) {
@@ -26,7 +26,7 @@ function squashMerge(args, run = command) {
   const [repo, number, head, base, baseSha] = args;
   if (args.length !== 5 || !/^[\w.-]+\/[\w.-]+$/.test(repo) || !/^[1-9]\d*$/.test(number)
       || !/^[a-f0-9]{40}$/.test(head) || !base || !/^[a-f0-9]{40}$/.test(baseSha)) {
-    throw new Error("Usage: node scripts/squash-merge.cjs owner/repo number reviewed-head-sha base-ref reviewed-base-sha");
+    throw new Error("Usage: bun scripts/squash-merge.js owner/repo number reviewed-head-sha base-ref reviewed-base-sha");
   }
   run("git", ["check-ref-format", `refs/heads/${base}`]);
   const checkCheckout = () => {
@@ -72,8 +72,8 @@ function squashMerge(args, run = command) {
   return merged;
 }
 
-module.exports = { squashMerge };
-if (require.main === module) {
+export { squashMerge };
+if (import.meta.main) {
   try {
     console.log(JSON.stringify(squashMerge(process.argv.slice(2)), null, 2));
   } catch (error) {

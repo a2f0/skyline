@@ -70,7 +70,7 @@ inputs only and are not downloaded by the viewer or redistributed with the site.
 
 ## Verification
 
-`npm run check` checks geographic position, street-level extents, rendered tip
+`bun run check` checks geographic position, street-level extents, rendered tip
 heights, closed meshes, triangle winding, coplanar overlaps, and the existing
 layout-toggle/browser regressions. Ground extents use vertices at grade: facade
 relief and balcony overhangs above grade must not redefine the street footprint.
