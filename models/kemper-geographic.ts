@@ -118,7 +118,8 @@ export function createKemperGeographicBuilding(record: GeoBuilding, projectPlan:
     const a = simplified[(i - 1 + simplified.length) % simplified.length]!;
     const b = simplified[i]!;
     const c = simplified[(i + 1) % simplified.length]!;
-    const turn = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+    const turn = ((b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]))
+      / (Math.hypot(b[0] - a[0], b[1] - a[1]) * Math.hypot(c[0] - b[0], c[1] - b[1]));
     if (turn > 1e-6) throw new Error("Kemper's mapped cap ring still turns a concave corner after simplification.");
   }
   const capRuns = simplified.map((p, i) => line(p, simplified[(i + 1) % simplified.length]!));

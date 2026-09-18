@@ -194,8 +194,8 @@ describe("mapped skyline geography", () => {
         expect(west!.point.x).toBeGreaterThan(probe[0] - 0.2);
       }
       // The crown's fins stand proud of the dark band near the roof: probe the
-      // last fin's station on the mapped west wall, where a downward-sloping
-      // ray meets the fin itself rather than the glass between fins.
+      // last fin's station on the mapped west wall, where a horizontal ray
+      // meets the fin itself rather than the glass between fins.
       const crownCorner = westCorners[0]!, crownKink = westCorners[1]!;
       const finLength = Math.hypot(crownKink[0] - crownCorner[0], crownKink[2] - crownCorner[2]);
       const finCount = Math.max(1, Math.round(finLength / 1.05));
