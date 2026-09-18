@@ -48,7 +48,8 @@ async function press(page: Page, keys: [string, number][]): Promise<void> {
 // The model's projected bounds on the canvas, padded, from every vertex of a fresh copy.
 async function closeupClip(page: Page, entry: ModelEntry) {
   const box = await page.evaluate(async ({ id, module, factory }: ModelEntry): Promise<[number, number, number, number]> => {
-    const model = (await import(module))[factory]();
+    // The page serves the compiled site, so source module paths end in .js there.
+    const model = (await import(module.replace(/\.ts$/, ".js")))[factory]();
     model.building.updateMatrixWorld(true);
     const bounds: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
     for (const child of model.building.children) {
