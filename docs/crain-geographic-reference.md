@@ -30,7 +30,9 @@ as-built survey or a construction model.
 
 Both sloped roofs follow OSM's 133° downhill bearing. The window rows use a
 4.33 m pitch (177.4/41), so the pane count reads as the published 41 floors;
-every row is clipped to its part's sloping roof.
+each pane's top follows the roof at both ends, a pane straddling the row's
+flat ceiling flattens to its lower end, and a pane whose downhill end falls
+below its own sill keeps a thin sliver there instead of inverting.
 
 ## Plan and detail choices
 

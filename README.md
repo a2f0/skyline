@@ -78,8 +78,9 @@ either mode. **Home** or **Reset** restores the layout's starting view.
 The table below the viewer compares original and mapped ground extents, east/north
 coordinates, and modeled top heights, with source links and assumptions. Crain
 has a detailed geographic facade: its three mapped parts keep their OSM roof
-slopes, with window cells clipped to the diagonal, light roof rims, and a dark
-seam along the mapped roof split, at the published 177.4 m top; see its
+slopes, with window cells clipped to each part's sloping roof, light roof
+rims, and a dark seam along the mapped roof split, at the published 177.4 m
+top; see its
 [reference audit](docs/crain-geographic-reference.md). Heritage
 has a detailed geographic facade, with terrace elevations from city design
 drawings and the published 192.4 m top; see its [reference audit](docs/heritage-geographic-reference.md).

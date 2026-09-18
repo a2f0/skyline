@@ -82,7 +82,42 @@ export function createCrainGeographicBuilding(record: GeoBuilding, projectPlan: 
   // closes it, and two proud strips in the same plane would interpenetrate.
   const shared = (run: Run) => inside(footprintPolygon, run.at(run.length / 2, 0.3));
 
-  // Window cells and mullions, clipped to each part's sloping roof.
+  // A geometric face normal, used for the sloped pane tops and roof boxes.
+  const normal = (a: Vec3, b: Vec3, c: Vec3): Vec3 => {
+    const u = b.map((value, axis) => value - a[axis]!) as Vec3, v = c.map((value, axis) => value - a[axis]!) as Vec3;
+    const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]] as Vec3;
+    const length = Math.hypot(...n);
+    return n.map((value) => value / length) as Vec3;
+  };
+  // A closed box whose top follows the roof's local slope: the roof height is
+  // linear along a run, so a top face with the two end heights is planar, and
+  // a flat-topped box sampled at the bay midpoint would poke through the roof
+  // and the rim at the downhill end.
+  const paneBox = (batch: BatchData, run: Run, from: number, to: number, y0: number, h0: number, h1: number, back: number, front: number) => {
+    const clearance = Math.max(Math.abs(back), Math.abs(front)) + 0.025;
+    from = Math.max(from, clearance);
+    to = Math.min(to, run.length - clearance);
+    if (to - from < 0.03) return;
+    if (h0 <= y0 + 0.03 && h1 <= y0 + 0.03) return;
+    // A clipped end below the pane's bottom would invert the box, so each end
+    // keeps a thin sliver where the roof cuts through the pane's height.
+    h0 = Math.max(h0, y0 + 0.03);
+    h1 = Math.max(h1, y0 + 0.03);
+    const n = run.normal(0);
+    const corner = (end: Vec2, across: number, y: number): Vec3 => [end[0] + n[0] * across, y, end[1] + n[1] * across];
+    const b: Vec3[] = [corner(run.at(from), back, y0), corner(run.at(from), front, y0), corner(run.at(to), front, y0), corner(run.at(to), back, y0)];
+    const T: Vec3[] = [corner(run.at(from), back, h0), corner(run.at(from), front, h0), corner(run.at(to), front, h1), corner(run.at(to), back, h1)];
+    kit.quad(batch, [T[0]!, T[1]!, T[2]!, T[3]!], [normal(T[0]!, T[1]!, T[2]!)]);
+    kit.quad(batch, [b[0]!, b[3]!, b[2]!, b[1]!], [normal(b[0]!, b[3]!, b[2]!)]);
+    for (const i of [0, 1, 2, 3]) {
+      const j = (i + 1) % 4;
+      kit.quad(batch, [T[j]!, T[i]!, b[i]!, b[j]!], [normal(T[j]!, T[i]!, b[i]!)]);
+    }
+  };
+
+  // Window cells and mullions, clipped to each part's sloping roof. A pane's
+  // top follows the roof at both ends; a pane that straddles the row's flat
+  // ceiling flattens to the lower end, keeping its top face planar.
   for (const { part, plan, roof } of parts) {
     plan.forEach((run, side) => {
       if (shared(run)) return;
@@ -91,8 +126,11 @@ export function createCrainGeographicBuilding(record: GeoBuilding, projectPlan: 
       for (let row = 1; row <= h.floors; row += 1) {
         const bottom = Math.max((row - 1) * pitch, 0.85);
         for (let bay = 0; bay < bays; bay += 1) {
-          const ceiling = Math.min(row * pitch, roof(run.at((bay + 0.5) * width, 0)) - 0.18);
-          strip(paneTone(row, bay, side), run, bay * width + 0.16, (bay + 1) * width - 0.16, bottom + 0.28, ceiling - 0.24, 0.02, 0.07);
+          const from = bay * width + 0.16, to = (bay + 1) * width - 0.16;
+          const ceiling = row * pitch;
+          let h0 = Math.min(ceiling, roof(run.at(from, 0)) - 0.42), h1 = Math.min(ceiling, roof(run.at(to, 0)) - 0.42);
+          if ((h0 < ceiling) !== (h1 < ceiling)) h0 = h1 = Math.min(h0, h1);
+          paneBox(paneTone(row, bay, side), run, from, to, bottom + 0.28, h0, h1, 0.02, 0.07);
         }
       }
       for (let i = 0; i <= bays; i += 1) {
@@ -105,12 +143,6 @@ export function createCrainGeographicBuilding(record: GeoBuilding, projectPlan: 
   // A light rim follows each part's exterior roof edges, and a dark seam runs
   // along the mapped diagonal the two sloped parts share. Both are hand-built
   // closed boxes, because a kit box cannot follow a sloping roof line.
-  const normal = (a: Vec3, b: Vec3, c: Vec3): Vec3 => {
-    const u = b.map((value, axis) => value - a[axis]!) as Vec3, v = c.map((value, axis) => value - a[axis]!) as Vec3;
-    const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]] as Vec3;
-    const length = Math.hypot(...n);
-    return n.map((value) => value / length) as Vec3;
-  };
   // A closed sloped box between two plan points, following the roof's height.
   // The top, bottom, and four side quads are wound so every shared edge pairs
   // with its reverse partner, keeping the batch watertight.
