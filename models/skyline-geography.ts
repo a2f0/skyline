@@ -7,6 +7,7 @@ import { createCrainGeographicBuilding } from "./crain-geographic.js";
 import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
 import { createKemperGeographicBuilding } from "./kemper-geographic.js";
 import { createMichiganPlazaSouthGeographicBuilding } from "./michigan-plaza-south-geographic.js";
+import { createOnePrudentialGeographicBuilding } from "./one-prudential-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
 
 // Local WGS84 tangent plane, centered on the bounding-box center of Crain's
@@ -55,6 +56,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-michigan-plaza-south-tower") {
     return createMichiganPlazaSouthGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-one-prudential-plaza") {
+    return createOnePrudentialGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-trump-tower-only") {
     return createTrumpGeographicBuilding(record, plan, offset);

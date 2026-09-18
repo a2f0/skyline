@@ -2,8 +2,9 @@
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings. The geographic layout uses mapped polygon
-outlines, detailed Crain, Heritage, Kemper, Michigan Plaza South and Trump
-reconstructions, and simple massing for the other three buildings. The original factories, placement and camera remain intact.
+outlines, detailed Crain, Heritage, Kemper, Michigan Plaza South, One
+Prudential and Trump reconstructions, and simple massing for the other two
+buildings. The original factories, placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Switching layouts
 in those views preserves the camera position, target and zoom, including after an
@@ -93,9 +94,12 @@ Intermediate parts have less certainty than the overall height:
 - Kemper's two-floor podium keeps its 7.8 m estimate using 159/41, and the
   tower now carries its marble shell, window bays, mullions, dark crown band
   with light fins, and projecting cap at meter scale; see the
-  [Kemper reference audit](kemper-geographic-reference.md). One Prudential's
-  ten- and three-floor parts are estimated at
-  44.7 and 13.4 m using 183.2/41. Brown material identifies these volumes.
+  [Kemper reference audit](kemper-geographic-reference.md).
+- One Prudential's mapped tower outline covers the whole lot, so its nested
+  ten- and three-floor parts (estimated at 44.7 and 13.4 m using 183.2/41)
+  sit inside it and add no exterior geometry; the tower now carries its
+  punch-card facade, penthouse, louvers, and mapped 278 m mast; see the
+  [One Prudential reference audit](one-prudential-geographic-reference.md).
 - Trump's mapped tiers keep their OSM part heights of 60, 120, 200, 345, 357,
   380 and 400 m, then the published 423.2 m tip. The tier outlines now carry a
   glazed facade with panes, mullions and floor bands, terrace parapets, a ribbed

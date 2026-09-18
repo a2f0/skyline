@@ -332,6 +332,62 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("One Prudential", () => {
+    test("keeps the mapped tower, penthouse, mast and punch-card facade", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "One Prudential")!;
+      const model = models["One Prudential"]!;
+      model.building.updateMatrixWorld(true);
+      const ray = new THREE.Raycaster();
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const hit = (hitOrigin: Vec3, direction: Vec3, targets: THREE.Object3D[] = meshes) => {
+        ray.set(new THREE.Vector3(...hitOrigin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(targets, false)[0];
+      };
+      const world = (longitude: number, latitude: number): Vec3 => {
+        const [east, north] = projectGround([longitude, latitude]);
+        return [east, 0, -north];
+      };
+      // The interior roof under the parapet, the penthouse at the mapped
+      // 183.2 m tower top, and the mapped mast rising to the 278 m tip.
+      const interior = world(-87.6227, 41.88495);
+      near(hit([interior[0], 200, interior[2]], [0, -1, 0])!.point.y, 181.2, 0.001);
+      const mastPart = record.parts.find((p) => p.way === 685493614)!;
+      const mastPoints = mastPart.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
+      const mastCenter: Vec3 = [
+        mastPoints.reduce((sum, p) => sum + p[0], 0) / mastPoints.length,
+        0,
+        mastPoints.reduce((sum, p) => sum + p[1], 0) / mastPoints.length,
+      ];
+      // The penthouse top, probed beside the mast ring so the ray stays
+      // outside the hollow-looking single-sided mast walls.
+      near(hit([mastCenter[0] + 2.5, 200, mastCenter[2]], [0, -1, 0])!.point.y, 183.2, 0.001);
+      near(hit([mastCenter[0], 300, mastCenter[2]], [0, -1, 0])!.point.y, 278, 0.001);
+      // Panes and piers are the first surface on the mapped south walls,
+      // probed from outside the closed shell. The stepped outline puts two
+      // south-facing walls at different latitudes, so each gets its own probe.
+      const lerp = (a: Vec3, b: Vec3, t: number): Vec3 => a.map((v, axis) => v + (b[axis]! - v) * t) as Vec3;
+      for (const probe of [
+        lerp(world(-87.6224467, 41.8846289), world(-87.6229065, 41.8846246), 0.5),
+        lerp(world(-87.6229073, 41.8847597), world(-87.6231733, 41.8847538), 0.5),
+      ]) {
+        const south = hit([probe[0], 100, probe[2] + 30], [0, 0, -1]);
+        expect(south!.object.name).toMatch(/glaz|pier/);
+        expect(south!.point.z).toBeGreaterThan(probe[2] + 0.005);
+        expect(south!.point.z).toBeLessThan(probe[2] + 0.4);
+      }
+      // Every mapped footprint corner is present at grade.
+      const groundMesh = meshes.find((mesh) => mesh.name === "One Prudential · limestone shell")!;
+      const vertices = groundMesh.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [east, north] = projectGround(p);
+        return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   test("retains the mapped upper street set", () => {
     expect(geographicStreets.some((street) => street.name === "North Michigan Avenue")).toBe(true);
     expect(geographicStreets.every((street) => !street.name.includes("Lower"))).toBe(true);
