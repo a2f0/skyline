@@ -29,7 +29,9 @@ load_deploy_secrets() {
     return 1
   fi
 
-  # wrangler reads these names; Terraform reads the TF_VAR_ ones above.
+  # Terraform's Cloudflare provider reads these names; it also reads the
+  # TF_VAR_ ones above. Wrangler deploys authenticate separately with their own
+  # stored credentials; this file is only for terraform.sh.
   export CLOUDFLARE_API_TOKEN="${TF_VAR_cloudflare_api_token}"
   export CLOUDFLARE_ACCOUNT_ID="${TF_VAR_cloudflare_account_id}"
 }
