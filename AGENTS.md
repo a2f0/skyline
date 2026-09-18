@@ -28,14 +28,18 @@ unstaged work (which are always checked).
 Deploys publish to the `devopsrockstars-skyline-prod` Cloudflare Worker at
 skyline.devopsrockstars.com. `bun run deploy` compiles the browser modules into
 `dist/` and uploads that; there is still no bundler and no transformation beyond
-tsc's per-file emit. Deploying needs Bun, which runs Wrangler.
+tsc's per-file emit. Deploying needs Bun and Node.js 22+: Wrangler runs under
+Node, because its deployment step stops silently after the asset upload under
+Bun's runtime, and it authenticates with its own stored credentials
+(`wrangler login`).
 The staged set is the allowlist in `scripts/build-site.ts`, because the
 repository root holds `.secrets/` and assets the site never requests. Add new
 top-level runtime files there or they will not ship. Top-level `.ts` files in
 `models/` ship automatically as compiled `.js`, and their `.svg` excerpts ship
 as-is; nested directories and other file types do not. `terraform/` owns only
-the custom-domain binding. Credentials live in the gitignored `.secrets/root.env`;
-never commit one.
+the custom-domain binding. Terraform credentials live in the gitignored
+`.secrets/root.env`; content deploys use Wrangler's own stored credentials, and
+neither is ever committed.
 
 Fitted skyline models build on `models/building-kit.ts`: plan runs and a builder
 whose solids are closed unless a call names a face another surface covers.

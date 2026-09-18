@@ -1,6 +1,6 @@
 {
   // Assets-only Worker: no `main`, so Cloudflare serves dist/ directly and the
-  // request never reaches a script. `npm run build:site` stages dist/.
+  // request never reaches a script. `bun run build:site` compiles dist/.
   //
   // skyline.devopsrockstars.com is attached to this Worker by terraform/, which
   // matches how every other host in the zone is served. Deploy order matters on

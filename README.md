@@ -122,9 +122,9 @@ The canonical skills live in `.agents/skills`, following [Codex's local skill di
 
 The site is live at [skyline.devopsrockstars.com](https://skyline.devopsrockstars.com), served by the `devopsrockstars-skyline-prod` Cloudflare Worker as static assets. There is no server-side code: the Worker has no `main`, so Cloudflare answers every request from the uploaded files. This matches how the rest of the `devopsrockstars.com` zone is served — each host is a Worker with a custom domain, not a Pages project or an S3 bucket.
 
-Credentials come from `.secrets/root.env`, which is gitignored and never committed. It needs `TF_VAR_cloudflare_api_token` and `TF_VAR_cloudflare_account_id` (the token needs Workers Scripts:Edit and Zone:Read on the zone), plus `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` for the S3 Terraform backend. `scripts/secrets.sh` loads the file, fails loudly on a missing variable, and re-exports the Cloudflare pair under the `CLOUDFLARE_*` names wrangler expects.
+Content deploys authenticate with Wrangler's own stored credentials (`wrangler login`); no repository file is read. `scripts/terraform.sh` is separate and still reads the gitignored `.secrets/root.env`, which needs `TF_VAR_cloudflare_api_token` and `TF_VAR_cloudflare_account_id` (the token needs Workers Scripts:Edit and Zone:Read on the zone), plus `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` for the S3 Terraform backend. `scripts/secrets.sh` loads that file, fails loudly on a missing variable, and re-exports the Cloudflare pair under the `CLOUDFLARE_*` names Terraform expects. `.secrets/` is gitignored and never committed.
 
-Deploying needs Bun, which runs Wrangler. Publish content with:
+Deploying needs Bun and Node.js 22+, because Wrangler runs under Node: its deployment step stops silently after the asset upload under Bun's runtime. Publish content with:
 
 ```sh
 bun install --ignore-scripts
