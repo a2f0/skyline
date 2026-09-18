@@ -98,11 +98,18 @@ export function createCrainGeographicBuilding(record: GeoBuilding, projectPlan: 
     from = Math.max(from, clearance);
     to = Math.min(to, run.length - clearance);
     if (to - from < 0.03) return;
-    if (h0 <= y0 + 0.03 && h1 <= y0 + 0.03) return;
-    // A clipped end below the pane's bottom would invert the box, so each end
-    // keeps a thin sliver where the roof cuts through the pane's height.
-    h0 = Math.max(h0, y0 + 0.03);
-    h1 = Math.max(h1, y0 + 0.03);
+    const sill = y0 + 0.03;
+    if (h0 <= sill && h1 <= sill) return;
+    // An end the roof cuts below the pane's sill truncates the box at the
+    // crossing, where the pane meets the roof; keeping the whole span would
+    // hang the bottom face above the roof and cross the rim.
+    if (h0 <= sill) {
+      from += (to - from) * (sill - h0) / (h1 - h0);
+      h0 = sill;
+    } else if (h1 <= sill) {
+      to = from + (to - from) * (sill - h0) / (h1 - h0);
+      h1 = sill;
+    }
     const n = run.normal(0);
     const corner = (end: Vec2, across: number, y: number): Vec3 => [end[0] + n[0] * across, y, end[1] + n[1] * across];
     const b: Vec3[] = [corner(run.at(from), back, y0), corner(run.at(from), front, y0), corner(run.at(to), front, y0), corner(run.at(to), back, y0)];
