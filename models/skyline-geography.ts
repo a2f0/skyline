@@ -3,6 +3,7 @@ import { createBuilder, line } from "./building-kit.js";
 import type { BatchData, BuildingModel, Plan, Vec2, Vec3 } from "./building-kit.js";
 import { geographicBuildings, geographicStreets } from "./skyline-geography-data.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
+import { createCrainGeographicBuilding } from "./crain-geographic.js";
 import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
 import { createKemperGeographicBuilding } from "./kemper-geographic.js";
 import { createMichiganPlazaSouthGeographicBuilding } from "./michigan-plaza-south-geographic.js";
@@ -43,6 +44,9 @@ function plan(coordinates: [number, number][]): Plan {
 }
 
 export function createGeographicBuilding(record: GeoBuilding, offset: [number, number] = [0, 0]): BuildingModel {
+  if (record.id === "building-crain-communications") {
+    return createCrainGeographicBuilding(record, plan, offset);
+  }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);
   }

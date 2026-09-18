@@ -76,7 +76,12 @@ zoom. **Shift-drag** (or two fingers on touch screens) pans between buildings in
 either mode. **Home** or **Reset** restores the layout's starting view.
 
 The table below the viewer compares original and mapped ground extents, east/north
-coordinates, and modeled top heights, with source links and assumptions. Heritage
+coordinates, and modeled top heights, with source links and assumptions. Crain
+has a detailed geographic facade: its three mapped parts keep their OSM roof
+slopes, with window cells clipped to each part's sloping roof, light roof
+rims, and a dark seam along the mapped roof split, at the published 177.4 m
+top; see its
+[reference audit](docs/crain-geographic-reference.md). Heritage
 has a detailed geographic facade, with terrace elevations from city design
 drawings and the published 192.4 m top; see its [reference audit](docs/heritage-geographic-reference.md).
 Kemper has a detailed one too: its mapped ground outline and tower part carry
@@ -90,7 +95,7 @@ Michigan Plaza South has a detailed one as well: its mapped outline carries the
 Trump International Hotel and Tower has a detailed one too: its mapped tier
 outlines, setback terraces, ribbed crown and three-section mast carry the fitted
 model's glazing vocabulary at meter scale, with window rows and bays estimated;
-see its [reference audit](docs/trump-geographic-reference.md). The other four
+see its [reference audit](docs/trump-geographic-reference.md). The other three
 buildings use simple massing on mapped outlines. Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
