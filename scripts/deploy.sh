@@ -12,7 +12,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 source "$REPO_ROOT/scripts/secrets.sh"
 load_deploy_secrets
 
-bun "$REPO_ROOT/scripts/build-site.js"
+bun "$REPO_ROOT/scripts/build-site.ts"
 # --bun runs Wrangler on the Bun runtime instead of its node shebang, so a
 # deploy needs no Node installation at all.
 (cd "$REPO_ROOT" && bunx --bun wrangler deploy --config "$REPO_ROOT/wrangler.jsonc" "$@")
@@ -65,5 +65,5 @@ elif [[ "$target_is_production" != true ]]; then
   echo "Skipping deploy verification: this run targeted another Worker."
   echo "Check it with: bun run verify:deploy -- --url <that origin>"
 else
-  bun "$REPO_ROOT/scripts/verify-deploy.js"
+  bun "$REPO_ROOT/scripts/verify-deploy.ts"
 fi

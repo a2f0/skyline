@@ -3,16 +3,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "bun scripts/check.js",
-    "test": "bun scripts/check.js",
-    "build:site": "bun scripts/build-site.js",
-    "fidelity": "bun scripts/fidelity-report.js",
-    "renders": "bun scripts/render-study.js",
+    "check": "bun scripts/check.ts",
+    "test": "bun scripts/check.ts",
+    "typecheck": "bunx --bun tsc -p tsconfig.json",
+    "build:site": "bun scripts/build-site.ts",
+    "fidelity": "bun scripts/fidelity-report.ts",
+    "renders": "bun scripts/render-study.ts",
     "deploy": "scripts/deploy.sh",
-    "verify:deploy": "bun scripts/verify-deploy.js"
+    "verify:deploy": "bun scripts/verify-deploy.ts"
   },
   "devDependencies": {
+    "@tsconfig/strictest": "1.0.5",
+    "@types/bun": "1.3.11",
+    "@types/three": "0.186.0",
     "playwright": "1.63.0",
+    "typescript": "7.0.2",
     "wrangler": "4.131.2"
   }
 }

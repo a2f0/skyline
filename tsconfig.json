@@ -1,0 +1,20 @@
+{
+  "extends": "@tsconfig/strictest/tsconfig.json",
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "types": ["bun"]
+  },
+  "include": [
+    "*.ts",
+    "models/*.ts",
+    "scripts/*.ts",
+    "scripts/lib/*.ts",
+    "tests/*.ts",
+    "vendor/three-r186.d.ts"
+  ]
+}
