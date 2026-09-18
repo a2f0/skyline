@@ -77,14 +77,19 @@ export function createOnePrudentialGeographicBuilding(record: GeoBuilding, proje
   const covered = (run: Run) => inside(towerPolygon, run.at(run.length / 2, 0.3));
 
   // The punch-card facade: piers stand between the bays, panes sit between
-  // the piers, and a spandrel band runs at each floor line. Piers stand
-  // proudest, so nothing crosses their fronts. Walls facing a podium wing
-  // start above that wing's roof.
-  const westFacing = (run: Run) => run.normal(0)[0] < -0.5;
-  const eastFacing = (run: Run) => run.normal(0)[0] > 0.5;
-  const startAt = (run: Run) => (westFacing(run) ? h.westWing : eastFacing(run) ? h.eastWing : 0);
+  // the piers, and a spandrel band runs at each floor line below the roof.
+  // Piers stand proudest, so nothing crosses their fronts. A wall whose
+  // outward probe lands inside a podium wing is covered by that wing up to
+  // its roof, so its facade starts there.
+  const eastPolygon = polygonOf(east), westPolygon = polygonOf(west);
+  const wingTopAt = (run: Run) => {
+    const probe = run.at(run.length / 2, 0.3);
+    if (inside(eastPolygon, probe)) return h.eastWing;
+    if (inside(westPolygon, probe)) return h.westWing;
+    return 0;
+  };
   tower.forEach((run, side) => {
-    const first = Math.max(startAt(run), 0.85);
+    const first = Math.max(wingTopAt(run), 0.85);
     const bays = Math.max(1, Math.round(run.length / 3.83));
     const width = run.length / bays;
     for (let row = 1; row <= h.floors; row += 1) {

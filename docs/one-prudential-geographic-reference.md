@@ -48,11 +48,12 @@ penthouse, with the main roof 2 m below it.
   Ground placement has no illustration-derived rotation or scale.
 - Every tower face carries the fitted model's punch-card grid at meter scale:
   one recessed pane per bay per row between projecting piers, a spandrel band
-  at each floor line, and a base course at grade. The south face gets about
-  19 bays of 3.83 m; the other faces follow the same module. Walls facing a
-  podium wing start above that wing's roof. A deterministic hash scatters
-  muted lit panes through the dark glass. These are estimates; the 1955
-  curtain wall's module was not surveyed.
+  at each floor line below the roof, and a base course at grade. The south
+  face gets about 19 bays of 3.83 m; the other faces follow the same module.
+  A wall covered by a podium wing — including the buried staircase jogs on
+  the tower's west side — starts its facade above that wing's roof. A
+  deterministic hash scatters muted lit panes through the dark glass. These
+  are estimates; the 1955 curtain wall's module was not surveyed.
 - The podium wings carry the fitted model's ribbed vocabulary: vertical ribs
   on every exterior face, none where the tower covers the wall. Their tops
   stay the OSM part heights.
