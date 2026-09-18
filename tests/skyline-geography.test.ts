@@ -147,6 +147,75 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("Kemper", () => {
+    test("keeps the mapped podium, tower roof, cap and glazed facades", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Kemper")!;
+      const model = models["Kemper"]!;
+      model.building.updateMatrixWorld(true);
+      const ray = new THREE.Raycaster();
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const hit = (hitOrigin: Vec3, direction: Vec3, targets: THREE.Object3D[] = meshes) => {
+        ray.set(new THREE.Vector3(...hitOrigin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(targets, false)[0];
+      };
+      const world = (longitude: number, latitude: number): Vec3 => {
+        const [east, north] = projectGround([longitude, latitude]);
+        return [east, 0, -north];
+      };
+      // The mapped west wall kinks at 41.8865163° N; interpolate along it so
+      // probes land on the wall rather than its chord.
+      const westCorners = [world(-87.6277622, 41.8867154), world(-87.6277552, 41.8865163), world(-87.6277499, 41.8863375)];
+      const westProbe = (fraction: number): Vec3 => {
+        const lengths = [0, 1].map((i) => Math.hypot(westCorners[i + 1]![0] - westCorners[i]![0], westCorners[i + 1]![2] - westCorners[i]![2]));
+        const target = fraction * (lengths[0]! + lengths[1]!);
+        const index = target <= lengths[0]! ? 0 : 1;
+        const t = (target - (index === 1 ? lengths[0]! : 0)) / lengths[index]!;
+        return westCorners[index]!.map((v, axis) => v + (westCorners[index + 1]![axis]! - v) * t) as Vec3;
+      };
+      const chordWest = world(-87.6277622, 41.8867154).map((v, axis) => v + (world(-87.6277499, 41.8863375)[axis]! - v) * 0.5) as Vec3;
+      // The south-east wing's podium roof and the tower's interior roof under
+      // the projecting cap: the OSM 7.8 m podium and 159 m tower top.
+      const wing = world(-87.6272, 41.8865);
+      near(hit([wing[0], 40, wing[2]], [0, -1, 0])!.point.y, 7.8, 0.001);
+      const tower = world(-87.6275, 41.8865);
+      near(hit([tower[0], 200, tower[2]], [0, -1, 0])!.point.y, 158.5, 0.001);
+      // The projecting cap wraps a ring that drops the mapped wall's tracing
+      // jogs, so its west edge follows the chord between the wall corners.
+      const capProbe = chordWest;
+      near(hit([capProbe[0] - 0.3, 200, capProbe[2]], [0, -1, 0])!.point.y, 159, 0.001);
+      // The west wall stands on the mapped lot line; panes and mullions are the
+      // first surface rather than a bare extruded shell. The probe starts west
+      // of the wall, outside the closed shell.
+      for (const fraction of [0.2, 0.5, 0.8]) {
+        const probe = westProbe(fraction);
+        const west = hit([probe[0] - 30, 100, probe[2]], [1, 0, 0]);
+        expect(west!.object.name).toMatch(/glaz|mullion/);
+        expect(west!.point.x).toBeLessThan(probe[0] - 0.05);
+        expect(west!.point.x).toBeGreaterThan(probe[0] - 0.2);
+      }
+      // The crown's fins stand proud of the dark band near the roof: probe the
+      // last fin's station on the mapped west wall, where a horizontal ray
+      // meets the fin itself rather than the glass between fins.
+      const crownCorner = westCorners[0]!, crownKink = westCorners[1]!;
+      const finLength = Math.hypot(crownKink[0] - crownCorner[0], crownKink[2] - crownCorner[2]);
+      const finCount = Math.max(1, Math.round(finLength / 1.05));
+      const finProbe = crownCorner.map((v, axis) => v + (crownKink[axis]! - v) * (finCount - 0.5) / finCount) as Vec3;
+      const fin = hit([finProbe[0] - 30, 152, finProbe[2]], [1, 0, 0]);
+      expect(fin!.object.name).toBe("Kemper · crown fins");
+      near(fin!.point.x, finProbe[0] - 0.28, 0.02);
+      // Facade relief above grade must not redefine the street footprint.
+      const groundMesh = meshes.find((mesh) => mesh.name === "Kemper · marble shell")!;
+      const vertices = groundMesh.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [east, north] = projectGround(p);
+        return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   test("retains the mapped upper street set", () => {
     expect(geographicStreets.some((street) => street.name === "North Michigan Avenue")).toBe(true);
     expect(geographicStreets.every((street) => !street.name.includes("Lower"))).toBe(true);
