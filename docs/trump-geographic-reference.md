@@ -10,7 +10,7 @@ survey or a construction model.
 - [OpenStreetMap ground outline 64594680](https://www.openstreetmap.org/way/64594680)
   and its nested parts 188338549, 188338550, 188338548, 188338859, 188356529,
   284773992 and 284773991: local coordinate snapshot and attribution remain in
-  `skyline-geography-data.js` and [the geographic audit](skyline-geography.md).
+  `skyline-geography-data.ts` and [the geographic audit](skyline-geography.md).
 - [Council on Tall Buildings and Urban Habitat / Skyscraper Center](https://www.skyscrapercenter.com/building/trump-international-hotel-tower/203):
   published architectural height 423.2 m (1,389 ft), 98 floors, and a curtain
   wall of glass panels in aluminum frames.

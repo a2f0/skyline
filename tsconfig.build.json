@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": "."
+  },
+  "include": [
+    "study-loader.ts",
+    "study-viewer.ts",
+    "skyline-study.ts",
+    "skyline-comparison.ts",
+    "building-study.ts",
+    "models/*.ts"
+  ]
+}

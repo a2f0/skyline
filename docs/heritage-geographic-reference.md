@@ -21,7 +21,7 @@ a source-informed exterior study, not an as-built survey or a construction model
   the mechanical penthouses; this does not require 59 residential window rows.
 - [OpenStreetMap ground outline 147397547](https://www.openstreetmap.org/way/147397547)
   and parts 686199648/649/650: local coordinate snapshot and attribution remain
-  in `skyline-geography-data.js` and [the geographic audit](skyline-geography.md).
+  in `skyline-geography-data.ts` and [the geographic audit](skyline-geography.md).
 
 ## Elevation controls
 

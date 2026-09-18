@@ -9,7 +9,7 @@ service is used.
 
 | Reference | What it establishes |
 | --- | --- |
-| `skyline.jpg`, cropped with `bun scripts/measure-group.js building-trump-tower-only` | The aligned source image establishes the stepped silhouette, narrow dark crown, offset spire, visible south-east faces, and the lower facade hidden by One Prudential Plaza. |
+| `skyline.jpg`, cropped with `bun scripts/measure-group.ts building-trump-tower-only` | The aligned source image establishes the stepped silhouette, narrow dark crown, offset spire, visible south-east faces, and the lower facade hidden by One Prudential Plaza. |
 | The same script's drawing crop and per-path measurements | The group contains eight paths with layer-space bounds `3890.4, 187.5, 4217.4, 1805.5`; its roof corners, crown corners, spire tip, and upper-shaft mullions anchor the fitted features. |
 | [CTBUH / The Skyscraper Center](https://www.skyscrapercenter.com/building/wd/203) | The published architectural height is 423.2 m (1,389 ft), the building has 98 floors, and its curtain wall uses glass panels in aluminum frames. |
 | [Chicago Architecture Center](https://www.architecture.org/online-resources/buildings-of-chicago/trump-tower) | The design's rounded edges, colored glass, tapering setbacks, riverfront site, and Skidmore, Owings & Merrill authorship provide the architectural reading used to resolve the drawing. |

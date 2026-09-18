@@ -16,7 +16,7 @@ layout.
 
 ## Coordinates and footprints
 
-`models/skyline-geography-data.js` contains a local extract of
+`models/skyline-geography-data.ts` contains a local extract of
 [OpenStreetMap](https://www.openstreetmap.org/copyright), retrieved September 17,
 2026 through the [map API](https://api.openstreetmap.org/api/0.6/map?bbox=-87.628,41.882,-87.620,41.891).
 It includes the selected building outlines and parts and upper/surface street
@@ -123,11 +123,12 @@ heights, curbs, tunnels, the river and surrounding buildings are absent. The
 fits. Checking curb clearances or Chicago's stacked streets requires additional
 width and elevation data.
 
-`tests/skyline-geography.test.js`, included in `bun run check`, checks independent
+`tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
 coordinate anchors, meter scale and north direction, all eight rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
 reduced motion and idle rendering. Existing fidelity checks still run against
-the original layout. `models/*.js` ships automatically; `skyline-comparison.js`
+the original layout. Top-level `models/*.ts` ships automatically as compiled
+`.js`, and its `.svg` excerpts ship as-is; `skyline-comparison.ts`
 is also explicitly included in the site's deployment allowlist.

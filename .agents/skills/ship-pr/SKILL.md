@@ -61,10 +61,10 @@ review; repairs after pushing or a moving base can require another.
 
 ## Skyline adaptations
 
-Use `SKYLINE_BASE_SHA=<fetched-base-sha> bun scripts/check.js` for preflight,
+Use `SKYLINE_BASE_SHA=<fetched-base-sha> bun scripts/check.ts` for preflight,
 including whitespace in committed branch changes. This repo has no Bun workspace,
 commitlint, agent-tool package, or managed Git hooks. Use the local
-`scripts/squash-merge.js` for the synchronous, SHA-bound, subject-only merge.
+`scripts/squash-merge.ts` for the synchronous, SHA-bound, subject-only merge.
 `reset` only switches and fast-forwards; it does not install or remove hooks.
 Unlike tearleads, this flow does not require a particular strict-status ruleset
 to be installed. It checks the base immediately before merging and honors any
