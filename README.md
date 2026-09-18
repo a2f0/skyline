@@ -83,10 +83,14 @@ Kemper has a detailed one too: its mapped ground outline and tower part carry
 the fitted model's marble shell, window bays, mullions, finned dark crown, and
 projecting cap at meter scale, on OSM's 159 m height; see its
 [reference audit](docs/kemper-geographic-reference.md).
-Trump International Hotel and Tower has a detailed one as well: its mapped tier
+Michigan Plaza South has a detailed one as well: its mapped outline carries the
+44-story curtain-wall grid, pale mullions, and a roof parapet at the published
+168.6 m top; see its
+[reference audit](docs/michigan-plaza-south-geographic-reference.md).
+Trump International Hotel and Tower has a detailed one too: its mapped tier
 outlines, setback terraces, ribbed crown and three-section mast carry the fitted
 model's glazing vocabulary at meter scale, with window rows and bays estimated;
-see its [reference audit](docs/trump-geographic-reference.md). The other five
+see its [reference audit](docs/trump-geographic-reference.md). The other four
 buildings use simple massing on mapped outlines. Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)

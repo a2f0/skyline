@@ -2,8 +2,8 @@
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings. The geographic layout uses mapped polygon
-outlines, detailed Heritage, Kemper and Trump reconstructions, and simple
-massing for the other five buildings. The original factories, placement and camera remain intact.
+outlines, detailed Heritage, Kemper, Michigan Plaza South and Trump
+reconstructions, and simple massing for the other four buildings. The original factories, placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Switching layouts
 in those views preserves the camera position, target and zoom, including after an
@@ -104,6 +104,9 @@ Intermediate parts have less certainty than the overall height:
   walls over their full height.
 - Crain's two sloping roof parts use OSM's downhill bearing of 133° and roof
   heights of 75 and 73 m. These are map data, not a surveyed roof model.
+- Michigan Plaza South's mapped outline now carries its 44-story curtain-wall
+  grid with a roof parapet at the published 168.6 m top; see the
+  [Michigan Plaza South reference audit](michigan-plaza-south-geographic-reference.md).
 - Two Prudential lacks mapped roof subdivisions. Its 240 m eave, 277 m pyramid
   peak and centered narrow spire are inferred, approximately following the
   existing model's crown proportions, while the tip is fixed at 303.3 m. Its

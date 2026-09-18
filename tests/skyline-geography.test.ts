@@ -216,6 +216,50 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("Michigan Plaza South", () => {
+    test("keeps the mapped outline, roof parapet and glazed grid", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Michigan Plaza S")!;
+      const model = models["Michigan Plaza S"]!;
+      model.building.updateMatrixWorld(true);
+      const ray = new THREE.Raycaster();
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const hit = (hitOrigin: Vec3, direction: Vec3, targets: THREE.Object3D[] = meshes) => {
+        ray.set(new THREE.Vector3(...hitOrigin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(targets, false)[0];
+      };
+      const world = (longitude: number, latitude: number): Vec3 => {
+        const [east, north] = projectGround([longitude, latitude]);
+        return [east, 0, -north];
+      };
+      // The interior roof under the parapet and the parapet itself: the
+      // published 168.6 m top, not an outline extruded to it.
+      const interior = world(-87.62356, 41.88608);
+      near(hit([interior[0], 200, interior[2]], [0, -1, 0])!.point.y, 167.8, 0.001);
+      const southWest = world(-87.6239484, 41.8858842), southEast = world(-87.6231713, 41.8858935);
+      const southWall = southWest.map((v, axis) => v + (southEast[axis]! - v) * 0.5) as Vec3;
+      near(hit([southWall[0], 200, southWall[2] + 0.2], [0, -1, 0])!.point.y, 168.6, 0.001);
+      // Panes and mullions are the first surface on the mapped south wall,
+      // probed from outside the closed shell.
+      for (const fraction of [0.2, 0.5, 0.8]) {
+        const probe = southWest.map((v, axis) => v + (southEast[axis]! - v) * fraction) as Vec3;
+        const south = hit([probe[0], 100, probe[2] + 30], [0, 0, -1]);
+        expect(south!.object.name).toMatch(/glaz|mullion/);
+        expect(south!.point.z).toBeGreaterThan(probe[2] + 0.03);
+        expect(south!.point.z).toBeLessThan(probe[2] + 0.2);
+      }
+      // Facade relief above grade must not redefine the street footprint.
+      const groundMesh = meshes.find((mesh) => mesh.name === "Michigan Plaza South · mapped tower shell")!;
+      const vertices = groundMesh.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [east, north] = projectGround(p);
+        return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   test("retains the mapped upper street set", () => {
     expect(geographicStreets.some((street) => street.name === "North Michigan Avenue")).toBe(true);
     expect(geographicStreets.every((street) => !street.name.includes("Lower"))).toBe(true);

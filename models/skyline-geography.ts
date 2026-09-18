@@ -5,6 +5,7 @@ import { geographicBuildings, geographicStreets } from "./skyline-geography-data
 import type { GeoBuilding } from "./skyline-geography-data.js";
 import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
 import { createKemperGeographicBuilding } from "./kemper-geographic.js";
+import { createMichiganPlazaSouthGeographicBuilding } from "./michigan-plaza-south-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
 
 // Local WGS84 tangent plane, centered on the bounding-box center of Crain's
@@ -47,6 +48,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-kemper") {
     return createKemperGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-michigan-plaza-south-tower") {
+    return createMichiganPlazaSouthGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-trump-tower-only") {
     return createTrumpGeographicBuilding(record, plan, offset);
