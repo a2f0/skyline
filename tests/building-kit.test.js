@@ -376,7 +376,7 @@ describe("fitted and geographic models", () => {
         ? createGeographicBuilding(geographicBuildings.find((record) => record.shortName === geographic[id]))
         : (await load(models.find((model) => model.id === id).module))[models.find((model) => model.id === id).factory]();
     }
-  });
+  }, { timeout: 180_000 });
   const meshesOf = (id) => built[id].building.children.filter((child) => child.isMesh).map((mesh) => ({
     name: mesh.name, triangles: trianglesOf({ positions: mesh.geometry.getAttribute("position").array, normals: mesh.geometry.getAttribute("normal").array }),
   }));

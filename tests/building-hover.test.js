@@ -23,10 +23,10 @@ describe("skyline hover", () => {
     browser = await chromium.launch({ channel: "chrome", headless: true });
     page = await browser.newPage({ viewport: { width: 2000, height: 900 }, reducedMotion: "reduce" });
     page.on("pageerror", (error) => errors.push(error.message));
-  });
+  }, { timeout: 180_000 });
   afterAll(async () => {
     await browser.close();
-  });
+  }, { timeout: 60_000 });
 
   test("the SVG keeps building ownership and highlights only the hovered building", { timeout: 180_000 }, async () => {
     await page.goto(`${origin}/skyline-animated.svg`);

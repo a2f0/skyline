@@ -13,7 +13,9 @@ source "$REPO_ROOT/scripts/secrets.sh"
 load_deploy_secrets
 
 bun "$REPO_ROOT/scripts/build-site.js"
-(cd "$REPO_ROOT" && bunx wrangler deploy --config "$REPO_ROOT/wrangler.jsonc" "$@")
+# --bun runs Wrangler on the Bun runtime instead of its node shebang, so a
+# deploy needs no Node installation at all.
+(cd "$REPO_ROOT" && bunx --bun wrangler deploy --config "$REPO_ROOT/wrangler.jsonc" "$@")
 
 # wrangler reporting success is not the same as the edge serving the files, so check. A run that
 # uploaded nothing has nothing to verify, and verifying anyway would report the previous deploy as

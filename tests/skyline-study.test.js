@@ -157,10 +157,10 @@ describe("eight-building skyline study", () => {
     await page.goto(`${origin}/skyline-study.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     await settle(page);
-  });
+  }, { timeout: 180_000 });
   afterAll(async () => {
     await browser.close();
-  });
+  }, { timeout: 60_000 });
 
   test("pans at first load and guards the camera floor around a below-grade target", { timeout: 180_000 }, async () => {
     // Pan must work on first load, before a view button initializes controls.

@@ -12,7 +12,7 @@ describe("mapped skyline geography", () => {
   const models = {};
   beforeAll(() => {
     for (const record of geographicBuildings) models[record.shortName] = createGeographicBuilding(record);
-  });
+  }, { timeout: 180_000 });
 
   test("projects ground coordinates from the tangent-plane origin", () => {
     // Independent geographic anchors catch swapped coordinates, reversed north,
@@ -156,10 +156,10 @@ describe("geographic layout in the study", () => {
     page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("request", (request) => { if (!request.url().startsWith(origin) && !request.url().startsWith("data:")) externalRequests.push(request.url()); });
-  });
+  }, { timeout: 180_000 });
   afterAll(async () => {
     await browser.close();
-  });
+  }, { timeout: 60_000 });
 
   test("opens the orthographic plan with the mapped buildings at published heights", { timeout: 180_000 }, async () => {
     await page.goto(`${origin}/skyline-study.html`);

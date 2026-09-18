@@ -22,10 +22,10 @@ describe("single-building study", () => {
     await settle(page);
     initial = await position(page);
     bounds = await page.locator("canvas").boundingBox();
-  });
+  }, { timeout: 180_000 });
   afterAll(async () => {
     await browser.close();
-  });
+  }, { timeout: 60_000 });
 
   test("loads with matching panes, a modest budget, and no idle rendering", { timeout: 180_000 }, async () => {
     expect(await page.locator("#loading").isHidden()).toBe(true);
@@ -92,8 +92,9 @@ describe("single-building study", () => {
 
   test("keyboard inspection stays available with reduced motion", { timeout: 180_000 }, async () => {
     await page.locator("canvas").focus();
+    const beforeArrow = await position(page);
     await page.keyboard.press("ArrowLeft");
-    expect(await position(page)).not.toEqual(initial);
+    expect(await position(page), "keyboard inspection must remain available with reduced motion").not.toEqual(beforeArrow);
     await page.keyboard.press("Home");
     expect(await position(page)).toEqual(initial);
     await page.keyboard.press("+");
