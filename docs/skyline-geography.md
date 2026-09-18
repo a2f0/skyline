@@ -129,5 +129,6 @@ extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
 reduced motion and idle rendering. Existing fidelity checks still run against
-the original layout. `models/*.js` ships automatically; `skyline-comparison.ts`
+the original layout. Top-level `models/*.ts` ships automatically as compiled
+`.js`, and its `.svg` excerpts ship as-is; `skyline-comparison.ts`
 is also explicitly included in the site's deployment allowlist.
