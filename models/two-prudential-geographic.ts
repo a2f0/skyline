@@ -209,10 +209,14 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
     decorateTier(1.2, 13.6, h.lowerShoulder, h.lowerPeak, 4);
   };
   tiersNorth();
+  // Rotate the south tiers 180° about the outline's center onto the north
+  // face: a rotation preserves winding, unlike a one-axis reflection.
   const mirrorBatches = [tiers, lit, dim, ...tones];
   mirrorBatches.forEach((target, index) => {
     for (let i = starts[index]!; i < target.positions.length; i += 3) {
+      target.positions[i] = 2 * center[0] - target.positions[i]!;
       target.positions[i + 2] = 2 * center[1] - target.positions[i + 2]!;
+      target.normals[i]! *= -1;
       target.normals[i + 2]! *= -1;
     }
   });
