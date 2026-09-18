@@ -97,7 +97,7 @@ export function createOnePrudentialGeographicBuilding(record: GeoBuilding, proje
     }
     for (let i = 0; i <= bays; i += 1) {
       const s = Math.max(0.6, Math.min(run.length - 0.6, i * width));
-      strip(piers, run, s - 0.6, s + 0.6, first + 0.35, h.roof - 0.6, 0, 0.34);
+      strip(piers, run, s - 0.6, s + 0.6, first + 0.35, h.roof - 0.6, 0.03, 0.34);
     }
     strip(piers, run, 0.015, run.length - 0.015, first + 0.3, first + 0.75, 0.06, 0.18);
   });
@@ -123,7 +123,7 @@ export function createOnePrudentialGeographicBuilding(record: GeoBuilding, proje
       const width = run.length / bays;
       for (let i = 0; i < bays; i += 1) {
         const s = (i + 0.5) * width;
-        strip(piers, run, s - 0.5, s + 0.5, 0.35, top - 0.25, 0, 0.3);
+        strip(piers, run, s - 0.5, s + 0.5, 0.35, top - 0.25, 0.03, 0.3);
       }
       strip(piers, run, 0.015, run.length - 0.015, 0.3, 0.75, 0.06, 0.18);
       strip(piers, run, 0.015, run.length - 0.015, top - 0.45, top, 0.02, 0.25);
