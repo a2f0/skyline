@@ -81,7 +81,7 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     const geographic = name === "geographic";
     streetButton.disabled = !geographic;
     document.querySelector<HTMLElement>("#layout-status")!.textContent = geographic
-      ? "Geographic layout · mapped footprints, published heights; detailed Crain, Heritage, Kemper, Michigan Plaza South, and Trump facades. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m. Plain brown volumes: estimated heights or antenna placement."
+      ? "Geographic layout · mapped footprints, published heights; detailed Crain, Heritage, Kemper, Michigan Plaza South, One Prudential, and Trump facades. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m. Plain brown volumes: estimated heights or antenna placement."
       : "Original layout · proportions and spacing fitted to the drawing. Use ground plan or height comparison, then toggle layouts to compare at the same camera scale.";
     document.querySelector<HTMLElement>("#model-caption")!.textContent = geographic ? "02 / geographic study" : "02 / original 3D study";
   }
