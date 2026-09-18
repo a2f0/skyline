@@ -9,6 +9,7 @@ import { createKemperGeographicBuilding } from "./kemper-geographic.js";
 import { createMichiganPlazaSouthGeographicBuilding } from "./michigan-plaza-south-geographic.js";
 import { createOnePrudentialGeographicBuilding } from "./one-prudential-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
+import { createTwoPrudentialGeographicBuilding } from "./two-prudential-geographic.js";
 
 // Local WGS84 tangent plane, centered on the bounding-box center of Crain's
 // mapped footprint. Ground coordinates are east/north meters; Three uses x/-z.
@@ -62,6 +63,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-trump-tower-only") {
     return createTrumpGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-two-prudential-plaza") {
+    return createTwoPrudentialGeographicBuilding(record, plan, offset);
   }
   const kit = createBuilder(record.name, record.id);
   const material = kit.material(0x8fa9ae);

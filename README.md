@@ -100,8 +100,13 @@ wings, a penthouse, louver screen, and the mapped 278 m mast on the published
 Trump International Hotel and Tower has a detailed one too: its mapped tier
 outlines, setback terraces, ribbed crown and three-section mast carry the fitted
 model's glazing vocabulary at meter scale, with window rows and bays estimated;
-see its [reference audit](docs/trump-geographic-reference.md). The other two
-buildings use simple massing on mapped outlines. Intermediate
+see its [reference audit](docs/trump-geographic-reference.md).
+Two Prudential has a detailed one too: its mapped outline keeps the 240 m
+eave and 277 m pyramid, with piers and panes on the shaft, the paired
+south/north pointed tiers, silver crown bands and louvers, and the tapered
+spire at the published 303.3 m tip; see its
+[reference audit](docs/two-prudential-geographic-reference.md).
+The remaining building uses simple massing on its mapped outline. Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
 for the coordinate system, eight footprint records, height definitions, OSM

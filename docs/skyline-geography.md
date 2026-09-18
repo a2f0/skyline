@@ -3,8 +3,8 @@
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings. The geographic layout uses mapped polygon
 outlines, detailed Crain, Heritage, Kemper, Michigan Plaza South, One
-Prudential and Trump reconstructions, and simple massing for the other two
-buildings. The original factories, placement and camera remain intact.
+Prudential, Trump and Two Prudential reconstructions, and simple massing for
+the one remaining building. The original factories, placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Switching layouts
 in those views preserves the camera position, target and zoom, including after an
@@ -115,10 +115,12 @@ Intermediate parts have less certainty than the overall height:
 - Michigan Plaza South's mapped outline now carries its 44-story curtain-wall
   grid with a roof parapet at the published 168.6 m top; see the
   [Michigan Plaza South reference audit](michigan-plaza-south-geographic-reference.md).
-- Two Prudential lacks mapped roof subdivisions. Its 240 m eave, 277 m pyramid
-  peak and centered narrow spire are inferred, approximately following the
-  existing model's crown proportions, while the tip is fixed at 303.3 m. Its
-  facade setbacks are simplified inside the mapped outline.
+- Two Prudential's mapped outline keeps its 240 m eave, 277 m pyramid peak,
+  and centered narrow spire at the published 303.3 m tip. The pyramid facets
+  now carry silver bands and louvers, the shaft carries its piers and panes,
+  and the paired south/north tiers follow the fitted model's proportions
+  inside the mapped outline; see the
+  [Two Prudential reference audit](two-prudential-geographic-reference.md).
 - Aon's mapped shaft is 340 m and its rooftop enclosure reaches 346.3 m.
   A narrow antenna reaches the published 362.5 m; its position at the enclosure
   center and width are inferred and colored brown.

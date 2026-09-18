@@ -392,6 +392,67 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("Two Prudential", () => {
+    test("keeps the mapped eave, pyramid, spire and setback tiers", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Two Prudential")!;
+      const model = models["Two Prudential"]!;
+      model.building.updateMatrixWorld(true);
+      const ray = new THREE.Raycaster();
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const hit = (hitOrigin: Vec3, direction: Vec3, targets: THREE.Object3D[] = meshes) => {
+        ray.set(new THREE.Vector3(...hitOrigin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(targets, false)[0];
+      };
+      const world = (longitude: number, latitude: number): Vec3 => {
+        const [east, north] = projectGround([longitude, latitude]);
+        return [east, 0, -north];
+      };
+      // The mapped crown: the pyramid peak at the outline's vertex mean, the
+      // facet between the peak and the eave, and the published spire tip.
+      const projected = record.footprint.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
+      const apex: Vec3 = [projected.reduce((sum, p) => sum + p[0], 0) / projected.length, 277, projected.reduce((sum, p) => sum + p[1], 0) / projected.length];
+      near(hit([apex[0], 300, apex[2]], [0, -1, 0])!.point.y, 277, 0.001);
+      const facet = world(-87.622695, 41.885291);
+      const facetHit = hit([facet[0], 300, facet[2]], [0, -1, 0])!;
+      expect(facetHit.point.y).toBeGreaterThan(250);
+      expect(facetHit.point.y).toBeLessThan(277);
+      // The spire: a face beside the tip (the exact 303.3 m tip is pinned by
+      // the generic bounds check; a ray at the exact tip slips between the
+      // four converging faces).
+      const spireFace = hit([apex[0] + 0.05, 350, apex[2]], [0, -1, 0])!;
+      expect(spireFace.object.name).toBe("Two Prudential · spire");
+      expect(spireFace.point.y).toBeGreaterThan(273);
+      expect(spireFace.point.y).toBeLessThan(303.3);
+      // The lower tier projects furthest from the mapped south wall, with
+      // its front the first surface at shaft height. The tier sits on the
+      // longest south-facing run, so the test finds it the same way.
+      const southEdges = projected.map((p, i) => {
+        const q = projected[(i + 1) % projected.length]!;
+        return { start: p, length: Math.hypot(q[0] - p[0], q[1] - p[1]), normal: [-(q[1] - p[1]) / Math.hypot(q[0] - p[0], q[1] - p[1]), (q[0] - p[0]) / Math.hypot(q[0] - p[0], q[1] - p[1])] as Vec2 };
+      }).filter((edge) => edge.normal[1] > 0.9);
+      const tierFront = southEdges.reduce((longest, edge) => edge.length > longest.length ? edge : longest).start[1] + 1.2;
+      const southMid = world(-87.622695, 41.8851685);
+      const tier = hit([southMid[0], 150, tierFront + 30], [0, 0, -1]);
+      expect(tier!.object.name).toMatch(/glaz|tier/);
+      expect(tier!.point.z).toBeGreaterThan(tierFront - 0.02);
+      expect(tier!.point.z).toBeLessThan(tierFront + 0.02);
+      // Panes and piers are the first surface on the mapped east wall.
+      const eastMid = world(-87.6225092, 41.885442);
+      const east = hit([eastMid[0] + 30, 100, eastMid[2]], [-1, 0, 0]);
+      expect(east!.object.name).toMatch(/glaz|pier/);
+      // The exact mapped outline at grade.
+      const groundMesh = meshes.find((mesh) => mesh.name === "Two Prudential · limestone shell")!;
+      const vertices = groundMesh.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [east, north] = projectGround(p);
+        return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   test("retains the mapped upper street set", () => {
     expect(geographicStreets.some((street) => street.name === "North Michigan Avenue")).toBe(true);
     expect(geographicStreets.every((street) => !street.name.includes("Lower"))).toBe(true);
