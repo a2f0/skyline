@@ -2,8 +2,8 @@
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings. The geographic layout uses mapped polygon
-outlines, detailed Heritage and Trump reconstructions, and simple massing for
-the other six buildings. The original factories, placement and camera remain intact.
+outlines, detailed Heritage, Kemper and Trump reconstructions, and simple
+massing for the other five buildings. The original factories, placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Switching layouts
 in those views preserves the camera position, target and zoom, including after an
@@ -90,8 +90,11 @@ Intermediate parts have less certainty than the overall height:
   published 192.4 m top. Facade details and intermediate floor spacing remain
   approximate; see the [Heritage reference audit](heritage-geographic-reference.md).
   Its materials describe the facade, rather than encoding height confidence.
-- Kemper's two-floor podium is estimated at 7.8 m
-  using 159/41. One Prudential's ten- and three-floor parts are estimated at
+- Kemper's two-floor podium keeps its 7.8 m estimate using 159/41, and the
+  tower now carries its marble shell, window bays, mullions, dark crown band
+  with light fins, and projecting cap at meter scale; see the
+  [Kemper reference audit](kemper-geographic-reference.md). One Prudential's
+  ten- and three-floor parts are estimated at
   44.7 and 13.4 m using 183.2/41. Brown material identifies these volumes.
 - Trump's mapped tiers keep their OSM part heights of 60, 120, 200, 345, 357,
   380 and 400 m, then the published 423.2 m tip. The tier outlines now carry a

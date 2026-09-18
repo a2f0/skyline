@@ -4,6 +4,7 @@ import type { BatchData, BuildingModel, Plan, Vec2, Vec3 } from "./building-kit.
 import { geographicBuildings, geographicStreets } from "./skyline-geography-data.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
 import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
+import { createKemperGeographicBuilding } from "./kemper-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
 
 // Local WGS84 tangent plane, centered on the bounding-box center of Crain's
@@ -43,6 +44,9 @@ function plan(coordinates: [number, number][]): Plan {
 export function createGeographicBuilding(record: GeoBuilding, offset: [number, number] = [0, 0]): BuildingModel {
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-kemper") {
+    return createKemperGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-trump-tower-only") {
     return createTrumpGeographicBuilding(record, plan, offset);
