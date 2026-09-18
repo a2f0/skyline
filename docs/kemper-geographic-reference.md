@@ -26,7 +26,7 @@ construction model.
 | --- | ---: | --- |
 | Grade | 0 m | Shared flat geographic datum |
 | Podium top | 7.8 m | OSM part 685494067, two floors at the tower's average floor height |
-| Crown band base | 151.25 m | Top of the 40th floor at the 41-floor pitch |
+| Crown band base | 151.25 m | Bottom of the 40th floor (top of the 39th) at the 41-floor pitch |
 | Shaft top | 158.5 m | Below the projecting cap |
 | Roof | 159 m | OSM height tag on way 64389514 |
 
@@ -37,7 +37,7 @@ the 39 tower floors read as the published 41 floors. The crown band spans the
 ## Plan and detail choices
 
 - The entire ground outline and the tower part are retained exactly in
-  projected coordinates (approximately 54 × 42 m). The podium prism rises on
+  projected coordinates (approximately 55 × 43 m). The podium prism rises on
   the full ground outline, the tower part rises from its top, so no coincident
   exterior walls overlap over their full height. Ground placement has no
   illustration-derived rotation or scale.

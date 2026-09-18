@@ -193,11 +193,16 @@ describe("mapped skyline geography", () => {
         expect(west!.point.x).toBeLessThan(probe[0] - 0.05);
         expect(west!.point.x).toBeGreaterThan(probe[0] - 0.2);
       }
-      // The crown's fins and dark band stand proud near the roof.
-      const finProbe = westProbe(0.5);
+      // The crown's fins stand proud of the dark band near the roof: probe the
+      // last fin's station on the mapped west wall, where a downward-sloping
+      // ray meets the fin itself rather than the glass between fins.
+      const crownCorner = westCorners[0]!, crownKink = westCorners[1]!;
+      const finLength = Math.hypot(crownKink[0] - crownCorner[0], crownKink[2] - crownCorner[2]);
+      const finCount = Math.max(1, Math.round(finLength / 1.05));
+      const finProbe = crownCorner.map((v, axis) => v + (crownKink[axis]! - v) * (finCount - 0.5) / finCount) as Vec3;
       const fin = hit([finProbe[0] - 30, 152, finProbe[2]], [1, 0, 0]);
-      expect(fin!.object.name).toMatch(/crown (fin|glaz)/);
-      near(fin!.point.x, finProbe[0] - 0.165, 0.12);
+      expect(fin!.object.name).toBe("Kemper · crown fins");
+      near(fin!.point.x, finProbe[0] - 0.28, 0.02);
       // Facade relief above grade must not redefine the street footprint.
       const groundMesh = meshes.find((mesh) => mesh.name === "Kemper · marble shell")!;
       const vertices = groundMesh.geometry.getAttribute("position");

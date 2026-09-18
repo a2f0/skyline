@@ -86,7 +86,10 @@ export function createKemperGeographicBuilding(record: GeoBuilding, projectPlan:
   // a projecting closed cap at the 159 m roof. The mapped outline carries
   // sub-meter tracing jogs on its north and west edges; the prisms keep them,
   // but a closed band cannot turn their concave corners, so the cap ring drops
-  // vertices within 1.2 m of the chord between their neighbours.
+  // vertices within 1.2 m of the chord between their neighbours and verifies
+  // that every remaining corner is convex: a future part refresh could add a
+  // jog the tolerance keeps, which must fail here with a clear message rather
+  // than as a band error at page load.
   tower.forEach((run) => {
     strip(crownGlass, run, 0.12, run.length - 0.12, crownBase + 0.05, shaftTop - 0.25, 0.01, 0.05);
     const count = Math.max(1, Math.round(run.length / 1.05));
@@ -110,6 +113,13 @@ export function createKemperGeographicBuilding(record: GeoBuilding, projectPlan:
       }
     }
     if (!changed) break;
+  }
+  for (let i = 0; i < simplified.length; i += 1) {
+    const a = simplified[(i - 1 + simplified.length) % simplified.length]!;
+    const b = simplified[i]!;
+    const c = simplified[(i + 1) % simplified.length]!;
+    const turn = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+    if (turn > 1e-6) throw new Error("Kemper's mapped cap ring still turns a concave corner after simplification.");
   }
   const capRuns = simplified.map((p, i) => line(p, simplified[(i + 1) % simplified.length]!));
   kit.band(cap, capRuns, shaftTop, h.roof, 0.4, { closed: true });
