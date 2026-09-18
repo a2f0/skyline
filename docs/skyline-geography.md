@@ -2,8 +2,8 @@
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings. The geographic layout uses mapped polygon
-outlines, detailed Heritage, Kemper, Michigan Plaza South and Trump
-reconstructions, and simple massing for the other four buildings. The original factories, placement and camera remain intact.
+outlines, detailed Crain, Heritage, Kemper, Michigan Plaza South and Trump
+reconstructions, and simple massing for the other three buildings. The original factories, placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Switching layouts
 in those views preserves the camera position, target and zoom, including after an
@@ -103,7 +103,10 @@ Intermediate parts have less certainty than the overall height:
   Nested tiers start at the previous tier's top, avoiding coincident exterior
   walls over their full height.
 - Crain's two sloping roof parts use OSM's downhill bearing of 133° and roof
-  heights of 75 and 73 m. These are map data, not a surveyed roof model.
+  heights of 75 and 73 m. These are map data, not a surveyed roof model; the
+  parts now carry clipped window cells, mullions, sloping roof rims, and a
+  dark seam along the mapped diagonal; see the
+  [Crain reference audit](crain-geographic-reference.md).
 - Michigan Plaza South's mapped outline now carries its 44-story curtain-wall
   grid with a roof parapet at the published 168.6 m top; see the
   [Michigan Plaza South reference audit](michigan-plaza-south-geographic-reference.md).

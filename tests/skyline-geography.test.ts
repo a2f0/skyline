@@ -260,6 +260,78 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("Crain", () => {
+    test("keeps the mapped roof slopes, flat cap and glazed facades", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Crain")!;
+      const model = models["Crain"]!;
+      model.building.updateMatrixWorld(true);
+      const ray = new THREE.Raycaster();
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const hit = (hitOrigin: Vec3, direction: Vec3, targets: THREE.Object3D[] = meshes) => {
+        ray.set(new THREE.Vector3(...hitOrigin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(targets, false)[0];
+      };
+      const world = (longitude: number, latitude: number): Vec3 => {
+        const [east, north] = projectGround([longitude, latitude]);
+        return [east, 0, -north];
+      };
+      // OSM's downhill bearing warp: height descends from each part's stated
+      // top along the 133° bearing. Independent samples pin the flat 152.5 m
+      // cap and the 172.4/75 and 177.4/73 sloped roofs.
+      const radians = Math.PI / 180;
+      const slope = (coordinates: [number, number][], top: number, fall: number) => {
+        const points = coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
+        const along = (p: Vec2) => p[0] * Math.sin(133 * radians) - p[1] * Math.cos(133 * radians);
+        const projections = points.map(along);
+        const min = Math.min(...projections), span = Math.max(...projections) - min;
+        return (p: Vec2) => top - fall * (along(p) - min) / span;
+      };
+      const flatTop = world(-87.62512, 41.88494);
+      near(hit([flatTop[0], 200, flatTop[2]], [0, -1, 0])!.point.y, 152.5, 0.001);
+      const part228 = record.parts.find((p) => p.way === 284816228)!, part229 = record.parts.find((p) => p.way === 284816229)!;
+      const roof228 = slope(part228.coordinates, part228.top, part228.roofSlope!.height);
+      const roof229 = slope(part229.coordinates, part229.top, part229.roofSlope!.height);
+      for (const probe of [world(-87.62487, 41.88468), world(-87.62505, 41.88480)]) {
+        const expected = roof228([probe[0], probe[2]]);
+        near(hit([probe[0], 200, probe[2]], [0, -1, 0])!.point.y, expected, 0.05);
+      }
+      const northTip = world(-87.62476, 41.88502);
+      near(hit([northTip[0], 200, northTip[2]], [0, -1, 0])!.point.y, roof229([northTip[0], northTip[2]]), 0.05);
+      // The dark seam follows the mapped diagonal between the two sloped parts.
+      const seamMid = world(-87.62496155, 41.88478375);
+      expect(hit([seamMid[0], 200, seamMid[2]], [0, -1, 0])!.object.name).toBe("Crain · roof seam");
+      // Panes and mullions are the first surface on the mapped south wall,
+      // probed from outside the closed shell. The wall jogs at
+      // (-87.624879, 41.8846221), so probes follow the kinked outline.
+      const southCorners = [world(-87.6251984, 41.8846185), world(-87.624879, 41.8846221), world(-87.624814, 41.8846217)];
+      const southProbe = (fraction: number): Vec3 => {
+        const lengths = [0, 1].map((i) => Math.hypot(southCorners[i + 1]![0] - southCorners[i]![0], southCorners[i + 1]![2] - southCorners[i]![2]));
+        const target = fraction * (lengths[0]! + lengths[1]!);
+        const index = target <= lengths[0]! ? 0 : 1;
+        const t = (target - (index === 1 ? lengths[0]! : 0)) / lengths[index]!;
+        return southCorners[index]!.map((v, axis) => v + (southCorners[index + 1]![axis]! - v) * t) as Vec3;
+      };
+      for (const fraction of [0.25, 0.6]) {
+        const probe = southProbe(fraction);
+        const south = hit([probe[0], 100, probe[2] + 30], [0, 0, -1]);
+        expect(south!.object.name).toMatch(/glaz|mullion/);
+        expect(south!.point.z).toBeGreaterThan(probe[2] + 0.02);
+        expect(south!.point.z).toBeLessThan(probe[2] + 0.2);
+      }
+      // The parts' outlines contain internal seams, so grade carries their
+      // vertices too; every mapped footprint corner must still be present.
+      const groundMesh = meshes.find((mesh) => mesh.name === "Crain · mapped stone shell")!;
+      const vertices = groundMesh.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [east, north] = projectGround(p);
+        return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
+      }));
+      expect([...mapped].every((corner) => grade.has(corner))).toBe(true);
+    });
+  });
+
   test("retains the mapped upper street set", () => {
     expect(geographicStreets.some((street) => street.name === "North Michigan Avenue")).toBe(true);
     expect(geographicStreets.every((street) => !street.name.includes("Lower"))).toBe(true);
