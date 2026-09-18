@@ -97,7 +97,6 @@ export function createCrainGeographicBuilding(record: GeoBuilding, projectPlan: 
     const clearance = Math.max(Math.abs(back), Math.abs(front)) + 0.025;
     from = Math.max(from, clearance);
     to = Math.min(to, run.length - clearance);
-    if (to - from < 0.03) return;
     const sill = y0 + 0.03;
     if (h0 <= sill && h1 <= sill) return;
     // An end the roof cuts below the pane's sill truncates the box at the
@@ -110,6 +109,7 @@ export function createCrainGeographicBuilding(record: GeoBuilding, projectPlan: 
       to = from + (to - from) * (sill - h0) / (h1 - h0);
       h1 = sill;
     }
+    if (to - from < 0.03) return;
     const n = run.normal(0);
     const corner = (end: Vec2, across: number, y: number): Vec3 => [end[0] + n[0] * across, y, end[1] + n[1] * across];
     const b: Vec3[] = [corner(run.at(from), back, y0), corner(run.at(from), front, y0), corner(run.at(to), front, y0), corner(run.at(to), back, y0)];
