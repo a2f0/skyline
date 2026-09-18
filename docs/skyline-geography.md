@@ -2,8 +2,8 @@
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings. The geographic layout uses mapped polygon
-outlines, detailed Heritage, Kemper and Trump reconstructions, and simple
-massing for the other five buildings. The original factories, placement and camera remain intact.
+outlines, detailed Heritage, Kemper, Michigan Plaza South and Trump
+reconstructions, and simple massing for the other four buildings. The original factories, placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Switching layouts
 in those views preserves the camera position, target and zoom, including after an
@@ -47,7 +47,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Heritage | [147397547](https://www.openstreetmap.org/way/147397547) | 686199648, 686199649, 686199650 |
 | Kemper | [64389514](https://www.openstreetmap.org/way/64389514) | 685494066, 685494067 |
 | Crain | [210671717](https://www.openstreetmap.org/way/210671717) | 284816227, 284816228, 284816229 |
-| Michigan Plaza South | [127107024](https://www.openstreetmap.org/way/127107024) | Outline extruded |
+| Michigan Plaza South | [127107024](https://www.openstreetmap.org/way/127107024) | Outline with detailed grid |
 | Trump | [64594680](https://www.openstreetmap.org/way/64594680) | Podium plus 188338549, 188338550, 188338548, 188338859, 188356529, 284773992, 284773991 |
 | One Prudential | [127107034](https://www.openstreetmap.org/way/127107034) | 685493609, 685493610, 685493612, 685493614 |
 | Two Prudential | [64388666](https://www.openstreetmap.org/way/64388666) | Outline plus inferred crown |
@@ -104,6 +104,9 @@ Intermediate parts have less certainty than the overall height:
   walls over their full height.
 - Crain's two sloping roof parts use OSM's downhill bearing of 133° and roof
   heights of 75 and 73 m. These are map data, not a surveyed roof model.
+- Michigan Plaza South's mapped outline now carries its 44-story curtain-wall
+  grid with a roof parapet at the published 168.6 m top; see the
+  [Michigan Plaza South reference audit](michigan-plaza-south-geographic-reference.md).
 - Two Prudential lacks mapped roof subdivisions. Its 240 m eave, 277 m pyramid
   peak and centered narrow spire are inferred, approximately following the
   existing model's crown proportions, while the tip is fixed at 303.3 m. Its
