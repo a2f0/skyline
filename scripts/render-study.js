@@ -4,14 +4,14 @@
 // at its contain-fit rectangle, and optionally close-ups of one building from the skyline,
 // an elevated view, the rear, and the north-west, where hidden and omitted faces show. Stills use
 // reduced motion, so every frame is a settled, immediate camera change.
-const { mkdirSync } = require("node:fs");
-const os = require("node:os");
-const path = require("node:path");
-const { startServer } = require("./lib/static-server.cjs");
-const { launch, openStudy, settle, command } = require("./lib/study-page.cjs");
-const { models } = require("../tests/skyline-landmarks.cjs");
+import { mkdirSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { startServer } from "./lib/static-server.js";
+import { launch, openStudy, settle, command } from "./lib/study-page.js";
+import { models } from "../tests/skyline-landmarks.js";
 
-const usage = `Usage: node scripts/render-study.cjs [--out dir] [--building id] [--root dir]
+const usage = `Usage: bun scripts/render-study.js [--out dir] [--building id] [--root dir]
   Writes PNG stills to --out (default: ${path.join(os.tmpdir(), "skyline-renders")}). --building adds
   close-ups of that model (for example building-heritage-at-millennium-park); --root serves
   another checkout.`;
@@ -57,7 +57,7 @@ async function closeupClip(page, entry) {
 }
 
 command(usage, { out: { type: "string" }, building: { type: "string" }, root: { type: "string" } }, async ({ values }) => {
-  const root = path.resolve(values.root || path.join(__dirname, ".."));
+  const root = path.resolve(values.root || path.join(import.meta.dirname, ".."));
   const out = path.resolve(values.out || path.join(os.tmpdir(), "skyline-renders"));
   const entry = values.building && models.find((model) => model.id === values.building);
   if (values.building && !entry) throw new Error(`Unknown building ${values.building}; expected one of ${models.map((model) => model.id).join(", ")}.`);

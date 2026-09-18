@@ -1,6 +1,6 @@
-const assert = require("node:assert/strict");
-const { chromium } = require("playwright");
-const targets = require("./fixtures/building-hover.json");
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { chromium } from "playwright";
+import targets from "./fixtures/building-hover.json" with { type: "json" };
 
 const origin = process.env.SKYLINE_TEST_URL || "http://127.0.0.1:8000";
 const settle = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -17,12 +17,18 @@ const core = {
   gap: { x: 4430, y: 600, key: null },
 };
 
-async function main() {
-  const browser = await chromium.launch({ channel: "chrome", headless: true });
-  try {
-    const page = await browser.newPage({ viewport: { width: 2000, height: 900 }, reducedMotion: "reduce" });
-    const errors = [];
+describe("skyline hover", () => {
+  let browser, page, mobile, errors = [];
+  beforeAll(async () => {
+    browser = await chromium.launch({ channel: "chrome", headless: true });
+    page = await browser.newPage({ viewport: { width: 2000, height: 900 }, reducedMotion: "reduce" });
     page.on("pageerror", (error) => errors.push(error.message));
+  }, { timeout: 180_000 });
+  afterAll(async () => {
+    await browser.close();
+  }, { timeout: 60_000 });
+
+  test("the SVG keeps building ownership and highlights only the hovered building", { timeout: 180_000 }, async () => {
     await page.goto(`${origin}/skyline-animated.svg`);
     const ownership = await page.evaluate(() => {
       const owner = (id) => document.getElementById(id).closest(".interactive-building").getAttribute("aria-label");
@@ -33,67 +39,79 @@ async function main() {
         duplicateIds: ids.length - new Set(ids).size,
       };
     });
-    assert.deepEqual(ownership, {
+    expect(ownership).toEqual({
       monroeRoof: "Monroe Building", lakeviewWall: "SAIC Lakeview Building", prudentialAntenna: "One Prudential Plaza",
       nested: 0, duplicateIds: 0,
     });
     for (const target of targets) {
       const point = project(target);
       await page.mouse.move(point.x, point.y);
-      assert.equal(await page.locator("#building-tooltip-text").textContent(), target.label, `SVG: ${target.id}`);
+      expect(await page.locator("#building-tooltip-text").textContent(), `SVG: ${target.id}`).toBe(target.label);
       const active = await page.evaluate(() => [...document.querySelectorAll(".is-active")].map((node) => node.dataset.buildingId || node.id));
-      assert.ok(active.length > 0 && active.every((key) => key === target.key), `SVG should highlight only ${target.key}`);
-      if (target.key === "one-prudential-plaza") assert.equal(active.length, 2, "tower and podium should highlight together");
+      expect(active.length > 0 && active.every((key) => key === target.key), `SVG should highlight only ${target.key}`).toBe(true);
+      if (target.key === "one-prudential-plaza") expect(active.length).toBe(2);
     }
     await page.mouse.move(5, 5);
-    assert.equal(await page.locator(".is-active").count(), 0);
-    assert.equal(await page.locator("#building-tooltip").getAttribute("visibility"), "hidden");
+    expect(await page.locator(".is-active").count()).toBe(0);
+    expect(await page.locator("#building-tooltip").getAttribute("visibility")).toBe("hidden");
+  });
 
+  test("the WebGL view picks every building and illuminates independently", { timeout: 180_000 }, async () => {
     await page.goto(`${origin}/skyline-webgl.html`);
     await page.waitForFunction(() => window.__skylineWebGL?.ready);
-    assert.equal(await page.evaluate(() => window.__skylineWebGL.buildingCount), 31);
+    expect(await page.evaluate(() => window.__skylineWebGL.buildingCount)).toBe(31);
     for (const target of targets) {
       const point = project(target);
       await page.mouse.move(point.x, point.y);
       await settle(page);
-      assert.equal(await page.evaluate(() => window.__skylineWebGL.selectedBuilding), target.key, `WebGL: ${target.id}`);
-      assert.equal(await page.locator("#tooltip").textContent(), target.label);
+      expect(await page.evaluate(() => window.__skylineWebGL.selectedBuilding), `WebGL: ${target.id}`).toBe(target.key);
+      expect(await page.locator("#tooltip").textContent()).toBe(target.label);
     }
     const moveTo = async (target, width = 2000, height = 900) => {
       const point = project(target, width, height);
       await page.mouse.move(point.x, point.y);
       await settle(page);
-      assert.equal(await page.evaluate(() => window.__skylineWebGL.selectedBuilding), target.key);
+      expect(await page.evaluate(() => window.__skylineWebGL.selectedBuilding)).toBe(target.key);
     };
     await moveTo(core.gap);
-    assert.equal(await page.locator("#tooltip").isHidden(), true, "empty sky inside the old composite bounds must not pick a building");
+    expect(await page.locator("#tooltip").isHidden()).toBe(true);
     const patch = async (target) => {
       const point = project(target);
       return page.screenshot({ clip: { x: Math.floor(point.x) - 4, y: Math.floor(point.y) - 4, width: 8, height: 8 } });
     };
     const trumpBefore = await patch(core.trump), prudentialBefore = await patch(core.prudential);
     await moveTo(core.trump);
-    assert.notDeepEqual(await patch(core.trump), trumpBefore, "Trump's facade should illuminate");
-    assert.deepEqual(await patch(core.prudential), prudentialBefore, "Trump hover must not illuminate One Prudential");
+    expect(await patch(core.trump)).not.toEqual(trumpBefore);
+    expect(await patch(core.prudential)).toEqual(prudentialBefore);
     await moveTo(core.prudential);
-    assert.deepEqual(await patch(core.trump), trumpBefore, "One Prudential hover must not illuminate Trump");
-    assert.notDeepEqual(await patch(core.prudential), prudentialBefore);
+    expect(await patch(core.trump)).toEqual(trumpBefore);
+    expect(await patch(core.prudential)).not.toEqual(prudentialBefore);
     await moveTo(targets.find((target) => target.id === "building-prudential-plaza-podium"));
-    assert.notDeepEqual(await patch(core.prudential), prudentialBefore, "podium hover should illuminate its tower across draw layers");
+    expect(await patch(core.prudential)).not.toEqual(prudentialBefore);
+  });
 
+  test("the WebGL view keeps picking across resizes and reduced motion", { timeout: 180_000 }, async () => {
+    const moveTo = async (target, width, height) => {
+      const point = project(target, width, height);
+      await page.mouse.move(point.x, point.y);
+      await settle(page);
+      expect(await page.evaluate(() => window.__skylineWebGL.selectedBuilding)).toBe(target.key);
+    };
     await page.setViewportSize({ width: 1280, height: 720 });
     for (const target of Object.values(core)) await moveTo(target, 1280, 720);
     await page.emulateMedia({ reducedMotion: "no-preference" });
     for (const target of [core.trump, core.prudential]) await moveTo(target, 1280, 720);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await settle(page);
-    assert.equal(await page.evaluate(() => window.__skylineWebGL.selectedBuilding), core.prudential.key);
+    expect(await page.evaluate(() => window.__skylineWebGL.selectedBuilding)).toBe(core.prudential.key);
     await page.mouse.move(-1, -1);
     await settle(page);
-    assert.equal(await page.locator("#tooltip").isHidden(), true);
-    assert.equal(await page.evaluate(() => window.__skylineWebGL.selectedBuilding), null);
+    expect(await page.locator("#tooltip").isHidden()).toBe(true);
+    expect(await page.evaluate(() => window.__skylineWebGL.selectedBuilding)).toBeNull();
+  });
 
-    const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, reducedMotion: "reduce" });
+  test("the WebGL view scales picking to mobile", { timeout: 180_000 }, async () => {
+    mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, reducedMotion: "reduce" });
     mobile.on("pageerror", (error) => errors.push(error.message));
     await mobile.goto(`${origin}/skyline-webgl.html`);
     await mobile.waitForFunction(() => window.__skylineWebGL?.ready);
@@ -101,10 +119,11 @@ async function main() {
       const point = project(target, 390, 844);
       await mobile.mouse.move(point.x, point.y);
       await settle(mobile);
-      assert.equal(await mobile.evaluate(() => window.__skylineWebGL.selectedBuilding), target.key);
+      expect(await mobile.evaluate(() => window.__skylineWebGL.selectedBuilding)).toBe(target.key);
     }
-    assert.deepEqual(errors, []);
-    console.log(`PASS: ${targets.length} SVG/WebGL hover samples across 31 buildings, ownership, independent illumination, overlaps, sky gaps, resize, parallax, reduced motion, and mobile scaling.`);
-  } finally { await browser.close(); }
-}
-main().catch((error) => { console.error(error); process.exitCode = 1; });
+  });
+
+  test("hover runs without page errors", { timeout: 180_000 }, async () => {
+    expect(errors).toEqual([]);
+  });
+});

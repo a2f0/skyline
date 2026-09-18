@@ -1,14 +1,15 @@
 {
   "name": "chicago-skyline",
   "private": true,
+  "type": "module",
   "scripts": {
-    "check": "node scripts/check.cjs",
-    "test": "node scripts/check.cjs",
-    "build:site": "node scripts/build-site.cjs",
-    "fidelity": "node scripts/fidelity-report.cjs",
-    "renders": "node scripts/render-study.cjs",
+    "check": "bun scripts/check.js",
+    "test": "bun scripts/check.js",
+    "build:site": "bun scripts/build-site.js",
+    "fidelity": "bun scripts/fidelity-report.js",
+    "renders": "bun scripts/render-study.js",
     "deploy": "scripts/deploy.sh",
-    "verify:deploy": "node scripts/verify-deploy.cjs"
+    "verify:deploy": "bun scripts/verify-deploy.js"
   },
   "devDependencies": {
     "playwright": "1.63.0",

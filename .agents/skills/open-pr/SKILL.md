@@ -5,7 +5,7 @@ description: Commit intended Skyline changes on a feature branch and open or upd
 
 # Open PR
 
-Require Git, authenticated `gh`, Node.js, and the browser test dependencies
+Require Git, authenticated `gh`, Bun (see mise.toml), and the browser test dependencies
 documented in README. Use a conventional-commit title describing final behavior.
 
 1. Inspect status, current branch, default branch, and remotes. Resolve an open
@@ -19,7 +19,7 @@ documented in README. Use a conventional-commit title describing final behavior.
    unrelated files. Commit intended changes on the feature branch, fetch the
    actual base, and merge it into the feature branch if needed. Resolve in-scope
    conflicts and validate. Never force-update a branch or discard work.
-3. Run `SKYLINE_BASE_SHA=<fetched-base-sha> node scripts/check.cjs`. This checks
+3. Run `SKYLINE_BASE_SHA=<fetched-base-sha> bun scripts/check.js`. This checks
    unstaged, staged, and already committed branch whitespace as well as tests. Stage explicit
    intended paths and commit if needed. Leave unrelated changes unstaged.
    If called by `ship-pr`, stop here until its review has passed; after that,

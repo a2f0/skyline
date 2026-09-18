@@ -12,8 +12,10 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 source "$REPO_ROOT/scripts/secrets.sh"
 load_deploy_secrets
 
-node "$REPO_ROOT/scripts/build-site.cjs"
-npx --prefix "$REPO_ROOT" wrangler deploy --config "$REPO_ROOT/wrangler.jsonc" "$@"
+bun "$REPO_ROOT/scripts/build-site.js"
+# --bun runs Wrangler on the Bun runtime instead of its node shebang, so a
+# deploy needs no Node installation at all.
+(cd "$REPO_ROOT" && bunx --bun wrangler deploy --config "$REPO_ROOT/wrangler.jsonc" "$@")
 
 # wrangler reporting success is not the same as the edge serving the files, so check. A run that
 # uploaded nothing has nothing to verify, and verifying anyway would report the previous deploy as
@@ -27,8 +29,8 @@ npx --prefix "$REPO_ROOT" wrangler deploy --config "$REPO_ROOT/wrangler.jsonc" "
 # This is a comment strip rather than a JSONC parser, so a config carrying /* and */ inside string
 # values could yield a wrong name instead of none; that needs a pathological file we own and a
 # --name flag matching it.
-configured_name="$(node -e '
-  const fs = require("node:fs");
+configured_name="$(bun -e '
+  const fs = await import("node:fs");
   const raw = fs.readFileSync(process.argv[1], "utf8");
   const stripped = raw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|\s)\/\/.*$/gm, "$1");
   try { process.stdout.write(String(JSON.parse(stripped).name || "")); } catch {}
@@ -61,7 +63,7 @@ elif [[ "$published" != true ]]; then
   echo "Skipping deploy verification: --dry-run published nothing."
 elif [[ "$target_is_production" != true ]]; then
   echo "Skipping deploy verification: this run targeted another Worker."
-  echo "Check it with: npm run verify:deploy -- --url <that origin>"
+  echo "Check it with: bun run verify:deploy -- --url <that origin>"
 else
-  node "$REPO_ROOT/scripts/verify-deploy.cjs"
+  bun "$REPO_ROOT/scripts/verify-deploy.js"
 fi

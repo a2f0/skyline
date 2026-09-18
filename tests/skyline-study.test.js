@@ -1,9 +1,9 @@
-const assert = require("node:assert/strict");
-const { pathToFileURL } = require("node:url");
-const path = require("node:path");
-const { chromium } = require("playwright");
-const { heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, fitted } = require("./skyline-landmarks.cjs");
-const { viewports, checkSpec, measureStudy, above } = require("./study-fidelity.cjs");
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { pathToFileURL } from "node:url";
+import path from "node:path";
+import { chromium } from "playwright";
+import { heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, fitted } from "./skyline-landmarks.js";
+import { viewports, checkSpec, measureStudy, above } from "./study-fidelity.js";
 
 const origin = process.env.SKYLINE_TEST_URL || "http://127.0.0.1:8000";
 const settle = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -20,85 +20,97 @@ const twoPrudentialModule = models.find((model) => model.id === twoPrudential).m
 const twoPrudentialSpec = fitted.find((spec) => spec.id === twoPrudential);
 const aonModule = models.find((model) => model.id === aon).module;
 const aonSpec = fitted.find((spec) => spec.id === aon);
-// The layouts come from the shared list, so scripts/fidelity-report.cjs measures the same pages.
+// The layouts come from the shared list, so scripts/fidelity-report.js measures the same pages.
 const [desktop, laptop, tablet, tall, phone] = viewports;
 const silhouetteSlack = 0.001 / 1.20834767 / 1.19979319;
 
 async function checkReferenceMatch(page) {
-  // Landmarks, columns, and sight lines come from tests/skyline-landmarks.cjs through the
-  // shared maths in tests/study-fidelity.cjs, which scripts/fidelity-report.cjs also uses.
+  // Landmarks, columns, and sight lines come from tests/skyline-landmarks.js through the
+  // shared maths in tests/study-fidelity.js, which scripts/fidelity-report.js also uses.
   const { deviations, buildings } = await page.evaluate(measureStudy, { landmarks, landmarkTolerance, fitted, models });
   for (const [name, result] of Object.entries(deviations)) {
-    assert.ok(result.error < result.tolerance, `${name} should follow source: ${JSON.stringify(result)}`);
+    expect(result.error, `${name} should follow source: ${JSON.stringify(result)}`).toBeLessThan(result.tolerance);
   }
   for (const building of buildings) {
     const { label, onGeometryTolerance } = fitted.find((spec) => spec.id === building.id);
-    for (const [name, distance] of Object.entries(building.onGeometry)) assert.ok(distance < onGeometryTolerance, `${label} ${name} should lie on the model geometry: ${distance} m`);
+    for (const [name, distance] of Object.entries(building.onGeometry)) {
+      expect(distance, `${label} ${name} should lie on the model geometry: ${distance} m`).toBeLessThan(onGeometryTolerance);
+    }
   }
   const { projected, columns, silhouette } = buildings.find((building) => building.id === heritage);
-  assert.ok(above(deviations, "Kemper near roof", "Kemper left roof", "Kemper right roof"), "Kemper's near roof corner should rise above both neighboring corners, as in the SVG");
-  assert.ok(above(deviations, "Michigan near roof", "Michigan left roof", "Michigan right roof"), "Michigan Plaza's near roof corner should rise above both neighboring corners");
-  assert.ok(above(deviations, "screenFrontTop", "screenNorthTop", "screenSouthTop"), "Heritage's screen front corner should rise above both screen ends");
-  assert.ok(above(deviations, "stubFrontRoof", "stubLeftRoof"), "Heritage's stub front corner should rise above its left silhouette corner");
-  assert.ok(above(deviations, "roofNear", "roofLeft", "roofRight"), "One Prudential's near roof corner should rise above both neighboring corners, as in the SVG");
-  assert.ok(above(deviations, "penthouseTopEast", "penthouseTopWest"), "One Prudential's penthouse should rise toward its east end, as drawn");
-  assert.ok(above(deviations, "trumpSpireTip", "twoSpire", "mastTip"), "Trump's spire should rise above both neighboring spires, as in the SVG");
-  assert.ok(above(deviations, "twoSpire", "twoPyramid", "mastTip"), "Two Prudential's spire should rise above its pyramid and One Prudential's antenna");
-  assert.ok(above(deviations, "twoPyramid", "twoSouthChevron", "twoEastChevron"), "Two Prudential's pyramid should rise above the facade chevrons");
-  assert.ok(above(deviations, "twoSouthChevron", "twoEastChevron", "twoMiddleChevron"), "Two Prudential's south chevron should rise above the east and middle chevrons, as drawn");
-  assert.ok(above(deviations, "twoMiddleChevron", "twoLowerChevron"), "Two Prudential's projecting chevrons should descend toward the podium");
-  assert.ok(above(deviations, "aonRoofNear", "aonRoofWest", "aonRoofEast"), "Aon's near roof corner should rise above both ends in the source view");
-  assert.ok(above(deviations, "aonRoofNear", "trumpSpireTip"), "Aon's drawn roof should rise above Trump's spire");
+  expect(above(deviations, "Kemper near roof", "Kemper left roof", "Kemper right roof")).toBe(true);
+  expect(above(deviations, "Michigan near roof", "Michigan left roof", "Michigan right roof")).toBe(true);
+  expect(above(deviations, "screenFrontTop", "screenNorthTop", "screenSouthTop")).toBe(true);
+  expect(above(deviations, "stubFrontRoof", "stubLeftRoof")).toBe(true);
+  expect(above(deviations, "roofNear", "roofLeft", "roofRight")).toBe(true);
+  expect(above(deviations, "penthouseTopEast", "penthouseTopWest")).toBe(true);
+  expect(above(deviations, "trumpSpireTip", "twoSpire", "mastTip")).toBe(true);
+  expect(above(deviations, "twoSpire", "twoPyramid", "mastTip")).toBe(true);
+  expect(above(deviations, "twoPyramid", "twoSouthChevron", "twoEastChevron")).toBe(true);
+  expect(above(deviations, "twoSouthChevron", "twoEastChevron", "twoMiddleChevron")).toBe(true);
+  expect(above(deviations, "twoMiddleChevron", "twoLowerChevron")).toBe(true);
+  expect(above(deviations, "aonRoofNear", "aonRoofWest", "aonRoofEast")).toBe(true);
+  expect(above(deviations, "aonRoofNear", "trumpSpireTip")).toBe(true);
   // The three full-height strips between Aon's near corner and first slim east
   // pier must occupy the source's measured width, not become a window bay.
   const aonStripEdges = buildings.find((building) => building.id === aon).projected.aonCornerStripEdges;
   const aonLayerUnit = (deviations.aonRoofEast.expected[0] - deviations.aonRoofNear.expected[0]) / (5401.877 - 5148.845);
   [21.142, 24.925, 11.349].forEach((width, index) => {
     const actual = aonStripEdges[2 * index + 1][0] - aonStripEdges[2 * index][0];
-    assert.ok(Math.abs(actual - width * aonLayerUnit) < 0.00035, `Aon corner strip ${index + 1} should keep its measured stone width: ${actual}`);
+    expect(Math.abs(actual - width * aonLayerUnit), `Aon corner strip ${index + 1} should keep its measured stone width: ${actual}`).toBeLessThan(0.00035);
   });
   const aonStoneSpan = aonStripEdges.at(-1)[0] - aonStripEdges[0][0];
-  assert.ok(Math.abs(aonStoneSpan - 59.867 * aonLayerUnit) < 0.0005, `Aon's corner should stay stone across its full drawn span: ${aonStoneSpan}`);
+  expect(Math.abs(aonStoneSpan - 59.867 * aonLayerUnit), `Aon's corner should stay stone across its full drawn span: ${aonStoneSpan}`).toBeLessThan(0.0005);
   const cap = { apex: projected.capApex, ends: [projected.capSouthEnd, projected.capNorthEnd] };
-  assert.ok(cap.ends.every((end) => cap.apex[1] < end[1]), `Heritage's crown cap should crest over the joint, above both of its ends: ${JSON.stringify(cap)}`);
+  expect(cap.ends.every((end) => cap.apex[1] < end[1]), `Heritage's crown cap should crest over the joint, above both of its ends: ${JSON.stringify(cap)}`).toBe(true);
   for (const building of buildings) {
     const spec = fitted.find((entry) => entry.id === building.id);
     for (const [name, list] of Object.entries(building.columns)) {
       const { batch, drawn, tolerance = spec.columnTolerance } = spec.columns[name];
-      assert.equal(list.length, drawn.length, `${spec.label} should export every drawn ${name}`);
-      list.forEach((column, index) => assert.ok(Math.abs(column.actual - column.expected) < tolerance, `${spec.label} ${name} ${index + 1} should line up with the drawing: ${JSON.stringify(column)}`));
-      building.sightGaps[name].forEach(({ gap, mesh }, index) => assert.ok(gap > spec.sightGap[0] && gap < spec.sightGap[1] && mesh === batch, `${spec.label} ${name} ${index + 1} should stand proud as the first surface on its sight line: ${gap} m on ${mesh}`));
+      expect(list.length, `${spec.label} should export every drawn ${name}`).toBe(drawn.length);
+      list.forEach((column, index) => {
+        expect(Math.abs(column.actual - column.expected), `${spec.label} ${name} ${index + 1} should line up with the drawing: ${JSON.stringify(column)}`).toBeLessThan(tolerance);
+      });
+      building.sightGaps[name].forEach(({ gap, mesh }, index) => {
+        expect(gap > spec.sightGap[0] && gap < spec.sightGap[1] && mesh === batch,
+          `${spec.label} ${name} ${index + 1} should stand proud as the first surface on its sight line: ${gap} m on ${mesh}`).toBe(true);
+      });
     }
     for (const [name, list] of Object.entries(building.rows)) {
       const { drawn, tolerance } = spec.rows[name];
-      assert.equal(list.length, drawn.length, `${spec.label} should export every drawn ${name}`);
-      list.forEach((row, index) => assert.ok(Math.abs(row.actual - row.expected) < tolerance, `${spec.label} ${name} ${index + 1} should match the source row: ${JSON.stringify(row)}`));
+      expect(list.length, `${spec.label} should export every drawn ${name}`).toBe(drawn.length);
+      list.forEach((row, index) => {
+        expect(Math.abs(row.actual - row.expected), `${spec.label} ${name} ${index + 1} should match the source row: ${JSON.stringify(row)}`).toBeLessThan(tolerance);
+      });
     }
   }
   // Fin 3 stands on the joint and fin 11 on the bow's end; bays narrow as the bow turns away.
   const fins = columns.crownFins.map((column) => column.actual);
   for (let index = 3; index < 10; index += 1) {
-    assert.ok(fins[index + 1] - fins[index] < fins[index] - fins[index - 1], `Heritage's crown fin spacing should narrow across the bow: ${JSON.stringify(fins)}`);
+    expect(fins[index + 1] - fins[index] < fins[index] - fins[index - 1],
+      `Heritage's crown fin spacing should narrow across the bow: ${JSON.stringify(fins)}`).toBe(true);
   }
   const lowerSouthWest = projected.lowerSouthWest.map((uv) => uv[0]);
-  assert.ok(lowerSouthWest.every((u) => u >= silhouette - silhouetteSlack), `Heritage's trimmed lower tier and its cap and band overhangs should stay inside the drawn left silhouette: ${JSON.stringify({ lowerSouthWest, silhouette })}`);
+  expect(lowerSouthWest.every((u) => u >= silhouette - silhouetteSlack),
+    `Heritage's trimmed lower tier and its cap and band overhangs should stay inside the drawn left silhouette: ${JSON.stringify({ lowerSouthWest, silhouette })}`).toBe(true);
   // One Prudential's wing ends the drawn silhouette on the right, so the model is held to it.
   const wing = buildings.find((building) => building.id === prudential);
   // The wall's north-east corner reaches furthest, its foot furthest of all at 2.80 layer
   // units past the drawn edge, against the 3.06 this slack allows. The ribs stand proud of
   // that wall but land well inside it; they are checked to keep them there.
   const wingEdge = [wing.projected.wingCorner, wing.projected.wingEastEnd, ...wing.projected.wingRibEdge].map(([u]) => u);
-  assert.ok(wingEdge.every((u) => u <= wing.silhouette + silhouetteSlack), `One Prudential's wing and its ribs should stay inside the drawn right silhouette: ${JSON.stringify({ wingEdge, silhouette: wing.silhouette })}`);
+  expect(wingEdge.every((u) => u <= wing.silhouette + silhouetteSlack),
+    `One Prudential's wing and its ribs should stay inside the drawn right silhouette: ${JSON.stringify({ wingEdge, silhouette: wing.silhouette })}`).toBe(true);
 }
 
 async function checkCameraFloor(page, screenshotPath) {
   await page.locator("canvas").focus();
   for (let index = 0; index < 24; index += 1) await page.keyboard.press("ArrowDown");
-  assert.ok((await cameraPosition(page))[1] >= 0.999, "orbit should keep the camera above ground");
+  expect((await cameraPosition(page))[1] >= 0.999, "orbit should keep the camera above ground").toBe(true);
   for (let index = 0; index < 24; index += 1) await page.keyboard.press("-");
-  assert.ok((await cameraPosition(page))[1] >= 0.999, "zooming out at the lowest orbit should stay above ground");
+  expect((await cameraPosition(page))[1] >= 0.999, "zooming out at the lowest orbit should stay above ground").toBe(true);
   for (let index = 0; index < 24; index += 1) await page.keyboard.press("ArrowDown");
-  assert.ok((await cameraPosition(page))[1] >= 0.999, "lowest orbit at maximum distance should stay above ground");
+  expect((await cameraPosition(page))[1] >= 0.999, "lowest orbit at maximum distance should stay above ground").toBe(true);
   await checkVisibleHighlight(page, "far");
   if (screenshotPath) await page.locator("canvas").screenshot({ path: screenshotPath });
   for (let index = 0; index < 13; index += 1) await page.keyboard.press("+");
@@ -108,8 +120,8 @@ async function checkCameraFloor(page, screenshotPath) {
   const distance = (position) => Math.hypot(position[0], position[1] - 172.5, position[2]);
   for (let index = 0; index < 40; index += 1) await page.keyboard.press("+");
   const close = await cameraPosition(page);
-  assert.ok(Math.abs(distance(close) / distance(before) - 0.1) < 1e-6, "perspective zoom reaches one tenth of the fitted distance");
-  assert.ok(close.every(Number.isFinite) && close[1] >= 0.999, "close-up camera stays finite and above ground");
+  expect(Math.abs(distance(close) / distance(before) - 0.1), "perspective zoom reaches one tenth of the fitted distance").toBeLessThan(1e-6);
+  expect(close.every(Number.isFinite) && close[1] >= 0.999, "close-up camera stays finite and above ground").toBe(true);
   await checkVisibleHighlight(page, "close-up", [0, 165, 23.4]);
   await page.keyboard.press("Home");
 }
@@ -121,8 +133,8 @@ async function checkVisibleHighlight(page, clippingPlane, modelPoint = [0, 120, 
   const unlit = await patch(page, point);
   await page.mouse.move(point.x, point.y);
   await settle(page);
-  assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), michigan);
-  assert.notDeepEqual(await patch(page, point), unlit, `the tower must still render and illuminate within the ${clippingPlane} clipping plane`);
+  expect(await page.evaluate(() => window.__buildingStudy.selectedBuilding)).toBe(michigan);
+  expect(await patch(page, point), `the tower must still render and illuminate within the ${clippingPlane} clipping plane`).not.toEqual(unlit);
   await page.mouse.move(5, 5);
   await settle(page);
 }
@@ -134,17 +146,23 @@ async function screenPoint(page, id, point) {
   return { x: bounds.x + uv[0] * bounds.width, y: bounds.y + uv[1] * bounds.height };
 }
 
-async function main() {
-  checkSpec({ fitted, models });
-  const browser = await chromium.launch({ channel: "chrome", headless: true });
-  try {
-    const page = await browser.newPage(desktop.options);
-    const errors = [], external = [];
+describe("eight-building skyline study", () => {
+  let browser, page, initial, errors = [], external = [];
+  beforeAll(async () => {
+    checkSpec({ fitted, models });
+    browser = await chromium.launch({ channel: "chrome", headless: true });
+    page = await browser.newPage(desktop.options);
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("request", (request) => { if (!request.url().startsWith(origin) && !request.url().startsWith("data:")) external.push(request.url()); });
     await page.goto(`${origin}/skyline-study.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     await settle(page);
+  }, { timeout: 180_000 });
+  afterAll(async () => {
+    await browser.close();
+  }, { timeout: 60_000 });
+
+  test("pans at first load and guards the camera floor around a below-grade target", { timeout: 180_000 }, async () => {
     // Pan must work on first load, before a view button initializes controls.
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.locator("canvas").scrollIntoViewIfNeeded();
@@ -155,7 +173,7 @@ async function main() {
     await page.mouse.move(panBox.x + panBox.width / 2 + 40, panBox.y + panBox.height / 2, { steps: 4 });
     await page.mouse.up();
     await page.keyboard.up("Shift");
-    assert.notDeepEqual(await cameraPosition(page), panBefore, "perspective view can pan to a different building");
+    expect(await cameraPosition(page), "perspective view can pan to a different building").not.toEqual(panBefore);
     // Lower the orbit target below grade, then zoom until a fixed target would
     // make the camera-floor and minimum-angle constraints incompatible.
     for (let drag = 0; drag < 3; drag += 1) {
@@ -169,19 +187,27 @@ async function main() {
     await page.locator("canvas").focus();
     for (let step = 0; step < 40; step += 1) await page.keyboard.press("+");
     const pannedClose = await cameraPosition(page);
-    assert.ok(pannedClose.every(Number.isFinite) && pannedClose[1] >= 0.999, "zooming toward a below-ground target stays above grade");
-    assert.deepEqual(errors, [], "panning and zooming cannot recursively overflow the camera-floor guard");
+    expect(pannedClose.every(Number.isFinite) && pannedClose[1] >= 0.999, "zooming toward a below-ground target stays above grade").toBe(true);
+    expect(errors, "panning and zooming cannot recursively overflow the camera-floor guard").toEqual([]);
     await page.locator("#reset").click();
     await page.emulateMedia({ reducedMotion: "reduce" });
-    assert.deepEqual(await page.evaluate(() => window.__buildingStudy.modelNames), models.map((model) => model.name));
-    assert.equal(await page.evaluate(() => window.__buildingStudy.activeView), "skyline");
+    initial = await cameraPosition(page);
+  });
+
+  test("reports the eight models and keeps the scene inside its budgets", { timeout: 180_000 }, async () => {
+    expect(await page.evaluate(() => window.__buildingStudy.modelNames)).toEqual(models.map((model) => model.name));
+    expect(await page.evaluate(() => window.__buildingStudy.activeView)).toBe("skyline");
     // A budget for the whole scene; raise it deliberately when a detailed building lands.
     const triangles = await page.evaluate(() => window.__buildingStudy.triangleCount);
-    assert.ok(triangles > 85000 && triangles < 87000, `the eight-building scene should stay within 85,000-87,000 triangles: ${triangles}`);
+    expect(triangles > 85000 && triangles < 87000, `the eight-building scene should stay within 85,000-87,000 triangles: ${triangles}`).toBe(true);
     const shadowBounds = await page.evaluate(() => window.__buildingStudy.shadowBounds);
-    assert.ok(shadowBounds.min.every((v) => v > -1) && shadowBounds.max.every((v) => v < 1), `all buildings and the platform should stay within the light's shadow camera: ${JSON.stringify(shadowBounds)}`);
+    expect(shadowBounds.min.every((v) => v > -1) && shadowBounds.max.every((v) => v < 1),
+      `all buildings and the platform should stay within the light's shadow camera: ${JSON.stringify(shadowBounds)}`).toBe(true);
+  });
+
+  test("matches the reference drawing and its SVG geometry at the desktop layout", { timeout: 180_000 }, async () => {
     await checkReferenceMatch(page);
-    assert.equal(await page.evaluate(async ({ groups, path, sourcePath }) => {
+    const preserved = await page.evaluate(async ({ groups, path, sourcePath }) => {
       const parse = async (url) => new DOMParser().parseFromString(await (await fetch(url)).text(), "image/svg+xml");
       const source = await parse(sourcePath), reference = await parse(path);
       const expected = source.querySelectorAll(groups.map((id) => `#${id} path`).join(", "));
@@ -192,12 +218,17 @@ async function main() {
         return JSON.stringify(chain);
       };
       return actual.length === expected.length && actual.every((part, index) => part.id === expected[index].id && part.getAttribute("d") === expected[index].getAttribute("d") && transforms(part) === transforms(expected[index]));
-    }, { groups: reference.groups, path: reference.path, sourcePath: reference.source }), true, "reference must preserve original path geometry, nested transforms, and draw order");
-    const initial = await cameraPosition(page);
+    }, { groups: reference.groups, path: reference.path, sourcePath: reference.source });
+    expect(preserved, "reference must preserve original path geometry, nested transforms, and draw order").toBe(true);
+  });
+
+  test("stays idle until the view changes", { timeout: 180_000 }, async () => {
     const idle = await page.evaluate(() => window.__buildingStudy.renderCount);
     await page.waitForTimeout(250);
-    assert.equal(await page.evaluate(() => window.__buildingStudy.renderCount), idle);
+    expect(await page.evaluate(() => window.__buildingStudy.renderCount)).toBe(idle);
+  });
 
+  test("illuminates each building independently and keeps occlusion ownership", { timeout: 180_000 }, async () => {
     const heritageFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [heritageModule, heritageSpec.features]);
     const trumpFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [trumpModule, trumpSpec.features]);
     const prudentialFeatures = await page.evaluate(async ([url, name]) => (await import(url))[name], [prudentialModule, prudentialSpec.features]);
@@ -209,11 +240,13 @@ async function main() {
     for (const [index, id, label] of [[0, heritage, "The Heritage at Millennium Park"], [1, kemper, "Kemper Building"], [2, crain, "Crain Communications Building"], [3, michigan, "Michigan Plaza South"], [4, trump, "Trump International Hotel and Tower"], [5, prudential, "One Prudential Plaza"], [6, twoPrudential, "Two Prudential Plaza"], [7, aon, "Aon Center"]]) {
       await page.mouse.move(points[index].x, points[index].y);
       await settle(page);
-      assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), id);
-      assert.equal(await page.locator("#tooltip").textContent(), label);
-      assert.notDeepEqual(await patch(page, points[index]), before[index], `${label} should illuminate`);
+      expect(await page.evaluate(() => window.__buildingStudy.selectedBuilding)).toBe(id);
+      expect(await page.locator("#tooltip").textContent()).toBe(label);
+      expect(await patch(page, points[index]), `${label} should illuminate`).not.toEqual(before[index]);
       for (let neighbor = 0; neighbor < points.length; neighbor += 1) {
-        if (neighbor !== index) assert.deepEqual(await patch(page, points[neighbor]), before[neighbor], `neighbor ${neighbor} should stay unlit while hovering ${label}`);
+        if (neighbor !== index) {
+          expect(await patch(page, points[neighbor]), `neighbor ${neighbor} should stay unlit while hovering ${label}`).toEqual(before[neighbor]);
+        }
       }
     }
     // The drawing covers Michigan Plaza's rightmost 47 layer units with One Prudential, so
@@ -221,51 +254,55 @@ async function main() {
     const hiddenMichigan = await screenPoint(page, michigan, [23.35, 120, -20]);
     await page.mouse.move(hiddenMichigan.x, hiddenMichigan.y);
     await settle(page);
-    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), prudential, "One Prudential should own the hover where the drawing covers Michigan Plaza's right edge");
+    expect(await page.evaluate(() => window.__buildingStudy.selectedBuilding), "One Prudential should own the hover where the drawing covers Michigan Plaza's right edge").toBe(prudential);
     const hiddenTrump = await screenPoint(page, trump, trumpFeatures.trumpBehindPrudential);
     await page.mouse.move(hiddenTrump.x, hiddenTrump.y);
     await settle(page);
-    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), prudential, "One Prudential should own the hover where it covers Trump's lower facade");
+    expect(await page.evaluate(() => window.__buildingStudy.selectedBuilding), "One Prudential should own the hover where it covers Trump's lower facade").toBe(prudential);
     const hiddenTwoPrudential = await screenPoint(page, twoPrudential, twoPrudentialFeatures.twoBehindPodium);
     await page.mouse.move(hiddenTwoPrudential.x, hiddenTwoPrudential.y);
     await settle(page);
-    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), prudential, "One Prudential's podium should own the hover where it covers Two Prudential's lower facade");
+    expect(await page.evaluate(() => window.__buildingStudy.selectedBuilding), "One Prudential's podium should own the hover where it covers Two Prudential's lower facade").toBe(prudential);
     // Heritage's north strip continues behind Kemper's left face, so Kemper owns that hover.
     const hiddenHeritage = await screenPoint(page, heritage, heritageFeatures.northStripFacade);
     await page.mouse.move(hiddenHeritage.x, hiddenHeritage.y);
     await settle(page);
-    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), kemper, "Kemper should own the hover where it hides Heritage in the skyline view");
+    expect(await page.evaluate(() => window.__buildingStudy.selectedBuilding), "Kemper should own the hover where it hides Heritage in the skyline view").toBe(kemper);
     await page.mouse.move(5, 5);
+  });
+
+  test("renders views, wireframe, keyboard and camera-floor controls", { timeout: 180_000 }, async () => {
     await page.screenshot({ path: "/tmp/skyline-group-desktop.png", fullPage: true });
     const normal = await page.locator("canvas").screenshot();
     await page.locator("#wireframe").click();
-    assert.notDeepEqual(await page.locator("canvas").screenshot(), normal);
+    expect(await page.locator("canvas").screenshot()).not.toEqual(normal);
     await page.locator("#wireframe").click();
     await page.locator('[data-view="quarter"]').click();
-    assert.notDeepEqual(await cameraPosition(page), initial);
+    expect(await cameraPosition(page)).not.toEqual(initial);
     await page.screenshot({ path: "/tmp/skyline-group-quarter.png", fullPage: true });
     await page.locator('[data-view="side"]').click();
-    assert.notDeepEqual(await page.locator("canvas").screenshot(), normal);
+    expect(await page.locator("canvas").screenshot()).not.toEqual(normal);
     const hiddenCrain = await screenPoint(page, crain, [0, 70, 0]);
     await page.mouse.move(hiddenCrain.x, hiddenCrain.y);
     await settle(page);
     // Aon's new foreground depth puts its broad west face over this Crain point
     // from the side. The owner is the raycast result, not skyline x ordering.
-    assert.equal(await page.evaluate(() => window.__buildingStudy.selectedBuilding), aon, "Aon should own the hover where it occludes Crain in side view");
+    expect(await page.evaluate(() => window.__buildingStudy.selectedBuilding), "Aon should own the hover where it occludes Crain in side view").toBe(aon);
     await page.locator("#reset").click();
-    assert.deepEqual(await cameraPosition(page), initial);
+    expect(await cameraPosition(page)).toEqual(initial);
     await page.locator("canvas").focus();
     await page.keyboard.press("ArrowLeft");
-    assert.notDeepEqual(await cameraPosition(page), initial);
+    expect(await cameraPosition(page)).not.toEqual(initial);
     await page.keyboard.press("Home");
-    assert.deepEqual(await cameraPosition(page), initial);
+    expect(await cameraPosition(page)).toEqual(initial);
     await page.keyboard.press("+");
-    assert.notDeepEqual(await cameraPosition(page), initial);
+    expect(await cameraPosition(page)).not.toEqual(initial);
     await page.keyboard.press("Home");
-
     await checkCameraFloor(page);
-    assert.deepEqual(await cameraPosition(page), initial);
+    expect(await cameraPosition(page)).toEqual(initial);
+  });
 
+  test("matches the drawing at the laptop layout and respects reduced motion", { timeout: 180_000 }, async () => {
     await page.setViewportSize(laptop.options.viewport);
     await settle(page);
     await checkReferenceMatch(page);
@@ -273,13 +310,16 @@ async function main() {
     await page.locator("#turntable").click();
     const started = await cameraPosition(page);
     await page.waitForTimeout(300);
-    assert.notDeepEqual(await cameraPosition(page), started);
+    expect(await cameraPosition(page)).not.toEqual(started);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.waitForFunction(() => !window.__buildingStudy.turning);
     const stopped = await cameraPosition(page);
     await page.waitForTimeout(250);
-    assert.deepEqual(await cameraPosition(page), stopped);
-    assert.equal(await page.locator("#turntable").isDisabled(), true);
+    expect(await cameraPosition(page)).toEqual(stopped);
+    expect(await page.locator("#turntable").isDisabled()).toBe(true);
+  });
+
+  test("matches the drawing at the tablet and tall layouts", { timeout: 180_000 }, async () => {
     // Tall two-column layouts need the most camera distance to fit the scene.
     for (const size of [tablet, tall].map(({ options }) => options.viewport)) {
       await page.setViewportSize(size);
@@ -288,13 +328,15 @@ async function main() {
       await checkReferenceMatch(page);
       await checkCameraFloor(page, `/tmp/skyline-group-tablet-${size.width}-far.png`);
     }
-    assert.deepEqual(external, []);
+    expect(external).toEqual([]);
+  });
 
+  test("works on mobile with touch", { timeout: 180_000 }, async () => {
     const mobile = await browser.newPage(phone.options);
     mobile.on("pageerror", (error) => errors.push(error.message));
     await mobile.goto(`${origin}/skyline-study.html`);
     await mobile.waitForFunction(() => window.__buildingStudy?.ready);
-    assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    expect(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await mobile.locator("canvas").scrollIntoViewIfNeeded();
     await checkReferenceMatch(mobile);
     const mobileInitial = await cameraPosition(mobile);
@@ -307,29 +349,31 @@ async function main() {
     // reads as a fling, and Chrome may swallow the next tap to stop that fling.
     await mobile.waitForTimeout(100);
     await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-    assert.notDeepEqual(await cameraPosition(mobile), mobileInitial);
+    expect(await cameraPosition(mobile)).not.toEqual(mobileInitial);
     await mobile.locator("#reset").tap();
-    assert.deepEqual(await cameraPosition(mobile), mobileInitial);
+    expect(await cameraPosition(mobile)).toEqual(mobileInitial);
     await checkCameraFloor(mobile, "/tmp/skyline-group-mobile-far.png");
-    assert.deepEqual(await cameraPosition(mobile), mobileInitial);
+    expect(await cameraPosition(mobile)).toEqual(mobileInitial);
     await mobile.screenshot({ path: "/tmp/skyline-group-mobile.png", fullPage: true });
     await mobile.locator('a[href="building-study.html"]').tap();
     await mobile.waitForFunction(() => window.__buildingStudy?.ready);
-    assert.equal(await mobile.evaluate(() => window.__buildingStudy.modelName), "Crain Communications Building");
+    expect(await mobile.evaluate(() => window.__buildingStudy.modelName)).toBe("Crain Communications Building");
     await mobile.locator(".back").tap();
     await mobile.locator('a[href="skyline-study.html"]').tap();
     await mobile.waitForFunction(() => window.__buildingStudy?.ready);
+    await mobile.close();
+  });
 
+  test("shows fallback messages without WebGL and never throws", { timeout: 180_000 }, async () => {
     const fallback = await browser.newPage();
-    await fallback.goto(pathToFileURL(path.resolve(__dirname, "../skyline-study.html")).href);
-    assert.match(await fallback.locator("#loading").textContent(), /localhost:8000\/skyline-study.html/);
-    assert.equal(await fallback.locator("#reset").isDisabled(), true);
+    await fallback.goto(pathToFileURL(path.resolve(import.meta.dirname, "../skyline-study.html")).href);
+    expect(await fallback.locator("#loading").textContent()).toMatch(/localhost:8000\/skyline-study.html/);
+    expect(await fallback.locator("#reset").isDisabled()).toBe(true);
     await fallback.addInitScript(() => { HTMLCanvasElement.prototype.getContext = () => null; });
     await fallback.goto(`${origin}/skyline-study.html`);
     await fallback.waitForFunction(() => document.querySelector("#loading").textContent.includes("WebGL 2"));
-    assert.equal(await fallback.locator("#turntable").isDisabled(), true);
-    assert.deepEqual(errors, []);
-    console.log("PASS: eight 3D buildings, SVG landmarks with Aon, Trump, and both Prudential towers' geometry and columns, bow curvature and chevrons, independent illumination and occlusion, view/reset/zoom, idle rendering, reduced motion, mobile touch, local assets, navigation, and fallbacks.");
-  } finally { await browser.close(); }
-}
-main().catch((error) => { console.error(error); process.exitCode = 1; });
+    expect(await fallback.locator("#turntable").isDisabled()).toBe(true);
+    await fallback.close();
+    expect(errors).toEqual([]);
+  });
+});

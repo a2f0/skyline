@@ -1,5 +1,5 @@
-// Fidelity maths for the skyline study, shared by tests/skyline-study.cjs and
-// scripts/fidelity-report.cjs so both compute the same numbers. measureStudy runs inside
+// Fidelity maths for the skyline study, shared by tests/skyline-study.test.js and
+// scripts/fidelity-report.js so both compute the same numbers. measureStudy runs inside
 // the study page: Playwright sends its source, so it must not use anything outside itself.
 
 // The layouts the skyline test checks, in its order and with its page options. Its phone
@@ -17,7 +17,7 @@ function checkSpec({ fitted, models }) {
   const required = ["id", "label", "features", "landmarks", "tolerance", "columns", "columnTolerance", "sightGap", "onGeometryTolerance"];
   for (const spec of fitted) {
     const missing = required.find((key) => spec[key] === undefined);
-    if (missing) throw new Error(`The fitted spec for ${spec.id || spec.label || "a building"} in tests/skyline-landmarks.cjs is missing ${missing}.`);
+    if (missing) throw new Error(`The fitted spec for ${spec.id || spec.label || "a building"} in tests/skyline-landmarks.js is missing ${missing}.`);
     if (!models.some((model) => model.id === spec.id)) throw new Error(`The fitted spec ${spec.id} has no entry in models.`);
     for (const [name, column] of Object.entries(spec.columns)) if (!column.batch || !column.drawn) throw new Error(`The fitted spec ${spec.id} column ${name} needs a batch and drawn positions.`);
     for (const [name, row] of Object.entries(spec.rows || {})) if (!row.drawn || row.tolerance === undefined) throw new Error(`The fitted spec ${spec.id} row ${name} needs drawn positions and a tolerance.`);
@@ -146,4 +146,4 @@ async function measureStudy({ landmarks, landmarkTolerance, fitted, models, repo
 // Whether a landmark projects higher on screen than every other one named.
 const above = (deviations, name, ...others) => others.every((other) => deviations[name].actual[1] < deviations[other].actual[1]);
 
-module.exports = { viewports, checkSpec, measureStudy, above };
+export { viewports, checkSpec, measureStudy, above };

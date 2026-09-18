@@ -1,12 +1,12 @@
 // A temporary static server over a checkout, shared by the check runner and the dev
 // scripts. It listens on a free local port and serves files unchanged.
-const { createServer } = require("node:http");
-const { readFile } = require("node:fs/promises");
-const path = require("node:path");
+import { createServer } from "node:http";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 const types = { ".html": "text/html", ".svg": "image/svg+xml", ".js": "text/javascript", ".css": "text/css", ".jpg": "image/jpeg" };
 
-async function startServer(root) {
+export async function startServer(root) {
   const base = path.resolve(root);
   const server = createServer(async (request, response) => {
     try {
@@ -27,5 +27,3 @@ async function startServer(root) {
     },
   };
 }
-
-module.exports = { startServer };

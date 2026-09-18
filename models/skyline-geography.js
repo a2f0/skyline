@@ -2,6 +2,7 @@ import * as THREE from "../vendor/three-r186.js";
 import { createBuilder, line } from "./building-kit.js";
 import { geographicBuildings, geographicStreets } from "./skyline-geography-data.js";
 import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
+import { createTrumpGeographicBuilding } from "./trump-geographic.js";
 
 // Local WGS84 tangent plane, centered on the bounding-box center of Crain's
 // mapped footprint. Ground coordinates are east/north meters; Three uses x/-z.
@@ -40,6 +41,9 @@ function plan(coordinates) {
 export function createGeographicBuilding(record, offset = [0, 0]) {
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-trump-tower-only") {
+    return createTrumpGeographicBuilding(record, plan, offset);
   }
   const kit = createBuilder(record.name, record.id);
   const material = kit.material(0x8fa9ae);

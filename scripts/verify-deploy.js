@@ -14,16 +14,16 @@
 //     following one can land on a page that answers 200.
 //   * A request that never resolves proves nothing, so it is a failure and never a quiet pass. That
 //     matters most for the forbidden set, the only check here guarding a security property.
-const { createHash } = require("node:crypto");
-const { execFile } = require("node:child_process");
-const { readFile, readdir } = require("node:fs/promises");
-const path = require("node:path");
-const { promisify } = require("node:util");
-const { collect, root } = require("./build-site.cjs");
-const { command } = require("./lib/command.cjs");
+import { createHash } from "node:crypto";
+import { execFile } from "node:child_process";
+import { readFile, readdir } from "node:fs/promises";
+import path from "node:path";
+import { promisify } from "node:util";
+import { collect, root } from "./build-site.js";
+import { command } from "./lib/command.js";
 
-const usage = `Usage: node scripts/verify-deploy.cjs [--url origin] [--attempts n] [--delay ms] [--timeout ms] [--deadline ms]
-  Checks that every file scripts/build-site.cjs publishes is served byte for byte, and that nothing
+const usage = `Usage: bun scripts/verify-deploy.js [--url origin] [--attempts n] [--delay ms] [--timeout ms] [--deadline ms]
+  Checks that every file scripts/build-site.js publishes is served byte for byte, and that nothing
   else in the repository is reachable at all. Published files are retried, because Cloudflare's edge
   can lag a successful wrangler upload by a few seconds.
   --url defaults to https://skyline.devopsrockstars.com.`;
@@ -137,9 +137,9 @@ async function verifyDeploy(options, deps = {}) {
   return { failures, served, unreachable, published: published.length, forbidden: forbidden.length };
 }
 
-module.exports = { verifyDeploy, forbiddenPaths, parseTracked, urlFor, request };
+export { verifyDeploy, forbiddenPaths, parseTracked, urlFor, request };
 
-if (require.main === module) {
+if (import.meta.main) {
   command(usage, {
     url: { type: "string" },
     attempts: { type: "string", default: "6" },

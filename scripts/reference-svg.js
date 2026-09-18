@@ -1,14 +1,14 @@
 // Regenerates models/skyline-reference.svg from its source groups in skyline-animated.svg.
 // Groups keep document order and their nested transforms; whitespace inside each tag is
-// collapsed, and the viewBox, title, and description come from tests/skyline-landmarks.cjs.
-const { readFileSync, writeFileSync } = require("node:fs");
-const path = require("node:path");
-const { command } = require("./lib/command.cjs");
-const { reference } = require("../tests/skyline-landmarks.cjs");
+// collapsed, and the viewBox, title, and description come from tests/skyline-landmarks.js.
+import { readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import { command } from "./lib/command.js";
+import { reference } from "../tests/skyline-landmarks.js";
 
-const usage = `Usage: node scripts/reference-svg.cjs [--check]
+const usage = `Usage: bun scripts/reference-svg.js [--check]
   Rewrites ${reference.path} from ${reference.source}. --check verifies it without writing.`;
-const root = path.resolve(__dirname, "..");
+const root = path.resolve(import.meta.dirname, "..");
 const escape = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 // A group's raw text through its matching </g>, counting nested groups. The id must be the
@@ -44,7 +44,7 @@ command(usage, { check: { type: "boolean" } }, async ({ values, positionals }) =
   if (positionals.length) throw new Error(usage);
   const target = path.join(root, reference.path), svg = render();
   if (values.check) {
-    if (readFileSync(target, "utf8") !== svg) throw new Error(`${reference.path} is out of date; run node scripts/reference-svg.cjs.`);
+    if (readFileSync(target, "utf8") !== svg) throw new Error(`${reference.path} is out of date; run bun scripts/reference-svg.js.`);
     console.log(`PASS: ${reference.path} matches its ${reference.groups.length} source groups.`);
   } else {
     writeFileSync(target, svg);

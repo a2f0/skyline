@@ -3,7 +3,7 @@
 #
 # Usage: scripts/terraform.sh <init|plan|apply|destroy|output> [terraform args...]
 #
-# Content deploys do not go through here. `npm run deploy` publishes the Worker;
+# Content deploys do not go through here. `bun run deploy` publishes the Worker;
 # this stack only attaches the hostname to it.
 set -euo pipefail
 
