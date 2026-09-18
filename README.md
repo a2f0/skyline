@@ -92,9 +92,10 @@ Michigan Plaza South has a detailed one as well: its mapped outline carries the
 44-story curtain-wall grid, pale mullions, and a roof parapet at the published
 168.6 m top; see its
 [reference audit](docs/michigan-plaza-south-geographic-reference.md).
-One Prudential has a detailed one too: its mapped tower outline carries the
-punch-card facade — panes between projecting piers — with a penthouse, louver
-screen, and the mapped 278 m mast on the published 183.2 m top; see its
+One Prudential has a detailed one too: its mapped tower part carries the
+punch-card facade — panes between projecting piers — with ribbed podium
+wings, a penthouse, louver screen, and the mapped 278 m mast on the published
+183.2 m top; see its
 [reference audit](docs/one-prudential-geographic-reference.md).
 Trump International Hotel and Tower has a detailed one too: its mapped tier
 outlines, setback terraces, ribbed crown and three-section mast carry the fitted

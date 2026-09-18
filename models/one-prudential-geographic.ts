@@ -1,21 +1,22 @@
-import { createBuilder, polygonOf, rectangle, station } from "./building-kit.js";
+import { createBuilder, inside, polygonOf, rectangle, station } from "./building-kit.js";
 import type { BatchData, BuildingModel, Plan, Run, Vec2 } from "./building-kit.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
 
 // One Prudential Plaza: the geographic layout's detailed model. The mapped
-// tower outline covers the whole lot to its 183.2 m top; the nested 10- and
-// 3-floor podium parts sit inside it and add no exterior geometry. The
-// punch-card facade — recessed panes between projecting limestone piers —
-// carries the fitted model's vocabulary at meter scale, with a penthouse and
-// louvered screen under the mapped mast part, which rises from 183.2 m to the
-// published 278 m tip. Row and bay spacings are estimates; see
-// docs/one-prudential-geographic-reference.md. Units are meters; +x is east,
-// +z is south.
+// tower part (685493609) carries the punch-card facade — recessed panes
+// between projecting piers — with the 44.7 m east wing (685493610) and the
+// 13.4 m west wing (685493612) ribbed like the fitted model's podium, a
+// penthouse and louvered screen under the mapped mast part (685493614), and
+// the mast itself rising from 183.2 m to the published 278 m tip. Row and bay
+// spacings are estimates; see docs/one-prudential-geographic-reference.md.
+// Units are meters; +x is east, +z is south.
 export const onePrudentialGeographicLevels = Object.freeze({
   roof: 181.2, // below the mapped top; the penthouse reaches it
   penthouseTop: 183.2, // OSM tower part top
   tip: 278, // published antenna tip
   floors: 41,
+  eastWing: 44.7, // OSM part 685493610, ten floors estimated at 183.2/41
+  westWing: 13.4, // OSM part 685493612, three floors estimated at 183.2/41
 });
 const h = onePrudentialGeographicLevels;
 const pitch = h.roof / h.floors;
@@ -38,18 +39,24 @@ export function createOnePrudentialGeographicBuilding(record: GeoBuilding, proje
     return tones[value % tones.length]!;
   };
 
-  const ground = projectPlan(record.footprint.coordinates);
+  const tower = projectPlan(record.parts.find((p) => p.way === 685493609)!.coordinates);
+  const east = projectPlan(record.parts.find((p) => p.way === 685493610)!.coordinates);
+  const west = projectPlan(record.parts.find((p) => p.way === 685493612)!.coordinates);
   const mastPart = record.parts.find((p) => p.way === 685493614)!;
   const mastPlan = projectPlan(mastPart.coordinates);
   const mastPolygon = polygonOf(mastPlan);
   const mastCenter: Vec2 = mastPolygon.reduce<Vec2>((sum, p) => [sum[0] + p[0] / mastPolygon.length, sum[1] + p[1] / mastPolygon.length], [0, 0]);
 
-  // The mapped volumes: the tower over the whole outline, the penthouse under
-  // the mapped mast, and the mast itself rising to the published tip. The
-  // penthouse's bottom and the louvers' backs are drawn rather than omitted:
-  // the geographic suite pairs every directed edge, and each drawn face meets
-  // the covering surface with an opposite normal.
-  kit.prism(shell, ground, [0, h.roof]);
+  // The mapped volumes: the tower, the two podium wings that abut its west
+  // and east walls (their outlines overlap the tower's ends, and the buried
+  // walls face it), the penthouse under the mapped mast, and the mast itself
+  // rising to the published tip. The penthouse's bottom and the louvers'
+  // backs are drawn rather than omitted: the geographic suite pairs every
+  // directed edge, and each drawn face meets its covering surface with an
+  // opposite normal.
+  kit.prism(shell, tower, [0, h.roof]);
+  kit.prism(shell, east, [0, h.eastWing]);
+  kit.prism(shell, west, [0, h.westWing]);
   const penthouse = rectangle(mastCenter[0] - 7.5, mastCenter[0] + 7.5, mastCenter[1] - 5, mastCenter[1] + 5);
   kit.prism(piers, penthouse, [h.roof, h.penthouseTop]);
   kit.prism(mast, mastPlan, [h.penthouseTop, h.tip]);
@@ -64,33 +71,41 @@ export function createOnePrudentialGeographicBuilding(record: GeoBuilding, proje
     if (to - from < 0.03 || y1 <= y0) return;
     kit.box(batch, run.at((from + to) / 2), run.normal(0), (to - from) / 2, back, front, y0, y1);
   };
+  // A wall covered by a neighbouring wing gets no strips below the wing's
+  // roof: the wing hides them, and proud strips in one plane would overlap.
+  const towerPolygon = polygonOf(tower);
+  const covered = (run: Run) => inside(towerPolygon, run.at(run.length / 2, 0.3));
 
   // The punch-card facade: piers stand between the bays, panes sit between
   // the piers, and a spandrel band runs at each floor line. Piers stand
-  // proudest, so nothing crosses their fronts.
-  ground.forEach((run, side) => {
-    if (run.length < 2) return;
+  // proudest, so nothing crosses their fronts. Walls facing a podium wing
+  // start above that wing's roof.
+  const westFacing = (run: Run) => run.normal(0)[0] < -0.5;
+  const eastFacing = (run: Run) => run.normal(0)[0] > 0.5;
+  const startAt = (run: Run) => (westFacing(run) ? h.westWing : eastFacing(run) ? h.eastWing : 0);
+  tower.forEach((run, side) => {
+    const first = Math.max(startAt(run), 0.85);
     const bays = Math.max(1, Math.round(run.length / 3.83));
     const width = run.length / bays;
     for (let row = 1; row <= h.floors; row += 1) {
-      const bottom = Math.max((row - 1) * pitch, 0.9);
-      const top = row * pitch;
+      const bottom = (row - 1) * pitch, top = row * pitch;
+      if (top <= first) continue;
       for (let bay = 0; bay < bays; bay += 1) {
-        strip(paneTone(row, bay, side), run, bay * width + 0.7, (bay + 1) * width - 0.7, bottom + 0.3, top - 0.25, 0.005, 0.025);
+        strip(paneTone(row, bay, side), run, bay * width + 0.7, (bay + 1) * width - 0.7, Math.max(bottom, first) + 0.3, top - 0.25, 0.005, 0.025);
       }
       if (row < h.floors) strip(piers, run, 0.015, run.length - 0.015, top - 0.15, top + 0.05, 0.02, 0.12);
     }
     for (let i = 0; i <= bays; i += 1) {
       const s = Math.max(0.6, Math.min(run.length - 0.6, i * width));
-      strip(piers, run, s - 0.6, s + 0.6, 0.35, h.roof - 0.6, 0, 0.34);
+      strip(piers, run, s - 0.6, s + 0.6, first + 0.35, h.roof - 0.6, 0, 0.34);
     }
-    strip(piers, run, 0.015, run.length - 0.015, 0.3, 0.75, 0.06, 0.18);
+    strip(piers, run, 0.015, run.length - 0.015, first + 0.3, first + 0.75, 0.06, 0.18);
   });
 
-  // The roof parapet wraps the mapped outline below the penthouse top. The
-  // outline's steps have concave corners, so the parapet is per-segment boxes
-  // that stop short of every corner.
-  ground.forEach((run) => {
+  // The roof parapet wraps the mapped tower outline below the penthouse top.
+  // The outline's jogs can turn concave corners, so the parapet is
+  // per-segment boxes that stop short of every corner.
+  tower.forEach((run) => {
     if (run.length < 2) return;
     const count = Math.max(1, Math.ceil(run.length / 1.5));
     for (let index = 0; index < count; index += 1) {
@@ -98,6 +113,22 @@ export function createOnePrudentialGeographicBuilding(record: GeoBuilding, proje
       strip(piers, run, from, to, h.roof - 0.5, h.roof, 0.05, 0.35);
     }
   });
+
+  // The podium wings carry the fitted model's ribbed vocabulary: vertical
+  // ribs on every exterior face, none where the tower covers the wall.
+  for (const [wing, top] of [[east, h.eastWing], [west, h.westWing]] as [Plan, number][]) {
+    for (const run of wing) {
+      if (run.length < 2 || covered(run)) continue;
+      const bays = Math.max(1, Math.round(run.length / 3.0));
+      const width = run.length / bays;
+      for (let i = 0; i < bays; i += 1) {
+        const s = (i + 0.5) * width;
+        strip(piers, run, s - 0.5, s + 0.5, 0.35, top - 0.25, 0, 0.3);
+      }
+      strip(piers, run, 0.015, run.length - 0.015, 0.3, 0.75, 0.06, 0.18);
+      strip(piers, run, 0.015, run.length - 0.015, top - 0.45, top, 0.02, 0.25);
+    }
+  }
 
   // Louvers on the penthouse's south face; their backs sit on that wall.
   const penthouseSouth = penthouse[0]!;

@@ -347,10 +347,13 @@ describe("mapped skyline geography", () => {
         const [east, north] = projectGround([longitude, latitude]);
         return [east, 0, -north];
       };
-      // The interior roof under the parapet, the penthouse at the mapped
-      // 183.2 m tower top, and the mapped mast rising to the 278 m tip.
-      const interior = world(-87.6227, 41.88495);
+      // The interior roof under the parapet, the east wing's estimated roof,
+      // the penthouse at the mapped 183.2 m tower top, and the mapped mast
+      // rising to the 278 m tip.
+      const interior = world(-87.6231, 41.88481);
       near(hit([interior[0], 200, interior[2]], [0, -1, 0])!.point.y, 181.2, 0.001);
+      const eastWing = world(-87.6226, 41.88495);
+      near(hit([eastWing[0], 100, eastWing[2]], [0, -1, 0])!.point.y, 44.7, 0.001);
       const mastPart = record.parts.find((p) => p.way === 685493614)!;
       const mastPoints = mastPart.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
       const mastCenter: Vec3 = [
@@ -359,23 +362,24 @@ describe("mapped skyline geography", () => {
         mastPoints.reduce((sum, p) => sum + p[1], 0) / mastPoints.length,
       ];
       // The penthouse top, probed beside the mast ring so the ray stays
-      // outside the hollow-looking single-sided mast walls.
+      // outside the single-sided mast walls.
       near(hit([mastCenter[0] + 2.5, 200, mastCenter[2]], [0, -1, 0])!.point.y, 183.2, 0.001);
       near(hit([mastCenter[0], 300, mastCenter[2]], [0, -1, 0])!.point.y, 278, 0.001);
-      // Panes and piers are the first surface on the mapped south walls,
-      // probed from outside the closed shell. The stepped outline puts two
-      // south-facing walls at different latitudes, so each gets its own probe.
+      // Panes and piers are the first surface on the mapped tower's south and
+      // east walls, probed from outside the closed shell.
       const lerp = (a: Vec3, b: Vec3, t: number): Vec3 => a.map((v, axis) => v + (b[axis]! - v) * t) as Vec3;
-      for (const probe of [
-        lerp(world(-87.6224467, 41.8846289), world(-87.6229065, 41.8846246), 0.5),
-        lerp(world(-87.6229073, 41.8847597), world(-87.6231733, 41.8847538), 0.5),
-      ]) {
-        const south = hit([probe[0], 100, probe[2] + 30], [0, 0, -1]);
-        expect(south!.object.name).toMatch(/glaz|pier/);
-        expect(south!.point.z).toBeGreaterThan(probe[2] + 0.005);
-        expect(south!.point.z).toBeLessThan(probe[2] + 0.4);
-      }
-      // Every mapped footprint corner is present at grade.
+      const southMid = lerp(world(-87.6234169, 41.8847507), world(-87.6227902, 41.8847615), 0.5);
+      const south = hit([southMid[0], 100, southMid[2] + 30], [0, 0, -1]);
+      expect(south!.object.name).toMatch(/glaz|pier/);
+      expect(south!.point.z).toBeGreaterThan(southMid[2] + 0.005);
+      expect(south!.point.z).toBeLessThan(southMid[2] + 0.4);
+      const eastMid = lerp(world(-87.6227902, 41.8847615), world(-87.6227905, 41.8849616), 0.5);
+      const eastWall = hit([eastMid[0] + 30, 100, eastMid[2]], [-1, 0, 0]);
+      expect(eastWall!.object.name).toMatch(/glaz|pier/);
+      expect(eastWall!.point.x).toBeGreaterThan(eastMid[0] + 0.005);
+      expect(eastWall!.point.x).toBeLessThan(eastMid[0] + 0.4);
+      // The tower and wing parts share interior edges, so grade carries their
+      // vertices too; every mapped footprint corner must still be present.
       const groundMesh = meshes.find((mesh) => mesh.name === "One Prudential · limestone shell")!;
       const vertices = groundMesh.geometry.getAttribute("position");
       const grade = new Set<string>();
@@ -384,7 +388,7 @@ describe("mapped skyline geography", () => {
         const [east, north] = projectGround(p);
         return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
       }));
-      expect(grade).toEqual(mapped);
+      expect([...mapped].every((corner) => grade.has(corner))).toBe(true);
     });
   });
 

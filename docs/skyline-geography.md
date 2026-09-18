@@ -95,10 +95,11 @@ Intermediate parts have less certainty than the overall height:
   tower now carries its marble shell, window bays, mullions, dark crown band
   with light fins, and projecting cap at meter scale; see the
   [Kemper reference audit](kemper-geographic-reference.md).
-- One Prudential's mapped tower outline covers the whole lot, so its nested
-  ten- and three-floor parts (estimated at 44.7 and 13.4 m using 183.2/41)
-  sit inside it and add no exterior geometry; the tower now carries its
-  punch-card facade, penthouse, louvers, and mapped 278 m mast; see the
+- One Prudential's mapped tower part sits between its nested ten- and
+  three-floor wing parts (estimated at 44.7 and 13.4 m using 183.2/41), whose
+  outlines overlap the tower's ends; the tower now carries its punch-card
+  facade, the wings their ribbed podiums, and the penthouse, louvers, and
+  mapped 278 m mast sit on the roof; see the
   [One Prudential reference audit](one-prudential-geographic-reference.md).
 - Trump's mapped tiers keep their OSM part heights of 60, 120, 200, 345, 357,
   380 and 400 m, then the published 423.2 m tip. The tier outlines now carry a
