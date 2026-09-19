@@ -82,7 +82,7 @@ export function createAonGeographicBuilding(record: GeoBuilding, projectPlan: (c
     }
     strip(piers, run, 0.015, run.length - 0.015, 0.3, 0.75, 0.06, 0.18);
     const corner = station(run, run.length - 1.0);
-    kit.box(corners, corner.at, corner.normal, 1.0, -0.12, 0.55, 0.35, h.shaftTop - 0.25);
+    kit.box(corners, corner.at, corner.normal, 1.0, -0.12, 0.55, 0.37, h.shaftTop - 0.23);
   });
 
   // The roof parapet wraps the mapped outline; its notched corners can turn
@@ -92,7 +92,7 @@ export function createAonGeographicBuilding(record: GeoBuilding, projectPlan: (c
     const count = Math.max(1, Math.ceil(run.length / 1.5));
     for (let index = 0; index < count; index += 1) {
       const from = index * run.length / count, to = (index + 1) * run.length / count;
-      strip(piers, run, from, to, h.shaftTop - 0.5, h.shaftTop, 0.05, 0.45);
+      strip(piers, run, from, to, h.shaftTop - 0.5, h.shaftTop, 0.07, 0.45);
     }
   });
 
