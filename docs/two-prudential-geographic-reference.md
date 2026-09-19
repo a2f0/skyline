@@ -25,9 +25,9 @@ survey or a construction model.
 | --- | ---: | --- |
 | Grade | 0 m | Shared flat geographic datum |
 | Lower setback shoulder | 156 m | Proportion from the fitted model (0.794 of 196) |
-| Lower setback peak | 178 m | Proportion from the fitted model (1.143 of 156) |
+| Lower setback peak | 178 m | The fitted main tier's 1.143 rise ratio |
 | Middle setback shoulder | 196 m | Proportion from the fitted model (0.817 of 240) |
-| Middle setback peak | 224 m | Proportion from the fitted model (1.143 of 196) |
+| Middle setback peak | 224 m | The fitted main tier's 1.143 rise ratio |
 | Eave | 240 m | OSM crown eave |
 | Pyramid peak | 277 m | OSM crown peak |
 | Architectural tip | 303.3 m | Published CTBUH value |

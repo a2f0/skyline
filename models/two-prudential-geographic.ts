@@ -39,7 +39,7 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
   // units, metal piers, silver crown bands, and a bright spire.
   const stone = kit.batch("Two Prudential · limestone shell", kit.material(0x868686));
   const tiers = kit.batch("Two Prudential · setback tiers", kit.material(0x7d7d7d));
-  const piers = kit.batch("Two Prudential · piers and crown ribs", kit.material(0x535353));
+  const piers = kit.batch("Two Prudential · piers and bands", kit.material(0x535353));
   const bands = kit.batch("Two Prudential · crown bands", kit.material(0xa6a6a6));
   const louvers = kit.batch("Two Prudential · crown louvers", kit.material(0x727272));
   const roof = kit.batch("Two Prudential · pyramid facets", kit.material(0x3a3a3a));
