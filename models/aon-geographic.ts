@@ -76,11 +76,15 @@ export function createAonGeographicBuilding(record: GeoBuilding, projectPlan: (c
       }
       if (row < h.floors) strip(piers, run, 0.015, run.length - 0.015, top - 0.15, top + 0.05, 0.03, 0.12);
     }
+    // Stop 2.5 m short of the corner so the end piers clear the wide corner
+    // boxes instead of sitting inside them, and skip any pier whose clamped
+    // position would collide with the previous one on a short run.
+    let previous = -Infinity;
     for (let i = 0; i <= bays; i += 1) {
-      // Stop 2.5 m short of the corner so the end piers clear the wide
-      // corner boxes instead of sitting inside them.
       const s = Math.max(0.45, Math.min(run.length - 2.5, i * width));
+      if (s - 0.45 < previous + 0.45) continue;
       strip(piers, run, s - 0.45, s + 0.45, 0.35, h.shaftTop - 0.25, 0.05, 0.48);
+      previous = s;
     }
     strip(piers, run, 0.015, run.length - 0.015, 0.3, 0.75, 0.06, 0.18);
     const corner = station(run, run.length - 1.0);
