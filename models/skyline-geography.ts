@@ -1,6 +1,6 @@
 import * as THREE from "../vendor/three-r186.js";
-import { createBuilder, line } from "./building-kit.js";
-import type { BatchData, BuildingModel, Plan, Vec2, Vec3 } from "./building-kit.js";
+import { line } from "./building-kit.js";
+import type { BuildingModel, Plan, Vec2, Vec3 } from "./building-kit.js";
 import { geographicBuildings, geographicStreets } from "./skyline-geography-data.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
 import { createAonGeographicBuilding } from "./aon-geographic.js";
@@ -71,56 +71,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   if (record.id === "building-two-prudential-plaza") {
     return createTwoPrudentialGeographicBuilding(record, plan, offset);
   }
-  const kit = createBuilder(record.name, record.id);
-  const material = kit.material(0x8fa9ae);
-  const estimated = kit.material(0x8c8170);
-  const batches: BatchData[] = [];
-  for (const part of record.parts) {
-    const batch = kit.batch(`OSM way ${part.way}`, part.estimatedHeight ? estimated : material);
-    batches.push(batch);
-    const runs = plan(part.coordinates);
-    // Generate a closed prism first, then warp its height to the mapped roof
-    // slope or inferred crown. Recompute normals after the warp below.
-    kit.prism(batch, runs, [part.bottom, part.top]);
-    const points = runs.map((run) => run.at(0));
-    let heightAt: (p: Vec2) => number = () => part.top;
-    if (part.roofSlope) {
-      // OSM roof:direction is the downhill compass bearing.
-      const angle = part.roofSlope.direction * radians;
-      const along = ([x, z]: Vec2) => x * Math.sin(angle) - z * Math.cos(angle);
-      const projections = points.map(along);
-      const min = Math.min(...projections), span = Math.max(...projections) - min;
-      heightAt = (p: Vec2) => part.top - part.roofSlope!.height * (along(p) - min) / span;
-    } else if (part.crown) {
-      // The mapped boundary has no roof subdivisions. Keep that boundary,
-      // close the shaft at the inferred eave, then add a closed pyramid + spire.
-      heightAt = () => part.crown!.eave;
-    }
-    for (let i = 0; i < batch.positions.length; i += 3) {
-      if (Math.abs(batch.positions[i + 1]! - part.top) < 1e-6) batch.positions[i + 1] = heightAt([batch.positions[i]!, batch.positions[i + 2]!]);
-    }
-    if (part.crown) {
-      const center = footprintMetrics(part.coordinates).center;
-      const apex: Vec3 = [center[0], part.crown.peak, -center[1]];
-      const ring: Vec3[] = points.map(([x, z]) => [x, part.crown!.eave, z]);
-      // A closed pyramid sits on the closed shaft; the coincident faces have
-      // opposing normals. Its proportions are explicitly marked as inferred.
-      kit.slab(batch, points, part.crown.eave, false);
-      ring.forEach((p, i) => kit.triangle(batch, [p, ring[(i + 1) % ring.length]!, apex], [[0, 1, 0], [0, 1, 0], [0, 1, 0]]));
-      kit.box(batch, [center[0], -center[1]], [0, 1], 0.45, -0.45, 0.45, part.crown.peak - 1, part.crown.tip);
-    }
-  }
-  if (record.id === "layer3") {
-    const [x, north] = footprintMetrics(record.parts.at(-1)!.coordinates).center;
-    const antenna = kit.batch("antenna · inferred position", estimated);
-    batches.push(antenna);
-    kit.box(antenna, [x, -north], [0, 1], 0.35, -0.35, 0.35, record.height - 1, record.tipHeight);
-  }
-  const model = kit.finish({ height: record.tipHeight, outlines: batches, opacity: 0.5 });
-  model.building.traverse((child) => { const mesh = child as THREE.Mesh; if (mesh.isMesh) mesh.geometry.computeVertexNormals(); });
-  model.building.position.set(offset[0], 0, offset[1]);
-  model.building.userData["geography"] = record;
-  return model;
+  // Every geographic building has a dedicated factory; a record without one
+  // fails loudly here rather than silently rendering generic massing.
+  throw new Error(`No geographic factory for ${record.id}.`);
 }
 
 function lines(points: Vec3[], color: number): THREE.LineSegments {

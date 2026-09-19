@@ -34,7 +34,7 @@ published 83 floors.
 
 ## Plan and detail choices
 
-- The mapped outline (approximately 53 × 55 m, with the distinctive notched
+- The mapped outline (approximately 59 × 60 m, with the distinctive notched
   corners) is retained exactly in projected coordinates; it is the shaft,
   rising to the mapped 340 m top. Ground placement has no
   illustration-derived rotation or scale.
