@@ -453,6 +453,56 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("Aon", () => {
+    test("keeps the mapped shaft, enclosure, mast and granite tube", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
+      const model = models["Aon"]!;
+      model.building.updateMatrixWorld(true);
+      const ray = new THREE.Raycaster();
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const hit = (hitOrigin: Vec3, direction: Vec3, targets: THREE.Object3D[] = meshes) => {
+        ray.set(new THREE.Vector3(...hitOrigin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(targets, false)[0];
+      };
+      const world = (longitude: number, latitude: number): Vec3 => {
+        const [east, north] = projectGround([longitude, latitude]);
+        return [east, 0, -north];
+      };
+      // The interior roof under the parapet (west of the rooftop enclosure),
+      // the enclosure at its mapped 346.3 m top, and the inferred antenna at
+      // the published tip.
+      const interior = world(-87.62178, 41.88527);
+      near(hit([interior[0], 380, interior[2]], [0, -1, 0])!.point.y, 340, 0.001);
+      const enclosurePart = record.parts.find((p) => p.way === 284775635)!;
+      const enclosurePoints = enclosurePart.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
+      const enclosureCenter: Vec3 = [
+        enclosurePoints.reduce((sum, p) => sum + p[0], 0) / enclosurePoints.length,
+        0,
+        enclosurePoints.reduce((sum, p) => sum + p[1], 0) / enclosurePoints.length,
+      ];
+      // The enclosure at its mapped 346.3 m top, probed beside the mast.
+      near(hit([enclosureCenter[0] + 2, 380, enclosureCenter[2]], [0, -1, 0])!.point.y, 346.3, 0.001);
+      near(hit([enclosureCenter[0], 400, enclosureCenter[2]], [0, -1, 0])!.point.y, 362.5, 0.001);
+      // Panes and piers are the first surface on the mapped south wall,
+      // probed from outside the closed shell on its long east segment.
+      const southMid = world(-87.6215335, 41.8850138).map((v, axis) => v + (world(-87.6212842, 41.885017)[axis]! - v) * 0.5) as Vec3;
+      const south = hit([southMid[0], 100, southMid[2] + 30], [0, 0, -1]);
+      expect(south!.object.name).toMatch(/glaz|pier/);
+      expect(south!.point.z).toBeGreaterThan(southMid[2] + 0.005);
+      expect(south!.point.z).toBeLessThan(southMid[2] + 0.6);
+      // The exact mapped outline at grade.
+      const groundMesh = meshes.find((mesh) => mesh.name === "Aon · granite shell")!;
+      const vertices = groundMesh.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [east, north] = projectGround(p);
+        return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   test("retains the mapped upper street set", () => {
     expect(geographicStreets.some((street) => street.name === "North Michigan Avenue")).toBe(true);
     expect(geographicStreets.every((street) => !street.name.includes("Lower"))).toBe(true);

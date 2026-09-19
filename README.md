@@ -106,7 +106,12 @@ eave and 277 m pyramid, with piers and panes on the shaft, the paired
 south/north pointed tiers, silver crown bands and louvers, and the tapered
 spire at the published 303.3 m tip; see its
 [reference audit](docs/two-prudential-geographic-reference.md).
-The remaining building uses simple massing on its mapped outline. Intermediate
+Aon Center has a detailed one too: its mapped outline keeps the 340 m shaft
+and 346.3 m rooftop enclosure, with the granite tube's window slots, piers,
+corner stones, parapet, and enclosure louvers, and the inferred antenna at
+the published 362.5 m tip; see its
+[reference audit](docs/aon-geographic-reference.md).
+Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
 for the coordinate system, eight footprint records, height definitions, OSM

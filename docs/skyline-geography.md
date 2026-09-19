@@ -1,10 +1,9 @@
 # Geographic skyline comparison
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
-study of the same eight buildings. The geographic layout uses mapped polygon
-outlines, detailed Crain, Heritage, Kemper, Michigan Plaza South, One
-Prudential, Trump and Two Prudential reconstructions, and simple massing for
-the one remaining building. The original factories, placement and camera remain intact.
+study of the same eight buildings. Every geographic building carries a
+detailed facade reconstruction on its mapped outlines. The original factories,
+placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Switching layouts
 in those views preserves the camera position, target and zoom, including after an
@@ -122,9 +121,11 @@ Intermediate parts have less certainty than the overall height:
   set back from the mapped corners but proud of the mapped south and north
   walls; see the
   [Two Prudential reference audit](two-prudential-geographic-reference.md).
-- Aon's mapped shaft is 340 m and its rooftop enclosure reaches 346.3 m.
-  A narrow antenna reaches the published 362.5 m; its position at the enclosure
-  center and width are inferred and colored brown.
+- Aon's mapped shaft keeps its 340 m top and its rooftop enclosure the
+  346.3 m part top; the granite tube now carries window slots, piers, corner
+  stones, a parapet, and louvered enclosure faces, with the inferred antenna
+  reaching the published 362.5 m tip; see the
+  [Aon reference audit](aon-geographic-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
