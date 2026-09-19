@@ -104,12 +104,13 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
     }
   };
   // A shallow closed solid on an arbitrary facade/roof plane. The back face
-  // keeps the front's fan diagonal; the triangle helper aligns its winding.
+  // reverses the front's winding so every shared edge keeps its reverse
+  // partner.
   const relief = (target: BatchData, polygon: Vec3[], n: Vec3, depth: number, buried = 0.06) => {
     const moved = (distance: number): Vec3[] => polygon.map((p) => p.map((v, k) => v + n[k]! * distance) as Vec3);
     const front = moved(depth), back = moved(-buried);
     face(target, front, n);
-    face(target, back, n.map((v) => -v) as Vec3);
+    face(target, [...back].reverse(), n.map((v) => -v) as Vec3);
     for (let i = 0; i < polygon.length; i += 1) {
       const j = (i + 1) % polygon.length;
       const edge = front[j]!.map((v, k) => v - front[i]![k]!) as Vec3;
@@ -174,13 +175,16 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
     const profile: [number, number][] = [[-halfWidth, bottomY], [0, bottomY], [halfWidth, bottomY],
       [halfWidth, shoulder], [0, peak], [-halfWidth, shoulder]];
     const frontPoints = profile.map(([s, y]) => [northX + s, y, northZ - front] as Vec3), backPoints = profile.map(([s, y]) => [northX + s, y, northZ - back] as Vec3);
-    for (const indices of [[0, 1, 4, 5], [1, 2, 3, 4]]) {
+    // The fan order runs the other way so the winding agrees with the
+    // north-facing normals, and the side quads mirror too, so the shared
+    // edges keep their reverse partners.
+    for (const indices of [[5, 4, 1, 0], [4, 3, 2, 1]]) {
       face(target, indices.map((i) => frontPoints[i]!), [0, 0, -1]);
       face(target, indices.map((i) => backPoints[i]!).reverse(), [0, 0, 1]);
     }
     for (let i = 0; i < profile.length; i += 1) {
       const j = (i + 1) % profile.length;
-      face(target, [backPoints[i]!, backPoints[j]!, frontPoints[j]!, frontPoints[i]!]);
+      face(target, [backPoints[j]!, backPoints[i]!, frontPoints[i]!, frontPoints[j]!]);
     }
   };
   const tierRunSouth = (front: number, halfWidth: number): Run => ({
@@ -264,7 +268,10 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
       const t = (apex[1] - y) / (apex[1] - ridgeEnd[1]);
       return ridgeEnd.map((v, axis) => apex[axis]! + (v - apex[axis]!) * t) as Vec3;
     };
-    const stripBetween = (y0: number, y1: number): Vec3[] => [atHeight(rim[i]!, y0), atHeight(rim[i]!, y1), atHeight(rim[j]!, y1), atHeight(rim[j]!, y0)];
+    // The strip winds with the facet: down the first ridge, along the strip's
+    // foot, and up the second ridge, so the front face needs no flip and its
+    // edges pair with the side faces.
+    const stripBetween = (y0: number, y1: number): Vec3[] => [atHeight(rim[i]!, y1), atHeight(rim[i]!, y0), atHeight(rim[j]!, y0), atHeight(rim[j]!, y1)];
     for (let y = h.eave + 3; y < h.peak - 6; y += 7.5) {
       relief(bands, stripBetween(y + 1.6, y + 7.3), n, 0.5);
       for (const dy of [0.5, 1.15]) {
