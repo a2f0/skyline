@@ -24,8 +24,10 @@ survey or a construction model.
 | Feature | Model elevation | Basis |
 | --- | ---: | --- |
 | Grade | 0 m | Shared flat geographic datum |
-| Lower setback shoulder | 156 m | Proportion from the fitted model (0.817 of 196) |
+| Lower setback shoulder | 156 m | Proportion from the fitted model (0.794 of 196) |
+| Lower setback peak | 178 m | Proportion from the fitted model (1.143 of 156) |
 | Middle setback shoulder | 196 m | Proportion from the fitted model (0.817 of 240) |
+| Middle setback peak | 224 m | Proportion from the fitted model (1.143 of 196) |
 | Eave | 240 m | OSM crown eave |
 | Pyramid peak | 277 m | OSM crown peak |
 | Architectural tip | 303.3 m | Published CTBUH value |
@@ -44,11 +46,12 @@ published 64 floors.
   3.4 m; a deterministic hash scatters muted lit panes through the dark
   glass. These are estimates.
 - The paired south/north pointed tiers are shallow closed gabled projections
-  inside the mapped outline: the middle tier stands 0.6 m proud of the south
-  wall and the lower 1.2 m, mirroring the fitted model's setback order. The
-  mapped outline has no setback subdivisions, so the tier widths and shoulder
-  heights follow the fitted model's proportions. Their bases sit just above
-  grade, each at its own height so no two bottom faces share a plane.
+  set back from the mapped corners horizontally: the middle tier stands
+  0.6 m proud of the mapped south wall and the lower 1.2 m, mirroring the
+  fitted model's setback order on the north face too. The mapped outline has
+  no setback subdivisions, so the tier widths and shoulder heights follow the
+  fitted model's proportions. Their bases sit just above grade, each at its
+  own height so no two bottom faces share a plane.
 - The crown keeps the mapped pyramid: four dark facets from the eave to the
   277 m peak, each carrying the fitted model's silver band and louver strips,
   with the bright tapered spire — inset panels over two jointed sections —

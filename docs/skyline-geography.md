@@ -118,8 +118,9 @@ Intermediate parts have less certainty than the overall height:
 - Two Prudential's mapped outline keeps its 240 m eave, 277 m pyramid peak,
   and centered narrow spire at the published 303.3 m tip. The pyramid facets
   now carry silver bands and louvers, the shaft carries its piers and panes,
-  and the paired south/north tiers follow the fitted model's proportions
-  inside the mapped outline; see the
+  and the paired south/north tiers follow the fitted model's proportions,
+  set back from the mapped corners but proud of the mapped south and north
+  walls; see the
   [Two Prudential reference audit](two-prudential-geographic-reference.md).
 - Aon's mapped shaft is 340 m and its rooftop enclosure reaches 346.3 m.
   A narrow antenna reaches the published 362.5 m; its position at the enclosure

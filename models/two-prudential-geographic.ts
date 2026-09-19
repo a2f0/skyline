@@ -7,9 +7,9 @@ import type * as THREE from "../vendor/three-r186.js";
 // outline keeps its 240 m eave, 277 m pyramid peak, and the published 303.3 m
 // spire tip. The fitted model's vocabulary carries over at meter scale:
 // limestone piers and panes on the shaft, the paired south/north pointed
-// tiers as shallow projections inside the mapped outline, silver band and
-// louver strips on the pyramid facets, ridge beams, and a tapered spire with
-// inset panels. Tier, band, and row spacings are estimates; see
+// tiers as shallow projections set back from the mapped corners, silver band
+// and louver strips on the pyramid facets, and a tapered spire with inset
+// panels. Tier, band, and row spacings are estimates; see
 // docs/two-prudential-geographic-reference.md. Units are meters; +x is east,
 // +z is south.
 export const twoPrudentialGeographicLevels = Object.freeze({
@@ -196,7 +196,9 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
   const tierRunNorth = (front: number, halfWidth: number): Run => ({
     length: halfWidth * 2,
     pieces: () => 1,
-    at: (s, offset = 0) => [northX - halfWidth + s, northZ - front - offset] as Vec2,
+    // Travel west so the frame's handedness matches the south run: the
+    // sloped-box helper's quad orders assume normal × tangent = +y.
+    at: (s, offset = 0) => [northX + halfWidth - s, northZ - front - offset] as Vec2,
     normal: () => [0, -1] as Vec2,
   });
   const decorateTier = (run: Run, halfWidth: number, shoulder: number, peak: number, side: number) => {
