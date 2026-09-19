@@ -230,11 +230,13 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
     const n = normal(apex, rim[i]!, rim[j]!);
     kit.triangle(roof, [apex, rim[i]!, rim[j]!], [n, n, n]);
     kit.triangle(roof, [apex, rim[j]!, rim[i]!], [n.map((v) => -v) as Vec3, n.map((v) => -v) as Vec3, n.map((v) => -v) as Vec3]);
-    // Silver bands and dark louvers, following the fitted model's crown.
+    // Silver bands and dark louvers, following the fitted model's crown:
+    // the blades sit in the dark opening below each band, so their clipped
+    // side faces never share a boundary with the band's.
     for (let y = h.eave + 3; y < h.peak - 6; y += 7.5) {
       const field = clipY(clipY([apex, rim[i]!, rim[j]!], y + 1.6, true), Math.min(y + 7.3, h.peak - 2), false);
       if (field.length >= 3) relief(bands, field, n, 0.5);
-      for (const dy of [2.4, 3.6]) {
+      for (const dy of [0.5, 1.15]) {
         const blade = clipY(clipY([apex, rim[i]!, rim[j]!], y + dy, true), y + dy + 0.25, false);
         if (blade.length >= 3) relief(louvers, blade, n, 0.16, 0.1);
       }
