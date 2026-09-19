@@ -103,12 +103,13 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
       kit.triangle(target, points, [outward || normal(points[0]!, points[1]!, points[2]!), outward || normal(points[0]!, points[1]!, points[2]!), outward || normal(points[0]!, points[1]!, points[2]!)], color);
     }
   };
-  // A shallow closed solid on an arbitrary facade/roof plane.
+  // A shallow closed solid on an arbitrary facade/roof plane. The back face
+  // keeps the front's fan diagonal; the triangle helper aligns its winding.
   const relief = (target: BatchData, polygon: Vec3[], n: Vec3, depth: number, buried = 0.06) => {
     const moved = (distance: number): Vec3[] => polygon.map((p) => p.map((v, k) => v + n[k]! * distance) as Vec3);
     const front = moved(depth), back = moved(-buried);
     face(target, front, n);
-    face(target, [...back].reverse(), n.map((v) => -v) as Vec3);
+    face(target, back, n.map((v) => -v) as Vec3);
     for (let i = 0; i < polygon.length; i += 1) {
       const j = (i + 1) % polygon.length;
       const edge = front[j]!.map((v, k) => v - front[i]![k]!) as Vec3;
@@ -147,6 +148,11 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
     strip(piers, run, 0.015, run.length - 0.015, 0.3, 0.75, 0.06, 0.18);
   });
 
+  const northRuns = ground.filter((run) => run.normal(0)[1] < -0.9);
+  const northWall = northRuns.reduce((longest, run) => run.length > longest.length ? run : longest);
+  const northX = northWall.at(northWall.length / 2)[0];
+  const northZ = northWall.at(0)[1];
+
   // The paired south/north pointed tiers: shallow closed gabled projections
   // inside the mapped outline. Their bases sit just above grade so the
   // street-level outline stays exact, each at its own height so no two
@@ -164,14 +170,32 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
       face(target, [backPoints[i]!, backPoints[j]!, frontPoints[j]!, frontPoints[i]!]);
     }
   };
-  const tierRun = (front: number, halfWidth: number): Run => ({
+  const gabledNorth = (target: BatchData, halfWidth: number, back: number, front: number, shoulder: number, peak: number, bottomY: number) => {
+    const profile: [number, number][] = [[-halfWidth, bottomY], [0, bottomY], [halfWidth, bottomY],
+      [halfWidth, shoulder], [0, peak], [-halfWidth, shoulder]];
+    const frontPoints = profile.map(([s, y]) => [northX + s, y, northZ - front] as Vec3), backPoints = profile.map(([s, y]) => [northX + s, y, northZ - back] as Vec3);
+    for (const indices of [[0, 1, 4, 5], [1, 2, 3, 4]]) {
+      face(target, indices.map((i) => frontPoints[i]!), [0, 0, -1]);
+      face(target, indices.map((i) => backPoints[i]!).reverse(), [0, 0, 1]);
+    }
+    for (let i = 0; i < profile.length; i += 1) {
+      const j = (i + 1) % profile.length;
+      face(target, [backPoints[i]!, backPoints[j]!, frontPoints[j]!, frontPoints[i]!]);
+    }
+  };
+  const tierRunSouth = (front: number, halfWidth: number): Run => ({
     length: halfWidth * 2,
     pieces: () => 1,
     at: (s, offset = 0) => [southX - halfWidth + s, southZ + front + offset] as Vec2,
     normal: () => [0, 1] as Vec2,
   });
-  const decorateTier = (front: number, halfWidth: number, shoulder: number, peak: number, side: number) => {
-    const run = tierRun(front, halfWidth);
+  const tierRunNorth = (front: number, halfWidth: number): Run => ({
+    length: halfWidth * 2,
+    pieces: () => 1,
+    at: (s, offset = 0) => [northX - halfWidth + s, northZ - front - offset] as Vec2,
+    normal: () => [0, -1] as Vec2,
+  });
+  const decorateTier = (run: Run, halfWidth: number, shoulder: number, peak: number, side: number) => {
     const heightAt = (s: number) => shoulder + (peak - shoulder) * (1 - Math.abs(s - halfWidth) / halfWidth);
     const bays = Math.max(1, Math.round(halfWidth * 2 / 3.4));
     const width = halfWidth * 2 / bays;
@@ -193,37 +217,39 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
       }
     }
   };
-  const tiersSouth = () => {
-    gabled(tiers, 17, -0.01, 0.6, h.middleShoulder, h.middlePeak, 0.25);
-    gabled(tiers, 13.6, 0.59, 1.2, h.lowerShoulder, h.lowerPeak, 0.27);
-    decorateTier(0.6, 17, h.middleShoulder, h.middlePeak, 3);
-    decorateTier(1.2, 13.6, h.lowerShoulder, h.lowerPeak, 4);
-  };
-  tiersSouth();
-  // Mirror the south tiers onto the north face, with distinct base heights.
-  const starts = [tiers, lit, dim, ...tones].map((target) => target.positions.length);
-  const tiersNorth = () => {
-    gabled(tiers, 17, -0.01, 0.6, h.middleShoulder, h.middlePeak, 0.29);
-    gabled(tiers, 13.6, 0.59, 1.2, h.lowerShoulder, h.lowerPeak, 0.31);
-    decorateTier(0.6, 17, h.middleShoulder, h.middlePeak, 3);
-    decorateTier(1.2, 13.6, h.lowerShoulder, h.lowerPeak, 4);
-  };
-  tiersNorth();
-  // Rotate the south tiers 180° about the outline's center onto the north
-  // face: a rotation preserves winding, unlike a one-axis reflection.
-  const mirrorBatches = [tiers, lit, dim, ...tones];
-  mirrorBatches.forEach((target, index) => {
-    for (let i = starts[index]!; i < target.positions.length; i += 3) {
-      target.positions[i] = 2 * center[0] - target.positions[i]!;
-      target.positions[i + 2] = 2 * center[1] - target.positions[i + 2]!;
-      target.normals[i]! *= -1;
-      target.normals[i + 2]! *= -1;
-    }
-  });
+  gabled(tiers, 17, -0.01, 0.6, h.middleShoulder, h.middlePeak, 0.25);
+  gabled(tiers, 13.6, 0.59, 1.2, h.lowerShoulder, h.lowerPeak, 0.27);
+  decorateTier(tierRunSouth(0.6, 17), 17, h.middleShoulder, h.middlePeak, 3);
+  decorateTier(tierRunSouth(1.2, 13.6), 13.6, h.lowerShoulder, h.lowerPeak, 4);
+  gabledNorth(tiers, 17, -0.01, 0.6, h.middleShoulder, h.middlePeak, 0.29);
+  gabledNorth(tiers, 13.6, 0.59, 1.2, h.lowerShoulder, h.lowerPeak, 0.31);
+  decorateTier(tierRunNorth(0.6, 17), 17, h.middleShoulder, h.middlePeak, 3);
+  decorateTier(tierRunNorth(1.2, 13.6), 13.6, h.lowerShoulder, h.lowerPeak, 4);
 
   // The pyramid crown: four dark facets from the mapped eave to the peak,
-  // closed against the shaft's roof. The tiers stay below the eave.
-  const rim: Vec3[] = ground.map((run) => [run.at(0)[0], h.eave, run.at(0)[1]] as Vec3);
+  // closed against the shaft's roof. The mapped outline's sub-meter tracing
+  // jogs make its tiny facets nearly coplanar with their neighbours, which
+  // the coplanar check flags on the band reliefs, so the crown's rim drops
+  // vertices within 1.2 m of the chord between their neighbours; the shaft
+  // keeps the mapped outline exactly.
+  const rimRing = ground.map((run) => run.at(0));
+  const crownRim = [...rimRing];
+  for (let pass = 0; pass < 8; pass += 1) {
+    let changed = false;
+    for (let i = 0; i < crownRim.length; i += 1) {
+      const a = crownRim[(i - 1 + crownRim.length) % crownRim.length]!;
+      const b = crownRim[(i + 1) % crownRim.length]!;
+      const chord = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const p = crownRim[i]!;
+      if (chord < 1e-9 || (Math.abs((b[0] - a[0]) * (a[1] - p[1]) - (a[0] - p[0]) * (b[1] - a[1])) / chord < 1.2 && crownRim.length > 4)) {
+        crownRim.splice(i, 1);
+        changed = true;
+        break;
+      }
+    }
+    if (!changed) break;
+  }
+  const rim: Vec3[] = crownRim.map(([x, z]) => [x, h.eave, z] as Vec3);
   const apex: Vec3 = [center[0], h.peak, center[1]];
   for (let i = 0; i < rim.length; i += 1) {
     const j = (i + 1) % rim.length;
