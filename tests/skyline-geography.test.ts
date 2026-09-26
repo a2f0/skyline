@@ -423,19 +423,49 @@ describe("mapped skyline geography", () => {
       expect(spireFace.object.name).toBe("Two Prudential · spire");
       expect(spireFace.point.y).toBeGreaterThan(273);
       expect(spireFace.point.y).toBeLessThan(303.3);
-      // The lower tier projects furthest from the mapped south wall, with
-      // its front the first surface at shaft height. The tier sits on the
-      // longest south-facing run, so the test finds it the same way.
+      // The crown is a stack of flat setbacks, not a smooth cone: two rays at
+      // different distances from the axis land on one ledge, and the rings
+      // shrink as they rise.
+      const ledge = (offset: number) => hit([apex[0], 300, apex[2] + offset], [0, -1, 0])!.point.y;
+      expect(ledge(10.2)).toBe(ledge(11.2));
+      expect(ledge(10.2)).toBeGreaterThan(ledge(20));
+      expect(ledge(20)).toBeGreaterThan(240);
+      // The stepped section on the mapped south wall. The tiers sit on the
+      // longest south-facing run, so the test finds that run the same way the
+      // model does, then probes across it: the pointed arrow stands 4.9 m
+      // proud of the mapped wall, the lower tier 4.0 m, the middle tier 2.2 m,
+      // and beyond both tiers only the wall's own relief projects at all.
       const southEdges = projected.map((p, i) => {
         const q = projected[(i + 1) % projected.length]!;
-        return { start: p, length: Math.hypot(q[0] - p[0], q[1] - p[1]), normal: [-(q[1] - p[1]) / Math.hypot(q[0] - p[0], q[1] - p[1]), (q[0] - p[0]) / Math.hypot(q[0] - p[0], q[1] - p[1])] as Vec2 };
+        const length = Math.hypot(q[0] - p[0], q[1] - p[1]);
+        return { start: p, length, tangent: [(q[0] - p[0]) / length, (q[1] - p[1]) / length] as Vec2, normal: [-(q[1] - p[1]) / length, (q[0] - p[0]) / length] as Vec2 };
       }).filter((edge) => edge.normal[1] > 0.9);
-      const tierFront = southEdges.reduce((longest, edge) => edge.length > longest.length ? edge : longest).start[1] + 1.2;
-      const southMid = world(-87.622695, 41.8851685);
-      const tier = hit([southMid[0], 150, tierFront + 30], [0, 0, -1]);
-      expect(tier!.object.name).toMatch(/glaz|tier/);
-      expect(tier!.point.z).toBeGreaterThan(tierFront - 0.02);
-      expect(tier!.point.z).toBeLessThan(tierFront + 0.02);
+      const wall = southEdges.reduce((longest, edge) => edge.length > longest.length ? edge : longest);
+      const middle: Vec2 = [wall.start[0] + wall.tangent[0] * wall.length / 2, wall.start[1] + wall.tangent[1] * wall.length / 2];
+      const probe = (across: number, y: number) => {
+        const from: Vec3 = [middle[0] + wall.tangent[0] * across + wall.normal[0] * 40, y, middle[1] + wall.tangent[1] * across + wall.normal[1] * 40];
+        const contact = hit(from, [-wall.normal[0], 0, -wall.normal[1]]);
+        if (!contact) return null;
+        return { proud: (contact.point.x - middle[0]) * wall.normal[0] + (contact.point.z - middle[1]) * wall.normal[1], name: contact.object.name };
+      };
+      near(probe(0, 100)!.proud, 4.96, 0.03);
+      near(probe(8, 100)!.proud, 4.0, 0.08);
+      near(probe(14.5, 100)!.proud, 2.2, 0.08);
+      expect(probe(18, 100)!.proud).toBeLessThan(0.35);
+      // Above each tier's peak the section steps back to the next surface:
+      // the lower tier ends at 178 m and the middle tier at 224 m.
+      near(probe(8, 190)!.proud, 2.2, 0.08);
+      expect(probe(8, 230)!.proud).toBeLessThan(0.35);
+      expect(probe(14.5, 230)!.proud).toBeLessThan(0.35);
+      // The chevron and its arrow carry the composition over the eave.
+      const chevron = probe(0, 250)!;
+      expect(chevron.proud).toBeGreaterThan(0.5);
+      expect(chevron.proud).toBeLessThan(1.2);
+      expect(probe(6, 246)!.name).toMatch(/glaz|pier|limestone/);
+      // The chevron covers the middle bays only and the crown has already
+      // stepped back, so the same elevation out at the mapped corner is open
+      // sky. A full-width chevron or a shaft rising past its eave would not be.
+      expect(probe(15, 245)).toBeNull();
       // Panes and piers are the first surface on the mapped east wall.
       const eastMid = world(-87.6225092, 41.885442);
       const east = hit([eastMid[0] + 30, 100, eastMid[2]], [-1, 0, 0]);

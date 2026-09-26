@@ -5,18 +5,24 @@ coordinates as the rest of the comparison. The original illustration model is
 unchanged. This is a mapped-massing study with facade detail, not an as-built
 survey or a construction model.
 
-## References checked September 18, 2026
+## References checked September 18, 2026; facade rebuilt September 26, 2026
 
 - [OpenStreetMap ground outline 64388666](https://www.openstreetmap.org/way/64388666):
   local coordinate snapshot and attribution remain in
   `skyline-geography-data.ts` and [the geographic audit](skyline-geography.md).
 - [Council on Tall Buildings and Urban Habitat / Skyscraper Center](https://www.skyscrapercenter.com/building/two-prudential-plaza/489):
   published architectural height 303.3 m (995 ft), 64 floors.
+- The source photograph, cropped with
+  `bun scripts/measure-group.ts building-two-prudential-plaza`. It is taken from
+  the south-east, so it shows the south facade on the left and the east facade
+  on the right. It establishes that the setback gables sit on the north and
+  south facades, that the pier heads step floor by floor into each gable rather
+  than running to a clean diagonal, and that the crown is a stack of flat
+  setbacks with a lit fascia at each step, not a smooth cone.
 - The repository's own fitted model, `models/two-prudential-plaza.ts`, which
-  records the drawing's vocabulary: the three pointed tiers with paired
-  north/south setbacks, piers, glazed chevrons, silver crown bands, louvers,
-  ridge beams, and the tapered spire. The geographic model reuses that
-  vocabulary at meter scale on the mapped outline. See its
+  records the drawing's vocabulary: the pointed tiers with paired north/south
+  setbacks, piers, glazed chevrons, silver crown bands, louvers, and the
+  tapered spire. Its proportions set this model's levels and widths. See its
   [reference audit](two-prudential-reference.md) for the photographic sources.
 
 ## Elevation controls
@@ -24,11 +30,13 @@ survey or a construction model.
 | Feature | Model elevation | Basis |
 | --- | ---: | --- |
 | Grade | 0 m | Shared flat geographic datum |
-| Lower setback shoulder | 156 m | Proportion from the fitted model (0.794 of 196) |
-| Lower setback peak | 178 m | The fitted main tier's 1.143 rise ratio |
-| Middle setback shoulder | 196 m | Proportion from the fitted model (0.817 of 240) |
-| Middle setback peak | 224 m | The fitted main tier's 1.143 rise ratio |
+| Lower setback shoulder | 156 m | Proportion from the fitted model (0.817 of its own eave) |
+| Lower setback peak | 178 m | The fitted lower tier's rise ratio |
+| Middle setback shoulder | 196 m | Proportion from the fitted model |
+| Middle setback peak | 224 m | The fitted middle tier's rise ratio |
 | Eave | 240 m | OSM crown eave |
+| Chevron over the north and south facades | 260.5 m | 0.5535 of the fitted model's eave-to-peak rise |
+| Chevron over the east and west facades | 259.4 m | 0.5253 of the same rise |
 | Pyramid peak | 277 m | OSM crown peak |
 | Architectural tip | 303.3 m | Published CTBUH value |
 
@@ -37,27 +45,47 @@ published 64 floors.
 
 ## Plan and detail choices
 
-- The mapped outline (approximately 41 × 56 m) is retained exactly in
+- The mapped outline (approximately 42 × 56 m) is retained exactly in
   projected coordinates; it is the shaft, rising to the mapped 240 m eave.
-  Ground placement has no illustration-derived rotation or scale.
-- The shaft facade carries the fitted model's grid at meter scale: one
-  recessed pane per bay per row between projecting piers, a spandrel band at
-  each floor line below the eave, and a base course at grade. Bays are about
-  3.4 m; a deterministic hash scatters muted lit panes through the dark
-  glass. These are estimates.
-- The paired south/north pointed tiers are shallow closed gabled projections
-  set back from the mapped corners horizontally: the middle tier stands
-  0.6 m proud of the mapped south wall and the lower 1.2 m, mirroring the
-  fitted model's setback order on the north face too. The mapped outline has
-  no setback subdivisions, so the tier widths and shoulder heights follow the
-  fitted model's proportions. Their bases sit just above grade, each at its
-  own height so no two bottom faces share a plane.
-- The crown keeps the mapped pyramid: four dark facets from the eave to the
-  277 m peak, each carrying the fitted model's silver band and louver strips,
-  with the bright tapered spire — inset panels over two jointed sections —
-  rising from a foot seated in the pyramid to the published 303.3 m tip.
-- The tiers, bands, louvers, and spire panels are closed solids; the
-  geographic suite pairs every directed edge, so no face is omitted.
+  Ground placement has no illustration-derived rotation or scale. Its long
+  axis runs north-south, so the narrow north and south walls are the ones the
+  drawing and the photograph show the setback gables on, and the long east and
+  west walls carry a single chevron at the eave.
+- The shaft facade carries the fitted model's grid at meter scale: one punched
+  pane per bay per row between projecting piers, with limestone left visible
+  around every opening, so the tower reads as the drawing's light stone field
+  with dark glass rather than as a glass box. Bays are about 3.5 m; a
+  deterministic hash scatters muted lit panes through the dark glass. These are
+  estimates.
+- The paired north and south setback tiers are closed gabled volumes standing
+  on the mapped wall, the lower one in front of the middle one so no two of
+  their faces share a plane. Each carries its own piers and panes, and its pier
+  heads stop on a floor line, which is the sawtooth edge the drawing and the
+  photographs show in place of a clean diagonal. A thin coping follows both
+  slopes of every gable; without it a gable reads as a line drawn on the
+  glazing rather than the edge of a volume.
+- A pointed arrow rises from each gable to the one above, glazed to its sloping
+  head, and a third reaches from the middle gable over the eave to the chevron.
+- **The tiers project less than the fitted model's proportions.** Scaled to the
+  mapped depth, the fitted tiers would stand 9.6 m and 4.0 m proud of the
+  mapped wall, which would claim 34% more ground than OpenStreetMap records.
+  They are compressed to 4.0 m and 2.2 m, with the arrow another 0.9 m, which
+  keeps the drawing's stepped section and its shadows while holding the
+  above-grade envelope within about 16% of the mapped outline. Their feet sit
+  just above grade, so the street-level outline stays exactly the mapped ring.
+- The chevrons over the eave cover the middle bays rather than the whole
+  facade. The drawing's chevrons rise 1.2 to 1.75 times their own half-width;
+  a full-width chevron on the mapped facade would flatten into a tent, and its
+  soffit would cross the next facade's at the same elevation.
+- The crown is ten setbacks from the mapped eave to the mapped peak, each a
+  closed ring scaled about the outline's vertex mean, with a silver fascia and
+  a recessed louvered opening. A smooth cone with painted rings loses the
+  stepped silhouette the photographs show. The bright tapered spire — inset
+  panels over two jointed sections — rises from a foot seated in the topmost
+  setbacks to the published 303.3 m tip.
+- The tiers, arrows, copings, chevrons, crown rings, and spire panels are all
+  closed solids; the geographic suite pairs every directed edge, so no face is
+  omitted. Panes and piers are not drawn where a projecting volume covers them.
 - The plaza, lobby canopy, and roof equipment are omitted. Colors follow the
   original artwork's neutral gray palette rather than photographic colors.
 
@@ -69,10 +97,14 @@ only and are not downloaded by the viewer or redistributed with the site.
 `bun run check` checks geographic position, street-level extents, rendered tip
 heights, closed meshes, triangle winding, coplanar overlaps, and the existing
 layout-toggle/browser regressions. The geographic suite also raycasts the
-model: the pyramid peak at the outline's vertex mean, a facet between the
-peak and the eave, a spire face beside the tip (the exact tip is pinned by
-the rendered-height check), the lower tier's front as the first surface on
-the mapped south wall, panes and piers on the east wall, and the exact mapped
-outline at grade. Ground extents use vertices at grade: facade relief and the
-tier bases above grade must not redefine the street footprint. Visual review
-includes the ground plan, height comparison, and elevated orthographic views.
+model: the pyramid peak at the outline's vertex mean, a crown facet between the
+peak and the eave, two rays at different radii that land on one crown ledge
+where a smooth cone would return two heights, a spire face beside the tip (the
+exact tip is pinned by the rendered-height check), a section across the mapped
+south wall that pins the arrow, both tiers and the wall at their own
+projections and again above each tier's peak, the chevron over the eave, open
+sky at the mapped corner above it, panes and piers on the mapped east wall, and
+the exact mapped outline at grade. Ground extents use vertices at grade: facade
+relief and the tier bases above grade must not redefine the street footprint.
+Visual review includes the ground plan, height comparison, and elevated
+orthographic views.

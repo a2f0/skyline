@@ -102,9 +102,14 @@ outlines, setback terraces, ribbed crown and three-section mast carry the fitted
 model's glazing vocabulary at meter scale, with window rows and bays estimated;
 see its [reference audit](docs/trump-geographic-reference.md).
 Two Prudential has a detailed one too: its mapped outline keeps the 240 m
-eave and 277 m pyramid, with piers and panes on the shaft, the paired
-south/north pointed tiers, silver crown bands and louvers, and the tapered
-spire at the published 303.3 m tip; see its
+eave and 277 m pyramid, with punched panes between limestone piers on the
+shaft, the paired north/south setback tiers whose pier heads step floor by
+floor into a coped gable, a pointed arrow from each gable to the one above, a
+chevron over every facade at the eave, a crown of ten setbacks rather than a
+banded cone, and the tapered spire at the published 303.3 m tip. Its tiers
+project 4.0 m and 2.2 m rather than the 9.6 m and 4.0 m its drawn proportions
+would give, which keeps the above-grade envelope near the mapped ground
+outline; see its
 [reference audit](docs/two-prudential-geographic-reference.md).
 Aon Center has a detailed one too: its mapped outline keeps the 340 m shaft
 and 346.3 m rooftop enclosure, with the granite tube's window slots, piers,
