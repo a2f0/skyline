@@ -60,17 +60,20 @@ reads as the published 64 floors.
   deterministic hash scatters muted lit panes through the dark glass. These are
   estimates.
 - The paired north and south setback tiers are closed gabled volumes standing
-  on the mapped wall, the lower one in front of the middle one so no two of
-  their faces share a plane. Each carries its own piers and panes, and its pier
+  on the mapped wall, the lower one occupying the depth in front of the middle
+  one. Where the two meet they share a plane but face opposite ways, which is a
+  joint rather than a z-fight. Each carries its own piers and panes, and its pier
   heads stop on a floor line, which is the sawtooth edge the drawing and the
   photographs show in place of a clean diagonal. A thin coping follows both
   slopes of every gable; without it a gable reads as a line drawn on the
   glazing rather than the edge of a volume.
 - A pointed arrow rises from each gable to the one above, glazed to its sloping
   head, and a third reaches from the middle gable over the eave to the chevron.
-- **The tiers project less than the fitted model's proportions.** Scaled to the
-  mapped depth, the fitted tiers would stand 9.6 m and 4.0 m proud of the
-  mapped wall, which would claim 34% more ground than OpenStreetMap records.
+- **The tiers project less than the fitted model's proportions.** The fitted
+  tiers stand 10.12 m and 4.23 m proud of its own south wall; scaled by the
+  mapped 56.39 m depth over the fitted model's full 59.10 m drawn depth, that
+  is 9.65 m and 4.03 m, which above grade would claim 34% more ground than
+  OpenStreetMap records.
   They are compressed to 4.0 m and 2.2 m, with the arrow another 0.9 m, which
   keeps the drawing's stepped section and its shadows while holding the
   above-grade envelope within about 16% of the mapped outline. Their feet sit
@@ -80,8 +83,12 @@ reads as the published 64 floors.
   a full-width chevron on the mapped facade would flatten into a tent, and its
   soffit would cross the next facade's at the same elevation.
 - The crown is ten setbacks from the mapped eave to the mapped peak, each a
-  closed ring scaled about the outline's vertex mean, with a silver fascia and
-  a recessed louvered opening. A smooth cone with painted rings loses the
+  closed ring scaled about the outline's area centroid, with a silver fascia
+  and a recessed louvered opening. The centroid, not the mean of the traced
+  vertices: this outline carries three extra points down its west wall, and
+  averaging them would put the crown's axis 4.9 m west and 2.7 m south of the
+  building, drifting it diagonally as it rises and standing the spire off the
+  facade arrows it caps. A smooth cone with painted rings loses the
   stepped silhouette the photographs show. The bright tapered spire — inset
   panels over two jointed sections — rises from a foot seated in the topmost
   setbacks to the published 303.3 m tip.
@@ -99,14 +106,17 @@ only and are not downloaded by the viewer or redistributed with the site.
 `bun run check` checks geographic position, street-level extents, rendered tip
 heights, closed meshes, triangle winding, coplanar overlaps, and the existing
 layout-toggle/browser regressions. The geographic suite also raycasts the
-model: the pyramid peak at the outline's vertex mean, a crown facet between the
-peak and the eave, two rays at different radii that land on one crown ledge
-where a smooth cone would return two heights, a spire face beside the tip (the
+model: the peak over the outline's area centroid, a ray at the traced-vertex
+mean landing below that peak, a crown setback between the peak and the eave,
+two rays at different radii that land on one crown ledge where a smooth cone
+would return two heights, a spire face beside the tip (the
 exact tip is pinned by the rendered-height check), a section across the mapped
 south wall that pins the arrow, both tiers and the wall at their own
-projections and again above each tier's peak, the chevron over the eave, open
-sky at the mapped corner above it, panes and piers on the mapped east wall, and
-the exact mapped outline at grade. Ground extents use vertices at grade: facade
+projections and again above each tier's peak, the four merged facade widths,
+the east and west arrows at the same projection on their own centres, a vertex
+sweep proving no pane or pier sits inside the lower tier, the chevron over the
+eave, open sky at the mapped corner above it, panes and piers on the mapped
+east wall, and the exact mapped outline at grade. Ground extents use vertices at grade: facade
 relief and the tier bases above grade must not redefine the street footprint.
 Visual review includes the ground plan, height comparison, and elevated
 orthographic views.

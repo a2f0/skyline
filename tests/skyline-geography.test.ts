@@ -407,38 +407,51 @@ describe("mapped skyline geography", () => {
         const [east, north] = projectGround([longitude, latitude]);
         return [east, 0, -north];
       };
-      // The mapped crown: the pyramid peak at the outline's vertex mean, the
-      // facet between the peak and the eave, and the published spire tip.
+      // The mapped crown: the peak over the outline's area centroid, a setback
+      // between the peak and the eave, and the published spire tip.
       const projected = record.footprint.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
-      const apex: Vec3 = [projected.reduce((sum, p) => sum + p[0], 0) / projected.length, 277, projected.reduce((sum, p) => sum + p[1], 0) / projected.length];
-      near(hit([apex[0], 300, apex[2]], [0, -1, 0])!.point.y, 277, 0.001);
+      const centroid: Vec2 = (() => {
+        let twice = 0, x = 0, z = 0;
+        for (let i = 0; i < projected.length; i += 1) {
+          const a = projected[i]!, b = projected[(i + 1) % projected.length]!;
+          const cross = a[0] * b[1] - b[0] * a[1];
+          twice += cross; x += (a[0] + b[0]) * cross; z += (a[1] + b[1]) * cross;
+        }
+        return [x / (3 * twice), z / (3 * twice)];
+      })();
+      const apex: Vec3 = [centroid[0], 277, centroid[1]];
+      // Beside the spire's own foot, so the ray meets the topmost setback
+      // rather than running down the spire's axis.
+      near(hit([apex[0], 320, apex[2] + 1.6], [0, -1, 0])!.point.y, 277, 0.001);
+      // The crown shrinks about that centroid, not about the mean of the
+      // traced vertices: this outline carries three extra points down its west
+      // wall, and a crown centred on their mean would still be at its peak
+      // 5.6 m away from the building's own centre.
+      const vertexMean: Vec3 = [projected.reduce((sum, p) => sum + p[0], 0) / projected.length, 320, projected.reduce((sum, p) => sum + p[1], 0) / projected.length];
+      expect(Math.hypot(vertexMean[0] - apex[0], vertexMean[2] - apex[2])).toBeGreaterThan(5);
+      expect(hit(vertexMean, [0, -1, 0])!.point.y).toBeLessThan(276);
       const facet = world(-87.622695, 41.885291);
       const facetHit = hit([facet[0], 300, facet[2]], [0, -1, 0])!;
       expect(facetHit.point.y).toBeGreaterThan(250);
       expect(facetHit.point.y).toBeLessThan(277);
       // The spire: a face beside the tip (the exact 303.3 m tip is pinned by
-      // the generic bounds check; a ray at the exact tip slips between the
-      // four converging faces).
+      // the generic bounds check).
       const spireFace = hit([apex[0] + 0.05, 350, apex[2]], [0, -1, 0])!;
       expect(spireFace.object.name).toBe("Two Prudential · spire");
       expect(spireFace.point.y).toBeGreaterThan(273);
-      expect(spireFace.point.y).toBeLessThan(303.3);
+      expect(spireFace.point.y).toBeLessThanOrEqual(303.3);
       // The crown is a stack of flat setbacks, not a smooth cone: two rays at
       // different distances from the axis land on one ledge, and the rings
       // shrink as they rise.
-      const ledge = (offset: number) => hit([apex[0], 300, apex[2] + offset], [0, -1, 0])!.point.y;
-      expect(ledge(10.2)).toBe(ledge(11.2));
-      expect(ledge(10.2)).toBeGreaterThan(ledge(20));
+      const ledge = (offset: number) => hit([apex[0], 320, apex[2] + offset], [0, -1, 0])!.point.y;
+      expect(ledge(11.2)).toBe(ledge(12));
+      expect(ledge(11.2)).toBeGreaterThan(ledge(20));
       expect(ledge(20)).toBeGreaterThan(240);
-      // The stepped section on the mapped south wall. The tiers sit on the
-      // longest south-facing run, so the test finds that run the same way the
-      // model does, then probes across it: the pointed arrow stands 4.9 m
-      // proud of the mapped wall, the lower tier 4.0 m, the middle tier 2.2 m,
-      // and beyond both tiers only the wall's own relief projects at all.
-      // The mapped tracing splits each wall into several nearly collinear
-      // edges, so consecutive ones facing the same way are merged into one
-      // facade first. Composing on a single traced edge would put the south
-      // wall's centre 1.7 m off and shrink it by 3.4 m.
+      // The stepped section on the mapped south wall. The mapped tracing splits
+      // each wall into several nearly collinear edges, so consecutive ones
+      // facing the same way are merged into one facade first, the same way the
+      // model does: composing on a single traced edge would give the west
+      // facade a 28.4 m frame instead of a 56.0 m one.
       const edges = projected.map((p, i) => {
         const q = projected[(i + 1) % projected.length]!;
         const length = Math.hypot(q[0] - p[0], q[1] - p[1]);
@@ -450,8 +463,8 @@ describe("mapped skyline geography", () => {
         if (last && last.normal[0] * edge.normal[0] + last.normal[1] * edge.normal[1] > 0.999) groups.at(-1)!.push(edge);
         else groups.push([edge]);
       }
-      const head = groups[0]![0]!, tail = groups.at(-1)![0]!;
-      if (groups.length > 1 && head.normal[0] * tail.normal[0] + head.normal[1] * tail.normal[1] > 0.999) groups[0]!.unshift(...groups.pop()!);
+      const first = groups[0]![0]!, last = groups.at(-1)![0]!;
+      if (groups.length > 1 && first.normal[0] * last.normal[0] + first.normal[1] * last.normal[1] > 0.999) groups[0]!.unshift(...groups.pop()!);
       const merged = groups.map((group) => {
         const start = group[0]!.start, end = group.at(-1)!.end;
         const length = Math.hypot(end[0] - start[0], end[1] - start[1]);
@@ -460,28 +473,28 @@ describe("mapped skyline geography", () => {
       });
       const facing = (axis: 0 | 1, sign: number) => merged.filter((entry) => entry.normal[axis] * sign > 0.9).reduce((longest, entry) => entry.length > longest.length ? entry : longest);
       const wall = facing(1, 1);
-      // Merging leaves exactly four facades. The west wall is three traced runs
-      // and the north and south two each, so composing on a run would give the
-      // west facade a 28.4 m frame instead of a 56.0 m one.
       near(wall.length, 40.81, 0.02);
       near(facing(1, -1).length, 40.7, 0.02);
       near(facing(0, 1).length, 55.44, 0.02);
       near(facing(0, -1).length, 56.04, 0.02);
+      const middleOf = (entry: typeof wall): Vec2 => [entry.start[0] + entry.tangent[0] * entry.length / 2, entry.start[1] + entry.tangent[1] * entry.length / 2];
       const probeOn = (entry: typeof wall, across: number, y: number) => {
-        const middle: Vec2 = [entry.start[0] + entry.tangent[0] * entry.length / 2, entry.start[1] + entry.tangent[1] * entry.length / 2];
+        const middle = middleOf(entry);
         const from: Vec3 = [middle[0] + entry.tangent[0] * across + entry.normal[0] * 40, y, middle[1] + entry.tangent[1] * across + entry.normal[1] * 40];
         const contact = hit(from, [-entry.normal[0], 0, -entry.normal[1]]);
         if (!contact) return null;
         return { proud: (contact.point.x - middle[0]) * entry.normal[0] + (contact.point.z - middle[1]) * entry.normal[1], name: contact.object.name };
       };
       const probe = (across: number, y: number) => probeOn(wall, across, y);
+      // Across the section: the pointed arrow stands 4.96 m proud of the mapped
+      // wall, the lower tier 4.07 m, the middle tier 2.27 m, and beyond both
+      // tiers only the wall's own relief projects at all.
       near(probe(0, 100)!.proud, 4.96, 0.03);
       near(probe(8, 100)!.proud, 4.07, 0.03);
+      near(probe(16, 100)!.proud, 2.27, 0.03);
       expect(probe(18, 100)!.proud).toBeLessThan(0.35);
-      // Nothing is drawn on the middle tier where the lower tier covers it:
-      // at the lower gable's own station its face is bare below that gable and
-      // glazed above. An exterior ray cannot see buried geometry directly, but
-      // it can see that the glazing stops exactly where the cover starts.
+      // The middle tier's face is bare where the lower tier covers it and
+      // glazed above that gable, so the glazing stops exactly at the cover.
       near(probe(14.5, 100)!.proud, 2.2, 0.01);
       expect(probe(14.5, 100)!.name).toMatch(/tier/);
       near(probe(14.5, 190)!.proud, 2.27, 0.01);
@@ -490,6 +503,24 @@ describe("mapped skyline geography", () => {
       near(probe(8, 190)!.proud, 2.27, 0.03);
       expect(probe(8, 230)!.proud).toBeLessThan(0.35);
       expect(probe(14.5, 230)!.proud).toBeLessThan(0.35);
+      // Nothing is drawn inside the lower tier. An exterior ray cannot see
+      // buried geometry, so this reads the vertices: no pane or pier may sit
+      // within the tier's own volume, allowing the 2 cm lap the arrow's back
+      // deliberately takes into it.
+      for (const entry of [facing(1, 1), facing(1, -1)]) {
+        const middle = middleOf(entry), lowerHalf = entry.length * 0.707 / 2;
+        for (const mesh of meshes) {
+          if (!/glaz|pier/.test(mesh.name)) continue;
+          const position = mesh.geometry.getAttribute("position");
+          for (let i = 0; i < position.count; i += 1) {
+            const dx = position.getX(i) - middle[0], dz = position.getZ(i) - middle[1];
+            const across = dx * entry.tangent[0] + dz * entry.tangent[1], depth = dx * entry.normal[0] + dz * entry.normal[1];
+            const gable = 180.63 - (180.63 - 155.73) * Math.min(1, Math.abs(across) / lowerHalf);
+            const inside = Math.abs(across) < lowerHalf - 0.02 && depth > 2.3 && depth < 3.9 && position.getY(i) < gable - 0.02;
+            expect(inside, `${mesh.name} vertex buried in the lower tier at ${across.toFixed(2)}, ${depth.toFixed(2)}, ${position.getY(i).toFixed(2)}`).toBe(false);
+          }
+        }
+      }
       // The chevron and its arrow carry the composition over the eave, and the
       // east and west facades carry the same arrow centred on their own merged
       // width rather than on one traced run.
