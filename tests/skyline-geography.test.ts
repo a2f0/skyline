@@ -435,37 +435,81 @@ describe("mapped skyline geography", () => {
       // model does, then probes across it: the pointed arrow stands 4.9 m
       // proud of the mapped wall, the lower tier 4.0 m, the middle tier 2.2 m,
       // and beyond both tiers only the wall's own relief projects at all.
-      const southEdges = projected.map((p, i) => {
+      // The mapped tracing splits each wall into several nearly collinear
+      // edges, so consecutive ones facing the same way are merged into one
+      // facade first. Composing on a single traced edge would put the south
+      // wall's centre 1.7 m off and shrink it by 3.4 m.
+      const edges = projected.map((p, i) => {
         const q = projected[(i + 1) % projected.length]!;
         const length = Math.hypot(q[0] - p[0], q[1] - p[1]);
-        return { start: p, length, tangent: [(q[0] - p[0]) / length, (q[1] - p[1]) / length] as Vec2, normal: [-(q[1] - p[1]) / length, (q[0] - p[0]) / length] as Vec2 };
-      }).filter((edge) => edge.normal[1] > 0.9);
-      const wall = southEdges.reduce((longest, edge) => edge.length > longest.length ? edge : longest);
-      const middle: Vec2 = [wall.start[0] + wall.tangent[0] * wall.length / 2, wall.start[1] + wall.tangent[1] * wall.length / 2];
-      const probe = (across: number, y: number) => {
-        const from: Vec3 = [middle[0] + wall.tangent[0] * across + wall.normal[0] * 40, y, middle[1] + wall.tangent[1] * across + wall.normal[1] * 40];
-        const contact = hit(from, [-wall.normal[0], 0, -wall.normal[1]]);
+        return { start: p, end: q, length, tangent: [(q[0] - p[0]) / length, (q[1] - p[1]) / length] as Vec2, normal: [-(q[1] - p[1]) / length, (q[0] - p[0]) / length] as Vec2 };
+      });
+      const groups: (typeof edges)[] = [];
+      for (const edge of edges) {
+        const last = groups.at(-1)?.[0];
+        if (last && last.normal[0] * edge.normal[0] + last.normal[1] * edge.normal[1] > 0.999) groups.at(-1)!.push(edge);
+        else groups.push([edge]);
+      }
+      const head = groups[0]![0]!, tail = groups.at(-1)![0]!;
+      if (groups.length > 1 && head.normal[0] * tail.normal[0] + head.normal[1] * tail.normal[1] > 0.999) groups[0]!.unshift(...groups.pop()!);
+      const merged = groups.map((group) => {
+        const start = group[0]!.start, end = group.at(-1)!.end;
+        const length = Math.hypot(end[0] - start[0], end[1] - start[1]);
+        const tangent: Vec2 = [(end[0] - start[0]) / length, (end[1] - start[1]) / length];
+        return { start, length, tangent, normal: [-tangent[1], tangent[0]] as Vec2 };
+      });
+      const facing = (axis: 0 | 1, sign: number) => merged.filter((entry) => entry.normal[axis] * sign > 0.9).reduce((longest, entry) => entry.length > longest.length ? entry : longest);
+      const wall = facing(1, 1);
+      // Merging leaves exactly four facades. The west wall is three traced runs
+      // and the north and south two each, so composing on a run would give the
+      // west facade a 28.4 m frame instead of a 56.0 m one.
+      near(wall.length, 40.81, 0.02);
+      near(facing(1, -1).length, 40.7, 0.02);
+      near(facing(0, 1).length, 55.44, 0.02);
+      near(facing(0, -1).length, 56.04, 0.02);
+      const probeOn = (entry: typeof wall, across: number, y: number) => {
+        const middle: Vec2 = [entry.start[0] + entry.tangent[0] * entry.length / 2, entry.start[1] + entry.tangent[1] * entry.length / 2];
+        const from: Vec3 = [middle[0] + entry.tangent[0] * across + entry.normal[0] * 40, y, middle[1] + entry.tangent[1] * across + entry.normal[1] * 40];
+        const contact = hit(from, [-entry.normal[0], 0, -entry.normal[1]]);
         if (!contact) return null;
-        return { proud: (contact.point.x - middle[0]) * wall.normal[0] + (contact.point.z - middle[1]) * wall.normal[1], name: contact.object.name };
+        return { proud: (contact.point.x - middle[0]) * entry.normal[0] + (contact.point.z - middle[1]) * entry.normal[1], name: contact.object.name };
       };
+      const probe = (across: number, y: number) => probeOn(wall, across, y);
       near(probe(0, 100)!.proud, 4.96, 0.03);
-      near(probe(8, 100)!.proud, 4.0, 0.08);
-      near(probe(14.5, 100)!.proud, 2.2, 0.08);
+      near(probe(8, 100)!.proud, 4.07, 0.03);
       expect(probe(18, 100)!.proud).toBeLessThan(0.35);
-      // Above each tier's peak the section steps back to the next surface:
-      // the lower tier ends at 178 m and the middle tier at 224 m.
-      near(probe(8, 190)!.proud, 2.2, 0.08);
+      // Nothing is drawn on the middle tier where the lower tier covers it:
+      // at the lower gable's own station its face is bare below that gable and
+      // glazed above. An exterior ray cannot see buried geometry directly, but
+      // it can see that the glazing stops exactly where the cover starts.
+      near(probe(14.5, 100)!.proud, 2.2, 0.01);
+      expect(probe(14.5, 100)!.name).toMatch(/tier/);
+      near(probe(14.5, 190)!.proud, 2.27, 0.01);
+      expect(probe(14.5, 190)!.name).toMatch(/glaz/);
+      // Above each tier's peak the section steps back to the next surface.
+      near(probe(8, 190)!.proud, 2.27, 0.03);
       expect(probe(8, 230)!.proud).toBeLessThan(0.35);
       expect(probe(14.5, 230)!.proud).toBeLessThan(0.35);
-      // The chevron and its arrow carry the composition over the eave.
+      // The chevron and its arrow carry the composition over the eave, and the
+      // east and west facades carry the same arrow centred on their own merged
+      // width rather than on one traced run.
       const chevron = probe(0, 250)!;
       expect(chevron.proud).toBeGreaterThan(0.5);
       expect(chevron.proud).toBeLessThan(1.2);
-      expect(probe(6, 246)!.name).toMatch(/glaz|pier|limestone/);
+      near(probe(6, 246)!.proud, 0.22, 0.08);
+      for (const side of [facing(0, 1), facing(0, -1)]) {
+        near(probeOn(side, 0, 150)!.proud, 0.95, 0.03);
+        expect(probeOn(side, 0, 150)!.name).toMatch(/pier/);
+        near(probeOn(side, 0, 250)!.proud, 1.01, 0.03);
+      }
       // The chevron covers the middle bays only and the crown has already
-      // stepped back, so the same elevation out at the mapped corner is open
-      // sky. A full-width chevron or a shaft rising past its eave would not be.
-      expect(probe(15, 245)).toBeNull();
+      // stepped back inside the mapped wall, so just outside the chevron the
+      // first surface is the crown and at the mapped corner there is nothing.
+      // A full-width chevron or a shaft rising past its eave would fail both.
+      const beyond = probe(15, 245)!;
+      expect(beyond.name).toMatch(/crown/);
+      expect(beyond.proud).toBeLessThan(-1);
+      expect(probe(19, 245)).toBeNull();
       // Panes and piers are the first surface on the mapped east wall.
       const eastMid = world(-87.6225092, 41.885442);
       const east = hit([eastMid[0] + 30, 100, eastMid[2]], [-1, 0, 0]);

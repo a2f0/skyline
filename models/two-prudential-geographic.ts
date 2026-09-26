@@ -17,14 +17,18 @@ export const twoPrudentialGeographicLevels = Object.freeze({
   peak: 277, // OSM crown peak
   tip: 303.3, // published architectural tip
   floors: 64,
-  // Above the eave, the fitted model's chevrons reach 0.5535 of the way to the
-  // pyramid top on the wide facades and 0.5253 on the narrow ones.
-  frontChevron: 260.5,
-  sideChevron: 259.4,
-  middleShoulder: 196,
-  middlePeak: 224,
-  lowerShoulder: 156,
-  lowerPeak: 178,
+  // Above the eave, the fitted model's chevrons reach 0.5535 of the way from
+  // its own eave to its pyramid top on the facades carrying the tiers, and
+  // 0.5253 on the other two.
+  frontChevron: 260.48,
+  sideChevron: 259.44,
+  // Below the eave, each fitted level scaled by 240/250.916: the shoulder and
+  // peak of each tier, in that model's own proportions rather than a rounding
+  // of them.
+  middleShoulder: 196.09,
+  middlePeak: 224.79,
+  lowerShoulder: 155.73,
+  lowerPeak: 180.63,
   crownSteps: 10,
 });
 const h = twoPrudentialGeographicLevels;
@@ -170,8 +174,10 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
   const gableAt = (half: number, shoulder: number, peak: number) => (across: number) => peak - (peak - shoulder) * Math.min(1, Math.abs(across) / half);
   // A thin coping following a gable's two slopes, standing proud of the face it
   // caps. Without it a gable reads as a line drawn on the glazing rather than
-  // the edge of a volume. It stops clear of the arrow that rises through the
-  // gable's middle.
+  // the edge of a volume. It dies into the arrow rising through the gable's
+  // middle, which both hides its inner end and keeps that end's plane well
+  // clear of the arrow's own sides and of the nearest pier the bay grid can
+  // put there.
   const coping = (face: Face, half: number, depth: number, shoulder: number, peak: number, inner: number) => {
     const head = gableAt(half, shoulder, peak);
     for (const sign of [-1, 1]) {
@@ -192,13 +198,15 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
 
   // Punched glazing on a wall or a tier front: one pane per bay per row between
   // projecting piers, with limestone left visible around every opening. `head`
-  // and `foot` are given the station measured from the face's middle, the same
-  // frame the gable profiles use. `head` gives the sawtooth the drawn and
+  // and `foot` are given the station measured from the facade's middle, the
+  // same frame the gable profiles use, which `origin` shifts to when the
+  // mapped tracing splits that facade into several runs. `head` gives the
+  // sawtooth the drawn and
   // photographed gables have; `foot` gives the height a projecting volume
   // stops covering this surface at, so nothing is drawn behind one.
-  const glazePiers = (run: Run, side: number, base: number, head: (across: number) => number, foot: (across: number) => number = () => 0) => {
+  const glazePiers = (run: Run, side: number, base: number, head: (across: number) => number, foot: (across: number) => number = () => 0, origin = 0) => {
     const bays = Math.max(1, Math.round(run.length / 3.5));
-    const width = run.length / bays, middle = run.length / 2;
+    const width = run.length / bays, middle = run.length / 2 - origin;
     const stepped = (across: number) => Math.min(head(across), base + Math.max(0, Math.floor((head(across) - base) / pitch)) * pitch);
     for (let bay = 0; bay < bays; bay += 1) {
       const from = bay * width + 0.78, to = (bay + 1) * width - 0.78;
@@ -219,10 +227,39 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
     }
   };
 
-  const walls = ground.filter((run) => run.length > 2).map((run) => ({ run, face: faceOf(run) }));
-  const longest = (axis: 0 | 1, sign: number) => walls
+  // A facade is a wall, not a run: the mapped tracing splits the west wall into
+  // three nearly collinear runs and the north and south walls into two each.
+  // Composing on a run would give the west facade a chevron half the east
+  // one's, 14 m off its centre, and would blank a strip of glazing up the
+  // middle of every other segment. Consecutive runs facing the same way are
+  // merged, and each keeps its own station along the merged wall so the shaft
+  // still follows the mapped outline exactly.
+  interface Facade { face: Face; parts: { run: Run; origin: number }[] }
+  const facades: Facade[] = [];
+  for (const run of ground) {
+    const n = run.normal(0), last = facades.at(-1);
+    if (last && last.face.outward[0] * n[0] + last.face.outward[1] * n[1] > 0.999) last.parts.push({ run, origin: 0 });
+    else facades.push({ face: faceOf(run), parts: [{ run, origin: 0 }] });
+  }
+  const first = facades[0]!, final = facades.at(-1)!;
+  if (facades.length > 1 && first.face.outward[0] * final.face.outward[0] + first.face.outward[1] * final.face.outward[1] > 0.999) {
+    first.parts.unshift(...final.parts);
+    facades.pop();
+  }
+  for (const facade of facades) {
+    const start = facade.parts[0]!.run.at(0), tail = facade.parts.at(-1)!.run;
+    const end = tail.at(tail.length), span = Math.hypot(end[0] - start[0], end[1] - start[1]);
+    const tangent: Vec2 = [(end[0] - start[0]) / span, (end[1] - start[1]) / span];
+    const centre: Vec2 = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2];
+    facade.face = { centre, tangent, outward: [-tangent[1], tangent[0]], width: span };
+    for (const part of facade.parts) {
+      const mid = part.run.at(part.run.length / 2);
+      part.origin = (mid[0] - centre[0]) * tangent[0] + (mid[1] - centre[1]) * tangent[1];
+    }
+  }
+  const longest = (axis: 0 | 1, sign: number) => facades
     .filter(({ face }) => face.outward[axis] * sign > 0.9)
-    .reduce((best, entry) => entry.face.width > best.face.width ? entry : best);
+    .reduce((best, facade) => facade.face.width > best.face.width ? facade : best);
   // The mapped rectangle's long axis runs north-south, so the north and south
   // walls are the narrow ones the drawing and the photograph show the setback
   // tiers on; the east and west walls carry a single chevron at the eave.
@@ -233,20 +270,25 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
   // covers it: a pane behind a projecting volume is geometry no camera reaches,
   // and a pier end cap landing on a tier's own side plane would z-fight with
   // it. The half-meter margins keep every drawn pier clear of those planes.
-  for (const [side, { run, face }] of walls.entries()) {
+  for (const [side, facade] of facades.entries()) {
+    const { face } = facade;
     const arrowHalf = face.width * arrowWidth / 2 + 0.5;
     const tierHalf = face.width * tierWidths[1]! / 2 + 0.5;
     const middleGable = gableAt(tierHalf, h.middleShoulder, h.middlePeak);
-    const foot = fronts.some((entry) => entry.face === face)
+    const foot = fronts.includes(facade)
       ? (s: number) => Math.abs(s) <= arrowHalf ? h.eave : (Math.abs(s) <= tierHalf ? middleGable(s) : 0)
       : (s: number) => Math.abs(s) <= arrowHalf ? h.eave : 0;
-    glazePiers(run, side, 0, () => h.eave, foot);
+    for (const { run, origin } of facade.parts) {
+      if (run.length < 2) continue;
+      glazePiers(run, side, 0, () => h.eave, foot, origin);
+    }
   }
 
   // The paired north and south setback tiers. Each is a closed gabled volume
-  // standing on the mapped wall, the lower one in front of the middle one, so
-  // no two of their faces share a plane. Their feet sit just above grade, which
-  // keeps the street-level outline exactly the mapped ring.
+  // standing on the mapped wall, the lower one occupying the depth in front of
+  // the middle one: where the two meet they share a plane but face opposite
+  // ways, which is a joint rather than a z-fight. Their feet sit just above
+  // grade, which keeps the street-level outline exactly the mapped ring.
   for (const { face } of fronts) {
     const halves = tierWidths.map((fraction) => face.width * fraction / 2) as [number, number];
     const arrowHalf = face.width * arrowWidth / 2;
@@ -258,14 +300,18 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
       const half = halves[index]!, front = tierFronts[index]!, back = index ? 0 : tierFronts[1]!;
       gabled(tiers, face, half, back, front, shoulder, peak, () => 0.3 + index * 0.06);
       const run = faceRun(face, half, front);
-      glazePiers(run, 6 + index, 0.3, gableAt(half, shoulder, peak), (s) => Math.abs(s) <= arrowHalf + 0.5 ? peak : 0);
+      // The middle tier's front is itself covered by the lower tier below its
+      // gable, so that region carries no panes or piers either.
+      const lowerGable = gableAt(halves[0]!, h.lowerShoulder, h.lowerPeak);
+      glazePiers(run, 6 + index, 0.3, gableAt(half, shoulder, peak), (s) => Math.abs(s) <= arrowHalf + 0.5 ? peak
+        : (index === 1 && Math.abs(s) <= halves[0]! + 0.5 ? lowerGable(s) : 0));
       // The pointed arrow: the narrow bay that carries the eye from one gable
       // to the next, glazed to its sloping head.
       const arrowFloor = floors[index]!;
       gabled(piers, face, arrowHalf, front - 0.02, front + 0.9, peak - 6.2, peak, arrowFloor);
       const arrowRun = faceRun(face, arrowHalf, front + 0.9);
       glazeArrow(arrowRun, arrowHalf, peak - 6.2, peak, arrowFloor, 8 + index);
-      coping(face, half, front, shoulder, peak, arrowHalf + 0.6);
+      coping(face, half, front, shoulder, peak, arrowHalf - 0.2);
     }
     // The chevron over the eave, and the arrow that reaches it from the middle
     // gable below. It covers the facade's middle bays rather than its whole
@@ -279,7 +325,7 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
     gabled(piers, face, arrowHalf, -0.3, 0.95, h.frontChevron - 6.2, h.frontChevron, gableAt(halves[1]!, h.middleShoulder, h.middlePeak));
     const topArrow = faceRun(face, arrowHalf, 0.95);
     glazeArrow(topArrow, arrowHalf, h.frontChevron - 6.2, h.frontChevron, gableAt(halves[1]!, h.middleShoulder, h.middlePeak), 13);
-    coping(face, chevron - 0.02, 0.22, h.eave, h.frontChevron, arrowHalf + 0.6);
+    coping(face, chevron - 0.02, 0.22, h.eave, h.frontChevron, arrowHalf - 0.2);
   }
 
   // The east and west walls: a chevron at the eave over a single tall arrow.
@@ -291,7 +337,7 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
     gabled(piers, face, arrowHalf, -0.3, 0.95, h.sideChevron - 9, h.sideChevron, () => 0.5);
     const arrowRun = faceRun(face, arrowHalf, 0.95);
     glazeArrow(arrowRun, arrowHalf, h.sideChevron - 9, h.sideChevron, () => 0.5, 15);
-    coping(face, chevron - 0.02, 0.22, h.eave, h.sideChevron, arrowHalf + 0.6);
+    coping(face, chevron - 0.02, 0.22, h.eave, h.sideChevron, arrowHalf - 0.2);
   }
 
   // Narrow panes and thin mullions inside a pointed arrow, clipped to its

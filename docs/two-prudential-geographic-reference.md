@@ -30,18 +30,20 @@ survey or a construction model.
 | Feature | Model elevation | Basis |
 | --- | ---: | --- |
 | Grade | 0 m | Shared flat geographic datum |
-| Lower setback shoulder | 156 m | Proportion from the fitted model (0.817 of its own eave) |
-| Lower setback peak | 178 m | The fitted lower tier's rise ratio |
-| Middle setback shoulder | 196 m | Proportion from the fitted model |
-| Middle setback peak | 224 m | The fitted middle tier's rise ratio |
+| Lower setback shoulder | 155.73 m | The fitted lower eave, 0.6489 of the fitted main eave |
+| Lower setback peak | 180.63 m | The fitted lower peak, 0.7526 of the fitted main eave |
+| Middle setback shoulder | 196.09 m | The fitted middle eave, 0.8170 of the fitted main eave |
+| Middle setback peak | 224.79 m | The fitted middle peak, 0.9366 of the fitted main eave |
 | Eave | 240 m | OSM crown eave |
-| Chevron over the north and south facades | 260.5 m | 0.5535 of the fitted model's eave-to-peak rise |
-| Chevron over the east and west facades | 259.4 m | 0.5253 of the same rise |
+| Chevron over the north and south facades | 260.48 m | 0.5535 of the fitted model's own eave-to-pyramid rise |
+| Chevron over the east and west facades | 259.44 m | 0.5253 of the same rise |
 | Pyramid peak | 277 m | OSM crown peak |
 | Architectural tip | 303.3 m | Published CTBUH value |
 
-The 64 rows use a 3.75 m pitch (240/64), so the pane count reads as the
-published 64 floors.
+Every level below the eave is a fitted-model level multiplied by 240/250.916,
+the ratio of the mapped eave to the fitted model's own, rather than a rounding
+of that product. The 64 rows use a 3.75 m pitch (240/64), so the pane count
+reads as the published 64 floors.
 
 ## Plan and detail choices
 
