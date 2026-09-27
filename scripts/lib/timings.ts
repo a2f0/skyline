@@ -32,9 +32,12 @@ export interface Timings {
   finish(branch: string, failed?: boolean): Run;
 }
 
-export function createTimings(now: () => number = Date.now): Timings {
+// `now` measures elapsed time and must be monotonic: a clock correction during
+// a check run that takes minutes would otherwise produce a nonsense or negative
+// duration. The wall clock is read once, separately, for the timestamp.
+export function createTimings(now: () => number = () => performance.now(), wallClock: () => number = Date.now): Timings {
   const steps: Step[] = [];
-  const startedAt = now();
+  const startedAt = now(), startedAtWall = wallClock();
   return {
     async run(label, work) {
       const from = now();
@@ -49,7 +52,7 @@ export function createTimings(now: () => number = Date.now): Timings {
     },
     finish(branch, failed = false) {
       return {
-        started: new Date(startedAt).toISOString(),
+        started: new Date(startedAtWall).toISOString(),
         branch,
         seconds: (now() - startedAt) / 1000,
         status: failed || steps.some((step) => step.status === "failed") ? "failed" : "passed",

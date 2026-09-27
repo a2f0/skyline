@@ -18,9 +18,15 @@ interface Attempt {
   ok: boolean;
   output: string;
 }
+// Git reads global and system config, so a host that sets core.hooksPath or
+// commit.gpgsign would change what these tests measure — and one of them
+// asserts on core.hooksPath. Every invocation runs against empty config files
+// instead, so the suite says the same thing on every machine.
+const hermetic = (env: NodeJS.ProcessEnv): NodeJS.ProcessEnv =>
+  ({ ...env, GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_SYSTEM: "/dev/null" });
 function git(args: string[], env: NodeJS.ProcessEnv = process.env): Attempt {
   try {
-    return { ok: true, output: execFileSync("git", args, { cwd: repo, encoding: "utf8", env, stdio: ["ignore", "pipe", "pipe"] }) };
+    return { ok: true, output: execFileSync("git", args, { cwd: repo, encoding: "utf8", env: hermetic(env), stdio: ["ignore", "pipe", "pipe"] }) };
   } catch (error) {
     const failure = error as { stdout?: string; stderr?: string; message: string };
     return { ok: false, output: `${failure.stdout ?? ""}${failure.stderr ?? ""}` || failure.message };
@@ -51,7 +57,7 @@ beforeAll(() => {
   writeFileSync(path.join(repo, "file.txt"), "seed");
   git(["add", "-A"]);
   git(["-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", "seed"]);
-  execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore" });
+  execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
 }, 60_000);
 
 afterAll(() => { if (repo) rmSync(repo, { recursive: true, force: true }); });
@@ -141,17 +147,17 @@ describe("what the installer protects", () => {
     const hooks = path.join(repo, ".git/hooks");
     const mine = path.join(hooks, "pre-commit");
     writeFileSync(mine, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
-    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore" });
+    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
     expect(existsSync(mine)).toBe(true);
   });
   test("removes a hook it installed once the repository stops shipping it", () => {
     const hooks = path.join(repo, ".git/hooks");
     const retired = path.join(repo, "scripts/git/hooks/post-commit");
     writeFileSync(retired, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
-    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore" });
+    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
     expect(existsSync(path.join(hooks, "post-commit"))).toBe(true);
     rmSync(retired);
-    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore" });
+    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
     expect(existsSync(path.join(hooks, "post-commit"))).toBe(false);
   });
   test("replaces a symlinked hook without writing through it", () => {
@@ -162,15 +168,35 @@ describe("what the installer protects", () => {
     writeFileSync(shared, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
     rmSync(path.join(hooks, "commit-msg"));
     symlinkSync(shared, path.join(hooks, "commit-msg"));
-    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore" });
+    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
     expect(lstatSync(path.join(hooks, "commit-msg")).isSymbolicLink()).toBe(false);
     expect(readFileSync(shared, "utf8")).toBe("#!/bin/sh\nexit 0\n");
   });
   test("leaves no absolute hooks path for a moved clone to lose", () => {
     // core.hooksPath would record this clone's location; Git silently skips a
     // path that no longer exists, so both gates would fail open after a move.
+    // The installer records one only when a value is inherited from outside the
+    // repository, which the hermetic config here rules out.
     const configured = git(["config", "--get", "core.hooksPath"]);
     expect(configured.ok).toBe(false);
+  });
+  test("installs where the repository already points Git, rather than beside it", () => {
+    // A repo-scoped core.hooksPath is this repository's own choice. Installing
+    // into the default directory anyway would leave both gates configured and
+    // never run.
+    const elsewhere = path.join(repo, "my-hooks");
+    mkdirSync(elsewhere, { recursive: true });
+    git(["config", "core.hooksPath", elsewhere]);
+    try {
+      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
+      expect(existsSync(path.join(elsewhere, "commit-msg"))).toBe(true);
+      const attempt = commit(`fix: a change\n\n${trailer}`);
+      expect(attempt.ok).toBe(false);
+      expect(attempt.output).toContain("agent attribution");
+    } finally {
+      git(["config", "--unset", "core.hooksPath"]);
+      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
+    }
   });
 });
 

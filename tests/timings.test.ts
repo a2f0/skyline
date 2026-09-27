@@ -6,16 +6,27 @@ import { appendRun, createTimings, logPath, readRuns, runTable, stepTable } from
 import type { Run } from "../scripts/lib/timings.js";
 import { summarise } from "../scripts/show-timings.js";
 
-// A clock the test drives, so a timing test does not itself depend on timing.
+// Clocks the test drives, so a timing test does not itself depend on timing.
+// Durations come from a monotonic clock and the timestamp from the wall clock,
+// so both are injected.
 function clock(start = 0) {
   let value = start;
   return { now: () => value, advance: (ms: number) => { value += ms; } };
 }
+const wall = (iso: string) => () => Date.parse(iso);
 
 describe("recording steps", () => {
+  test("measures durations on a clock that cannot go backwards", async () => {
+    // A clock correction during a run that takes minutes would otherwise
+    // produce a nonsense or negative duration.
+    const timings = createTimings();
+    const before = await timings.run("step", async () => performance.now());
+    expect(before).toBeGreaterThanOrEqual(0);
+    expect(timings.finish("main").seconds).toBeGreaterThanOrEqual(0);
+  });
   test("times each step and totals the run", async () => {
-    const time = clock(Date.UTC(2026, 8, 27, 7, 41, 2));
-    const timings = createTimings(time.now);
+    const time = clock();
+    const timings = createTimings(time.now, wall("2026-09-27T07:41:02.000Z"));
     await timings.run("typecheck", async () => { time.advance(14_200); });
     await timings.run("build:site", async () => { time.advance(1_100); });
     const run = timings.finish("main");
@@ -32,7 +43,7 @@ describe("recording steps", () => {
     // The run that died is the one whose breakdown is worth reading, so the
     // failing step has to reach the table before the error propagates.
     const time = clock();
-    const timings = createTimings(time.now);
+    const timings = createTimings(time.now, wall("2026-09-27T07:41:02.000Z"));
     await timings.run("typecheck", async () => { time.advance(1_000); });
     const failure = timings.run("test:building-kit", async () => { time.advance(2_500); throw new Error("boom"); });
     await expect(failure).rejects.toThrow("boom");
@@ -44,7 +55,7 @@ describe("recording steps", () => {
     expect(run.status).toBe("failed");
   });
   test("returns the step's own value, so a timed step can still be used for its result", async () => {
-    const timings = createTimings(clock().now);
+    const timings = createTimings(clock().now, wall("2026-09-27T07:41:02.000Z"));
     expect(await timings.run("build:site", async () => 42)).toBe(42);
   });
 });

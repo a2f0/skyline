@@ -55,7 +55,10 @@ Honor narrower user instructions, cancellation, and existing permissions.
    `--keep-branch` was requested. Cleanup never discards uncommitted work.
 
 8. Print the check timings with `bun scripts/show-timings.ts --branch <feature
-   branch>` and include the table in the report. Pass the branch explicitly:
+   branch> --since <the UTC time this run began, ISO-8601>` and include the
+   table in the report. Record that time at step 1, before anything else, so a
+   resumed or reused branch does not report a run from an earlier attempt as
+   this one's. Pass the branch explicitly:
    step 7 has already returned the checkout to the base, and the runs were
    recorded under the feature branch, so the default would report the base's
    unrelated history or nothing at all. A shipping run drives the checks several times — once as

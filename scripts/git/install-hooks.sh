@@ -12,16 +12,32 @@
 #
 # It removes only hooks it installed itself, recorded in a manifest, so a hook
 # that was renamed here stops running while anyone else's stays. Anything it
-# replaces is kept alongside as <name>.bak. It writes into Git's default hooks
-# directory and leaves core.hooksPath unset, rather than recording an absolute
-# path that a moved clone would silently invalidate.
+# replaces is kept alongside as <name>.bak. It installs where Git will actually
+# look — honouring a core.hooksPath this repository set for itself, overriding
+# one inherited from outside it — and verifies that before reporting success,
+# because an installer that reports success while Git looks elsewhere is a gate
+# that fails open.
 
 set -e
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 HOOKS_SRC="$REPO_ROOT/scripts/git/hooks"
+# Where Git will actually look. A core.hooksPath set for this repository is its
+# own choice and is honoured — installing elsewhere would leave both gates
+# configured and never run. One set globally is not: installing into a shared
+# directory would reach into every other repository, so that is overridden here.
 # Linked worktrees have a .git file and share hooks/config with the main checkout.
-HOOKS_DST="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
+DEFAULT_HOOKS="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
+repo_scoped="$(git config --worktree --get core.hooksPath 2>/dev/null || git config --local --get core.hooksPath 2>/dev/null || true)"
+if [ -n "$repo_scoped" ]; then
+  case "$repo_scoped" in
+    /*) HOOKS_DST="$repo_scoped" ;;
+    *) HOOKS_DST="$REPO_ROOT/$repo_scoped" ;;
+  esac
+  echo "Using core.hooksPath configured for this repository: $HOOKS_DST"
+else
+  HOOKS_DST="$DEFAULT_HOOKS"
+fi
 CHECK="check-coauthors.ts"
 MANIFEST="$HOOKS_DST/.skyline-installed"
 mkdir -p "$HOOKS_DST"
@@ -73,21 +89,35 @@ if [ -f "$MANIFEST" ]; then
 "*) continue ;;
     esac
     if [ -e "$HOOKS_DST/$previous" ]; then
+      # Something may have replaced it since; keep whatever is there.
+      cp -P "$HOOKS_DST/$previous" "$HOOKS_DST/$previous.bak"
       rm -f "$HOOKS_DST/$previous"
-      echo "Removed $previous, which this installer no longer ships"
+      echo "Removed $previous, which this installer no longer ships; kept it as $previous.bak"
     fi
   done <"$MANIFEST"
 fi
 printf '%s' "$installed" >"$MANIFEST"
 
-# This is Git's default hooks directory, so with core.hooksPath unset the
-# default finds it, and nothing records a path that moving the clone would
-# break. A value set outside this repository has to be overridden locally, and
-# that override is an absolute path — so say what it costs.
-git config --unset-all core.hooksPath 2>/dev/null || true
-if inherited="$(git config --get core.hooksPath)"; then
+# A value inherited from outside this repository would send Git to a shared
+# directory, so override it locally. That override is an absolute path, which a
+# moved clone invalidates — so say what it costs.
+if [ "$HOOKS_DST" = "$DEFAULT_HOOKS" ] && inherited="$(git config --get core.hooksPath)"; then
   git config core.hooksPath "$HOOKS_DST"
-  echo "Note: core.hooksPath is set outside this repository ($inherited)."
+  echo "Note: core.hooksPath was set outside this repository ($inherited)."
   echo "      Overridden locally with $HOOKS_DST; rerun this installer if the clone moves."
+fi
+
+# Whatever the scopes were doing, Git must end up running what was just
+# installed. Reporting success without checking is how a gate fails open.
+effective="$(git config --get core.hooksPath || true)"
+[ -n "$effective" ] || effective="$DEFAULT_HOOKS"
+case "$effective" in
+  /*) ;;
+  *) effective="$REPO_ROOT/$effective" ;;
+esac
+if [ "$effective" != "$HOOKS_DST" ]; then
+  echo "Error: Git will run hooks from $effective, not $HOOKS_DST." >&2
+  echo "       core.hooksPath is set in a scope this installer did not change." >&2
+  exit 1
 fi
 echo "Installed into $HOOKS_DST"
