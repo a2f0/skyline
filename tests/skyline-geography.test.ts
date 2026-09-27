@@ -182,7 +182,9 @@ describe("mapped skyline geography", () => {
       const glass = probe(trumpLevels.floorLine + 1.6), band = probe(trumpLevels.floorLine + 0.1);
       expect(glass.object.name).toBe("Trump · glass and spandrels");
       expect(band.object.name).toBe("Trump · glass and spandrels");
-      expect(tone(band)).toBeGreaterThan(tone(glass) - 0.2);
+      const spandrel = new THREE.Color(0x474747).r;
+      expect(Math.abs(tone(band) - spandrel), "the floor line is a spandrel").toBeLessThan(0.002);
+      expect(Math.abs(tone(glass) - spandrel), "the storey above it is glass").toBeGreaterThan(0.01);
       // The mapped footprint's corners at grade.
       const shell = meshes.find((mesh) => mesh.name === "Trump · tower shell")!;
       const vertices = shell.geometry.getAttribute("position");

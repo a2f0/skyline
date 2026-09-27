@@ -464,6 +464,24 @@ describe("fitted and geographic models", () => {
         expect(Math.abs(colors.getX(contact!.face!.a) - spandrel.r), "each sampled row should be a spandrel").toBeLessThan(0.002);
       }
     });
+    test("the drawn mullion lines stay on the mullions they were matched to", async () => {
+      // The spec names mullions by their order round the shaft's and the crown's walls. That
+      // order follows the outlines' start vertices, the chains' breaks, and the stations'
+      // counts, so a change to any of them could shift a check onto a neighbouring mullion
+      // the projection tolerance still accepts. These are the matched mullions' plan points.
+      const { trumpFeatures } = await load(models.find((model) => model.id === trump)!.module);
+      const anchors: Record<string, [number, number][]> = {
+        trumpFrontMullions: [[-12.48, 24.99], [-10.8, 25.73], [-9.08, 26.3], [-7.28, 26.69], [-5.46, 26.7], [-3.62, 26.6], [-3.62, 26.6], [-1.88, 26.06], [-0.16, 25.38], [1.14, 24.11], [2.44, 22.83], [3.74, 21.56], [5.04, 20.28], [6.35, 19.01], [7.65, 17.73], [10.25, 15.18]],
+        trumpCornerMullions: [[11.55, 13.91], [14.15, 11.36], [15.46, 10.09]],
+        trumpEastMullions: [[18.2, 7.26], [18.25, 4], [18.31, 0.43], [18.33, -1.35], [16.29, -7.31], [16.31, -9.13], [16.34, -10.94], [16.39, -14.57], [16.31, -16.4], [15.34, -19.9]],
+        trumpCrownMullions: [[-2.22, 1.13], [-0.4, 1.53], [-0.4, 1.53], [1.43, 1.19], [1.43, 1.19], [2.98, 0.16], [2.98, 0.16], [4.33, -1.09], [5.68, -2.34], [7.04, -3.6], [7.04, -3.6], [8.39, -4.85], [9.74, -6.11], [11.09, -7.36], [12.44, -8.61], [13.5, -10.15], [14.35, -11.8], [14.87, -13.58], [15.03, -15.11], [15.01, -15.75], [14.78, -17.27], [14.27, -19.06], [13.56, -20.76]],
+      };
+      for (const [name, points] of Object.entries(anchors)) {
+        (trumpFeatures[name] as Vec3[]).forEach((point, i) => {
+          expect(Math.hypot(point[0] - points[i]![0], point[2] - points[i]![1]), `${name} ${i + 1} should stay on its matched mullion`).toBeLessThan(0.02);
+        });
+      }
+    });
     test("the rear orbit sees glazed floors", async () => {
       const rear = hit([0, 200, -60], [0, 0, 1]);
       expect(rear?.object.name).toMatch(/glass|mullions/);
