@@ -726,7 +726,7 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Aon", () => {
-    test("keeps the mapped shaft, enclosure, mast and granite tube", () => {
+    test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
       const model = models["Aon"]!;
       model.building.updateMatrixWorld(true);
@@ -740,9 +740,8 @@ describe("mapped skyline geography", () => {
         const [east, north] = projectGround([longitude, latitude]);
         return [east, 0, -north];
       };
-      // The interior roof under the parapet (west of the rooftop enclosure),
-      // the enclosure at its mapped 346.3 m top, and the inferred antenna at
-      // the published tip.
+      // The flat roof at the mapped 340 m shaft top, clear of the enclosure; the enclosure
+      // at its mapped 346.3 m top, probed beside the mast; and the antenna's published tip.
       const interior = world(-87.62178, 41.88527);
       near(hit([interior[0], 380, interior[2]], [0, -1, 0])!.point.y, 340, 0.001);
       const enclosurePart = record.parts.find((p) => p.way === 284775635)!;
@@ -752,18 +751,32 @@ describe("mapped skyline geography", () => {
         0,
         enclosurePoints.reduce((sum, p) => sum + p[1], 0) / enclosurePoints.length,
       ];
-      // The enclosure at its mapped 346.3 m top, probed beside the mast.
       near(hit([enclosureCenter[0] + 2, 380, enclosureCenter[2]], [0, -1, 0])!.point.y, 346.3, 0.001);
       near(hit([enclosureCenter[0], 400, enclosureCenter[2]], [0, -1, 0])!.point.y, 362.5, 0.001);
-      // Panes and piers are the first surface on the mapped south wall,
-      // probed from outside the closed shell on its long east segment.
-      const southMid = world(-87.6215335, 41.8850138).map((v, axis) => v + (world(-87.6212842, 41.885017)[axis]! - v) * 0.5) as Vec3;
-      const south = hit([southMid[0], 100, southMid[2] + 30], [0, 0, -1]);
-      expect(south!.object.name).toMatch(/glaz|pier/);
-      expect(south!.point.z).toBeGreaterThan(southMid[2] + 0.005);
-      expect(south!.point.z).toBeLessThan(southMid[2] + 0.6);
+      // The mapped south face between its notches holds fourteen 10 ft bays. From the
+      // lake, a mid-bay probe meets the glass on an office floor and the dark spandrel
+      // between floors, one on a bay line meets a column, and higher up the louvered crown
+      // and the granite cap.
+      const west = world(-87.6217961, 41.8850104), east = world(-87.6212842, 41.885017);
+      const bay = Math.hypot(east[0] - west[0], east[2] - west[2]) / 14;
+      const along = (s: number): Vec3 => { const t = s / (bay * 14); return [west[0] + (east[0] - west[0]) * t, 0, west[2] + (east[2] - west[2]) * t]; };
+      const fromLake = (s: number, height: number) => { const p = along(s); return hit([p[0], height, p[2] + 30], [0, 0, -1])!; };
+      const level = 11.9 + 22 * 3.87;
+      expect(fromLake(7.5 * bay, level + 2).object.name).toBe("Aon · window ribbons");
+      expect(fromLake(7.5 * bay, level - 0.5).object.name).toBe("Aon · tube shell");
+      const column = fromLake(7 * bay, level + 2);
+      expect(column.object.name).toBe("Aon · granite piers");
+      expect(column.point.z).toBeGreaterThan(along(7 * bay)[2] + 0.6);
+      expect(fromLake(7.5 * bay, 330).object.name).toBe("Aon · crown louvers");
+      expect(fromLake(7.5 * bay, 339.2).object.name).toBe("Aon · granite cap");
+      // The south-east notch is solid stone: a probe from the east meets its east-facing
+      // step, set back from the east face, with no glass on it.
+      const step = world(-87.6212581, 41.8850684);
+      const notch = hit([step[0] + 20, 200, step[2] + 1.5], [-1, 0, 0])!;
+      expect(notch.object.name).toBe("Aon · tube shell");
+      near(notch.point.x, step[0], 0.1);
       // The exact mapped outline at grade.
-      const groundMesh = meshes.find((mesh) => mesh.name === "Aon · granite shell")!;
+      const groundMesh = meshes.find((mesh) => mesh.name === "Aon · tube shell")!;
       const vertices = groundMesh.geometry.getAttribute("position");
       const grade = new Set<string>();
       for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));

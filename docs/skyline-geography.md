@@ -111,9 +111,10 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 
 Architectural heights include architectural spires and exclude antennas. The
 table's before/after comparison uses the highest actual rendered vertex, so One
-Prudential's antenna is not compared to its roof. Aon's original model ends at
-its 411 m architectural top and omits an antenna; the geographic model has a
-346.3 m architectural top and a 362.5 m antenna tip. Both values are shown so the
+Prudential's antenna is not compared to its roof. Aon's original copy is the real
+tower from the drawing's 30.6 m datum up at 1.329 times its size, so its antenna
+tip stands 441.1 m above the platform; the geographic model has a 346.3 m
+architectural top and a 362.5 m antenna tip. Both values are shown so the
 comparison does not imply a 362.5 m roof. Published values were checked at the
 time of the extract. OSM's rounded or conflicting overall heights are superseded
 by the cited records; Kemper retains OSM's 159 m value.
@@ -162,10 +163,12 @@ Intermediate parts have less certainty than the overall height:
   floor by floor; see the
   [Two Prudential reference audit](two-prudential-geographic-reference.md).
 - Aon's mapped shaft keeps its 340 m top and its rooftop enclosure the
-  346.3 m part top; the granite tube now carries window slots, piers, corner
-  stones, a parapet, and louvered enclosure faces, with the inferred antenna
-  reaching the published 362.5 m tip; see the
-  [Aon reference audit](aon-geographic-reference.md).
+  346.3 m part top. The tube carries granite V-shaped columns on the 10 ft
+  module, fourteen bays to each mapped face, with glass floor by floor on the
+  photograph's 3.87 m pitch. Its louvered crown runs from 321.5 to 338.5 m under
+  a granite cap, its notched corners are solid stone, and the inferred antenna
+  reaches the published 362.5 m tip; see the
+  [Aon reference audit](aon-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common

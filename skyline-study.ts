@@ -61,7 +61,13 @@ trump.building.rotation.y = 1.8 * Math.PI / 180;
 // fitted through this camera to the drawing, with depth fixed by that occlusion.
 place(twoPrudential, 270.727, -45);
 twoPrudential.building.rotation.y = -1.758 * Math.PI / 180;
-place(aon, 370, 40);
+// The real Aon Center from the drawing's datum up, fitted through this camera at all five
+// test layouts to the drawn roof, the fifteen drawn piers on each face, and the drawn floor
+// bands: 1.329 times its size, turned 10.2° so the camera meets its faces as the
+// photograph does. Depth keeps the earlier placement.
+aon.building.scale.setScalar(1.329);
+aon.building.rotation.y = 10.2 * Math.PI / 180;
+place(aon, 368.16, 40);
 
 const models = [heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon];
 const comparison = createSkylineComparison(models, crain.building.position);

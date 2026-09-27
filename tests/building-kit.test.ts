@@ -623,3 +623,21 @@ describe("Crain", () => {
     expectGridOnGlass(createGeographicBuilding(geographicBuildings.find((record) => record.shortName === "Crain")!));
   });
 });
+
+describe("Aon", () => {
+  test("puts each drawn floor row of the skyline copy on window glass", async () => {
+    const { createAonCenterBuilding, aonFeatures } = await load("models/aon-center.ts");
+    const model: BuildingModel = createAonCenterBuilding();
+    model.building.updateMatrixWorld(true);
+    const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+    const ray = new THREE.Raycaster();
+    // Each exported row stands mid-bay on the south face's glass; a probe from the lake
+    // must meet the window ribbons there, just in front of it.
+    for (const [x, y, z] of aonFeatures.aonFloorRows as Vec3[]) {
+      ray.set(new THREE.Vector3(x, y, z + 10), new THREE.Vector3(0, 0, -1));
+      const first = ray.intersectObjects(meshes, false)[0]!;
+      expect(first.object.name, `glass at the row ${y}`).toBe("Aon · window ribbons");
+      expect(Math.abs(first.point.z - z), `the row ${y} sits on the glass`).toBeLessThan(0.01);
+    }
+  });
+});

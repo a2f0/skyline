@@ -1,112 +1,64 @@
-import * as THREE from "../vendor/three-r186.js";
-import { createBuilder, rectangle, station } from "./building-kit.js";
-import type { BuildingModel, Run, Vec3 } from "./building-kit.js";
+import { aonLevels, buildAonTower } from "./aon-tower.js";
+import type { BuildingModel, Vec2, Vec3 } from "./building-kit.js";
 
-// Aon Center: the source drawing's granite-clad outer tube, dark vertical window
-// slots, broad near-corner pier, and thin raised roof rim. Dimensions and heights
-// are measured from the study platform; +x is east and +z is south.
-export const aonWidth = 70;
-export const aonDepth = 67;
-export const aonRoof = 411;
-const west = -aonWidth / 2, east = aonWidth / 2;
-const north = -aonDepth / 2, south = aonDepth / 2;
-const plan = rectangle(west, east, north, south);
-const shaftTop = aonRoof - 2.8;
-const frontPiers = Array.from({ length: 15 }, (_, i) => 0.018 + i * 0.0635);
-const sidePiers = Array.from({ length: 15 }, (_, i) => 0.245 + i * 0.0504);
-// The drawing puts three wide granite strips between the near corner and the
-// first narrow east-face pier (paths 1032, 1030, and 1034).
-const eastCornerStrips: [number, number][] = [[0.15, 5.55], [5.75, 12.05], [12.25, 15.15]];
-const floorCount = 76;
-const floorPitch = shaftTop / floorCount;
-const pierDepth = 0.48;
-const frontRun = plan[0]!, sideRun = plan[1]!;
-const on = (run: Run, fraction: number, y: number, offset = 0): Vec3 => {
-  const [x, z] = run.at(run.length * fraction, offset);
-  return [x, y, z];
-};
+// Aon Center on a clean version of its plan, in real meters, for the skyline study's
+// original layout, which places this copy in skyline-study.ts. aon-tower.ts builds it, and
+// the geographic model on the mapped outline.
+//
+// The plan is the published 59.15 m square. Each face's main run holds fifteen 10 ft bays,
+// as the photograph and the drawing both count and the building's descriptions give.
+// That leaves each corner a 6.7 m notch: a 45° chamfer, a square step, and a second
+// chamfer, in the mapped outline's proportions. The mapped notches run about 1.5 m deeper;
+// the photograph's bays and corner widths fit these. See docs/aon-reference.md. Units are
+// meters; +x is east and +z is south.
+const half = 59.15 / 2, notch = 6.715, chamfer = 1.9, step = notch - 2 * chamfer;
+// The south-east notch, from the south face's east end to the east face's south end.
+const southEast: Vec2[] = [
+  [half - notch, half],
+  [half - notch + chamfer, half - chamfer],
+  [half - notch + chamfer, half - chamfer - step],
+  [half - notch + chamfer + step, half - chamfer - step],
+  [half, half - notch],
+];
+// Each corner turns the south-east one a quarter further round.
+const turn = ([x, z]: Vec2, quarters: number): Vec2 => (quarters === 0 ? [x, z] : turn([z, -x], quarters - 1));
+const outline: Vec2[] = [0, 1, 2, 3].flatMap((quarters) => southEast.map((point) => turn(point, quarters)));
+// The rooftop enclosure, centred as the mapped part is, and the antenna at its centre.
+const enclosure: Vec2[] = [[-16, -16], [16, -16], [16, 16], [-16, 16]];
 
-export const aonFeatures: Record<string, Vec3 | Vec3[]> = {
-  aonRoofWest: [west, aonRoof, south],
-  aonRoofNear: [east, aonRoof, south],
-  aonRoofEast: [east, aonRoof, north],
-  aonFrontFacade: [0, 230, south + pierDepth],
-  aonFrontPiers: frontPiers.slice(1, -1).map((fraction) => on(frontRun, fraction, 220, pierDepth / 2)),
-  aonSidePiers: sidePiers.slice(1, -1).map((fraction) => on(sideRun, fraction, 220, pierDepth / 2)),
-  aonCornerStrips: eastCornerStrips.map(([a, b]) => on(sideRun, (a + b) / 2 / sideRun.length, 220, 0.275)),
-  aonCornerStripEdges: eastCornerStrips.flatMap(([a, b]) => [a, b].map((s) => on(sideRun, s / sideRun.length, 220, 0.55))),
-  aonFloorRows: [8, 20, 32, 44, 56, 68].map((row) => on(frontRun, 0.5, (row + 0.5) * floorPitch, 0.04)),
-};
-
+// The skyline drawing shows the tower from the photograph's treeline up, so its platform
+// datum crosses the tower above the street: 30.6 m, fitted with the placement in
+// skyline-study.ts, which scales, turns, and places this copy. Its y = 0 is that datum,
+// and the drawing's top floor band is the eightieth office floor, under the louvers.
+export const aonSkylineBase = 30.6;
 export function createAonCenterBuilding(): BuildingModel {
-  const kit = createBuilder("Aon Center", "layer3");
-  const { material, batch, prism, band, box, panel } = kit;
-  const dark = material(0x242424);
-  const glass = material(0xffffff, { vertexColors: true });
-  const granite = material(0x909090);
-  const cornerStone = material(0xa0a0a0);
-  const equipmentMetal = material(0x555555);
-  const louverMetal = material(0x777777);
-  const shell = batch("dark curtain-wall core", dark);
-  const windows = batch("gridded window panes", glass);
-  const piers = batch("granite perimeter piers", granite);
-  const corners = batch("wide granite corner piers", cornerStone);
-  const rim = batch("roof parapet", cornerStone);
-  const equipment = batch("low rooftop equipment", equipmentMetal);
-  const louvers = batch("rooftop screen louvers", louverMetal);
-
-  prism(shell, plan, [0, shaftTop], { omit: ["bottom"] });
-  // The perimeter parapet rises above the dark roof and returns around all four sides.
-  band(rim, plan, shaftTop, aonRoof, 0.45, { closed: true });
-  // Two low service enclosures remain below the drawn roof silhouette. Their
-  // open-air louver ribs become visible in the elevated orbit views.
-  for (const [left, right, back, front] of [[-20, -2, -15, -3], [5, 19, 4, 16]] as [number, number, number, number][]) {
-    const enclosure = rectangle(left, right, back, front);
-    prism(equipment, enclosure, [shaftTop, shaftTop + 1.75]);
-    const face = enclosure[0]!;
-    for (let i = 1; i < 9; i += 1) {
-      const where = station(face, face.length * i / 9);
-      box(louvers, where.at, where.normal, 0.13, -0.08, 0.2, shaftTop + 0.2, shaftTop + 1.55);
-    }
-    for (let i = 1; i < 7; i += 1) {
-      const z = back + (front - back) * i / 7;
-      box(louvers, [(left + right) / 2, z], [0, 1], (right - left) / 2 - 0.5,
-        -0.08, 0.08, shaftTop + 1.75, shaftTop + 1.87);
-    }
-  }
-
-  const tones = [0x303030, 0x343434, 0x393939, 0x2c2c2c].map((hex) => new THREE.Color(hex));
-  const occupied = new THREE.Color(0x696969);
-  const subdued = new THREE.Color(0x505050);
-  const facade = (run: Run, seed: number, fractions: number[], skipFirstBay = false) => {
-    const edges = [0, ...fractions, 1].map((fraction) => fraction * run.length);
-    for (let bay = 0; bay < edges.length - 1; bay += 1) {
-      if (skipFirstBay && bay === 0) continue;
-      const left = edges[bay]! + 0.13, right = edges[bay + 1]! - 0.13;
-      if (right - left < 0.4) continue;
-      for (let row = 0; row < floorCount; row += 1) {
-        const hash = (Math.imul(row + 11, 0x9e3779b1) ^ Math.imul(bay + seed, 0x85ebca77)) >>> 0;
-        const tone = hash % 103 === 0 ? occupied : hash % 53 === 0 ? subdued : tones[hash % tones.length]!;
-        panel(windows, run, left, right, row * floorPitch + 0.52, (row + 1) * floorPitch - 0.3, 0.035, tone);
-      }
-    }
-    for (const fraction of fractions) {
-      const where = station(run, fraction * run.length);
-      box(piers, where.at, where.normal, 0.62, -0.12, pierDepth, 0, shaftTop - 0.2);
-    }
-  };
-  facade(frontRun, 1, frontPiers);
-  facade(sideRun, 19, sidePiers, true);
-  // The unseen north and west sides continue the structural rhythm for orbit views.
-  facade(plan[2]!, 37, frontPiers);
-  facade(plan[3]!, 53, sidePiers);
-  for (const run of plan) {
-    const where = station(run, run.length - 1.2);
-    box(corners, where.at, where.normal, 1.15, -0.12, 0.55, 0, shaftTop - 0.2);
-  }
-  for (const [start, end] of eastCornerStrips) {
-    const where = station(sideRun, (start + end) / 2);
-    box(corners, where.at, where.normal, (end - start) / 2, -0.12, 0.55, 0, shaftTop - 0.2);
-  }
-  return kit.finish({ height: aonRoof, outlines: [rim, corners] });
+  return buildAonTower({ name: "Aon Center", id: "layer3", outline, enclosure, mast: [0, 0], base: aonSkylineBase });
 }
+
+// Features the skyline test projects against the drawing, in this copy's coordinates.
+const at = ([x, z]: Vec2, real: number): Vec3 => [x, real - aonSkylineBase, z];
+const bays = 15, bay = (southEast[0]![0] - -southEast[0]![0]) / bays;
+// The columns stand on the bay lines, the end ones drawn in to stay on their face.
+const columnAt = (i: number) => Math.min(Math.max(i * bay, 0.65), bays * bay - 0.65);
+const southColumn = (i: number): Vec2 => [-(half - notch) + columnAt(i), half];
+const eastColumn = (i: number): Vec2 => [half, half - notch - columnAt(i)];
+export const aonFeatures: Record<string, Vec3 | Vec3[]> = {
+  // The roof edge's ends: the west face's south end, the south face's east end, and the
+  // east face's north end, at the top of the cap.
+  aonRoofWest: at(turn(southEast[0]!, 3), aonLevels.roof),
+  aonRoofNear: at(southEast[0]!, aonLevels.roof),
+  aonRoofEast: at(turn(southEast[0]!, 1), aonLevels.roof),
+  // A point on the south face's glass, clear of every neighbour, for hover.
+  aonFrontFacade: at([-(half - notch) + 7.5 * bay, half + 0.07], 230),
+  // The columns, halfway out to their points at mid-height: the fourteen after each face's
+  // first, which the drawing's fifteen strips on each face match one for one.
+  aonFrontPiers: Array.from({ length: 14 }, (_, i) => { const [x, z] = southColumn(i + 1); return [x, 220 - aonSkylineBase, z + 0.35] as Vec3; }),
+  aonSidePiers: Array.from({ length: 14 }, (_, i) => { const [x, z] = eastColumn(i + 1); return [x + 0.35, 220 - aonSkylineBase, z] as Vec3; }),
+  // The notch's two sides at mid-height: the south face's east end and the east face's
+  // south end, between which the drawing paints the corner's stone.
+  aonNotchFront: at(southEast[0]!, 200),
+  aonNotchEast: at(southEast[4]!, 200),
+  // Window centres across the south face's middle on six office floors, the drawing's
+  // eleventh, twenty-third and every twelfth band on from the top.
+  aonFloorRows: [70, 58, 46, 34, 22, 10].map((floor) => at([0, half + 0.07], aonLevels.lobbyTop + (floor - 1) * aonLevels.pitch + (aonLevels.sill + aonLevels.head) / 2)),
+};

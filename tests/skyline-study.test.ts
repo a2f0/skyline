@@ -62,16 +62,13 @@ async function checkReferenceMatch(page: Page) {
   expect(above(deviations, "twoMiddleChevron", "twoLowerChevron")).toBe(true);
   expect(above(deviations, "aonRoofNear", "aonRoofWest", "aonRoofEast")).toBe(true);
   expect(above(deviations, "aonRoofNear", "trumpSpireTip")).toBe(true);
-  // The three full-height strips between Aon's near corner and first slim east
-  // pier must occupy the source's measured width, not become a window bay.
-  const aonStripEdges = buildings.find((building) => building.id === aon)!.projected["aonCornerStripEdges"] as [number, number][];
+  // Aon's notched corner is solid stone between the south face's east end and the east
+  // face's south end: the drawing paints it from its front face's edge, x 5135.5, to its
+  // first east strip, x 5212.07.
+  const aonProjected = buildings.find((building) => building.id === aon)!.projected;
   const aonLayerUnit = (deviations["aonRoofEast"]!.expected[0] - deviations["aonRoofNear"]!.expected[0]) / (5401.877 - 5148.845);
-  [21.142, 24.925, 11.349].forEach((width, index) => {
-    const actual = aonStripEdges[2 * index + 1]![0] - aonStripEdges[2 * index]![0];
-    expect(Math.abs(actual - width * aonLayerUnit), `Aon corner strip ${index + 1} should keep its measured stone width: ${actual}`).toBeLessThan(0.00035);
-  });
-  const aonStoneSpan = aonStripEdges.at(-1)![0] - aonStripEdges[0]![0];
-  expect(Math.abs(aonStoneSpan - 59.867 * aonLayerUnit), `Aon's corner should stay stone across its full drawn span: ${aonStoneSpan}`).toBeLessThan(0.0005);
+  const aonNotch = (aonProjected["aonNotchEast"] as [number, number])[0] - (aonProjected["aonNotchFront"] as [number, number])[0];
+  expect(Math.abs(aonNotch - (5212.07 - 5135.5) * aonLayerUnit), `Aon's notched corner should span the drawn stone: ${aonNotch}`).toBeLessThan(0.002);
   const cap = {
     apex: projected["capApex"] as [number, number],
     ends: [projected["capSouthEnd"], projected["capNorthEnd"]] as [number, number][],
@@ -212,9 +209,10 @@ describe("eight-building skyline study", () => {
     expect(await page.evaluate(() => window.__buildingStudy!.modelNames)).toEqual(models.map((model) => model.name));
     expect(await page.evaluate(() => window.__buildingStudy!.activeView)).toBe("skyline");
     // A budget for the whole scene; raise it deliberately when a detailed building lands.
-    // Crain's banded curtain wall and glazed diamond raised it from 86,000 to 115,000.
+    // Crain's banded curtain wall and glazed diamond raised it from 86,000 to 115,000, and
+    // Aon's columns, floor-by-floor glass, and louvered crown to 126,000.
     const triangles = await page.evaluate(() => window.__buildingStudy!.triangleCount);
-    expect(triangles > 114000 && triangles < 116000, `the eight-building scene should stay within 114,000-116,000 triangles: ${triangles}`).toBe(true);
+    expect(triangles > 125000 && triangles < 127000, `the eight-building scene should stay within 125,000-127,000 triangles: ${triangles}`).toBe(true);
     const shadowBounds = await page.evaluate(() => window.__buildingStudy!.shadowBounds);
     expect(shadowBounds.min.every((v: number) => v > -1) && shadowBounds.max.every((v: number) => v < 1),
       `all buildings and the platform should stay within the light's shadow camera: ${JSON.stringify(shadowBounds)}`).toBe(true);
