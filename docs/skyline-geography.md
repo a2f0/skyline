@@ -115,11 +115,13 @@ Intermediate parts have less certainty than the overall height:
   grid with a roof parapet at the published 168.6 m top; see the
   [Michigan Plaza South reference audit](michigan-plaza-south-geographic-reference.md).
 - Two Prudential's mapped outline keeps its 240 m eave, 277 m pyramid peak,
-  and centered narrow spire at the published 303.3 m tip. The pyramid facets
-  now carry silver bands and louvers, the shaft carries its piers and panes,
-  and the paired south/north tiers follow the fitted model's proportions,
-  set back from the mapped corners but proud of the mapped south and north
-  walls; see the
+  and a narrow spire at the published 303.3 m tip, both standing over the
+  outline's area centroid. The crown is ten setback rings with silver fascias
+  and louvered openings, the shaft carries punched panes between limestone
+  piers, and the paired north/south tiers follow the fitted model's
+  proportions: set back from the mapped corners, proud of the mapped north and
+  south walls above grade, and capped by coped gables whose pier heads step
+  floor by floor; see the
   [Two Prudential reference audit](two-prudential-geographic-reference.md).
 - Aon's mapped shaft keeps its 340 m top and its rooftop enclosure the
   346.3 m part top; the granite tube now carries window slots, piers, corner
