@@ -538,22 +538,19 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Two Prudential", () => {
-    test("keeps the mapped eave, pyramid, spire and setback tiers", () => {
+    test("keeps the photographed core, gables, turned pyramid, tiers and spire on the mapped outline", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Two Prudential")!;
       const model = models["Two Prudential"]!;
       model.building.updateMatrixWorld(true);
       const ray = new THREE.Raycaster();
       const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const named = (name: string) => meshes.filter((mesh) => mesh.name === `Two Prudential · ${name}`);
       const hit = (hitOrigin: Vec3, direction: Vec3, targets: THREE.Object3D[] = meshes) => {
         ray.set(new THREE.Vector3(...hitOrigin), new THREE.Vector3(...direction));
         return ray.intersectObjects(targets, false)[0];
       };
-      const world = (longitude: number, latitude: number): Vec3 => {
-        const [east, north] = projectGround([longitude, latitude]);
-        return [east, 0, -north];
-      };
-      // The mapped crown: the peak over the outline's area centroid, a setback
-      // between the peak and the eave, and the published spire tip.
+      // The frame restated from the mapped outline rather than imported: its area centroid,
+      // and the mapped south wall's direction, from its south-west to its south-east corner.
       const projected = record.footprint.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
       const centroid: Vec2 = (() => {
         let twice = 0, x = 0, z = 0;
@@ -564,269 +561,116 @@ describe("mapped skyline geography", () => {
         }
         return [x / (3 * twice), z / (3 * twice)];
       })();
-      const apex: Vec3 = [centroid[0], 277, centroid[1]];
-      // Beside the spire's own foot, so the ray meets the topmost setback
-      // rather than running down the spire's axis.
-      near(hit([apex[0], 320, apex[2] + 1.6], [0, -1, 0])!.point.y, 277, 0.001);
-      // The crown shrinks about that centroid, not about the mean of the
-      // traced vertices: this outline carries three extra points down its west
-      // wall, and a crown centred on their mean would still be at its peak
-      // 5.6 m away from the building's own centre.
-      const vertexMean: Vec3 = [projected.reduce((sum, p) => sum + p[0], 0) / projected.length, 320, projected.reduce((sum, p) => sum + p[1], 0) / projected.length];
-      expect(Math.hypot(vertexMean[0] - apex[0], vertexMean[2] - apex[2])).toBeGreaterThan(5);
-      expect(hit(vertexMean, [0, -1, 0])!.point.y).toBeLessThan(276);
-      const facet = world(-87.622695, 41.885291);
-      const facetHit = hit([facet[0], 300, facet[2]], [0, -1, 0])!;
-      expect(facetHit.point.y).toBeGreaterThan(250);
-      expect(facetHit.point.y).toBeLessThan(277);
-      // The spire: a face beside the tip (the exact 303.3 m tip is pinned by
-      // the generic bounds check). Five centimetres off the axis of a tapered
-      // face the surface is strictly below the tip, so a blunt or flat-topped
-      // spire fails here.
-      const spireFace = hit([apex[0] + 0.05, 350, apex[2]], [0, -1, 0])!;
-      expect(spireFace.object.name).toBe("Two Prudential · spire");
-      expect(spireFace.point.y).toBeGreaterThan(273);
-      expect(spireFace.point.y).toBeLessThan(303.3);
-      // The crown is a stack of flat setbacks, not a smooth cone: two rays at
-      // different distances from the axis land on one ledge, and the rings
-      // shrink as they rise.
-      const ledge = (offset: number) => hit([apex[0], 320, apex[2] + offset], [0, -1, 0])!.point.y;
-      expect(ledge(11.2)).toBe(ledge(12));
-      expect(ledge(11.2)).toBeGreaterThan(ledge(20));
-      expect(ledge(20)).toBeGreaterThan(240);
-      // Ten of them, at one floor's rise each from the mapped eave to the
-      // mapped peak. Sweeping the setback mesh outward finds every ledge top,
-      // so a crown with nine steps, or with them unevenly spaced, fails.
-      const setbacks = meshes.filter((mesh) => mesh.name === "Two Prudential · crown setbacks");
-      const tops = new Set<number>();
-      for (let radius = 0.5; radius < 26; radius += 0.5) {
-        for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as Vec2[]) {
-          const contact = hit([apex[0] + dx * radius, 320, apex[2] + dz * radius], [0, -1, 0], setbacks);
-          if (contact && contact.point.y > 240.01) tops.add(Math.round(contact.point.y * 100) / 100);
-        }
+      const southWest = projected.reduce((best, p) => (p[1] - p[0] > best[1] - best[0] ? p : best));
+      const southEast = projected.reduce((best, p) => (p[1] + p[0] > best[1] + best[0] ? p : best));
+      const span = Math.hypot(southEast[0] - southWest[0], southEast[1] - southWest[1]);
+      const along: Vec2 = [(southEast[0] - southWest[0]) / span, (southEast[1] - southWest[1]) / span], south: Vec2 = [-along[1], along[0]];
+      const at = (u: number, v: number, y: number): Vec3 => [centroid[0] + along[0] * u + south[0] * v, y, centroid[1] + along[1] * u + south[1] * v];
+      const local = (p: THREE.Vector3): Vec2 => [(p.x - centroid[0]) * along[0] + (p.z - centroid[1]) * along[1], (p.x - centroid[0]) * south[0] + (p.z - centroid[1]) * south[1]];
+      const mappedSouth = local(new THREE.Vector3(southWest[0], 0, southWest[1]))[1];
+      // The photograph's levels, restated: floors 3.96 m apart from the lobby's 11.52 m, the
+      // tiers' shoulders and points, the core's eave at its corners and its gables' points,
+      // and the pyramid's apex.
+      const pitch = 3.96, eave = 229.32, gable = 256, apex = 280.2;
+      const [coreEast, coreSouth] = [20.4, 18.75];
+
+      // The core, 40.8 x 37.5 m about the centroid and square to the mapped south wall: from
+      // the east and west at mid-height the first surface is its wall or a pier on it; from
+      // the south, outside both tiers, likewise.
+      for (const [from, direction, reach] of [[at(40, 1.3, 100), [-along[0], 0, -along[1]], coreEast], [at(-40, -1.3, 100), [along[0], 0, along[1]], coreEast],
+        [at(18.9, 40, 100), [-south[0], 0, -south[1]], coreSouth], [at(-18.9, -40, 100), [south[0], 0, south[1]], coreSouth]] as [Vec3, Vec3, number][]) {
+        const contact = hit(from, direction)!;
+        const [u, v] = local(contact.point);
+        near(Math.abs(Math.abs(direction[0]) > 0.5 && Math.abs(along[0]) > 0.5 ? u : v), reach, 0.4);
       }
-      expect([...tops].sort((a, b) => a - b)).toEqual([243.7, 247.4, 251.1, 254.8, 258.5, 262.2, 265.9, 269.6, 273.3, 277]);
-      // The stepped section on the mapped south wall. The mapped tracing splits
-      // each wall into several nearly collinear edges, so consecutive ones
-      // facing the same way are merged into one facade first, the same way the
-      // model does: composing on a single traced edge would give the west
-      // facade a 28.4 m frame instead of a 56.0 m one.
-      const edges = projected.map((p, i) => {
-        const q = projected[(i + 1) % projected.length]!;
-        const length = Math.hypot(q[0] - p[0], q[1] - p[1]);
-        return { start: p, end: q, length, tangent: [(q[0] - p[0]) / length, (q[1] - p[1]) / length] as Vec2, normal: [-(q[1] - p[1]) / length, (q[0] - p[0]) / length] as Vec2 };
-      });
-      const groups: (typeof edges)[] = [];
-      for (const edge of edges) {
-        const last = groups.at(-1)?.[0];
-        if (last && last.normal[0] * edge.normal[0] + last.normal[1] * edge.normal[1] > 0.999) groups.at(-1)!.push(edge);
-        else groups.push([edge]);
-      }
-      const first = groups[0]![0]!, last = groups.at(-1)![0]!;
-      if (groups.length > 1 && first.normal[0] * last.normal[0] + first.normal[1] * last.normal[1] > 0.999) groups[0]!.unshift(...groups.pop()!);
-      const merged = groups.map((group) => {
-        const start = group[0]!.start, end = group.at(-1)!.end;
-        const length = Math.hypot(end[0] - start[0], end[1] - start[1]);
-        const tangent: Vec2 = [(end[0] - start[0]) / length, (end[1] - start[1]) / length];
-        return { start, length, tangent, normal: [-tangent[1], tangent[0]] as Vec2 };
-      });
-      const facing = (axis: 0 | 1, sign: number) => merged.filter((entry) => entry.normal[axis] * sign > 0.9).reduce((longest, entry) => entry.length > longest.length ? entry : longest);
-      // The fitted model's own composition fractions, restated here rather
-      // than imported, so a change to them has to be made twice.
-      const tierFractions = [0.707, 0.84], arrowFraction = 11.7 / 59.01, sideArrowFraction = 11.7 / 38.86, chevronFraction = 0.58;
-      const wall = facing(1, 1);
-      near(wall.length, 40.81, 0.02);
-      near(facing(1, -1).length, 40.7, 0.02);
-      near(facing(0, 1).length, 55.44, 0.02);
-      near(facing(0, -1).length, 56.04, 0.02);
-      const middleOf = (entry: typeof wall): Vec2 => [entry.start[0] + entry.tangent[0] * entry.length / 2, entry.start[1] + entry.tangent[1] * entry.length / 2];
-      const probeOn = (entry: typeof wall, across: number, y: number) => {
-        const middle = middleOf(entry);
-        const from: Vec3 = [middle[0] + entry.tangent[0] * across + entry.normal[0] * 40, y, middle[1] + entry.tangent[1] * across + entry.normal[1] * 40];
-        const contact = hit(from, [-entry.normal[0], 0, -entry.normal[1]]);
-        if (!contact) return null;
-        return { proud: (contact.point.x - middle[0]) * entry.normal[0] + (contact.point.z - middle[1]) * entry.normal[1], name: contact.object.name };
+      // The tiers fill the rest of the mapped depth: the lower one's front stands on the
+      // mapped south wall, the middle one half-way back to the core, each narrower than the
+      // one behind it. A ray down the core's middle meets the lower tier, one a bay out
+      // meets the middle tier, and one beyond it the core.
+      const southFront = (u: number) => local(hit(at(u, 60, 100), [-south[0], 0, -south[1]])!.point)[1];
+      near(southFront(0), mappedSouth, 0.1);
+      near(southFront(15.6), coreSouth + (mappedSouth - coreSouth) / 2, 0.1);
+      near(southFront(-15.6), coreSouth + (mappedSouth - coreSouth) / 2, 0.1);
+      near(southFront(18.9), coreSouth, 0.05);
+      expect(Math.abs(hit(at(0, -60, 100), [south[0], 0, south[1]])!.point.z - at(0, -coreSouth, 0)[2])).toBeGreaterThan(8);
+
+      // The levels themselves, at vertices of the stone, glass and crown: the core's four
+      // corners at the eave, each face's gable point at its middle, the pyramid's apex over
+      // the centroid as the body's highest point, and each tier's point at its front.
+      const body = named("limestone, glass and crown")[0]!.geometry.getAttribute("position");
+      const vertex = (target: Vec3) => {
+        let best = Infinity;
+        for (let i = 0; i < body.count; i += 1) best = Math.min(best, Math.hypot(body.getX(i) - target[0], body.getY(i) - target[1], body.getZ(i) - target[2]));
+        return best;
       };
-      // Both tiered facades carry the same composition, measured as fractions
-      // of each one's own width so the mirrored north wall is asserted as
-      // positively as the south: remove it and these fail.
-      for (const front of [wall, facing(1, -1)]) {
-        const lowerHalf = front.length * tierFractions[0]! / 2, middleHalf = front.length * tierFractions[1]! / 2;
-        const arrowHalf = front.length * arrowFraction / 2, chevronHalf = front.length * chevronFraction / 2;
-        const probe = (across: number, y: number) => probeOn(front, across, y)!;
-        // Across the section: the pointed arrow stands 4.96 m proud of the
-        // mapped wall, the lower tier 4.0 m, the middle tier 2.27 m, and
-        // beyond both tiers only the wall's own relief projects at all.
-        near(probe(0, 100).proud, 4.96, 0.03);
-        near(probe(lowerHalf * 0.55, 100).proud, 4.0, 0.03);
-        near(probe(middleHalf * 0.95, 100).proud, 2.27, 0.03);
-        expect(probe(front.length / 2 - 2.4, 100).proud).toBeLessThan(0.35);
-        // The arrow is as wide as the fitted model's, 11.7 m over its 59.01 m
-        // facade: inside that edge the first surface is the arrow, outside it
-        // the tier behind.
-        near(probe(arrowHalf - 0.6, 100).proud, 4.96, 0.03);
-        near(probe(arrowHalf + 1, 100).proud, 4.07, 0.03);
-        // The middle tier's face is bare where the lower tier covers it and
-        // glazed above that gable, so the glazing stops exactly at the cover.
-        near(probe(lowerHalf, 100).proud, 4.0, 0.03);
-        near(probe(lowerHalf, 190).proud, 2.2, 0.03);
-        near(probe(middleHalf * 0.95, 190).proud, 2.27, 0.03);
-        // Above each tier's peak the section steps back to the next surface.
-        expect(probe(middleHalf * 0.6, 230).proud).toBeLessThan(0.35);
-        // Each level itself, not merely a bracket around it: a downward ray
-        // into the depth band only that tier occupies meets its ridge, and one
-        // near its end meets its shoulder. These are the fitted model's levels
-        // scaled by 240/250.916, so the values they replaced would fail here.
-        const ridge = (across: number, depth: number) => {
-          const middle = middleOf(front);
-          return hit([middle[0] + front.tangent[0] * across + front.normal[0] * depth, 320, middle[1] + front.tangent[1] * across + front.normal[1] * depth], [0, -1, 0])!.point.y;
-        };
-        near(ridge(0, 3.5), 180.63, 0.01);
-        near(ridge(lowerHalf * 0.9, 3.5), 158.22, 0.01);
-        near(ridge(0, 1.6), 224.79, 0.01);
-        near(ridge(middleHalf * 0.9, 1.6), 198.96, 0.01);
-        // The chevron over the eave, sampled off the arrow that shares its
-        // peak: two points down its slope pin the peak and the width together.
-        near(ridge(0, 0.1), 260.48, 0.01);
-        near(ridge(chevronHalf * 0.5, 0.1), 250.22, 0.02);
-        near(ridge(chevronHalf * 0.85, 0.1), 243.04, 0.02);
-        const arrowTop = probe(0, 250);
-        expect(arrowTop.proud).toBeGreaterThan(0.5);
-        expect(arrowTop.proud).toBeLessThan(1.2);
-        // All three arrows, each at its own depth band, where nothing else
-        // reaches: the lower one over the lower tier's front, the middle one
-        // over the middle tier's, and the top one on the shaft wall. Each
-        // carries its gable's own peak, and the middle one's shoulder pins its
-        // head's slope, so an arrow cannot be omitted or stop short.
-        near(ridge(0, 4.5), 180.63, 0.01);
-        near(ridge(0, 2.7), 224.79, 0.01);
-        near(ridge(0, 0.7), 260.48, 0.01);
-        near(ridge(arrowHalf - 0.3, 2.7), 218.8, 0.02);
-        // The pier heads step floor by floor into the gable rather than
-        // following it as a clean diagonal: each lands on a floor line, they
-        // rise toward the centre, and at least one neighbouring pair is
-        // exactly one floor apart.
-        const bays = Math.max(1, Math.round(lowerHalf * 2 / 3.5)), bayWidth = lowerHalf * 2 / bays;
-        const heads: number[] = [];
-        for (let i = 0; i <= bays; i += 1) {
-          const centred = Math.max(-lowerHalf + 0.42, Math.min(lowerHalf - 0.42, -lowerHalf + i * bayWidth));
-          if (centred > -arrowHalf - 0.5) break;
-          // Against the pier mesh alone: the coping over them occupies the
-          // same depth band.
-          const middle = middleOf(front);
-          const top = hit([middle[0] + front.tangent[0] * centred + front.normal[0] * 4.2, 320, middle[1] + front.tangent[1] * centred + front.normal[1] * 4.2], [0, -1, 0], meshes.filter((mesh) => mesh.name === "Two Prudential · piers and bands"))!.point.y;
-          const floors = (top + 0.12 - 0.3) / 3.75;
-          near(floors, Math.round(floors), 0.002);
-          heads.push(Math.round(floors));
-        }
-        expect(heads.length).toBeGreaterThan(2);
-        for (let i = 1; i < heads.length; i += 1) expect(heads[i]!, "pier heads rise toward the gable's peak").toBeGreaterThan(heads[i - 1]!);
-        expect(heads.some((value, i) => i > 0 && value - heads[i - 1]! === 1), "a neighbouring pair of pier heads is one floor apart").toBe(true);
-      }
-      // The east and west facades take their arrow from the fitted model's own
-      // east face, 11.7 m over 38.86 m, so it is half as wide again in
-      // proportion. Inside its edge the arrow is the first surface; outside it
-      // the mapped wall.
-      for (const side of [facing(0, 1), facing(0, -1)]) {
-        const arrowHalf = side.length * sideArrowFraction / 2, chevronHalf = side.length * chevronFraction / 2;
-        near(probeOn(side, 0, 150)!.proud, 0.95, 0.03);
-        expect(probeOn(side, 0, 150)!.name).toMatch(/pier/);
-        near(probeOn(side, 0, 250)!.proud, 1.01, 0.03);
-        near(probeOn(side, arrowHalf - 0.6, 150)!.proud, 0.95, 0.03);
-        expect(probeOn(side, arrowHalf + 1, 150)!.proud).toBeLessThan(0.35);
-        const middle = middleOf(side);
-        const slope = (across: number) => hit([middle[0] + side.tangent[0] * across + side.normal[0] * 0.1, 320, middle[1] + side.tangent[1] * across + side.normal[1] * 0.1], [0, -1, 0])!.point.y;
-        near(slope(0), 259.44, 0.01);
-        near(slope(chevronHalf * 0.85), 242.9, 0.02);
-      }
-      // Nothing is drawn inside the lower tier. An exterior ray cannot see
-      // buried geometry, so this reads the mesh itself: no pane or pier may
-      // sit within the tier's own volume. The gable it hides behind folds at
-      // the facade's centre, so a triangle crossing that fold is sampled there
-      // too: its vertices can straddle the ridge while its interior dips under
-      // it. Only the arrow's own stations are skipped, where its back
-      // deliberately laps 2 cm into the tier.
-      for (const entry of [wall, facing(1, -1)]) {
-        const middle = middleOf(entry), lowerHalf = entry.length * tierFractions[0]! / 2;
-        const arrowHalf = entry.length * arrowFraction / 2;
-        const local = (x: number, y: number, z: number) => {
-          const dx = x - middle[0], dz = z - middle[1];
-          return [dx * entry.tangent[0] + dz * entry.tangent[1], y, dx * entry.normal[0] + dz * entry.normal[1]] as Vec3;
-        };
-        for (const mesh of meshes) {
-          if (!/glaz|pier/.test(mesh.name)) continue;
-          const position = mesh.geometry.getAttribute("position");
-          for (let i = 0; i < position.count; i += 3) {
-            const corners = [0, 1, 2].map((k) => local(position.getX(i + k), position.getY(i + k), position.getZ(i + k)));
-            const samples = [...corners];
-            for (let k = 0; k < 3; k += 1) {
-              const a = corners[k]!, b = corners[(k + 1) % 3]!;
-              if ((a[0] > 0) === (b[0] > 0)) continue;
-              const t = a[0] / (a[0] - b[0]);
-              samples.push(a.map((value, axis) => value + t * (b[axis]! - value)) as Vec3);
-            }
-            for (const [across, y, depth] of samples) {
-              const gable = 180.63 - (180.63 - 155.73) * Math.min(1, Math.abs(across) / lowerHalf);
-              const inside = Math.abs(across) > arrowHalf + 0.05 && Math.abs(across) < lowerHalf - 0.02
-                && depth > 2.21 && depth < 3.99 && y < gable - 0.02;
-              expect(inside, `${mesh.name} buried in the lower tier at ${across.toFixed(2)}, ${depth.toFixed(2)}, ${y.toFixed(2)} under ${gable.toFixed(2)}`).toBe(false);
-            }
-          }
+      for (const [u, v] of [[-1, 1], [1, 1], [1, -1], [-1, -1]]) near(vertex(at(u! * coreEast, v! * coreSouth, eave)), 0, 0.01);
+      for (const point of [at(0, coreSouth + 0.03, gable), at(0, -coreSouth - 0.03, gable), at(coreEast + 0.03, 0, gable), at(-coreEast - 0.03, 0, gable)]) near(vertex(point), 0, 0.01);
+      let top = -Infinity;
+      for (let i = 0; i < body.count; i += 1) top = Math.max(top, body.getY(i));
+      near(top, apex, 1e-4);
+      near(vertex(at(0, 0, apex)), 0, 0.01);
+      const middleFront = coreSouth + (mappedSouth - coreSouth) / 2;
+      near(vertex(at(0, middleFront, 217.2)), 0, 0.05);
+      near(vertex(at(0, mappedSouth - 0.02, 181.9)), 0, 0.05);
+
+      // The pyramid steps one floor at a time from the eave, and it is turned 45° to the
+      // plan: its ridges run to the gables' points at the faces' middles, so at the same
+      // distance from the centre it stands higher toward a face than toward a corner, the
+      // opposite of a pyramid square to the plan. Treads are the stone and glass body's own.
+      const crown = named("limestone, glass and crown");
+      const treads = new Set<number>();
+      for (let radius = 1; radius < 26; radius += 0.5) {
+        for (const [du, dv] of [[0.72, 0.69], [-0.72, 0.69], [0.72, -0.69], [-0.72, -0.69]]) {
+          const contact = hit(at(du! * radius, dv! * radius, 400), [0, -1, 0], crown);
+          if (contact && contact.point.y > eave + 0.01 && contact.face!.normal.y > 0.99) treads.add(Math.round(contact.point.y * 100) / 100);
         }
       }
-      // Nor inside a coping. The band is 1.41 m deep and stands 0.42 m proud
-      // of the face, so a pane or pier reaching its underside disappears
-      // behind it. Where the coping is exposed - outside the arrow it dies
-      // into - nothing else may enter its band.
-      for (const entry of [wall, facing(1, -1)]) {
-        const middle = middleOf(entry), arrowHalf = entry.length * arrowFraction / 2;
-        for (const [fraction, shoulder, peak, front] of [[tierFractions[0]!, 155.73, 180.63, 4], [tierFractions[1]!, 196.09, 224.79, 2.2]] as [number, number, number, number][]) {
-          const half = entry.length * fraction / 2;
-          for (const mesh of meshes) {
-            if (!/glaz|pier/.test(mesh.name)) continue;
-            const position = mesh.geometry.getAttribute("position");
-            for (let i = 0; i < position.count; i += 1) {
-              const dx = position.getX(i) - middle[0], dz = position.getZ(i) - middle[1];
-              const across = dx * entry.tangent[0] + dz * entry.tangent[1], depth = dx * entry.normal[0] + dz * entry.normal[1];
-              if (Math.abs(across) < arrowHalf + 0.2 || Math.abs(across) > half - 0.12) continue;
-              if (depth < front - 0.11 || depth > front + 0.43) continue;
-              const head = peak - (peak - shoulder) * Math.min(1, Math.abs(across) / half);
-              expect(position.getY(i) < head - 1.4 + 0.001, `${mesh.name} reaches into the coping at ${across.toFixed(2)}, ${position.getY(i).toFixed(2)} under ${head.toFixed(2)}`).toBe(true);
-            }
-          }
-        }
-      }
-      // Detail crosses the joints where the mapped tracing splits a wall. The
-      // north wall is two traced edges; a pane spanning their joint is the
-      // same surface at the joint as on either side of it. Reserving clearance
-      // at each traced end instead would leave a 19 cm break up its full
-      // height.
-      const split = groups.find((group) => group.length > 1 && group[0]!.normal[1] < -0.9)!;
-      const northWall = facing(1, -1);
-      const joint = split.slice(0, -1).reduce((sum, edge) => sum + edge.length, 0) - northWall.length / 2;
-      for (const height of [100, 140]) {
-        const surface = probeOn(northWall, joint, height)!;
-        expect(surface.name).toMatch(/glaz/);
-        for (const offset of [-0.2, 0.2]) {
-          const beside = probeOn(northWall, joint + offset, height)!;
-          expect(beside.name, `north wall pane breaks at its traced joint at ${height} m`).toBe(surface.name);
-          near(beside.proud, surface.proud, 0.01);
-        }
-      }
-      // The chevron covers the middle bays only and the crown has already
-      // stepped back inside the mapped wall, so at the south wall's own corner
-      // that elevation is open sky. A full-width chevron or a shaft rising
-      // past its eave would not be.
-      expect(probeOn(wall, wall.length / 2 - 1.4, 245)).toBeNull();
+      // Eleven show; the twelfth step's top is the floor of the pointed cap over it.
+      expect([...treads].sort((a, b) => a - b)).toEqual(Array.from({ length: 11 }, (_, k) => Math.round((eave + (k + 1) * pitch) * 100) / 100));
+      const heightAt = (u: number, v: number) => hit(at(u, v, 400), [0, -1, 0], crown)!.point.y;
+      expect(heightAt(1.2, 16) - heightAt(11.8, 11)).toBeGreaterThan(1.5 * pitch);
+      expect(heightAt(16, -1.2) - heightAt(11.8, -11)).toBeGreaterThan(1.5 * pitch);
+      // A rib runs up each ridge.
+      for (const point of [at(0, 9, 400), at(0, -9, 400), at(10, 0, 400), at(-10, 0, 400)]) expect(hit(point, [0, -1, 0])!.object.name).toBe("Two Prudential · crown ribs");
+
+      // Each face's stone bays step up one floor from the corner toward its glass strip,
+      // under a coping standing proud of the wall: the core's south face has five, the
+      // east face four, the middle tier four and the lower tier three.
+      const copingTops = (u0: number, v: number, du: number, bays: number, bay: number, shoulder: number) => {
+        const tops = Array.from({ length: bays }, (_, i) => hit(at(u0 - Math.sign(du) * (i + 0.5) * bay, v, 400), [0, -1, 0], named("copings"))!.point.y);
+        tops.forEach((y, i) => near(y, shoulder + i * pitch + 0.25, 1e-3));
+      };
+      copingTops(coreEast, coreSouth + 0.2, 1, 5, 3.16, eave);
+      copingTops(-coreEast, -coreSouth - 0.2, -1, 5, 3.16, eave);
+      copingTops(17.24, middleFront + 0.2, 1, 4, 3.16, 193.68);
+      copingTops(14.08, mappedSouth - 0.02 + 0.2, 1, 3, 3.16, 162);
+      for (let i = 0; i < 4; i += 1) near(hit(at(coreEast + 0.2, coreSouth - (i + 0.5) * 3.2625, 400), [0, -1, 0], named("copings"))!.point.y, eave + i * pitch + 0.25, 1e-3);
+      // The glass strip's pointed head rises smoothly between them to the gable's point.
+      const head = (u: number) => hit(at(u, coreSouth + 0.015, 400), [0, -1, 0])!;
+      near(head(2.3).point.y, eave + 5 * pitch + (gable - eave - 5 * pitch) * (1 - 2.3 / 4.6), 1e-3);
+      near(head(1.2).point.y - head(3.4).point.y, (gable - eave - 5 * pitch) * 2.2 / 4.6, 1e-3);
+
       // Panes and piers are the first surface on the mapped east wall.
-      const eastMid = world(-87.6225092, 41.885442);
-      const east = hit([eastMid[0] + 30, 100, eastMid[2]], [-1, 0, 0]);
-      expect(east!.object.name).toMatch(/glaz|pier/);
-      // The exact mapped outline at grade.
-      const groundMesh = meshes.find((mesh) => mesh.name === "Two Prudential · limestone shell")!;
-      const vertices = groundMesh.geometry.getAttribute("position");
+      const eastMid = at(40, 0.4, 100);
+      expect(hit(eastMid, [-along[0], 0, -along[1]])!.object.name).toMatch(/limestone|piers|mullions/);
+      // The spire rises from inside the pyramid's cap, turned with the pyramid: its corners
+      // point at the faces' middles, so its foot's vertices lie on the core's axes.
+      const spire = named("spire")[0]!.geometry.getAttribute("position");
+      let foot = Infinity;
+      for (let i = 0; i < spire.count; i += 1) foot = Math.min(foot, spire.getY(i));
+      expect(foot).toBeLessThan(apex - 3);
+      for (let i = 0; i < spire.count; i += 1) {
+        if (Math.abs(spire.getY(i) - foot) > 1e-4) continue;
+        const [u, v] = local(new THREE.Vector3(spire.getX(i), 0, spire.getZ(i)));
+        expect(Math.min(Math.abs(u), Math.abs(v)), "a spire foot vertex lies on one of the core's axes").toBeLessThan(1e-3);
+      }
+      const shaft = hit(at(0, 5, 288), [0, 0, -1].map((_, k) => [-south[0], 0, -south[1]][k]!) as Vec3)!;
+      expect(shaft.object.name).toMatch(/spire/);
+
+      // The exact mapped outline at grade: the lobby's walls stand on it.
+      const lobby = named("lobby")[0]!.geometry.getAttribute("position");
       const grade = new Set<string>();
-      for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      for (let i = 0; i < lobby.count; i += 1) if (lobby.getY(i) === 0) grade.add([lobby.getX(i), lobby.getZ(i)].map((n) => n.toFixed(3)).join(","));
       const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
         const [east, north] = projectGround(p);
         return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
@@ -957,10 +801,9 @@ describe("geographic layout in the study", () => {
     near(eye[1]!, 2, 1e-6);
     near(eye[2]! - (crainBounds.min[2]! + crainBounds.max[2]!) / 2, 1948.8, 0.5);
     // Mapped roofs and tips land on their drawn positions in the reference frame's
-    // layer units. The worst are drawn heights that differ from the published ones,
-    // such as Two Prudential's eaves, drawn about 100 units below their mapped 240 m;
-    // the fit's RMS is 45.5. The same eye and frame hold at every layout, so each point
-    // lands on the same spot. The skyline test's layouts all have canvases narrower than
+    // layer units. The worst, Kemper's west roof corner, lies 62 units off, 49 of them
+    // across the frame; the fit's RMS is 29.9. The same eye and frame hold at every
+    // layout, so each point lands on the same spot. The skyline test's layouts all have canvases narrower than
     // the frame; 1440x800's is wider, so the field of view fits the frame's height.
     const placed: Record<string, [number, number][]> = {};
     for (const size of [...viewports.map(({ options }) => options.viewport!), { width: 1440, height: 800 }]) {
@@ -979,11 +822,11 @@ describe("geographic layout in the study", () => {
       let squares = 0;
       geographicLandmarks.forEach(([name, , , drawn], i) => {
         const error = Math.hypot(measured[i]![0] - drawn[0], measured[i]![1] - drawn[1]);
-        expect(error, `${name} at ${size.width}x${size.height}`).toBeLessThan(110);
+        expect(error, `${name} at ${size.width}x${size.height}`).toBeLessThan(64);
         squares += error * error;
         (placed[name] ||= []).push(measured[i]!);
       });
-      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${size.width}x${size.height}`).toBeLessThan(46.1);
+      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${size.width}x${size.height}`).toBeLessThan(30.3);
     }
     for (const [name, points] of Object.entries(placed)) for (const point of points) {
       expect(Math.hypot(point[0] - points[0]![0], point[1] - points[0]![1]), `${name} holds its drawn place at every layout`).toBeLessThan(0.05);

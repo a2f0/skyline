@@ -19,13 +19,14 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
   // The drawing traces a lakefront photograph. Fitting the mapped buildings'
   // roofs and tips to their drawn positions (scripts/fit-geographic-camera.ts)
   // puts its eye on the shore by the Adler Planetarium, 2 m above the street
-  // datum, looking up at the skyline. The buildings stay where they are mapped;
-  // only the camera is fitted. Eye positions are meters east, up, and south of
-  // Crain's mapped centre.
+  // datum, looking up at the skyline; it is held there while the angles and lens
+  // are refitted, since the drawing barely tells its distance from its lens. The
+  // buildings stay where they are mapped; only the camera is fitted. Eye positions
+  // are meters east, up, and south of Crain's mapped centre.
   const photoEye: Vec3 = [1471.76, 2, 1948.8];
-  const photoAzimuth = 36.1307 * Math.PI / 180, photoPolar = 94.0443 * Math.PI / 180;
+  const photoAzimuth = 36.1247 * Math.PI / 180, photoPolar = 94.0182 * Math.PI / 180;
   // The reference excerpt's frame: its vertical field of view and its viewBox aspect.
-  const frameFov = 10.5395 * Math.PI / 180, frameAspect = 4430 / 3535.05;
+  const frameFov = 10.5279 * Math.PI / 180, frameAspect = 4430 / 3535.05;
   const back: Vec3 = [Math.sin(photoPolar) * Math.sin(photoAzimuth), Math.cos(photoPolar), Math.sin(photoPolar) * Math.cos(photoAzimuth)];
   // Orbit and zoom pivot on the sightline at Crain's depth.
   const photoDistance = photoEye[0] * back[0] + photoEye[1] * back[1] + photoEye[2] * back[2];

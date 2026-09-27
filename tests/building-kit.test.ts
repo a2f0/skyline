@@ -501,77 +501,79 @@ describe("fitted and geographic models", () => {
 
   describe("Two Prudential specifics", () => {
     const surfaces = () => built[twoPrudential]!.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+    const named = (name: string) => surfaces().filter((mesh) => mesh.name === `Two Prudential · ${name}`);
     const hit = (origin: Vec3, direction: Vec3, objects: THREE.Object3D[] = surfaces()) => {
       const ray = new THREE.Raycaster();
       ray.set(new THREE.Vector3(...origin), new THREE.Vector3(...direction));
       return ray.intersectObjects(objects, false)[0];
     };
-    test("dropped bays leave the shell as the first surface", async () => {
+    // The copy's levels restated, less its 35.4 m datum: floors 3.96 m apart, the core's
+    // eave at its corners, its gables' points, and the pyramid's apex. The core is 40.8 x
+    // 37.5 m, and each tier 4.5 m deep, the lower tiers' fronts 27.75 m from its centre.
+    const base = 35.4, pitch = 3.96, eave = 229.32 - base, gable = 256 - base, apex = 280.2 - base;
+    const [coreEast, coreSouth, middleFront, lowerFront] = [20.4, 18.75, 23.25, 27.75];
+    test("each wall steps up a floor a bay toward a pointed glass head", async () => {
       built[twoPrudential]!.building.updateMatrixWorld(true);
-      for (const [label, origin, direction] of [
-        ["east glass beside the arrow's south edge", [35, 56.8, 9], [-1, 0, 0]],
-        ["east glass beside the arrow's north edge", [35, 56.8, -7.2], [-1, 0, 0]],
-        ["middle glass beyond the lower setback", [21.6, 56.8, 40], [0, 0, -1]],
-      ] as [string, Vec3, Vec3][]) expect(hit(origin, direction)?.object.name, label).toBe("window panes");
-    });
-    test("upper arrows reach the next gable", async () => {
-      for (const y of [231, 185]) {
-        expect(hit([4.5, y, 40], [0, 0, -1])?.object.name, `the arrow at y=${y} should reach the next gable`).toBe("chevron glazing");
-      }
-    });
-    test("pier heads retain their floor-by-floor steps", async () => {
-      expect(hit([-20.143, 260.9, 40], [0, 0, -1])?.object.name).toBe("vertical piers and chevrons");
-      expect(hit([-20.143, 261.7, 40], [0, 0, -1])?.object.name).toBe("tower and setback shells");
-    });
-    test("split piers have continuous angled caps across the setback edge", async () => {
-      const pierSurfaces = surfaces().filter((mesh) => mesh.name === "vertical piers and chevrons");
-      for (const x of [-24.799, 24.799]) {
-        for (const z of [-19.58, 19.58]) {
-          const left = hit([x - 0.01, 270, z], [0, -1, 0], pierSurfaces);
-          const right = hit([x + 0.01, 270, z], [0, -1, 0], pierSurfaces);
-          expect(left && right && Math.abs(left.point.y - right.point.y) < 0.05, "a split pier should have a continuous angled cap across the setback edge").toBe(true);
+      // Copings stand on every bay's top, a floor above the bay outside it: the core's south
+      // and north faces have five a side, its east and west four, and the tiers four and three.
+      for (const [x0, z, direction, bays, bay, shoulder] of [
+        [coreEast, coreSouth + 0.2, -1, 5, 3.16, eave], [-coreEast, -coreSouth - 0.2, 1, 5, 3.16, eave],
+        [17.24, middleFront + 0.2, -1, 4, 3.16, 193.68 - base], [-17.24, -middleFront - 0.2, 1, 4, 3.16, 193.68 - base],
+        [14.08, lowerFront + 0.2, -1, 3, 3.16, 162 - base], [-14.08, -lowerFront - 0.2, 1, 3, 3.16, 162 - base],
+      ] as [number, number, number, number, number, number][]) {
+        for (let i = 0; i < bays; i += 1) {
+          const top = hit([x0 + direction * (i + 0.5) * bay, 400, z], [0, -1, 0], named("copings"));
+          expect(Math.abs(top!.point.y - (shoulder + i * pitch + 0.25)), `coping ${i} at ${x0}, ${z}`).toBeLessThan(1e-3);
         }
       }
-    });
-    test("crown detail stands clear of its dark backing", async () => {
-      const enclosure = surfaces().filter((mesh) => mesh.name === "pyramid and chevron roofs");
-      for (const [origin, name, minimumDepth] of [
-        [[0, 340, 12], "glazing mullions and crown ribs", 1],
-        [[10, 340, 10], "pyramid silver bands", 1],
-        [[4, 340, 8.5], "crown louvers", 0.2],
-      ] as [Vec3, string, number][]) {
-        const visible = hit(origin, [0, -1, 0]), backing = hit(origin, [0, -1, 0], enclosure);
-        expect(visible?.object.name, "crown detail should be the visible first surface").toBe(name);
-        expect(visible!.point.y - backing!.point.y > minimumDepth, "crown detail should stand clear of its dark backing").toBe(true);
+      // Between the bays the strip's glass head rises smoothly to the gable's point, on the
+      // core and on each tier.
+      for (const [z, shoulder, peak] of [[coreSouth + 0.015, eave + 5 * pitch, gable], [middleFront - 0.3, 193.68 - base + 4 * pitch, 217.2 - base], [lowerFront - 0.3, 162 - base + 3 * pitch, 181.9 - base]]) {
+        const head = hit([2.3, 400, z!], [0, -1, 0])!;
+        expect(Math.abs(head.point.y - (shoulder! + (peak! - shoulder!) / 2)), `the head at ${z} should be half-way up its slope`).toBeLessThan(1e-3);
       }
     });
-    test("the ridge beside the spire exposes its own top", async () => {
-      for (const z of [-2, 2]) {
-        const ridge = hit([0, 322, z], [0, -1, 0]);
-        expect(ridge?.object.name).toBe("glazing mullions and crown ribs");
-        expect(ridge!.face!.normal.y > 0.5 && ridge!.face!.normal.z * Math.sign(z) > ridge!.face!.normal.y,
-          "the ridge beside the spire should expose its own top, not the opposite beam's penetrating cap").toBe(true);
+    test("the tiers stand forward of the core's north and south faces", async () => {
+      for (const sign of [1, -1]) {
+        const front = (x: number) => Math.abs(hit([x, 100, sign * 60], [0, 0, -sign])!.point.z);
+        expect(Math.abs(front(0) - lowerFront)).toBeLessThan(0.05);
+        expect(Math.abs(front(15.6) - middleFront)).toBeLessThan(0.05);
+        expect(Math.abs(front(18.9) - coreSouth)).toBeLessThan(0.05);
       }
+      // The east face is flat to the ground: the tiers never reach its line.
+      expect(Math.abs(hit([60, 100, 14], [-1, 0, 0])!.point.x - coreEast)).toBeLessThan(0.4);
+      expect(hit([60, 100, 24], [-1, 0, 0])!.point.x).toBeLessThan(17.3);
     });
-    test("the spire has inset panels, folded edges, and a bare tip", async () => {
-      for (const [origin, name] of [
-        [[0, 328, 4], "spire inset panels"], [[0.65, 328, 4], "spire"], [[0, 344, 4], "spire"],
-      ] as [Vec3, string][]) expect(hit(origin, [0, 0, -1])?.object.name, "the spire should have inset panels, bright folded edges, and a bare tip").toBe(name);
-    });
-    test("the north setback carries the same glazed chevron", async () => {
-      const rearChevron = hit([4.5, 185, -40], [0, 0, 1]);
-      expect(rearChevron?.object.name).toBe("chevron glazing");
-      expect(rearChevron!.point.z < -23, "the north chevron must project beyond the main shaft").toBe(true);
-    });
-    test("every spire foot corner is seated in the roof", async () => {
-      const spirePositions = surfaces().find((mesh) => mesh.name === "spire")!.geometry.getAttribute("position");
-      const foot = Math.min(...Array.from({ length: spirePositions.count }, (_, i) => spirePositions.getY(i)));
-      const roof = surfaces().filter((mesh) => ["pyramid and chevron roofs", "pyramid silver bands"].includes(mesh.name));
-      for (let i = 0; i < spirePositions.count; i += 1) {
-        if (spirePositions.getY(i) !== foot) continue;
-        const contact = hit([spirePositions.getX(i), built[twoPrudential]!.height + 1, spirePositions.getZ(i)], [0, -1, 0], roof);
-        expect(contact && contact.point.y >= foot, "every spire foot corner should be seated in the roof").toBe(true);
+    test("the pyramid steps a floor at a time and is turned to the plan", async () => {
+      const crown = named("limestone, glass and crown");
+      const heightAt = (x: number, z: number) => hit([x, 400, z], [0, -1, 0], crown)!.point.y;
+      // Toward a face's middle it stands higher than toward a corner at the same distance.
+      expect(heightAt(1.2, 16) - heightAt(11.8, 11)).toBeGreaterThan(1.5 * pitch);
+      expect(heightAt(-16, 1.2) - heightAt(-11.8, -11)).toBeGreaterThan(1.5 * pitch);
+      for (let k = 1; k <= 11; k += 1) {
+        const r = 25 * (1 - k / 12.5);
+        const y = heightAt(r * 0.72, r * 0.69);
+        expect(Math.abs((y - eave) / pitch - Math.round((y - eave) / pitch)), `tread at ${r}`).toBeLessThan(1e-4);
       }
+      let top = -Infinity;
+      const body = crown[0]!.geometry.getAttribute("position");
+      for (let i = 0; i < body.count; i += 1) top = Math.max(top, body.getY(i));
+      expect(Math.abs(top - apex)).toBeLessThan(1e-4);
+      for (const [x, z] of [[0, 9], [0, -9], [10, 0], [-10, 0]]) expect(hit([x!, 400, z!], [0, -1, 0])!.object.name).toBe("Two Prudential · crown ribs");
+    });
+    test("the spire is seated in the cap and turned with the pyramid", async () => {
+      const spire = named("spire")[0]!.geometry.getAttribute("position");
+      const foot = Math.min(...Array.from({ length: spire.count }, (_, i) => spire.getY(i)));
+      const crown = named("limestone, glass and crown");
+      for (let i = 0; i < spire.count; i += 1) {
+        if (spire.getY(i) !== foot) continue;
+        expect(Math.min(Math.abs(spire.getX(i)), Math.abs(spire.getZ(i))), "every spire foot corner lies on one of the plan's axes").toBeLessThan(1e-4);
+        const contact = hit([spire.getX(i), built[twoPrudential]!.height + 1, spire.getZ(i)], [0, -1, 0], crown);
+        expect(contact && contact.point.y > foot, "every spire foot corner should be seated in the cap").toBe(true);
+      }
+      // A dark inset panel down each face, between its bright folded edges.
+      expect(hit([0.45, apex + 4, 5], [0, 0, -1])!.object.name).toBe("Two Prudential · spire inset panels");
+      expect(hit([0.05, apex + 4, 5], [0, 0, -1])!.object.name).toBe("Two Prudential · spire");
     });
   });
 });

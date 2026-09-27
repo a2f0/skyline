@@ -62,10 +62,13 @@ place(prudential, 179.02, 25);
 trump.building.scale.setScalar(1.065);
 trump.building.rotation.y = 7.95 * Math.PI / 180;
 place(trump, 201.61, -40);
-// Two Prudential stands behind the shared podium; its plan and roof features were
-// fitted through this camera to the drawing, with depth fixed by that occlusion.
-place(twoPrudential, 270.727, -45);
-twoPrudential.building.rotation.y = -1.758 * Math.PI / 180;
+// The real Two Prudential from the drawing's 35.4 m datum up, fitted through this camera at
+// all five test layouts to the drawn eaves, gables, pyramid, spire and tiers, and the drawn
+// piers of its south and east faces and its lower tier: 1.289 times its size and turned
+// 8.59°. It stands behind the shared podium, and its depth keeps that occlusion.
+twoPrudential.building.scale.setScalar(1.289);
+twoPrudential.building.rotation.y = 8.59 * Math.PI / 180;
+place(twoPrudential, 269.67, -45);
 // The real Aon Center from the drawing's datum up, fitted through this camera at all five
 // test layouts to the drawn roof, the fifteen drawn piers on each face, and the drawn floor
 // bands: 1.329 times its size, turned 10.2° so the camera meets its faces as the

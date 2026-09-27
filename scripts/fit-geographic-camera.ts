@@ -5,14 +5,17 @@
 // records, with each landmark's residual in layer units. The eye's height is held at
 // the photograph's shore level because the drawing barely constrains it: a camera
 // hovering over the harbour on a shorter lens fits the traced heights a little better,
-// but it is not where the photograph was taken.
+// but it is not where the photograph was taken. --eye holds its ground position too, for
+// the same reason: the drawing trades the eye's distance against the lens, so a free eye
+// can drift off the lakefront walk for a fraction of a layer unit.
 import { command } from "./lib/command.js";
 import { geographicLandmarks, reference } from "../tests/skyline-landmarks.js";
 import type { Vec3 } from "../models/building-kit.js";
 
-const usage = `Usage: bun scripts/fit-geographic-camera.ts [--height meters]
+const usage = `Usage: bun scripts/fit-geographic-camera.ts [--height meters] [--eye east,south]
   Prints the geographic skyline camera fitted to the drawing, with its eye held --height
-  meters above the street datum (default 2).`;
+  meters above the street datum (default 2) and, with --eye, held that many meters east
+  and south of Crain's mapped centre.`;
 
 // East and south of Crain's mapped centre in meters, then radians, then the focal length
 // in the drawing's layer units.
@@ -33,8 +36,12 @@ function solveLinear(matrix: number[][], vector: number[]): number[] {
   return solution;
 }
 
-command(usage, { height: { type: "string" } }, ({ values }) => {
+command(usage, { height: { type: "string" }, eye: { type: "string" } }, ({ values }) => {
   const height = Number(values["height"] ?? 2);
+  const held = values["eye"] ? (values["eye"] as string).split(",").map(Number) as [number, number] : null;
+  if (held && (held.length !== 2 || held.some((value) => !Number.isFinite(value)))) throw new Error(`--eye takes east,south in meters, not ${values["eye"]}.`);
+  // The camera's entries the solve moves: all five, or only the angles and the lens.
+  const free = held ? [2, 3, 4] : [0, 1, 2, 3, 4];
   const [left, top, width, frameHeight] = reference.viewBox.split(" ").map(Number) as [number, number, number, number];
   const centre = [left + width / 2, top + frameHeight / 2] as const;
   const project = ([east, south, azimuth, polar, focal]: Camera, point: Vec3): [number, number] => {
@@ -54,11 +61,11 @@ command(usage, { height: { type: "string" } }, ({ values }) => {
   const cost = (camera: Camera) => residuals(camera).reduce((sum, r) => sum + r * r, 0);
 
   // Levenberg–Marquardt from the Adler Planetarium's shore, with a numeric Jacobian.
-  let camera: Camera = [1500, 2050, 0.63, 1.63, 20000], damping = 1e-3, current = cost(camera);
+  let camera: Camera = [held?.[0] ?? 1500, held?.[1] ?? 2050, 0.63, 1.63, 20000], damping = 1e-3, current = cost(camera);
   for (let iteration = 0; iteration < 200; iteration += 1) {
     const r = residuals(camera);
-    const columns = camera.map((value, i) => {
-      const step = Math.max(1e-7, Math.abs(value) * 1e-7);
+    const columns = free.map((i) => {
+      const value = camera[i]!, step = Math.max(1e-7, Math.abs(value) * 1e-7);
       const moved = camera.map((entry, k) => (k === i ? entry + step : entry)) as Camera;
       return residuals(moved).map((m, k) => (m - r[k]!) / step);
     });
@@ -67,7 +74,7 @@ command(usage, { height: { type: "string" } }, ({ values }) => {
     let accepted = false;
     for (let attempt = 0; attempt < 30 && !accepted; attempt += 1) {
       const step = solveLinear(normal.map((row, i) => row.map((value, j) => value + (i === j ? damping * value : 0))), gradient.map((g) => -g));
-      const next = camera.map((value, i) => value + step[i]!) as Camera, nextCost = cost(next);
+      const next = camera.map((value, i) => value + (free.includes(i) ? step[free.indexOf(i)]! : 0)) as Camera, nextCost = cost(next);
       if (nextCost < current) { accepted = true; damping = Math.max(damping / 3, 1e-12); if (current - nextCost < current * 1e-12) iteration = Infinity; camera = next; current = nextCost; }
       else damping *= 4;
     }
