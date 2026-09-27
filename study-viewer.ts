@@ -33,6 +33,10 @@ export interface StudyView {
   projection?: "orthographic" | "perspective";
   fit?: FitBox;
   target?: Vec3;
+  // A fixed eye distance from the target. The eye then stays put at every
+  // viewport, as a photograph's camera does, and the field of view frames the
+  // fit box instead of the distance changing to fit it.
+  distance?: number;
 }
 
 export interface StudyLayout {
@@ -266,6 +270,7 @@ export function createBuildingStudy({
   let fittedDistance = 400;
   let activeView: string | null = defaultView;
   let frameFit = fit;
+  let frameDistance: number | null = null;
 
 
   function requestRender() {
@@ -342,11 +347,15 @@ export function createBuildingStudy({
     controls.object = camera;
     controls.enablePan = enablePan || !!camera.isOrthographicCamera;
     controls.minPolarAngle = camera.isOrthographicCamera ? 0 : Math.PI * 0.12;
+    // A preset may look up further than free orbiting allows; OrbitControls
+    // would otherwise clamp it on its first update.
+    controls.maxPolarAngle = Math.max(Math.PI * 0.52, view.polar);
     controls.minZoom = 0.5;
     controls.maxZoom = maximumZoom;
     camera.zoom = 1;
     base.receiveShadow = name !== "top";
     frameFit = view.fit || fit;
+    frameDistance = view.distance ?? null;
     controls.target.fromArray(view.target || target);
     markView(name);
     updateCameraHint();
@@ -360,9 +369,16 @@ export function createBuildingStudy({
     const aspect = width / Math.max(height, 1);
     camera.aspect = aspect;
     renderer.setSize(width, height, false);
-    // Fit both the tower's height and its footprint at narrow mobile widths.
-    const tangent = Math.tan(fov * Math.PI / 360);
-    fittedDistance = Math.max(frameFit.height / 2 / tangent, frameFit.width / 2 / (tangent * aspect));
+    // Fit both the tower's height and its footprint at narrow mobile widths:
+    // by moving the eye, or at a fixed eye by widening the field of view.
+    if (frameDistance === null) {
+      const tangent = Math.tan(fov * Math.PI / 360);
+      perspectiveCamera.fov = fov;
+      fittedDistance = Math.max(frameFit.height / 2 / tangent, frameFit.width / 2 / (tangent * aspect));
+    } else {
+      perspectiveCamera.fov = Math.atan(Math.max(frameFit.height, frameFit.width / aspect) / 2 / frameDistance) * 360 / Math.PI;
+      fittedDistance = frameDistance;
+    }
     if (camera.isOrthographicCamera) {
       const plan = camera as THREE.OrthographicCamera;
       const height = Math.max(frameFit.height, frameFit.width / aspect);

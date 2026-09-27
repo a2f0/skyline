@@ -64,8 +64,11 @@ The Heritage plan, heights, and placement were fitted numerically through the sk
 
 In `skyline-study.html`, **geographic layout** switches the same eight buildings
 to local OpenStreetMap footprints and parts, with published overall heights
-(Kemper uses OSM's height). It opens a north-up orthographic ground plan with
-street centerlines and a 100 m grid. **Height comparison** gives an elevated
+(Kemper uses OSM's height). It opens on the skyline view from the drawing's
+own camera: the source photograph's vantage on the lakefront by the Adler
+Planetarium, fitted to the mapped roofs and tips while the buildings stay where
+they are mapped. **Ground plan** gives a north-up orthographic plan with street
+centerlines and a 100 m grid, and **height comparison** an elevated
 orthographic view. Both comparison views preserve camera and zoom when toggling
 back to **original drawing**, aligned at Crain so changes in position and scale
 remain visible. The original skyline camera and fitted models are retained.

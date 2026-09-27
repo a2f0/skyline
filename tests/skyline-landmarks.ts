@@ -73,6 +73,39 @@ const landmarks: Landmark[] = [
 // layer-space meaning; fitted limits below allow only measured layout drift.
 const landmarkTolerance = 0.0151;
 
+// The geographic skyline camera's correspondences: mapped points of the geographic
+// models, in meters east, up, and south of Crain's mapped centre, against the drawing
+// points above for the same features. Tips stand over their mapped parts, and roof
+// corners are the mapped outline vertices that the drawn corners show from the
+// photograph's viewpoint. scripts/fit-geographic-camera.ts solves the camera from them.
+// The drawn Michigan Plaza South is left out: from any camera that fits the others it
+// stands about 900 layer units left of the mapped tower, so the drawing's placement of
+// it is artistic.
+const geographicLandmarks: Landmark[] = [
+  ["Trump spire tip", trump, [-121.43, 423.2, -461.05], [4141.449, 187.538]],
+  ["One Prudential mast tip", prudential, [161.78, 278, -7.29], [4053.655, 879.202]],
+  ["Two Prudential spire tip", twoPrudential, [186.87, 303.3, -65.81], [4475.207, 565.047]],
+  ["Two Prudential pyramid peak", twoPrudential, [186.87, 277, -65.81], [4475.207, 748.347]],
+  ["Two Prudential eave west", twoPrudential, [167, 240, -37.5], [4261.006, 1151.884]],
+  ["Two Prudential eave near", twoPrudential, [207.79, 240, -38.47], [4534.685, 1127.577]],
+  ["Two Prudential eave east", twoPrudential, [206.7, 240, -93.89], [4690.631, 1140.245]],
+  ["Aon roof west", aon, [254.75, 340, -28.62], [4807.686, 115.434]],
+  ["Aon roof near", aon, [306.05, 340, -21.16], [5148.845, 88.061]],
+  ["Aon roof east", aon, [313.23, 340, -72.55], [5401.877, 155.047]],
+  ["One Prudential roof west", prudential, [109.48, 181.2, 8.58], [3629.988, 1627.757]],
+  ["One Prudential roof near", prudential, [181.05, 181.2, 7.21], [4117.251, 1611.589]],
+  ["One Prudential roof east", prudential, [181.03, 181.2, -15.01], [4220.171, 1624.276]],
+  ["Kemper roof west", kemper, [-230.6, 159, -167.83], [2440, 1811]],
+  ["Kemper roof near", kemper, [-196.64, 159, -168.51], [2588, 1803]],
+  ["Kemper roof east", kemper, [-197.23, 159, -210.29], [2759, 1819]],
+  ["Crain peak", crain, [-19.28, 177.4, -22.52], [2945, 1590]],
+  ["Crain left shoulder", crain, [-19.14, 136.04, 22.75], [2748, 1850]],
+  ["Crain right shoulder", crain, [18.47, 136.92, -22.79], [3198, 1854]],
+  ["Crain near valley", crain, [18.14, 99.83, 21.18], [2987, 2130]],
+  ["Heritage screen south", heritage, [-48.68, 192.4, 90.75], [2223.52, 1421.32]],
+  ["Heritage screen north", heritage, [-48.32, 192.4, 56.84], [2440.27, 1436.67]],
+];
+
 // Fitted buildings export their features. Each landmark pairs a feature with a vertex of
 // the drawn group, and must also lie on an edge of the built model, so moving the
 // geometry without its exported constant fails too. Columns are drawn x positions that
@@ -293,5 +326,5 @@ const fitted: FittedSpec[] = [
   },
 ];
 
-export { heritage, kemper, crain, michigan, trump, prudential, prudentialPodium, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, fitted };
+export { heritage, kemper, crain, michigan, trump, prudential, prudentialPodium, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, geographicLandmarks, fitted };
 export type { ModelsEntry, FittedSpec };

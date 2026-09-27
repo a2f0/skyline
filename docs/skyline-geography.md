@@ -10,9 +10,42 @@ in those views preserves the camera position, target and zoom, including after a
 orbit. The geographic scene is translated to align Crain's mapped footprint
 bounding-box center with the original Crain model's center. This is a comparison
 registration, not a claim that the original drawing is georeferenced. Other
-buildings keep their measured positions relative to Crain. Reset restores the
-original skyline camera in the original layout and the ground plan in geographic
-layout.
+buildings keep their measured positions relative to Crain. Switching layouts
+from the skyline view, or from a perspective orbit, opens the other layout's
+skyline view, and Reset restores each layout's skyline view.
+
+## Skyline camera
+
+The drawing traces a panorama photographed across the harbor from the lakefront.
+The geographic skyline view recovers that photograph's camera rather than
+reusing the original layout's fitted one, which describes the drawing's own
+geometry, not a place. The mapped buildings stay where they are mapped; only
+the camera is fitted.
+
+`scripts/fit-geographic-camera.ts` solves the study's orbit camera, aimed at the
+centre of the reference excerpt's frame, against the 22 correspondences in
+`geographicLandmarks` in `tests/skyline-landmarks.ts`. These pair mapped spire
+tips, eaves, roof corners and Crain's roof shoulders with their drawn points. The
+eye's height is held at 2 m above the street datum. The drawing barely
+constrains it: a camera hovering about 110 m over the harbor on a shorter lens
+fits the traced heights slightly better, but the photograph was taken from the
+shore. The solve puts the eye 1540 m east and 2068 m south of Crain, on the
+lakefront by the Adler Planetarium, 2.58 km away. The camera's azimuth is
+35.81° and it looks up 3.85°, with the frame spanning a 10.06° vertical field
+of view.
+
+The fit's RMS error is 74 layer units, about 1.7% of the frame's 4430-unit
+width. Horizontal errors stay within 52 units, and the larger vertical ones are
+drawn heights that differ from published ones. For example, One Prudential's
+mast is drawn 135 units, roughly 17 m, higher than its 278 m tip. The drawn
+Michigan Plaza South is excluded: from this camera it stands 790–1000 units left
+of the mapped tower, which One Prudential hides.
+
+The view keeps its eye fixed at every viewport. Its field of view, not its
+distance, changes to contain the frame, so each mapped point lands on the same
+drawn spot at every layout. Other perspective views keep the study's 6° lens.
+`tests/skyline-geography.test.ts` checks the eye's position, each landmark's
+error, the RMS, and that the placement is identical across the five layouts.
 
 ## Coordinates and footprints
 
