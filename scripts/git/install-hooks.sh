@@ -12,7 +12,10 @@
 #
 # It removes only hooks it installed itself, recorded in a manifest, so a hook
 # that was renamed here stops running while anyone else's stays. Anything it
-# replaces is kept alongside as <name>.bak. It installs where Git will actually
+# replaces is kept as <name>.bak — the state before this installer ever ran,
+# never overwritten — and the most recent thing it replaced after that as
+# <name>.bak.previous. Two slots, not a history: an installer is not a backup
+# system, and saying which two it keeps is more use than implying it keeps all. It installs where Git will actually
 # look — honouring a core.hooksPath this repository set for itself, overriding
 # one inherited from outside it — and verifies that before reporting success,
 # because an installer that reports success while Git looks elsewhere is a gate
@@ -45,19 +48,27 @@ else
   HOOKS_DST="$DEFAULT_HOOKS"
 fi
 CHECK="check-coauthors.ts"
+MANIFEST_NAME=".skyline-installed"
+mkdir -p "$HOOKS_DST"
 
 # A hooks path pointing back at the source tree would make a hook its own
 # source: install_file removes the destination first, so it would delete a
-# tracked file and then fail to copy it. Refuse rather than destroy anything.
-case "$HOOKS_DST/" in
-  "$REPO_ROOT/scripts/"*)
-    echo "Error: core.hooksPath resolves to $HOOKS_DST, inside this repository's scripts." >&2
-    echo "       That is where the hooks are kept; installing there would delete them." >&2
-    exit 1
-    ;;
-esac
-MANIFEST="$HOOKS_DST/.skyline-installed"
-mkdir -p "$HOOKS_DST"
+# tracked file and then fail to copy it. Compare resolved paths, not the
+# strings: ./scripts/git/hooks, a symlink, and scripts/../.githooks all look
+# different and two of them are the same directory.
+resolved() { (cd "$1" 2>/dev/null && pwd -P); }
+dst_real="$(resolved "$HOOKS_DST")"
+scripts_real="$(resolved "$REPO_ROOT/scripts")"
+if [ -n "$dst_real" ] && [ -n "$scripts_real" ]; then
+  case "$dst_real/" in
+    "$scripts_real/"*)
+      echo "Error: core.hooksPath resolves to $dst_real, inside this repository's scripts." >&2
+      echo "       That is where the hooks are kept; installing there would delete them." >&2
+      exit 1
+      ;;
+  esac
+fi
+MANIFEST="$HOOKS_DST/$MANIFEST_NAME"
 
 # -P so a symlinked hook is preserved as a symlink rather than flattened into a
 # copy of whatever it pointed at.
@@ -115,8 +126,14 @@ if [ -f "$MANIFEST" ]; then
 "*) continue ;;
     esac
     if [ -e "$HOOKS_DST/$previous" ]; then
-      # Something may have replaced it since; keep whatever is there.
-      save "$HOOKS_DST/$previous" /dev/null
+      # Something may have replaced it since; keep whatever is there. Not via
+      # save: comparing against /dev/null would call a zero-byte hook identical
+      # and drop it while reporting that it was kept.
+      if [ ! -e "$HOOKS_DST/$previous.bak" ]; then
+        cp -P "$HOOKS_DST/$previous" "$HOOKS_DST/$previous.bak"
+      else
+        cp -P "$HOOKS_DST/$previous" "$HOOKS_DST/$previous.bak.previous"
+      fi
       rm -f "$HOOKS_DST/$previous"
       echo "Removed $previous, which this installer no longer ships; kept it as $previous.bak"
     fi

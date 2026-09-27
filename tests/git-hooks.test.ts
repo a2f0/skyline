@@ -191,15 +191,19 @@ describe("what the installer protects", () => {
   test("refuses a hooks path that points back at its own sources", () => {
     // install_file removes the destination before copying, so a hooks path
     // inside scripts/ would delete the tracked source and then fail.
-    git(["config", "core.hooksPath", "scripts/git/hooks"]);
+    // Including spellings that reach the same directory by another route: a
+    // lexical comparison would let ./scripts through and delete the source.
     try {
-      let failed = false;
-      try {
-        execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "pipe", env: hermetic(process.env) });
-      } catch { failed = true; }
-      expect(failed, "the installer must refuse rather than delete its own source").toBe(true);
-      expect(existsSync(path.join(repo, "scripts/git/hooks/commit-msg"))).toBe(true);
-      expect(existsSync(path.join(repo, "scripts/check-coauthors.ts"))).toBe(true);
+      for (const spelling of ["scripts/git/hooks", "./scripts/git/hooks", "scripts/git/../git/hooks"]) {
+        git(["config", "core.hooksPath", spelling]);
+        let failed = false;
+        try {
+          execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "pipe", env: hermetic(process.env) });
+        } catch { failed = true; }
+        expect(failed, `the installer must refuse ${spelling} rather than delete its own source`).toBe(true);
+        expect(existsSync(path.join(repo, "scripts/git/hooks/commit-msg")), spelling).toBe(true);
+        expect(existsSync(path.join(repo, "scripts/check-coauthors.ts")), spelling).toBe(true);
+      }
     } finally {
       git(["config", "--unset", "core.hooksPath"]);
       execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
