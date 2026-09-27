@@ -113,8 +113,11 @@ would return two heights, a spire face beside the tip (the
 exact tip is pinned by the rendered-height check), a section across the mapped
 south wall that pins the arrow, both tiers and the wall at their own
 projections and again above each tier's peak, the four merged facade widths,
-the east and west arrows at the same projection on their own centres, a vertex
-sweep proving no pane or pier sits inside the lower tier, the chevron over the
+the east and west arrows at the same projection on their own centres, a
+downward ray onto each tier's ridge and shoulder and onto both chevrons, so
+the levels themselves are pinned rather than bracketed, a vertex sweep from
+the middle tier's own face inward proving no pane or pier sits inside the
+lower tier, the chevron over the
 eave, open sky at the mapped corner above it, panes and piers on the mapped
 east wall, and the exact mapped outline at grade. Ground extents use vertices at grade: facade
 relief and the tier bases above grade must not redefine the street footprint.

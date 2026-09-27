@@ -107,7 +107,7 @@ shaft, the paired north/south setback tiers whose pier heads step floor by
 floor into a coped gable, a pointed arrow from each gable to the one above, a
 chevron over every facade at the eave, a crown of ten setbacks rather than a
 banded cone, and the tapered spire at the published 303.3 m tip. Its tiers
-project 4.0 m and 2.2 m rather than the 9.6 m and 4.0 m its drawn proportions
+project 4.0 m and 2.2 m rather than the 9.65 m and 4.03 m its drawn proportions
 would give, which keeps the above-grade envelope near the mapped ground
 outline; see its
 [reference audit](docs/two-prudential-geographic-reference.md).

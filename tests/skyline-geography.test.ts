@@ -492,6 +492,7 @@ describe("mapped skyline geography", () => {
       near(probe(0, 100)!.proud, 4.96, 0.03);
       near(probe(8, 100)!.proud, 4.07, 0.03);
       near(probe(16, 100)!.proud, 2.27, 0.03);
+      expect(probe(16, 100)!.name).toMatch(/glaz/);
       expect(probe(18, 100)!.proud).toBeLessThan(0.35);
       // The middle tier's face is bare where the lower tier covers it and
       // glazed above that gable, so the glazing stops exactly at the cover.
@@ -516,11 +517,29 @@ describe("mapped skyline geography", () => {
             const dx = position.getX(i) - middle[0], dz = position.getZ(i) - middle[1];
             const across = dx * entry.tangent[0] + dz * entry.tangent[1], depth = dx * entry.normal[0] + dz * entry.normal[1];
             const gable = 180.63 - (180.63 - 155.73) * Math.min(1, Math.abs(across) / lowerHalf);
-            const inside = Math.abs(across) < lowerHalf - 0.02 && depth > 2.3 && depth < 3.9 && position.getY(i) < gable - 0.02;
+            // From just outside the middle tier's own face, where its panes
+            // stand, to just inside the lower tier's front, which the arrow's
+            // back deliberately laps 2 cm into.
+            const inside = Math.abs(across) < lowerHalf - 0.02 && depth > 2.21 && depth < 3.9 && position.getY(i) < gable - 0.02;
             expect(inside, `${mesh.name} vertex buried in the lower tier at ${across.toFixed(2)}, ${depth.toFixed(2)}, ${position.getY(i).toFixed(2)}`).toBe(false);
           }
         }
       }
+      // Each level itself, not merely a bracket around it: a downward ray into
+      // the depth band only that tier occupies meets its ridge, and one near
+      // its end meets its shoulder. These are the fitted model's levels scaled
+      // by 240/250.916, so the values they replaced would fail here.
+      const ridge = (across: number, depth: number) => {
+        const middle = middleOf(wall);
+        return hit([middle[0] + wall.tangent[0] * across + wall.normal[0] * depth, 320, middle[1] + wall.tangent[1] * across + wall.normal[1] * depth], [0, -1, 0])!.point.y;
+      };
+      near(ridge(0, 3.5), 180.63, 0.01);
+      near(ridge(14.38, 3.5), 155.81, 0.02);
+      near(ridge(0, 1.6), 224.79, 0.01);
+      near(ridge(17.09, 1.6), 196.17, 0.02);
+      near(ridge(0, 0.1), 260.48, 0.01);
+      const sideMiddle = middleOf(facing(0, 1));
+      near(hit([sideMiddle[0] + facing(0, 1).normal[0] * 0.1, 320, sideMiddle[1] + facing(0, 1).normal[1] * 0.1], [0, -1, 0])!.point.y, 259.44, 0.01);
       // The chevron and its arrow carry the composition over the eave, and the
       // east and west facades carry the same arrow centred on their own merged
       // width rather than on one traced run.

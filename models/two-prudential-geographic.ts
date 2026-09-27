@@ -213,46 +213,66 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
   // The half carries a margin, so a pier's end cap can never land on the
   // covering volume's side plane and z-fight with it.
   interface Cover { half: number; height: (across: number) => number }
+  // Which facade a run belongs to: the whole wall's width and this run's own
+  // station along it. The bay grid is laid over the facade and each run draws
+  // the part of it that falls on the run, so the rhythm does not restart at
+  // every vertex the mapped tracing happens to carry.
+  interface Frame { width: number; origin: number }
 
   // Punched glazing on a wall or a tier front: one pane per bay per row between
   // projecting piers, with limestone left visible around every opening. `head`
   // is given the station measured from the facade's middle, the same frame the
-  // gable profiles use, which `origin` shifts to when the mapped tracing splits
-  // that facade into several runs. `head` gives the drawn and photographed
-  // gables their sawtooth edge instead of a clean diagonal.
-  const glazePiers = (run: Run, side: number, base: number, head: (across: number) => number, covers: Cover[] = [], origin = 0) => {
-    const bays = Math.max(1, Math.round(run.length / 3.5));
-    const width = run.length / bays, middle = run.length / 2 - origin;
+  // gable profiles use, and gives the drawn and photographed gables their
+  // sawtooth edge instead of a clean diagonal.
+  const glazePiers = (run: Run, side: number, base: number, head: (across: number) => number, covers: Cover[] = [], frame: Frame = { width: run.length, origin: 0 }) => {
+    const bays = Math.max(1, Math.round(frame.width / 3.5));
+    const width = frame.width / bays, middle = run.length / 2 - frame.origin;
+    // This run's own span, in the facade's frame, and the conversion back.
+    const [low, high] = [-middle, run.length - middle], station = (across: number) => across + middle;
     const stepped = (across: number) => Math.min(head(across), base + Math.max(0, Math.floor((head(across) - base) / pitch)) * pitch);
-    const foot = (across: number) => covers.reduce((y, cover) => Math.abs(across) <= cover.half ? Math.max(y, cover.height(across)) : y, 0);
-    const edges = covers.flatMap((cover) => [middle - cover.half, middle + cover.half]);
+    // The height a span is covered to. A cover applies to a whole span or to
+    // none of it, because every cover edge inside a bay becomes a cut and a
+    // pier's half-width is smaller than a cover's own margin, so its middle
+    // decides; its height is then taken across the span, including over the
+    // gable's own ridge where the span crosses it, because a single sample
+    // would leave the rest of the span below the gable it hides behind.
+    const foot = (a: number, b: number) => covers.reduce((y, cover) => {
+      if (Math.abs((a + b) / 2) > cover.half) return y;
+      const ridge = a < 0 && b > 0 ? [cover.height(0)] : [];
+      return Math.max(y, cover.height(a), cover.height(b), ...ridge);
+    }, 0);
+    const edges = covers.flatMap((cover) => [-cover.half, cover.half]);
     for (let bay = 0; bay < bays; bay += 1) {
-      const from = bay * width + 0.78, to = (bay + 1) * width - 0.78;
-      // A bay straddling the edge of a covering volume is split there, so its
-      // exposed part keeps its glazing instead of the whole bay going dark.
-      const cuts = [from, ...edges.filter((x) => x > from + 0.25 && x < to - 0.25), to].sort((a, b) => a - b);
+      const from = -frame.width / 2 + bay * width + 0.78, to = from + width - 1.56;
+      // Every cover edge inside the bay is a cut, and a piece too narrow to
+      // draw is dropped afterwards. Dropping the cut instead would let one
+      // covered end darken the whole bay, including the part standing clear.
+      const cuts = [from, ...edges.filter((x) => x > from && x < to), to].sort((a, b) => a - b);
       for (let piece = 0; piece + 1 < cuts.length; piece += 1) {
-        const [a, b] = [cuts[piece]!, cuts[piece + 1]!];
-        const ceiling = Math.min(stepped(a - middle), stepped(b - middle)) - 0.45;
-        const sole = Math.max(base, foot(a - middle), foot(b - middle));
+        const a = Math.max(cuts[piece]!, low + 0.03), b = Math.min(cuts[piece + 1]!, high - 0.03);
+        if (b - a < 0.25) continue;
+        const ceiling = Math.min(stepped(a), stepped(b)) - 0.45;
+        const sole = Math.max(base, foot(a, b));
         for (let row = 0; row < h.floors; row += 1) {
           const sill = base + row * pitch + 0.55, lintel = base + (row + 1) * pitch - 0.55;
           if (sill >= ceiling) break;
           if (sill < sole) continue;
-          strip(paneTone(row, bay, side), run, a, b, sill, Math.min(lintel, ceiling), 0.02, 0.07);
+          strip(paneTone(row, bay, side), run, station(a), station(b), sill, Math.min(lintel, ceiling), 0.02, 0.07);
         }
       }
     }
     for (let i = 0; i <= bays; i += 1) {
-      const s = Math.max(0.42, Math.min(run.length - 0.42, i * width));
-      // Both of a pier's edges, never its centre: a gable rises 1.7 m across
-      // the pier's own 0.84 m width, so a centre sample would bury its inner
-      // edge in the volume below and stand its outer edge above the gable it
-      // is supposed to stop under.
-      const [lo, hi] = [s - 0.42 - middle, s + 0.42 - middle];
-      const top = Math.min(stepped(lo), stepped(hi)), bottom = Math.max(base, foot(lo), foot(hi)) + 0.45;
+      const centred = Math.max(-frame.width / 2 + 0.42, Math.min(frame.width / 2 - 0.42, -frame.width / 2 + i * width));
+      // Across both of a pier's edges, never at its centre: a gable rises
+      // 1.7 m over the pier's own 0.84 m width, so a centre sample would bury
+      // its inner edge in the volume below and stand its outer edge above the
+      // gable it is supposed to stop under.
+      const [lo, hi] = [centred - 0.42, centred + 0.42];
+      const top = Math.min(stepped(lo), stepped(hi)), bottom = Math.max(base, foot(lo, hi)) + 0.45;
       if (top - bottom < pitch) continue;
-      strip(piers, run, s - 0.42, s + 0.42, bottom, top - 0.12, 0.04, 0.3);
+      const [a, b] = [Math.max(lo, low + 0.03), Math.min(hi, high - 0.03)];
+      if (b - a < 0.2) continue;
+      strip(piers, run, station(a), station(b), bottom, top - 0.12, 0.04, 0.3);
     }
   };
 
@@ -308,8 +328,7 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
       covers.push({ half: tierHalf + 0.5, height: gableAt(tierHalf, h.middleShoulder, h.middlePeak) });
     }
     for (const { run, origin } of facade.parts) {
-      if (run.length < 2) continue;
-      glazePiers(run, side, 0, () => h.eave, covers, origin);
+      glazePiers(run, side, 0, () => h.eave, covers, { width: face.width, origin });
     }
   }
 
