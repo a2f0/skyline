@@ -357,8 +357,7 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
       // to the next, glazed to its sloping head.
       const arrowFloor = floors[index]!;
       gabled(piers, face, arrowHalf, front - 0.02, front + 0.9, peak - 6.2, peak, arrowFloor);
-      const arrowRun = faceRun(face, arrowHalf, front + 0.9);
-      glazeArrow(arrowRun, arrowHalf, peak - 6.2, peak, arrowFloor, 8 + index);
+      glazeArrow(face, arrowHalf, front + 0.9, peak - 6.2, peak, arrowFloor, 8 + index);
       coping(face, half, front, shoulder, peak, arrowHalf - 0.2);
     }
     // The chevron over the eave, and the arrow that reaches it from the middle
@@ -371,8 +370,7 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
     const chevronRun = faceRun(face, chevron - 0.02, 0.22);
     glazePiers(chevronRun, 12, h.eave, gableAt(chevron - 0.02, h.eave, h.frontChevron), [{ half: arrowHalf + 0.5, height: () => h.frontChevron }]);
     gabled(piers, face, arrowHalf, -0.3, 0.95, h.frontChevron - 6.2, h.frontChevron, gableAt(halves[1]!, h.middleShoulder, h.middlePeak));
-    const topArrow = faceRun(face, arrowHalf, 0.95);
-    glazeArrow(topArrow, arrowHalf, h.frontChevron - 6.2, h.frontChevron, gableAt(halves[1]!, h.middleShoulder, h.middlePeak), 13);
+    glazeArrow(face, arrowHalf, 0.95, h.frontChevron - 6.2, h.frontChevron, gableAt(halves[1]!, h.middleShoulder, h.middlePeak), 13);
     coping(face, chevron - 0.02, 0.22, h.eave, h.frontChevron, arrowHalf - 0.2);
   }
 
@@ -383,31 +381,42 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
     const chevronRun = faceRun(face, chevron - 0.02, 0.22);
     glazePiers(chevronRun, 14, h.eave, gableAt(chevron - 0.02, h.eave, h.sideChevron), [{ half: arrowHalf + 0.5, height: () => h.sideChevron }]);
     gabled(piers, face, arrowHalf, -0.3, 0.95, h.sideChevron - 9, h.sideChevron, () => 0.5);
-    const arrowRun = faceRun(face, arrowHalf, 0.95);
-    glazeArrow(arrowRun, arrowHalf, h.sideChevron - 9, h.sideChevron, () => 0.5, 15);
+    glazeArrow(face, arrowHalf, 0.95, h.sideChevron - 9, h.sideChevron, () => 0.5, 15);
     coping(face, chevron - 0.02, 0.22, h.eave, h.sideChevron, arrowHalf - 0.2);
   }
 
-  // Narrow panes and thin mullions inside a pointed arrow, clipped to its
-  // sloping head and to whatever it stands on.
-  function glazeArrow(run: Run, half: number, shoulder: number, peak: number, floor: (across: number) => number, side: number) {
+  // Narrow panes and thin mullions inside a pointed arrow. Each pane is a
+  // closed solid clipped to the arrow's sloping head and to the gable it
+  // stands on, so no triangular wedge is left unglazed under either. Bays
+  // split at the arrow's own centre, where both the head and the gable below
+  // turn, which keeps every clip linear over a span and every face planar.
+  function glazeArrow(face: Face, half: number, depth: number, shoulder: number, peak: number, floor: (across: number) => number, side: number) {
     const head = gableAt(half, shoulder, peak);
     const bays = 3, width = (half * 2 - 0.5) / bays;
     for (let bay = 0; bay < bays; bay += 1) {
-      const from = 0.25 + bay * width + 0.09, to = 0.25 + (bay + 1) * width - 0.09;
-      const [a, b] = [from - half, to - half];
-      for (let row = 0; row * pitch < peak; row += 1) {
-        const sill = row * pitch + 0.4, lintel = (row + 1) * pitch - 0.4;
-        const base = Math.max(floor(a), floor(b)) + 0.25;
-        if (lintel <= base) continue;
-        const ceiling = Math.min(head(a), head(b)) - 0.3;
-        if (Math.max(sill, base) >= ceiling) break;
-        strip(paneTone(row, bay, side), run, from, to, Math.max(sill, base), Math.min(lintel, ceiling), 0.02, 0.06);
+      const from = -half + 0.25 + bay * width + 0.09, to = from + width - 0.18;
+      for (const [a, b] of (from < 0 && to > 0 ? [[from, 0], [0, to]] : [[from, to]]) as [number, number][]) {
+        for (let row = 0; row * pitch < peak; row += 1) {
+          const sill = row * pitch + 0.4, lintel = (row + 1) * pitch - 0.4;
+          let pane: [number, number][] = [[a, sill], [b, sill], [b, lintel], [a, lintel]];
+          pane = clip(pane, ([across, y]) => y - floor(across) - 0.25);
+          pane = clip(pane, ([across, y]) => head(across) - 0.3 - y);
+          if (pane.length < 3) {
+            if (sill > head(a) && sill > head(b)) break;
+            continue;
+          }
+          extrude(paneTone(row, bay, side), face, pane, depth + 0.02, depth + 0.06, [pane.map((_, index) => index)]);
+        }
       }
     }
+    const run = faceRun(face, half, depth);
     for (let bay = 1; bay < bays; bay += 1) {
-      const s = 0.25 + bay * width;
-      strip(piers, run, s - 0.07, s + 0.07, Math.max(floor(s - half), 0.3) + 0.3, head(s - half) - 0.25, 0.03, 0.13);
+      const centred = -half + 0.25 + bay * width;
+      // Across the mullion's own width, like every other upright here.
+      const [lo, hi] = [centred - 0.07, centred + 0.07];
+      const bottom = Math.max(floor(lo), floor(hi), 0.3) + 0.3, top = Math.min(head(lo), head(hi)) - 0.25;
+      if (top - bottom < pitch) continue;
+      strip(piers, run, lo + half, hi + half, bottom, top, 0.03, 0.13);
     }
   }
 

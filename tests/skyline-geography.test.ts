@@ -519,23 +519,38 @@ describe("mapped skyline geography", () => {
       expect(probe(8, 230)!.proud).toBeLessThan(0.35);
       expect(probe(14.5, 230)!.proud).toBeLessThan(0.35);
       // Nothing is drawn inside the lower tier. An exterior ray cannot see
-      // buried geometry, so this reads the vertices: no pane or pier may sit
-      // within the tier's own volume, allowing the 2 cm lap the arrow's back
-      // deliberately takes into it.
+      // buried geometry, so this reads the mesh itself: no pane or pier may
+      // sit within the tier's own volume, allowing the 2 cm lap the arrow's
+      // back deliberately takes into it. The gable it hides behind folds at
+      // the facade's centre, so a triangle crossing that fold is sampled there
+      // too: its vertices can straddle the ridge while its interior dips under
+      // it.
       for (const entry of [facing(1, 1), facing(1, -1)]) {
         const middle = middleOf(entry), lowerHalf = entry.length * 0.707 / 2;
+        const local = (x: number, y: number, z: number) => {
+          const dx = x - middle[0], dz = z - middle[1];
+          return [dx * entry.tangent[0] + dz * entry.tangent[1], y, dx * entry.normal[0] + dz * entry.normal[1]] as Vec3;
+        };
         for (const mesh of meshes) {
           if (!/glaz|pier/.test(mesh.name)) continue;
           const position = mesh.geometry.getAttribute("position");
-          for (let i = 0; i < position.count; i += 1) {
-            const dx = position.getX(i) - middle[0], dz = position.getZ(i) - middle[1];
-            const across = dx * entry.tangent[0] + dz * entry.tangent[1], depth = dx * entry.normal[0] + dz * entry.normal[1];
-            const gable = 180.63 - (180.63 - 155.73) * Math.min(1, Math.abs(across) / lowerHalf);
-            // From just outside the middle tier's own face, where its panes
-            // stand, to just inside the lower tier's front, which the arrow's
-            // back deliberately laps 2 cm into.
-            const inside = Math.abs(across) < lowerHalf - 0.02 && depth > 2.21 && depth < 3.9 && position.getY(i) < gable - 0.02;
-            expect(inside, `${mesh.name} vertex buried in the lower tier at ${across.toFixed(2)}, ${depth.toFixed(2)}, ${position.getY(i).toFixed(2)}`).toBe(false);
+          for (let i = 0; i < position.count; i += 3) {
+            const corners = [0, 1, 2].map((k) => local(position.getX(i + k), position.getY(i + k), position.getZ(i + k)));
+            const samples = [...corners];
+            for (let k = 0; k < 3; k += 1) {
+              const a = corners[k]!, b = corners[(k + 1) % 3]!;
+              if ((a[0] > 0) === (b[0] > 0)) continue;
+              const t = a[0] / (a[0] - b[0]);
+              samples.push(a.map((value, axis) => value + t * (b[axis]! - value)) as Vec3);
+            }
+            for (const [across, y, depth] of samples) {
+              const gable = 180.63 - (180.63 - 155.73) * Math.min(1, Math.abs(across) / lowerHalf);
+              // From just outside the middle tier's own face, where its panes
+              // stand, to just inside the lower tier's front, which the
+              // arrow's back deliberately laps 2 cm into.
+              const inside = Math.abs(across) < lowerHalf - 0.02 && depth > 2.21 && depth < 3.9 && y < gable - 0.02;
+              expect(inside, `${mesh.name} buried in the lower tier at ${across.toFixed(2)}, ${depth.toFixed(2)}, ${y.toFixed(2)} under ${gable.toFixed(2)}`).toBe(false);
+            }
           }
         }
       }

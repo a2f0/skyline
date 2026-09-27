@@ -15,10 +15,13 @@ survey or a construction model.
 - The source photograph, cropped with
   `bun scripts/measure-group.ts building-two-prudential-plaza`. It is taken from
   the south-east, so it shows the south facade on the left and the east facade
-  on the right. It establishes that the setback gables sit on the north and
-  south facades, that the pier heads step floor by floor into each gable rather
-  than running to a clean diagonal, and that the crown is a stack of flat
-  setbacks with a lit fascia at each step, not a smooth cone.
+  on the right. It establishes that the setback gables sit on the **south**
+  facade rather than on the wide east one, that the pier heads step floor by
+  floor into each gable rather than running to a clean diagonal, and that the
+  crown is a stack of flat setbacks with a lit fascia at each step, not a
+  smooth cone. The matching north setbacks are mirrored from the south ones and
+  remain an inference, as the fitted model's
+  [reference audit](two-prudential-reference.md) already records.
 - The repository's own fitted model, `models/two-prudential-plaza.ts`, which
   records the drawing's vocabulary: the pointed tiers with paired north/south
   setbacks, piers, glazed chevrons, silver crown bands, louvers, and the
@@ -68,8 +71,12 @@ reads as the published 64 floors.
   photographs show in place of a clean diagonal. A thin coping follows both
   slopes of every gable; without it a gable reads as a line drawn on the
   glazing rather than the edge of a volume.
-- A pointed arrow rises from each gable to the one above, glazed to its sloping
-  head, and a third reaches from the middle gable over the eave to the chevron.
+- A pointed arrow rises from each gable to the one above, and a third reaches
+  from the middle gable over the eave to the chevron. Their panes are closed
+  solids clipped to both the arrow's sloping head and the gable each stands on,
+  and their bays split at the arrow's own centre where both of those turn, so
+  no triangular wedge is left unglazed under either and no pane crosses into
+  the tier below.
 - **The tiers project less than the fitted model's proportions.** The fitted
   tiers stand 10.12 m and 4.23 m proud of its own south wall; scaled by the
   mapped 56.39 m depth over the fitted model's full 59.10 m drawn depth, that
