@@ -30,7 +30,9 @@ const AGENT = /claude|anthropic/i;
 // markdown. Matching the phrase anywhere would reject a commit or a doc that
 // merely describes this rule — as the commit introducing it does.
 const TRAILER = /^co-authored-by\s*:/i;
-const GENERATED = /^[^\p{L}\p{N}]*generated with\b/iu;
+// Leading whitespace, a leading emoji, or markdown emphasis — but not a quote
+// or a bracket, so a line that quotes the rule in prose is not the rule.
+const GENERATED = /^[\s*_>-]*[\u{80}-\u{10FFFF}]?[\s*_>-]*generated with\b/iu;
 export function attributionIn(message: string): string[] {
   return message.split(/\r?\n/).map((line) => line.trim())
     .filter((line) => AGENT.test(line) && (TRAILER.test(line) || GENERATED.test(line)));

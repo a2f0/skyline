@@ -37,7 +37,7 @@ async function main() {
   await suite("building-kit.test.ts");
   // The browser suites exercise the compiled site: build first, then serve dist/.
   await timings.run("build:site", () => buildSite().then(() => undefined));
-  const server = await startServer(dist);
+  const server = await timings.run("serve:dist", () => startServer(dist));
   try {
     const env = { ...process.env, SKYLINE_TEST_URL: server.origin };
     const browserSuite = (file: string) => timings.run(`test:${path.basename(file, ".test.ts")}`, () => run(process.execPath, ["test", `tests/${file}`], env));
@@ -46,7 +46,7 @@ async function main() {
     await browserSuite("skyline-study.test.ts");
     await browserSuite("skyline-geography.test.ts");
   } finally {
-    await server.close();
+    await timings.run("serve:stop", () => server.close());
   }
 }
 

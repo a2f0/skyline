@@ -34,6 +34,17 @@ describe("agent attribution in a message", () => {
     ].join("\n");
     expect(attributionIn(message)).toEqual([]);
   });
+  test("leaves a line that opens by quoting the rule alone", () => {
+    // Leading punctuation is allowed for the emoji the real line carries, not
+    // for a quote mark: a line that starts by quoting the rule is prose.
+    const quoted = '"Generated with Claude Code" is the line this hook rejects.';
+    expect(attributionIn(`docs: explain the gate\n\n${quoted}\n`)).toEqual([]);
+  });
+  test("still catches the real line behind its emoji and markdown", () => {
+    for (const line of [generated, `> ${generated}`, `* ${generated}`, "Generated with Claude Code"]) {
+      expect(attributionIn(`fix: x\n\n${line}\n`).length, line).toBe(1);
+    }
+  });
   test("leaves prose that merely mentions the tool alone", () => {
     // Only a trailer or a generated-with line is attribution. A commit that
     // explains why it touched an agent's own config file is not.

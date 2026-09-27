@@ -6,7 +6,7 @@
 // like a check that is working, unless the test reads why.
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -92,7 +92,7 @@ describe("the installed commit-msg hook", () => {
   const onPath = (directory: string) => ({ ...process.env, PATH: directory });
 
   test("uses bun straight from PATH when it is there", () => {
-    const directory = isolated({ bun: `#!/bin/sh\nexec ${bunPath()} "$@"\n` });
+    const directory = isolated({ bun: `#!/bin/sh\nexec '${bunPath()}' "$@"\n` });
     try {
       const attempt = commit("fix: a clean message", onPath(directory));
       expect(attempt.ok, attempt.output).toBe(true);
@@ -100,7 +100,7 @@ describe("the installed commit-msg hook", () => {
   });
   test("falls back to mise when bun is not on PATH", () => {
     // Only `mise which bun` can succeed here: there is no bun to find.
-    const directory = isolated({ mise: `#!/bin/sh\n[ "$1" = which ] && echo ${bunPath()}\n` });
+    const directory = isolated({ mise: `#!/bin/sh\n[ "$1" = which ] && printf '%s\\n' '${bunPath()}'\n` });
     try {
       const attempt = commit("fix: a clean message", onPath(directory));
       expect(attempt.ok, attempt.output).toBe(true);
@@ -136,14 +136,35 @@ describe("what the installer protects", () => {
       writeFileSync(source, original);
     }
   });
-  test("keeps whatever it replaced", () => {
+  test("leaves a hook it never installed alone", () => {
+    // Somebody else's pre-commit is not this installer's to disable.
     const hooks = path.join(repo, ".git/hooks");
-    expect(existsSync(path.join(hooks, "commit-msg"))).toBe(true);
-    writeFileSync(path.join(hooks, "pre-commit"), "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+    const mine = path.join(hooks, "pre-commit");
+    writeFileSync(mine, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
     execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore" });
-    // Removed, because the repository does not ship it — but recoverable.
-    expect(existsSync(path.join(hooks, "pre-commit"))).toBe(false);
-    expect(existsSync(path.join(hooks, "pre-commit.bak"))).toBe(true);
+    expect(existsSync(mine)).toBe(true);
+  });
+  test("removes a hook it installed once the repository stops shipping it", () => {
+    const hooks = path.join(repo, ".git/hooks");
+    const retired = path.join(repo, "scripts/git/hooks/post-commit");
+    writeFileSync(retired, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore" });
+    expect(existsSync(path.join(hooks, "post-commit"))).toBe(true);
+    rmSync(retired);
+    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore" });
+    expect(existsSync(path.join(hooks, "post-commit"))).toBe(false);
+  });
+  test("replaces a symlinked hook without writing through it", () => {
+    // Copying onto a symlink edits a target that may be shared with other
+    // repositories, and leaves the destination a symlink.
+    const hooks = path.join(repo, ".git/hooks");
+    const shared = path.join(repo, "shared-hook.sh");
+    writeFileSync(shared, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+    rmSync(path.join(hooks, "commit-msg"));
+    symlinkSync(shared, path.join(hooks, "commit-msg"));
+    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore" });
+    expect(lstatSync(path.join(hooks, "commit-msg")).isSymbolicLink()).toBe(false);
+    expect(readFileSync(shared, "utf8")).toBe("#!/bin/sh\nexit 0\n");
   });
   test("leaves no absolute hooks path for a moved clone to lose", () => {
     // core.hooksPath would record this clone's location; Git silently skips a

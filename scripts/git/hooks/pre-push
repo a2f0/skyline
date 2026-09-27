@@ -67,14 +67,16 @@ while read -r _ local_sha _ remote_sha; do
     # what this push actually transfers: an offending commit sitting unpushed on
     # main is carried along by any branch descending from it, and pushing main
     # itself would scan nothing at all. Subtract what this remote already has
-    # instead, which is exactly what the push adds. A push straight to a URL
-    # names no remote, so fall back to every remote: over-scanning refuses a
-    # commit that is already published somewhere, which is noisy but never
-    # lets one through.
+    # instead, which is exactly what the push adds.
+    #
+    # A push straight to a URL names no remote whose refs describe the
+    # destination, so scan the whole branch. That can refuse a commit already
+    # published elsewhere, which is noisy; subtracting some other remote's refs
+    # instead would let one through, which is the failure that matters.
     if [ -n "$push_remote" ] && git config --get "remote.$push_remote.url" >/dev/null 2>&1; then
       set -- "$local_sha" --not "--remotes=$push_remote"
     else
-      set -- "$local_sha" --not --remotes
+      set -- "$local_sha"
     fi
   else
     set -- "$remote_sha..$local_sha"

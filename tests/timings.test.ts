@@ -139,6 +139,19 @@ describe("the log", () => {
       rmSync(directory, { recursive: true, force: true });
     }
   });
+  test("does not let a truncated record swallow the next run", () => {
+    // The partial line a killed run leaves behind must not be joined to the
+    // next one, which would lose both and leave an older run looking latest.
+    const directory = mkdtempSync(path.join(os.tmpdir(), "skyline-timings-"));
+    try {
+      const file = logPath(directory);
+      writeFileSync(file, `${JSON.stringify(sample())}\n{"seconds":1,"steps"`);
+      appendRun(file, sample({ branch: "feature" }));
+      expect(readRuns(file).map((run) => run.branch)).toEqual(["main", "feature"]);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
   test("reads no runs from a file that does not exist", () => {
     expect(readRuns(path.join(os.tmpdir(), "skyline-timings-absent", "nothing.log"))).toEqual([]);
   });

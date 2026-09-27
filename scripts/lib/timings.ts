@@ -94,7 +94,15 @@ export function logPath(gitCommonDir: string): string {
 
 export function appendRun(file: string, run: Run): void {
   mkdirSync(path.dirname(file), { recursive: true });
-  appendFileSync(file, `${JSON.stringify(run)}\n`);
+  // A run killed mid-write leaves a line with no newline. Appending straight
+  // onto it would join the two into one unparseable record, losing this run as
+  // well as that one, and leaving an older run looking like the latest.
+  let existing = "";
+  try {
+    existing = readFileSync(file, "utf8");
+  } catch { /* the first run creates it */ }
+  const separator = existing && !existing.endsWith("\n") ? "\n" : "";
+  appendFileSync(file, `${separator}${JSON.stringify(run)}\n`);
 }
 
 // A run killed mid-write leaves a partial last line; skipping unparseable lines
