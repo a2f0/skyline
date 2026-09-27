@@ -7,7 +7,9 @@ README steps for what to do; read this for why, and for what will bite.
 
 Two models are worked examples. `models/heritage-at-millennium-park.ts` was built by hand and later
 rebuilt on the kit. `models/one-prudential-plaza.ts` was the first built on the kit from the start,
-and most of what follows was learned doing it.
+and most of what follows was learned doing it. Crain, Aon, and One Prudential have since been
+rebuilt as the real buildings, each a shared generator placing a copy from the drawing's datum up
+at one uniform scale; the lessons below held through that too.
 
 ## What the drawing is, and is not
 
@@ -31,16 +33,23 @@ every group carrying it, so one call measures them together.
 **Heights are measured from the study's platform, not the street.** Model `y = 0` projects to layer
 y ≈ 2679 whatever the placement — that is the platform, and every building's silhouette bottom
 reports it. The drawing's own ground lines sit lower, 62 units lower for One Prudential, under a
-ground band the study does not model. That datum is worth ten metres: One Prudential's roof is
-170 m measured from the platform and 180 m from the drawn ground, against the real 183.2 m, and the
-numeric fit agrees with the platform figure to 0.3 m. The remaining three metres are the fit and the
-drawing's own exaggeration.
+ground band the study does not model. The platform is the photograph's treeline, and it crosses each
+tower well above the street: 39.6 m up Crain, 40 m up One Prudential, 30.6 m up Aon. An as-built
+copy therefore starts at that datum, fitted with its placement, rather than at grade.
 
 Two consequences. **Never fit to drawn base corners** — they are below the platform plane, so no
 placement reaches them; an early attempt that included them drove the depth to 86 m and the rotation
 to 30° buying nothing, because the residual was unsatisfiable. And **state the datum wherever a
-height appears**, in the model header and the README, or the model reads as 13 m wrong against any
-published height.
+height appears**, in the model header and the README, or a copy that starts 40 m up reads as 40 m
+short against any published height.
+
+**Check a published height against the photograph before trusting it.** One Prudential's published
+183.2 m is its penthouse's top, not its roof: the drawn roof stands 13.3 m under the drawn screen's
+top, and forty-one floors at the photographed pitch fill 169.5 m. Measure such differences within
+one building, where the camera's own vertical error cancels; an absolute height read through the
+geographic camera moves by metres whenever the camera is refitted. The earlier
+models took 183.2 m as the roof: the fitted one put its 170 m down to the drawing's ground band, and
+the geographic one stood its roof at 181.2 m under a 2 m penthouse.
 
 **Layer space is the group parent's space**, equal to `skyline.svg`'s root and to
 `models/skyline-reference.svg`'s viewBox, which is why the fidelity maths map drawing points
@@ -141,10 +150,11 @@ wander to implausible values: 86 m depths, 30° rotations, a roof twenty metres 
 toward the real building keep the result architecturally plausible, which is what fitting the
 drawing is supposed to mean.
 
-For reference, both fitted buildings needed a plan about 1.3× the real footprint, and their
-exaggerations are internally consistent: One Prudential's tower is 1.324× wide and 1.291× deep, its
-wing 1.327× and 1.267×. One consistent exaggeration is a sign of a sound fit; two unrelated ones are
-a sign of a drifting one.
+For reference, every fitted building needs about 1.3× its real size. Heritage's plan carries it by
+hand; the as-built copies carry it as one uniform scale — Crain 1.276, One Prudential 1.314, Aon
+1.329 — and before its rebuild One Prudential's hand-fitted plan was 1.324× wide and 1.291× deep,
+its wing 1.327× and 1.267×. One consistent exaggeration is a sign of a sound fit; two unrelated ones
+are a sign of a drifting one.
 
 ```
 bun scripts/fidelity-report.ts [--json file] [--root dir]
@@ -204,14 +214,15 @@ panes, and a reviewer caught the buried louvers. The corner piers below did fail
 which is what it is for. The rest of this list is the same family of mistake.
 
 - **A pane set inside the wall is invisible.** The shells have no openings cut in them, so window
-  panes must sit slightly *proud*. Recessing them hid every pane — 1,209 drawn windows then,
-  1,173 in the model today — and the facade rendered as bare vertical stripes.
+  panes must sit slightly *proud*. Recessing them hid every pane — 1,209 drawn windows then — and
+  the facade rendered as bare vertical stripes.
 - **Detail placed at a box's origin is inside the box.** The 49 penthouse louvers were built at the
   screen's origin rather than on its south face, 8.4 m in front of it: 490 triangles, about 13% of
   the model as it then stood, that no camera could reach. Compute the visible face, not the origin.
 - **Piers and ribs belong between bays.** Centring a pier on a window column buries the window.
-- **Clamp end piers inside their face.** One that straddles the corner where two faces meet overlaps
-  the other face's end pier, same-facing and coplanar.
+- **Clamp end piers inside their face, or mitre them.** One that straddles the corner where two
+  faces meet overlaps the other face's end pier, same-facing and coplanar. One Prudential's corner
+  piers now meet on the corner's bisector, as `mitredBox` in `models/facade-grid.ts` builds them.
 - **Skip buried detail by its foot, not its head.** A row whose top clears an abutting volume can
   still be 89% inside it.
 - **Close hand-raised geometry by hand.** Bare `quad`/`triangle` bypass the kit's face recording, so
@@ -219,7 +230,9 @@ which is what it is for. The rest of this list is the same family of mistake.
   omission.
 
 Where one volume buries another's detail, skip it rather than drawing it inside, as Heritage does
-with `towerVisible`/`lowerVisible` and One Prudential does for the east face below its wing roof.
+with `towerVisible`/`lowerVisible` and One Prudential does wherever a wing covers a wall: each run
+starts its piers and windows above whatever covers it, and a pier crossing into a covered run is
+split there.
 
 ## 5. Add the spec
 
@@ -250,8 +263,8 @@ In `tests/skyline-landmarks.ts`, add the model to `models` and a `fitted` entry.
 - **A column array's length must equal `drawn.length`.** The drawn list is the source of truth.
 - **A column set may carry its own `tolerance`.** When one part of a building is drawn less
   consistently than the rest, give that set its own bound and keep the rest tight rather than
-  slackening the whole building. One Prudential's ribs use 0.009 against its tower's 0.003, worst at
-  the ends and at the narrowest viewport. Every bound has to hold at all five layouts the suite
+  slackening the whole building. One Prudential's wing ribs use 0.0021 against its tower's 0.0011,
+  since the drawn podium keeps the tower's module but not quite its projection. Every bound has to hold at all five layouts the suite
   measures — 1440x1000, 1280x800, 768x1024, 620x1400 and the 390x844 mobile page — so measure on all
   five before quoting a number.
 
@@ -277,9 +290,9 @@ by hand:
 - **Ordering assertions** that the drawing fixes, such as a near roof corner rising above both its
   neighbours, through the shared `above()` helper.
 - **Silhouette bounds**, fed by the optional `silhouette` field. Check the geometry that actually
-  reaches furthest, which is not always the obvious part: One Prudential's ribs stand proud of the
-  wing wall yet land 6 to 21 layer units *inside* the drawn edge, while the wall's own north-east
-  corner foot passes it by 2.80, against the 3.06 the assertion allows.
+  reaches furthest, which is not always the obvious part: on One Prudential's wing it is the
+  coping's outer north-east corner, not the wall or its ribs, 0.0029 past the drawn edge at the
+  desktop layout.
 - **Occlusion**, asserted through hover ownership.
 - **The triangle budget**, a two-sided exclusive range. Adding detail can breach the ceiling and
   removing it the floor. Raise it deliberately and say so.
@@ -335,7 +348,7 @@ subsumed another:
 
 | Instrument | Catches | Cannot see |
 | --- | --- | --- |
-| `tests/building-kit.test.ts` | uncovered omissions, same-facing coplanar faces, degenerate or back-wound triangles — watertightness only for the kit's own fixtures, never for a fitted model | a hole no omission records, and geometry that is sound but invisible or buried |
+| `tests/building-kit.test.ts` | uncovered omissions, same-facing coplanar faces, degenerate or back-wound triangles — watertightness for the kit's own fixtures and the as-built copies | a hole no omission records, and geometry that is sound but invisible or buried |
 | Renders | anything that looks wrong | anything that looks right but is measured wrong |
 | Cross-agent review | claims that outrun the code: false comments, tolerances justified by reasoning the measurements refute, stale numbers | nothing it does not think to run |
 
