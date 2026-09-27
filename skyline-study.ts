@@ -1,6 +1,6 @@
 import { createBuildingStudy } from "./study-viewer.js";
 import { createSkylineComparison } from "./skyline-comparison.js";
-import { createCrainBuilding } from "./models/crain-communications.js";
+import { createCrainSkylineBuilding } from "./models/crain-communications.js";
 import { createHeritageAtMillenniumParkBuilding } from "./models/heritage-at-millennium-park.js";
 import { createKemperBuilding } from "./models/kemper.js";
 import { createMichiganPlazaSouthBuilding } from "./models/michigan-plaza-south.js";
@@ -15,7 +15,7 @@ import type { BuildingModel } from "./models/building-kit.js";
 // lens keeps the traced verticals nearly parallel.
 const azimuth = 41.5 * Math.PI / 180;
 const elevation = -2 * Math.PI / 180;
-const crain = createCrainBuilding();
+const crain = createCrainSkylineBuilding();
 const kemper = createKemperBuilding();
 const michigan = createMichiganPlazaSouthBuilding();
 const heritage = createHeritageAtMillenniumParkBuilding();
@@ -32,10 +32,13 @@ function place(model: BuildingModel, across: number, towardCamera: number) {
     -across * Math.sin(azimuth) + towardCamera * Math.cos(azimuth),
   );
 }
-// A small footprint adjustment fits the original drawing without changing
-// the reusable Crain geometry or its single-building study.
-crain.building.scale.set(0.955, 1, 0.955);
-place(crain, 25, 10);
+// The real Crain from the drawing's datum up, fitted through this camera to the drawn
+// diamond and the twenty-nine drawn sills on its left face: 1.276 times its size, the
+// same exaggeration the drawing gives the other fitted towers, and turned 4.86° to meet
+// the drawing's view of its faces. Depth keeps the earlier placement.
+crain.building.scale.setScalar(1.276);
+crain.building.rotation.y = 4.86 * Math.PI / 180;
+place(crain, 25.49, 10);
 place(kemper, -38, -20);
 kemper.building.rotation.y = 9.1 * Math.PI / 180;
 place(michigan, 104, -12);

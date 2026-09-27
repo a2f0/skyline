@@ -45,7 +45,7 @@ interface ModelsEntry {
 const models: ModelsEntry[] = [
   { id: heritage, name: "The Heritage at Millennium Park", module: "./models/heritage-at-millennium-park.ts", factory: "createHeritageAtMillenniumParkBuilding" },
   { id: kemper, name: "Kemper Building", module: "./models/kemper.ts", factory: "createKemperBuilding" },
-  { id: crain, name: "Crain Communications Building", module: "./models/crain-communications.ts", factory: "createCrainBuilding" },
+  { id: crain, name: "Crain Communications Building", module: "./models/crain-communications.ts", factory: "createCrainSkylineBuilding" },
   { id: michigan, name: "Michigan Plaza South", module: "./models/michigan-plaza-south.ts", factory: "createMichiganPlazaSouthBuilding" },
   { id: trump, name: "Trump International Hotel and Tower", module: "./models/trump-international-tower.ts", factory: "createTrumpInternationalTowerBuilding" },
   { id: prudential, name: "One Prudential Plaza", module: "./models/one-prudential-plaza.ts", factory: "createOnePrudentialPlazaBuilding" },
@@ -61,10 +61,6 @@ const landmarks: Landmark[] = [
   ["Kemper left roof", kemper, [-15.5, 141, 26.75], [2440, 1811]],
   ["Kemper near roof", kemper, [15.5, 141, 26.75], [2588, 1803]],
   ["Kemper right roof", kemper, [15.5, 141, -26.75], [2759, 1819]],
-  ["Crain left shoulder", crain, [-27, 135.4, 27], [2748, 1850]],
-  ["Crain right shoulder", crain, [27, 135.4, -27], [3198, 1854]],
-  ["Crain peak", crain, [-27, 177.4, -27], [2945, 1590]],
-  ["Crain near valley", crain, [27, 93.4, 27], [2987, 2130]],
   ["Michigan left roof", michigan, [-23.35, 180, 23.35], [3255, 1577]],
   ["Michigan near roof", michigan, [23.35, 180, 23.35], [3466, 1572]],
   ["Michigan right roof", michigan, [23.35, 180, -23.35], [3662, 1589]],
@@ -98,10 +94,12 @@ const geographicLandmarks: Landmark[] = [
   ["Kemper roof west", kemper, [-230.6, 159, -167.83], [2440, 1811]],
   ["Kemper roof near", kemper, [-196.64, 159, -168.51], [2588, 1803]],
   ["Kemper roof east", kemper, [-197.23, 159, -210.29], [2759, 1819]],
-  ["Crain peak", crain, [-19.28, 177.4, -22.52], [2945, 1590]],
-  ["Crain left shoulder", crain, [-19.14, 136.04, 22.75], [2748, 1850]],
-  ["Crain right shoulder", crain, [18.47, 136.92, -22.79], [3198, 1854]],
-  ["Crain near valley", crain, [18.14, 99.83, 21.18], [2987, 2130]],
+  ["Crain peak west", crain, [-19.68, 177.4, -15.24], [2921.0, 1586.4]],
+  ["Crain peak east", crain, [-19.28, 177.4, -22.52], [2968.4, 1590.6]],
+  ["Crain left shoulder", crain, [-18.83, 144.61, 23.1], [2748.3, 1846.9]],
+  ["Crain right shoulder", crain, [18.82, 143.75, -23.1], [3198.6, 1853.1]],
+  ["Crain foot", crain, [19.68, 110.56, 22.56], [2987.2, 2127.2]],
+  ["Crain step east", crain, [19.43, 117.43, 7.76], [3058.4, 2072.3]],
   ["Heritage screen south", heritage, [-48.68, 192.4, 90.75], [2223.52, 1421.32]],
   ["Heritage screen north", heritage, [-48.32, 192.4, 56.84], [2440.27, 1436.67]],
 ];
@@ -180,6 +178,39 @@ const fitted: FittedSpec[] = [
     columnTolerance: 0.00305,
     // The left silhouette is the stub's drawn edge.
     silhouette: 2062.84,
+  },
+  {
+    id: crain,
+    label: "Crain",
+    features: "crainFeatures",
+    // The drawn diamond: both peaks, both shoulders, the south-west half's foot, and the
+    // east end of the north-east half's flat step over the south-east notch. The drawing
+    // simplifies the slot, flattening its foot and widening it 45% beyond the photograph,
+    // so the slot corners are held to the geometry only.
+    landmarks: {
+      crainPeakWest: [2921.0, 1586.4],
+      crainPeakEast: [2968.4, 1590.6],
+      crainShoulderWest: [2748.3, 1846.9],
+      crainShoulderEast: [3198.6, 1853.1],
+      crainFoot: [2987.2, 2127.2],
+      crainStepEast: [3058.4, 2072.3],
+    },
+    onGeometry: ["crainSlotWest", "crainSlotEast"],
+    onGeometryTolerance: 0.02,
+    // The drawing shows bands, not columns: the ribbon glazing's mullions are finer than it
+    // draws.
+    columns: {},
+    // The twenty-nine sills the left face shows below its shoulder, where each light band
+    // gives way to the glass above it on the drawing's left edge. The lowest few sit highest
+    // against the drawing; the worst, 0.00201, is at the laptop layout.
+    rows: {
+      crainSills: { drawn: [2644.3, 2617.2, 2591.3, 2564.2, 2536.6, 2508.2, 2480.5, 2454.3, 2428.4, 2400, 2372.9, 2345.6, 2319.5, 2289.2, 2263.8, 2234, 2208.7, 2180.6, 2153.9, 2127.2, 2100.9, 2072.5, 2045.2, 2016.8, 1991.4, 1963.8, 1936.7, 1910, 1881.9], tolerance: 0.0022 },
+    },
+    sightGap: [0.05, 1],
+    // Fitted numerically with the placement in skyline-study.ts. The foot and the step are the
+    // worst landmarks, 0.00342 at the laptop layout; the peaks and shoulders stay inside 0.0026.
+    tolerance: 0.004,
+    columnTolerance: 0.001,
   },
   {
     id: trump,
