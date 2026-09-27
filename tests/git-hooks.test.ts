@@ -160,18 +160,50 @@ describe("what the installer protects", () => {
     execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
     expect(existsSync(path.join(hooks, "post-commit"))).toBe(false);
   });
-  test("keeps the first backup when it is reinstalled", () => {
-    // The .bak holds what was there before this installer ever ran; a later
-    // reinstall must not replace it with a copy of the managed hook.
+  test("keeps the first backup across reinstalls, and keeps later replacements too", () => {
+    // The .bak holds what was there before this installer ever ran. A second
+    // install must not overwrite it — but a hook something else replaced in the
+    // meantime must not be destroyed unrecorded either, so the source has to
+    // change between installs for this to pin anything.
     const hooks = path.join(repo, ".git/hooks");
-    const target = path.join(hooks, "commit-msg");
-    rmSync(path.join(hooks, "commit-msg.bak"), { force: true });
-    writeFileSync(target, "#!/bin/sh\n# somebody else's\nexit 0\n", { mode: 0o755 });
-    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-    expect(readFileSync(path.join(hooks, "commit-msg.bak"), "utf8")).toContain("somebody else's");
-    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-    expect(readFileSync(path.join(hooks, "commit-msg.bak"), "utf8")).toContain("somebody else's");
-    rmSync(path.join(hooks, "commit-msg.bak"), { force: true });
+    const source = path.join(repo, "scripts/git/hooks/commit-msg");
+    const shipped = readFileSync(source, "utf8");
+    const bak = path.join(hooks, "commit-msg.bak"), previous = path.join(hooks, "commit-msg.bak.previous");
+    for (const stale of [bak, previous]) rmSync(stale, { force: true });
+    try {
+      writeFileSync(path.join(hooks, "commit-msg"), "#!/bin/sh\n# somebody else's\nexit 0\n", { mode: 0o755 });
+      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
+      expect(readFileSync(bak, "utf8")).toContain("somebody else's");
+      // A third party replaces the managed hook, and the shipped one changes,
+      // so the installer genuinely has something different to write.
+      writeFileSync(path.join(hooks, "commit-msg"), "#!/bin/sh\n# another manager\nexit 0\n", { mode: 0o755 });
+      writeFileSync(source, `${shipped}\n# a later revision\n`);
+      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
+      expect(readFileSync(bak, "utf8"), "the original backup survives").toContain("somebody else's");
+      expect(readFileSync(previous, "utf8"), "the later replacement is kept too").toContain("another manager");
+    } finally {
+      writeFileSync(source, shipped);
+      for (const stale of [bak, previous]) rmSync(stale, { force: true });
+      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
+      for (const stale of [bak, previous]) rmSync(stale, { force: true });
+    }
+  });
+  test("refuses a hooks path that points back at its own sources", () => {
+    // install_file removes the destination before copying, so a hooks path
+    // inside scripts/ would delete the tracked source and then fail.
+    git(["config", "core.hooksPath", "scripts/git/hooks"]);
+    try {
+      let failed = false;
+      try {
+        execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "pipe", env: hermetic(process.env) });
+      } catch { failed = true; }
+      expect(failed, "the installer must refuse rather than delete its own source").toBe(true);
+      expect(existsSync(path.join(repo, "scripts/git/hooks/commit-msg"))).toBe(true);
+      expect(existsSync(path.join(repo, "scripts/check-coauthors.ts"))).toBe(true);
+    } finally {
+      git(["config", "--unset", "core.hooksPath"]);
+      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
+    }
   });
   test("replaces a symlinked hook without writing through it", () => {
     // Copying onto a symlink edits a target that may be shared with other

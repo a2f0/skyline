@@ -45,18 +45,35 @@ else
   HOOKS_DST="$DEFAULT_HOOKS"
 fi
 CHECK="check-coauthors.ts"
+
+# A hooks path pointing back at the source tree would make a hook its own
+# source: install_file removes the destination first, so it would delete a
+# tracked file and then fail to copy it. Refuse rather than destroy anything.
+case "$HOOKS_DST/" in
+  "$REPO_ROOT/scripts/"*)
+    echo "Error: core.hooksPath resolves to $HOOKS_DST, inside this repository's scripts." >&2
+    echo "       That is where the hooks are kept; installing there would delete them." >&2
+    exit 1
+    ;;
+esac
 MANIFEST="$HOOKS_DST/.skyline-installed"
 mkdir -p "$HOOKS_DST"
 
 # -P so a symlinked hook is preserved as a symlink rather than flattened into a
 # copy of whatever it pointed at.
-# Never overwrite an existing .bak: the first one holds whatever was there
-# before this installer ever ran, and a later reinstall would replace it with a
-# copy of the managed hook, losing the very thing the backup promised to keep.
+# .bak holds whatever was there before this installer ever ran and is never
+# overwritten — a later reinstall replacing it with a copy of the managed hook
+# would lose the very thing it promised to keep. Anything replaced after that
+# still gets kept, as .bak.previous, so nothing is destroyed unrecorded.
 save() {
-  if [ -e "$1" ] && [ ! -e "$1.bak" ] && ! cmp -s "$1" "$2"; then
+  [ -e "$1" ] || return 0
+  cmp -s "$1" "$2" && return 0
+  if [ ! -e "$1.bak" ]; then
     cp -P "$1" "$1.bak"
     echo "Kept the previous $(basename "$1") as $(basename "$1").bak"
+  elif ! cmp -s "$1" "$1.bak"; then
+    cp -P "$1" "$1.bak.previous"
+    echo "Kept the replaced $(basename "$1") as $(basename "$1").bak.previous"
   fi
 }
 
@@ -98,9 +115,8 @@ if [ -f "$MANIFEST" ]; then
 "*) continue ;;
     esac
     if [ -e "$HOOKS_DST/$previous" ]; then
-      # Something may have replaced it since; keep whatever is there, unless an
-      # older backup already holds what came before this installer.
-      [ -e "$HOOKS_DST/$previous.bak" ] || cp -P "$HOOKS_DST/$previous" "$HOOKS_DST/$previous.bak"
+      # Something may have replaced it since; keep whatever is there.
+      save "$HOOKS_DST/$previous" /dev/null
       rm -f "$HOOKS_DST/$previous"
       echo "Removed $previous, which this installer no longer ships; kept it as $previous.bak"
     fi

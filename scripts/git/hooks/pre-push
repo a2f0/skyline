@@ -83,9 +83,14 @@ while read -r _ local_sha _ remote_sha; do
   else
     # Git can advertise a tip this clone has never fetched — a narrow refspec,
     # or a push to another remote's branch. Asking git log for it would die on
-    # the unknown object and block a clean push for an unrelated reason, so
-    # fall back to what no remote has, which over-scans rather than failing.
-    set -- "$local_sha" --not --remotes
+    # the unknown object and block a clean push for an unrelated reason.
+    #
+    # Scan the whole branch. Subtracting --remotes here would exclude commits
+    # that sit on some other remote but not on this destination, which is an
+    # under-scan: the same mistake as subtracting them for a push to a URL.
+    # Refusing a commit already published elsewhere is noise; letting one
+    # through is the failure that matters.
+    set -- "$local_sha"
   fi
 
   "$BUN" "$CHECK" --range "$@" </dev/null
