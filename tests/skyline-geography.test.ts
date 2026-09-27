@@ -590,6 +590,28 @@ describe("mapped skyline geography", () => {
         expect(probeOn(side, 0, 150)!.name).toMatch(/pier/);
         near(probeOn(side, 0, 250)!.proud, 1.01, 0.03);
       }
+      // Nor inside a coping. The band is 1.41 m deep and stands 0.42 m proud
+      // of the face, so a pane or pier reaching its underside disappears
+      // behind it. Where the coping is exposed - outside the arrow it dies
+      // into - nothing else may enter its band.
+      for (const entry of [facing(1, 1), facing(1, -1)]) {
+        const middle = middleOf(entry), arrowHalf = entry.length * 0.198 / 2;
+        for (const [fraction, shoulder, peak, front] of [[0.707, 155.73, 180.63, 4], [0.84, 196.09, 224.79, 2.2]] as [number, number, number, number][]) {
+          const half = entry.length * fraction / 2;
+          for (const mesh of meshes) {
+            if (!/glaz|pier/.test(mesh.name)) continue;
+            const position = mesh.geometry.getAttribute("position");
+            for (let i = 0; i < position.count; i += 1) {
+              const dx = position.getX(i) - middle[0], dz = position.getZ(i) - middle[1];
+              const across = dx * entry.tangent[0] + dz * entry.tangent[1], depth = dx * entry.normal[0] + dz * entry.normal[1];
+              if (Math.abs(across) < arrowHalf + 0.2 || Math.abs(across) > half - 0.12) continue;
+              if (depth < front - 0.11 || depth > front + 0.43) continue;
+              const head = peak - (peak - shoulder) * Math.min(1, Math.abs(across) / half);
+              expect(position.getY(i) < head - 1.4 + 0.001, `${mesh.name} reaches into the coping at ${across.toFixed(2)}, ${position.getY(i).toFixed(2)} under ${head.toFixed(2)}`).toBe(true);
+            }
+          }
+        }
+      }
       // Detail crosses the joints where the mapped tracing splits a wall. The
       // north wall is two traced edges; a pane spanning their joint is the
       // same surface at the joint as on either side of it. Reserving clearance

@@ -70,7 +70,9 @@ reads as the published 64 floors.
   heads stop on a floor line, which is the sawtooth edge the drawing and the
   photographs show in place of a clean diagonal. A thin coping follows both
   slopes of every gable; without it a gable reads as a line drawn on the
-  glazing rather than the edge of a volume.
+  glazing rather than the edge of a volume. Panes and pier heads stop below
+  its underside; reaching into it would hide them behind a band standing
+  0.42 m proud of the face they sit on.
 - A pointed arrow rises from each gable to the one above, and a third reaches
   from the middle gable over the eave to the chevron. Their panes are closed
   solids clipped to both the arrow's sloping head and the gable each stands on,
