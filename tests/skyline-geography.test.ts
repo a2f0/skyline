@@ -8,6 +8,7 @@ import { projectGround, footprintMetrics, createGeographicBuilding } from "../mo
 import { floorLevel, onePrudentialLevels, wallStations } from "../models/one-prudential-tower.js";
 import { trumpSpire } from "../models/trump-geographic.js";
 import { trumpLevels } from "../models/trump-tower.js";
+import { northWabashFloors } from "../models/north-wabash-geographic.js";
 import { crain, geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 
@@ -59,10 +60,10 @@ describe("mapped skyline geography", () => {
   test("places each mapped building with closed geometry and its published height", () => {
     const expected: Record<string, Vec3> = {
       Heritage: [-65.7, -91.7, 192.4], Kemper: [-204, 188.9, 159], Crain: [0, 0, 177.4],
-      "Michigan Plaza S": [117.1, 139, 168.6], Trump: [-123.3, 449.4, 423.2],
+      "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
     };
-    expect(geographicBuildings.length).toBe(8);
+    expect(geographicBuildings.length).toBe(9);
     for (const record of geographicBuildings) {
       const metrics = footprintMetrics(record.footprint.coordinates);
       const [east, north, height] = expected[record.shortName]!;
@@ -383,6 +384,64 @@ describe("mapped skyline geography", () => {
         return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
       }));
       expect([...mapped].every((corner) => grade.has(corner))).toBe(true);
+    });
+  });
+
+  describe("330 North Wabash", () => {
+    test("keeps the mapped slab, its bronze curtain wall, louvered plant floors, and plaza", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "330 N Wabash")!;
+      const model = models["330 N Wabash"]!;
+      model.building.updateMatrixWorld(true);
+      const ray = new THREE.Raycaster();
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const hit = (hitOrigin: Vec3, direction: Vec3, targets: THREE.Object3D[] = meshes) => {
+        ray.set(new THREE.Vector3(...hitOrigin), new THREE.Vector3(...direction));
+        return ray.intersectObjects(targets, false)[0];
+      };
+      const tone = (found: THREE.Intersection) => (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
+      // The flat roof at the mapped 695 ft.
+      near(hit([-217, 250, -425], [0, -1, 0])!.point.y, 211.84, 0.001);
+      // From the south, the curtain wall's cells: a spandrel on an office floor's line and
+      // the glass above it, the louvers of the top plant floors, the lobby's glass on the
+      // plaza, and the granite below the plaza.
+      const skin = meshes.filter((mesh) => mesh.name === "330 North Wabash · glass, spandrels and louvers");
+      const fromSouth = (height: number, targets = skin) => hit([-216.5, height, -360], [0, 0, -1], targets)!;
+      const floor = northWabashFloors[30]!;
+      const spandrelCell = fromSouth(floor + 0.2), glassCell = fromSouth(floor + 2), louverCell = fromSouth(206), lobbyCell = fromSouth(12);
+      for (const cell of [spandrelCell, glassCell, louverCell, lobbyCell]) expect(cell.point.z).toBeGreaterThan(-383.7);
+      const [spandrel, louver, lobby] = [0x262626, 0x353535, 0x3a3a3a].map((hex) => new THREE.Color(hex).r);
+      expect(Math.abs(tone(spandrelCell) - spandrel!), "a spandrel on the floor line").toBeLessThan(0.002);
+      expect(Math.abs(tone(glassCell) - spandrel!), "glass above it").toBeGreaterThan(0.001);
+      expect(Math.abs(tone(louverCell) - louver!), "louvers at the top").toBeLessThan(0.002);
+      expect(Math.abs(tone(lobbyCell) - lobby!), "the lobby's glass").toBeLessThan(0.002);
+      // The two mechanical floors above the sixteenth, 72.7 to 82 m, carry louvers too.
+      expect(Math.abs(tone(fromSouth(75)) - louver!), "louvers above the sixteenth floor").toBeLessThan(0.002);
+      // Below the plaza, granite.
+      const plinth = fromSouth(4, meshes);
+      expect(plinth.object.name).toBe("330 North Wabash · shell");
+      expect(Math.abs(tone(plinth) - new THREE.Color(0x464646).r), "granite below the plaza").toBeLessThan(0.002);
+      // Along the south face, the I-beam mullions stand one 5 ft module apart in front of
+      // the glass, and bronze columns stand in front of the lobby on the 40 ft bays.
+      const frames = meshes.filter((mesh) => mesh.name === "330 North Wabash · bronze mullions and columns");
+      const standing = (height: number, from: number, to: number) => {
+        const hits: number[] = [];
+        for (let x = from; x <= to; x += 0.05) { const found = hit([x, height, -360], [0, 0, -1], frames); if (found && found.point.z > -383.7) hits.push(x); }
+        return hits.filter((x, i) => i === 0 || x - hits[i - 1]! > 0.2);
+      };
+      const mullions = standing(floor + 2, -230, -205);
+      expect(mullions.length, "mullions across 25 m of the south face").toBeGreaterThanOrEqual(15);
+      const gaps = mullions.slice(1).map((x, i) => x - mullions[i]!);
+      expect(Math.max(...gaps) - Math.min(...gaps), "mullions one module apart").toBeLessThan(0.15);
+      expect(Math.abs(gaps.reduce((a, b) => a + b, 0) / gaps.length - 1.52), "a 5 ft module").toBeLessThan(0.05);
+      const columns = standing(11, -236, -197);
+      expect(columns.length, "the lobby's columns on the south face's 40 ft bays").toBe(4);
+      // The mapped outline at grade.
+      const shell = meshes.find((mesh) => mesh.name === "330 North Wabash · shell")!;
+      const vertices = shell.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((c) => { const [east, north] = projectGround(c); return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(","); }));
+      expect(grade).toEqual(mapped);
     });
   });
 
@@ -884,7 +943,7 @@ describe("geographic layout in the study", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    expect(await page.locator("#dimensions-body tr").count()).toBe(8);
+    expect(await page.locator("#dimensions-body tr").count()).toBe(9);
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
@@ -894,13 +953,13 @@ describe("geographic layout in the study", () => {
     // the geographic origin, so its bounds locate the scene's offset.
     const crainBounds = (await page.evaluate(() => window.__buildingStudy!.modelBounds)).find((b) => b.id === crain)!;
     const eye = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    near(eye[0]! - (crainBounds.min[0]! + crainBounds.max[0]!) / 2, 1481.06, 0.5);
+    near(eye[0]! - (crainBounds.min[0]! + crainBounds.max[0]!) / 2, 1471.76, 0.5);
     near(eye[1]!, 2, 1e-6);
-    near(eye[2]! - (crainBounds.min[2]! + crainBounds.max[2]!) / 2, 1955.01, 0.5);
+    near(eye[2]! - (crainBounds.min[2]! + crainBounds.max[2]!) / 2, 1948.8, 0.5);
     // Mapped roofs and tips land on their drawn positions in the reference frame's
     // layer units. The worst are drawn heights that differ from the published ones,
     // such as Two Prudential's eaves, drawn about 100 units below their mapped 240 m;
-    // the fit's RMS is 47.2. The same eye and frame hold at every layout, so each point
+    // the fit's RMS is 45.5. The same eye and frame hold at every layout, so each point
     // lands on the same spot. The skyline test's layouts all have canvases narrower than
     // the frame; 1440x800's is wider, so the field of view fits the frame's height.
     const placed: Record<string, [number, number][]> = {};
@@ -924,7 +983,7 @@ describe("geographic layout in the study", () => {
         squares += error * error;
         (placed[name] ||= []).push(measured[i]!);
       });
-      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${size.width}x${size.height}`).toBeLessThan(47.8);
+      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${size.width}x${size.height}`).toBeLessThan(46.1);
     }
     for (const [name, points] of Object.entries(placed)) for (const point of points) {
       expect(Math.hypot(point[0] - points[0]![0], point[1] - points[0]![1]), `${name} holds its drawn place at every layout`).toBeLessThan(0.05);
@@ -1034,7 +1093,8 @@ describe("geographic layout in the study", () => {
     await settle(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "table scrolls without widening mobile page").toBe(true);
     const projected = await page.evaluate(() => window.__buildingStudy!.modelBounds.map(({ id, min, max }) => ({ id, min, max })));
-    expect(projected.length).toBe(8);
+    // The eight drawn buildings and 330 North Wabash, which only the geographic layout maps.
+    expect(projected.length).toBe(9);
     await page.screenshot({ path: "/tmp/skyline-geographic-mobile.png" });
     const frame = await page.evaluate(() => window.__buildingStudy!.renderCount);
     await page.waitForTimeout(180);

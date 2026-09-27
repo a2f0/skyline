@@ -66,7 +66,7 @@ The Heritage plan, heights, and placement were fitted numerically through the sk
 
 In `skyline-study.html`, **geographic layout** switches the same eight buildings
 to local OpenStreetMap footprints and parts, with published overall heights
-(Kemper uses OSM's height). It opens on the skyline view from the drawing's
+(Kemper uses OSM's height), and adds 330 North Wabash. It opens on the skyline view from the drawing's
 own camera: the source photograph's vantage on the lakefront by the Adler
 Planetarium, fitted to the mapped roofs and tips while the buildings stay where
 they are mapped. **Ground plan** gives a north-up orthographic plan with street
@@ -97,7 +97,13 @@ projecting cap at meter scale, on OSM's 159 m height; see its
 Michigan Plaza South has a detailed one as well: its mapped outline carries the
 44-story curtain-wall grid, pale mullions, and a roof parapet at the published
 168.6 m top; see its
-[reference audit](docs/michigan-plaza-south-geographic-reference.md).
+[reference audit](docs/michigan-plaza-south-geographic-reference.md). From the
+photograph's viewpoint it stands behind One Prudential: the tower the drawing
+labels Michigan Plaza South is 330 North Wabash, whose mapped roof corners land
+on the drawn ones. The geographic layout adds it, Mies van der Rohe's bronze
+curtain wall on the 5 ft module to the mapped 211.84 m, with its lobby on the
+25 ft plaza and louvered plant floors; see its
+[reference audit](docs/north-wabash-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the
@@ -124,7 +130,7 @@ corners, the 346.3 m enclosure, and the inferred antenna at the published
 Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
-for the coordinate system, eight footprint records, height definitions, OSM
+for the coordinate system, nine footprint records, height definitions, OSM
 attribution, and limitations. All runtime data is checked in locally.
 
 ## Adding a building to the skyline study
