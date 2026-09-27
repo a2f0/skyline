@@ -70,6 +70,13 @@ describe("the tables", () => {
     const failed = sample({ status: "failed", steps: [{ label: "test:building-kit", seconds: 428.4, status: "failed" }] });
     expect(stepTable(failed)).toContain("failed");
   });
+  test("marks a run that died outside any timed step, which has no failing row", () => {
+    // A bad SKYLINE_BASE_SHA or a server that would not start: every row it
+    // managed to record passed, and only the run's own status says otherwise.
+    const outside = sample({ status: "failed" });
+    expect(outside.steps.every((step) => step.status === "passed")).toBe(true);
+    expect(stepTable(outside)).toContain("FAILED");
+  });
   test("lists runs by clock time and result", () => {
     const text = runTable([sample(), sample({ started: "2026-09-27T08:12:55.000Z", seconds: 512.5, status: "failed" })]);
     expect(text).toContain("07:41:02");
@@ -113,6 +120,21 @@ describe("the log", () => {
       const file = logPath(directory);
       writeFileSync(file, `${JSON.stringify(sample())}\nnot json\n{"started":"x"}\n{"seconds":1,"steps"`);
       expect(readRuns(file).map((run) => run.branch)).toEqual(["main"]);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+  test("skips a record that parses but whose steps are malformed", () => {
+    // This one is valid JSON and has the fields a shallow check looks at, so it
+    // reaches the table and crashes it, hiding every good run behind it.
+    const directory = mkdtempSync(path.join(os.tmpdir(), "skyline-timings-"));
+    try {
+      const file = logPath(directory);
+      const malformed = JSON.stringify({ started: "x", branch: "main", seconds: 1, status: "passed", steps: [{}] });
+      writeFileSync(file, `${malformed}\n${JSON.stringify(sample())}\n`);
+      const runs = readRuns(file);
+      expect(runs.map((run) => run.branch)).toEqual(["main"]);
+      expect(() => stepTable(runs[0]!)).not.toThrow();
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }

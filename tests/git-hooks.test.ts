@@ -6,7 +6,7 @@
 // like a check that is working, unless the test reads why.
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -44,6 +44,7 @@ beforeAll(() => {
   git(["config", "tag.gpgsign", "false"]);
   mkdirSync(path.join(repo, "scripts/git"), { recursive: true });
   cpSync(path.join(root, "scripts/check-coauthors.ts"), path.join(repo, "scripts/check-coauthors.ts"));
+  cpSync(path.join(root, "scripts/lib"), path.join(repo, "scripts/lib"), { recursive: true });
   cpSync(path.join(root, "scripts/git/hooks"), path.join(repo, "scripts/git/hooks"), { recursive: true });
   cpSync(path.join(root, "scripts/git/install-hooks.sh"), path.join(repo, "scripts/git/install-hooks.sh"));
   cpSync(path.join(root, "mise.toml"), path.join(repo, "mise.toml"));
@@ -86,7 +87,8 @@ describe("the installed commit-msg hook", () => {
     for (const [name, body] of Object.entries(fakes)) writeFileSync(path.join(directory, name), body, { mode: 0o755 });
     return directory;
   };
-  const bunPath = () => execFileSync("mise", ["which", "bun"], { encoding: "utf8" }).trim();
+  // The bun already running this suite, so the test needs no mise on the host.
+  const bunPath = () => process.execPath;
   const onPath = (directory: string) => ({ ...process.env, PATH: directory });
 
   test("uses bun straight from PATH when it is there", () => {
@@ -115,6 +117,39 @@ describe("the installed commit-msg hook", () => {
       expect(attempt.output).toContain("mise use");
       expect(attempt.output).not.toContain("agent attribution");
     } finally { rmSync(directory, { recursive: true, force: true }); }
+  });
+});
+
+describe("what the installer protects", () => {
+  test("refuses to run when the worktree's check has moved on from the installed copy", () => {
+    // The hooks run their own copy, so a branch editing the worktree cannot
+    // change what the gate does. It must say so rather than enforce the old
+    // rule silently.
+    const source = path.join(repo, "scripts/check-coauthors.ts");
+    const original = readFileSync(source, "utf8");
+    try {
+      writeFileSync(source, `${original}\n// a branch edits the check\n`);
+      const attempt = commit("fix: a clean message");
+      expect(attempt.ok).toBe(false);
+      expect(attempt.output).toContain("install-hooks.sh");
+    } finally {
+      writeFileSync(source, original);
+    }
+  });
+  test("keeps whatever it replaced", () => {
+    const hooks = path.join(repo, ".git/hooks");
+    expect(existsSync(path.join(hooks, "commit-msg"))).toBe(true);
+    writeFileSync(path.join(hooks, "pre-commit"), "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore" });
+    // Removed, because the repository does not ship it — but recoverable.
+    expect(existsSync(path.join(hooks, "pre-commit"))).toBe(false);
+    expect(existsSync(path.join(hooks, "pre-commit.bak"))).toBe(true);
+  });
+  test("leaves no absolute hooks path for a moved clone to lose", () => {
+    // core.hooksPath would record this clone's location; Git silently skips a
+    // path that no longer exists, so both gates would fail open after a move.
+    const configured = git(["config", "--get", "core.hooksPath"]);
+    expect(configured.ok).toBe(false);
   });
 });
 

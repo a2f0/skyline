@@ -76,7 +76,11 @@ function table(headings: [string, string, string], rows: [string, string, string
 
 export function stepTable(run: Run): string {
   const rows = run.steps.map((step) => [step.label, seconds(step.seconds), step.status === "failed" ? "failed" : ""] as [string, string, string]);
-  return [table(["step", "seconds", ""], rows), `${"total".padEnd(Math.max(4, ...run.steps.map((step) => step.label.length)))}  ${seconds(run.seconds).padStart(7)}`].join("\n");
+  // The total carries the run's own status, because a run can die outside any
+  // timed step — a bad argument, a server that would not start — and then every
+  // row it has shows as passed.
+  rows.push(["total", seconds(run.seconds), run.status === "failed" ? "FAILED" : ""]);
+  return table(["step", "seconds", ""], rows);
 }
 
 export function runTable(runs: Run[]): string {
@@ -106,7 +110,15 @@ export function readRuns(file: string): Run[] {
     if (!line.trim()) return [];
     try {
       const run = JSON.parse(line) as Run;
-      return Array.isArray(run.steps) && typeof run.seconds === "number" ? [run] : [];
+      // Every field the tables read, not just the two that are easy to check:
+      // one malformed record must not be able to crash the report and hide
+      // every good run behind it.
+      const sound = typeof run.seconds === "number" && typeof run.started === "string"
+        && typeof run.branch === "string" && (run.status === "passed" || run.status === "failed")
+        && Array.isArray(run.steps)
+        && run.steps.every((step) => step && typeof step.label === "string" && typeof step.seconds === "number"
+          && (step.status === "passed" || step.status === "failed"));
+      return sound ? [run] : [];
     } catch {
       return [];
     }

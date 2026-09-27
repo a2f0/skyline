@@ -14,7 +14,22 @@ if ! cmp -s "$0" "$REPO_ROOT/scripts/git/hooks/pre-push"; then
   exit 1
 fi
 
+# The gate runs its own installed copy of the check, so editing the worktree
+# cannot change what it enforces; this refuses to run when the two have
+# diverged, the same contract the hook body has.
+# Parameter expansion, not dirname: one less command a hook's
+# environment has to carry.
+CHECK="${0%/*}/check-coauthors.ts"
+if ! cmp -s "$CHECK" "$REPO_ROOT/scripts/check-coauthors.ts"; then
+  echo "Error: the installed attribution check is stale. Run sh scripts/git/install-hooks.sh." >&2
+  exit 1
+fi
+
 cd "$REPO_ROOT"
+
+# Git names the remote being pushed to. Captured before the loop, which reuses
+# the positional parameters to build each range.
+push_remote="${1:-}"
 
 # Hooks run with the invoking process's PATH, which for a GUI client or a shell
 # without mise activated does not carry bun. Falling through to "bun: not found"
@@ -51,12 +66,19 @@ while read -r _ local_sha _ remote_sha; do
     # A branch the remote does not have yet. Subtracting local main would miss
     # what this push actually transfers: an offending commit sitting unpushed on
     # main is carried along by any branch descending from it, and pushing main
-    # itself would scan nothing at all. Subtract what the remotes already have
-    # instead, which is exactly what the push adds.
-    set -- "$local_sha" --not --remotes
+    # itself would scan nothing at all. Subtract what this remote already has
+    # instead, which is exactly what the push adds. A push straight to a URL
+    # names no remote, so fall back to every remote: over-scanning refuses a
+    # commit that is already published somewhere, which is noisy but never
+    # lets one through.
+    if [ -n "$push_remote" ] && git config --get "remote.$push_remote.url" >/dev/null 2>&1; then
+      set -- "$local_sha" --not "--remotes=$push_remote"
+    else
+      set -- "$local_sha" --not --remotes
+    fi
   else
     set -- "$remote_sha..$local_sha"
   fi
 
-  "$BUN" "$REPO_ROOT/scripts/check-coauthors.ts" --range "$@" </dev/null
+  "$BUN" "$CHECK" --range "$@" </dev/null
 done <"$refs_file"
