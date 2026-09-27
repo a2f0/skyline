@@ -16,18 +16,39 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     top: { azimuth: 0, polar: 0, projection: "orthographic", label: "ground plan · north up", fit: commonFit, target: commonTarget },
     heights: { azimuth: 0.65, polar: 1.18, projection: "orthographic", label: "height comparison", fit: commonFit, target: [commonTarget[0], 155, commonTarget[2]] },
   };
+  // The drawing traces a lakefront photograph. Fitting the mapped buildings'
+  // roofs and tips to their drawn positions (scripts/fit-geographic-camera.ts)
+  // puts its eye on the shore by the Adler Planetarium, 2 m above the street
+  // datum, looking up at the skyline. The buildings stay where they are mapped;
+  // only the camera is fitted. Eye positions are meters east, up, and south of
+  // Crain's mapped centre.
+  const photoEye: Vec3 = [1540.4, 2, 2067.92];
+  const photoAzimuth = 35.8132 * Math.PI / 180, photoPolar = 93.8492 * Math.PI / 180;
+  // The reference excerpt's frame: its vertical field of view and its viewBox aspect.
+  const frameFov = 10.0586 * Math.PI / 180, frameAspect = 4430 / 3535.05;
+  const back: Vec3 = [Math.sin(photoPolar) * Math.sin(photoAzimuth), Math.cos(photoPolar), Math.sin(photoPolar) * Math.cos(photoAzimuth)];
+  // Orbit and zoom pivot on the sightline at Crain's depth.
+  const photoDistance = photoEye[0] * back[0] + photoEye[1] * back[1] + photoEye[2] * back[2];
+  const frameHeight = 2 * photoDistance * Math.tan(frameFov / 2);
+  const photoView: Partial<StudyView> = {
+    azimuth: photoAzimuth,
+    polar: photoPolar,
+    distance: photoDistance,
+    target: [anchor.x + photoEye[0] - photoDistance * back[0], photoEye[1] - photoDistance * back[1], anchor.z + photoEye[2] - photoDistance * back[2]],
+    fit: { width: frameHeight * frameAspect, height: frameHeight },
+  };
   const layouts: Record<string, StudyLayout> = {
     geographic: {
       models: geographicModels,
       extras: [ground.group],
-      defaultView: "top",
+      defaultView: "skyline",
       target: [commonTarget[0], 155, commonTarget[2]],
       fit: { width: 1100, height: 950 },
       platform: { width: 1200, depth: 1400, x: commonTarget[0], z: commonTarget[2] },
       clippingMargin: 1800,
       lightPosition: [-700, 1100, 500],
       shadowCamera: { left: -1100, right: 1100, top: 1100, bottom: -1100, near: 1, far: 2600 },
-      views: { skyline: { polar: Math.PI / 2 - 0.08 } },
+      views: { skyline: photoView },
     },
   };
 
@@ -81,7 +102,7 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     const geographic = name === "geographic";
     streetButton.disabled = !geographic;
     document.querySelector<HTMLElement>("#layout-status")!.textContent = geographic
-      ? "Geographic layout · mapped footprints and published heights, with detailed facades on all eight buildings. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
+      ? "Geographic layout · mapped footprints and published heights, with detailed facades on all eight buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
       : "Original layout · proportions and spacing fitted to the drawing. Use ground plan or height comparison, then toggle layouts to compare at the same camera scale.";
     document.querySelector<HTMLElement>("#model-caption")!.textContent = geographic ? "02 / geographic study" : "02 / original 3D study";
   }
