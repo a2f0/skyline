@@ -56,7 +56,7 @@ construction drawings.
 
 The photograph shows Trump from about 200 m up, above One Prudential. Its heights are
 measured down from the published tip through the recovered camera, as differences within
-the building, which cancel that camera's own vertical error. The drawn tip reads 423.5 m
+the building, which cancel that camera's own vertical error. The drawn tip reads 421.3 m
 before that correction.
 
 The map's 345 m shaft and 357 m crown run about ten metres low against the photograph.

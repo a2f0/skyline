@@ -11,20 +11,20 @@ photograph, not a survey or construction drawings.
 The drawing labels the tall dark tower left of One Prudential "Michigan Plaza South". Through
 the photograph's recovered camera (see [the geographic audit](skyline-geography.md#skyline-camera)),
 the mapped Michigan Plaza South, 205 North Michigan Avenue, stands behind One Prudential,
-790–930 layer units right of the drawn tower, from 4045 to 4595.
+790–930 layer units right of the drawn tower, from 4043 to 4594.
 
 Projecting every mapped building in the area through the same camera finds 330 North
 Wabash, at 2.9 km from the camera, where the drawn tower stands:
 
 | Drawn roof point | Drawn | Mapped 330 North Wabash at 211.84 m |
 | --- | --- | --- |
-| West end | 3254.8, 1577.3 | 3264.8, 1576.4 |
-| Near corner | 3466.0, 1572.4 | 3469.6, 1566.1 |
-| East end | 3661.6, 1588.6, where One Prudential covers it | East face runs on behind One Prudential to 3770.5 |
+| West end | 3254.8, 1577.3 | 3262.8, 1567.6 |
+| Near corner | 3466.0, 1572.4 | 3467.8, 1557.3 |
+| East end | 3661.6, 1588.6, where One Prudential covers it | East face runs on behind One Prudential to 3769.1 |
 
-Read through the camera, the drawn roof stands at 210.9–211.7 m against the mapped 211.84 m.
+Read through the camera, the drawn roof stands at 209.6–210.4 m against the mapped 211.84 m.
 No other mapped building reaches the drawn roof there: the tallest in that part of the
-frame, MILA and Millennium Park Plaza, top out 280 and 435 layer units lower. In the photograph the tower is a dark
+frame, MILA and Millennium Park Plaza, top out 270 and 425 layer units lower. In the photograph the tower is a dark
 slab with lit floors, a louvered band at the top, and a flat roof. The mapped Michigan Plaza
 South stays in the geographic layout, where the photograph could not show it.
 

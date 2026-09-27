@@ -82,11 +82,11 @@ const landmarkTolerance = 0.0151;
 const geographicLandmarks: Landmark[] = [
   ["Trump spire tip", trump, [-124.72, 423.2, -458.66], [4141.449, 187.538]],
   ["One Prudential mast top", prudential, [161.76, 259.4, -7.29], [4053.655, 879.202]],
-  ["Two Prudential spire tip", twoPrudential, [186.87, 303.3, -65.81], [4475.207, 565.047]],
-  ["Two Prudential pyramid peak", twoPrudential, [186.87, 277, -65.81], [4475.207, 748.347]],
-  ["Two Prudential eave west", twoPrudential, [167, 240, -37.5], [4261.006, 1151.884]],
-  ["Two Prudential eave near", twoPrudential, [207.79, 240, -38.47], [4534.685, 1127.577]],
-  ["Two Prudential eave east", twoPrudential, [206.7, 240, -93.89], [4690.631, 1140.245]],
+  ["Two Prudential spire tip", twoPrudential, [186.865, 303.3, -65.815], [4475.207, 565.047]],
+  ["Two Prudential pyramid peak", twoPrudential, [186.865, 280.2, -65.815], [4475.207, 748.347]],
+  ["Two Prudential eave west", twoPrudential, [166.915, 229.32, -46.587], [4261.006, 1151.884]],
+  ["Two Prudential eave near", twoPrudential, [207.703, 229.32, -47.553], [4534.685, 1127.577]],
+  ["Two Prudential eave east", twoPrudential, [206.815, 229.32, -85.042], [4690.631, 1140.245]],
   ["Aon roof west", aon, [254.75, 340, -28.62], [4807.686, 115.434]],
   ["Aon roof near", aon, [306.05, 340, -21.16], [5148.845, 88.061]],
   ["Aon roof east", aon, [313.23, 340, -72.55], [5401.877, 155.047]],
@@ -333,17 +333,18 @@ const fitted: FittedSpec[] = [
     onGeometryTolerance: 0.02,
     columns: {
       // Intersections of the filled pier polygons with layer y=1200 (south),
-      // y=1330 (east), and y=1880 (lower). Duplicate outlines are counted once;
-      // the two narrow east strips flanking the central glazing are included.
-      twoSouthPiers: { batch: "vertical piers and chevrons", drawn: [4262.98, 4283.676, 4304.373, 4325.069, 4345.765, 4366.462, 4427.964, 4448.529, 4469.097, 4490.376, 4510.915, 4530.912] },
-      twoEastPiers: { batch: "vertical piers and chevrons", drawn: [4687.698, 4676.347, 4663.073, 4650.31, 4638.036, 4590.444, 4565.876, 4553.532, 4538.582] },
-      twoLowerPiers: { batch: "vertical piers and chevrons", drawn: [4263.919, 4284.925, 4305.622, 4326.418, 4391.515, 4412.221, 4432.928, 4453.634] },
+      // y=1330 (east), and y=1880 (lower), counting duplicate outlines once: the core's
+      // twelve south piers from corner to corner, nine of its ten east ones, and the lower
+      // tier's eight.
+      twoSouthPiers: { batch: "Two Prudential · piers", drawn: [4262.98, 4283.676, 4304.373, 4325.069, 4345.765, 4366.462, 4427.964, 4448.529, 4469.097, 4490.376, 4510.915, 4530.912] },
+      twoEastPiers: { batch: "Two Prudential · piers", drawn: [4687.698, 4676.347, 4663.073, 4650.31, 4638.036, 4590.444, 4565.876, 4553.532, 4538.582] },
+      twoLowerPiers: { batch: "Two Prudential · piers", drawn: [4263.919, 4284.925, 4305.622, 4326.418, 4391.515, 4412.221, 4432.928, 4453.634] },
     },
-    // Measured at all five layouts: the desktop eave is near 0.00260 for landmarks,
-    // and the tall layout's south piers near 0.00245 for columns. Parallel SVG edges cannot coincide
-    // with perspective projections at every camera distance.
-    tolerance: 0.0027,
-    columnTolerance: 0.00255,
+    // Fitted numerically at all five layouts. The worst landmark is the south gable's
+    // point, which the drawing puts a little higher than the east one's, near 0.00285 at
+    // the laptop layout; the worst column is an east pier, near 0.00157 at the tall one.
+    tolerance: 0.003,
+    columnTolerance: 0.0018,
     sightGap: [0.05, 1],
   },
   {

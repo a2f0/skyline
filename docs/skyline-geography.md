@@ -30,17 +30,19 @@ tips, eaves, roof corners, and Crain's peaks, shoulders, foot and step with
 their drawn points. The eye's height is held at 2 m above the street datum. The
 drawing barely constrains it: a camera hovering about 100 m over the harbor on a
 shorter lens fits the traced heights slightly better, but the photograph was
-taken from the shore. The solve puts the eye 1472 m east and 1949 m south of
-Crain, 2.44 km away on the lakefront walk about 110 m north of the Adler
-Planetarium's centre. The camera's azimuth is 36.13° and it looks up 4.04°, with the
-frame spanning a 10.54° vertical field of view.
+taken from the shore. Its ground position is held too, with `--eye`, for the same
+reason: the drawing trades the eye's distance against the lens, and left free the
+eye drifts about 70 m off the walk into the harbor for less than half a layer
+unit. It stands 1472 m east and 1949 m south of Crain, 2.44 km away on the
+lakefront walk about 110 m north of the Adler Planetarium's centre, where an
+earlier free solve put it. The camera's azimuth is 36.12° and it looks up 4.02°,
+with the frame spanning a 10.53° vertical field of view.
 
-The fit's RMS error is 46 layer units, about 1.0% of the frame's 4430-unit
-width. Horizontal errors stay within 54 units, and the larger vertical ones are
-drawn heights that differ from published ones. For example, Two Prudential's
-eaves are drawn about 100 units, roughly 12 m, below their mapped 240 m.
+The fit's RMS error is 30 layer units, about 0.7% of the frame's 4430-unit
+width. Horizontal errors stay within 49 units; the worst landmark, Kemper's west
+roof corner, lies 62 units off.
 
-Two sets of landmarks follow the photograph rather than a published or mapped
+Three sets of landmarks follow the photograph rather than a published or mapped
 figure, and one follows the photograph in naming a different building:
 
 - **One Prudential.** Its roof corners stand at the photographed 169.5 m, and its
@@ -48,15 +50,21 @@ figure, and one follows the photograph in naming a different building:
   above it, to the 278 m tip, is lost against Trump Tower in the photograph.
 - **Trump.** Its spire's tip stands where the photograph shows it, 4 m west of the mapped
   spire part.
+- **Two Prudential.** Its eaves are the photographed core's corners, at 229.3 m and 8 to
+  10 m inside the mapped north and south walls, and its pyramid's apex stands at the
+  photographed 280.2 m; see the [Two Prudential reference audit](two-prudential-reference.md).
+  The mapped outline's corners at an inferred 240 m eave had been the fit's worst
+  landmarks, drawn about 100 units low.
 - **330 North Wabash.** The tower the drawing labels Michigan Plaza South is 330 North
   Wabash. Its mapped roof corners land on the drawn ones, and One Prudential covers its
   east face where the drawing does. The mapped Michigan Plaza South stands 790–930 units
   right of the drawn tower, behind One Prudential; see the
   [330 North Wabash audit](north-wabash-reference.md).
 
-With those in place of the published 183.2 m penthouse top, the 278 m tip, and the
-mapped spire, and with 330 North Wabash's roof added, the RMS fell from 67 units. The
-eye moved about 150 m north-west, from 45 m off the planetarium's centre to the walk.
+With those in place of the published 183.2 m penthouse top, the 278 m tip, the mapped
+spire, and Two Prudential's outline at its inferred eave and 277 m peak, and with 330 North
+Wabash's roof added, the RMS fell from 67 units to 30. The eye moved about 150 m
+north-west, from 45 m off the planetarium's centre to the walk.
 
 The view keeps its eye fixed at every viewport. Its field of view, not its
 distance, changes to contain the frame, so each mapped point lands on the same
@@ -105,7 +113,7 @@ of its tower. The cyan ground outlines show that distinction.
 | 330 North Wabash | [64596068](https://www.openstreetmap.org/way/64596068) | Outline with detailed curtain wall; not in the original layout |
 | Trump | [64594680](https://www.openstreetmap.org/way/64594680) | Podium plus 188338549, 188338550, 188338548, 188338859, 188356529, 284773992, 284773991 |
 | One Prudential | [127107034](https://www.openstreetmap.org/way/127107034) | 685493609, 685493610, 685493612, 685493614 |
-| Two Prudential | [64388666](https://www.openstreetmap.org/way/64388666) | Outline plus inferred crown |
+| Two Prudential | [64388666](https://www.openstreetmap.org/way/64388666) | Outline, with the core, tiers and crown from the photograph |
 | Aon | [64388609](https://www.openstreetmap.org/way/64388609) | Shaft plus rooftop part 284775635 and inferred antenna |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
@@ -186,15 +194,14 @@ Intermediate parts have less certainty than the overall height:
   [330 North Wabash reference audit](north-wabash-reference.md). The original layout
   has no model of it apart from the drawn one it calls Michigan Plaza South, so the
   comparison table reports its original extents as not modeled.
-- Two Prudential's mapped outline keeps its 240 m eave, 277 m pyramid peak,
-  and a narrow spire at the published 303.3 m tip, both standing over the
-  outline's area centroid. The crown is ten setback rings with silver fascias
-  and louvered openings, the shaft carries punched panes between limestone
-  piers, and the paired north/south tiers follow the fitted model's
-  proportions: set back from the mapped corners, proud of the mapped north and
-  south walls above grade, and capped by coped gables whose pier heads step
-  floor by floor; see the
-  [Two Prudential reference audit](two-prudential-geographic-reference.md).
+- Two Prudential is the tower as built, from the same generator as its original
+  copy. The lobby fills the mapped outline, and the photographed 40.8 × 37.5 m
+  limestone core stands on its area centroid, square to its south wall. Each
+  face's gable steps a floor a bay from 229.3 m corners to a pointed glass strip at
+  256 m, and a stepped pyramid turned 45° to the plan rises from those points to
+  280.2 m, under the spire to the published 303.3 m. Paired gabled tiers fill the
+  mapped depth north and south; see the
+  [Two Prudential reference audit](two-prudential-reference.md).
 - Aon's mapped shaft keeps its 340 m top and its rooftop enclosure the
   346.3 m part top. The tube carries granite V-shaped columns on the 10 ft
   module, fourteen bays to each mapped face, with glass floor by floor on the

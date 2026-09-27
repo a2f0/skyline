@@ -31,7 +31,8 @@ construction drawings.
   The drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its
   camera; see [the geographic audit](skyline-geography.md#skyline-camera). At One
   Prudential about 8.1 of the drawing's layer units, or 6.1 photo pixels, are one metre:
-  through that camera the mapped south face spans the drawn one's 487.3 units exactly.
+  through that camera the mapped south face spans 487.7 units against the drawn one's
+  487.3.
 
 ## Plan
 
@@ -80,8 +81,8 @@ The published 183.2 m (601 ft) is the penthouse's top, not the main roof. The he
 above are measured down from it, in the photograph through its recovered camera. A
 difference within one building cancels the camera's own vertical error, which an absolute
 reading keeps: the camera is a compromise across eight buildings, and read on their own the
-drawn roof corners stand at 166.4–167.6 m through it, or at 169.0–170.1 m through the
-camera before its refit. The drawn roof stands 13.3 m under the drawn screen's top, at about
+drawn roof corners stand at 165.5–166.6 m through it, having moved by a metre or more at
+each of its refits. The drawn roof stands 13.3 m under the drawn screen's top, at about
 169.9 m. Forty-one floors at the
 photographed pitch, with the drawn 4.0–4.6 m band, fill the model's 169.5 m, within the
 half metre a drawn line spans at this scale. The ground storey, thirty-nine office floors

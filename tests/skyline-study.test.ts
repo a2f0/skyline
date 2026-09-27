@@ -211,10 +211,11 @@ describe("eight-building skyline study", () => {
     // A budget for the whole scene; raise it deliberately when a detailed building lands.
     // Crain's banded curtain wall and glazed diamond raised it from 86,000 to 115,000, Aon's
     // columns, floor-by-floor glass, and louvered crown to 126,000, One Prudential's
-    // limestone piers, window-by-window facade, wing, and sign penthouse to 142,000, and
-    // Trump's curtain wall on its mapped curves to 145,000.
+    // limestone piers, window-by-window facade, wing, and sign penthouse to 142,000,
+    // Trump's curtain wall on its mapped curves to 145,000, and Two Prudential's
+    // window-by-window core, stepped gables, tiers, and stepped pyramid to 170,000.
     const triangles = await page.evaluate(() => window.__buildingStudy!.triangleCount);
-    expect(triangles > 144000 && triangles < 146000, `the eight-building scene should stay within 144,000-146,000 triangles: ${triangles}`).toBe(true);
+    expect(triangles > 169000 && triangles < 171000, `the eight-building scene should stay within 169,000-171,000 triangles: ${triangles}`).toBe(true);
     const shadowBounds = await page.evaluate(() => window.__buildingStudy!.shadowBounds);
     expect(shadowBounds.min.every((v: number) => v > -1) && shadowBounds.max.every((v: number) => v < 1),
       `all buildings and the platform should stay within the light's shadow camera: ${JSON.stringify(shadowBounds)}`).toBe(true);
