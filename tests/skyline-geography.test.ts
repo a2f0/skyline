@@ -486,6 +486,9 @@ describe("mapped skyline geography", () => {
         return { start, length, tangent, normal: [-tangent[1], tangent[0]] as Vec2 };
       });
       const facing = (axis: 0 | 1, sign: number) => merged.filter((entry) => entry.normal[axis] * sign > 0.9).reduce((longest, entry) => entry.length > longest.length ? entry : longest);
+      // The fitted model's own composition fractions, restated here rather
+      // than imported, so a change to them has to be made twice.
+      const tierFractions = [0.707, 0.84], arrowFraction = 11.7 / 59.01, sideArrowFraction = 11.7 / 38.86, chevronFraction = 0.58;
       const wall = facing(1, 1);
       near(wall.length, 40.81, 0.02);
       near(facing(1, -1).length, 40.7, 0.02);
@@ -499,34 +502,79 @@ describe("mapped skyline geography", () => {
         if (!contact) return null;
         return { proud: (contact.point.x - middle[0]) * entry.normal[0] + (contact.point.z - middle[1]) * entry.normal[1], name: contact.object.name };
       };
-      const probe = (across: number, y: number) => probeOn(wall, across, y);
-      // Across the section: the pointed arrow stands 4.96 m proud of the mapped
-      // wall, the lower tier 4.07 m, the middle tier 2.27 m, and beyond both
-      // tiers only the wall's own relief projects at all.
-      near(probe(0, 100)!.proud, 4.96, 0.03);
-      near(probe(8, 100)!.proud, 4.07, 0.03);
-      near(probe(16, 100)!.proud, 2.27, 0.03);
-      expect(probe(16, 100)!.name).toMatch(/glaz/);
-      expect(probe(18, 100)!.proud).toBeLessThan(0.35);
-      // The middle tier's face is bare where the lower tier covers it and
-      // glazed above that gable, so the glazing stops exactly at the cover.
-      near(probe(14.5, 100)!.proud, 2.2, 0.01);
-      expect(probe(14.5, 100)!.name).toMatch(/tier/);
-      near(probe(14.5, 190)!.proud, 2.27, 0.01);
-      expect(probe(14.5, 190)!.name).toMatch(/glaz/);
-      // Above each tier's peak the section steps back to the next surface.
-      near(probe(8, 190)!.proud, 2.27, 0.03);
-      expect(probe(8, 230)!.proud).toBeLessThan(0.35);
-      expect(probe(14.5, 230)!.proud).toBeLessThan(0.35);
+      // Both tiered facades carry the same composition, measured as fractions
+      // of each one's own width so the mirrored north wall is asserted as
+      // positively as the south: remove it and these fail.
+      for (const front of [wall, facing(1, -1)]) {
+        const lowerHalf = front.length * tierFractions[0]! / 2, middleHalf = front.length * tierFractions[1]! / 2;
+        const arrowHalf = front.length * arrowFraction / 2, chevronHalf = front.length * chevronFraction / 2;
+        const probe = (across: number, y: number) => probeOn(front, across, y)!;
+        // Across the section: the pointed arrow stands 4.96 m proud of the
+        // mapped wall, the lower tier 4.0 m, the middle tier 2.27 m, and
+        // beyond both tiers only the wall's own relief projects at all.
+        near(probe(0, 100).proud, 4.96, 0.03);
+        near(probe(lowerHalf * 0.55, 100).proud, 4.0, 0.03);
+        near(probe(middleHalf * 0.95, 100).proud, 2.27, 0.03);
+        expect(probe(front.length / 2 - 2.4, 100).proud).toBeLessThan(0.35);
+        // The arrow is as wide as the fitted model's, 11.7 m over its 59.01 m
+        // facade: inside that edge the first surface is the arrow, outside it
+        // the tier behind.
+        near(probe(arrowHalf - 0.6, 100).proud, 4.96, 0.03);
+        near(probe(arrowHalf + 1, 100).proud, 4.07, 0.03);
+        // The middle tier's face is bare where the lower tier covers it and
+        // glazed above that gable, so the glazing stops exactly at the cover.
+        near(probe(lowerHalf, 100).proud, 4.0, 0.03);
+        near(probe(lowerHalf, 190).proud, 2.2, 0.03);
+        near(probe(middleHalf * 0.95, 190).proud, 2.27, 0.03);
+        // Above each tier's peak the section steps back to the next surface.
+        expect(probe(middleHalf * 0.6, 230).proud).toBeLessThan(0.35);
+        // Each level itself, not merely a bracket around it: a downward ray
+        // into the depth band only that tier occupies meets its ridge, and one
+        // near its end meets its shoulder. These are the fitted model's levels
+        // scaled by 240/250.916, so the values they replaced would fail here.
+        const ridge = (across: number, depth: number) => {
+          const middle = middleOf(front);
+          return hit([middle[0] + front.tangent[0] * across + front.normal[0] * depth, 320, middle[1] + front.tangent[1] * across + front.normal[1] * depth], [0, -1, 0])!.point.y;
+        };
+        near(ridge(0, 3.5), 180.63, 0.01);
+        near(ridge(lowerHalf * 0.9, 3.5), 158.22, 0.01);
+        near(ridge(0, 1.6), 224.79, 0.01);
+        near(ridge(middleHalf * 0.9, 1.6), 198.96, 0.01);
+        // The chevron over the eave, sampled off the arrow that shares its
+        // peak: two points down its slope pin the peak and the width together.
+        near(ridge(0, 0.1), 260.48, 0.01);
+        near(ridge(chevronHalf * 0.5, 0.1), 250.22, 0.02);
+        near(ridge(chevronHalf * 0.85, 0.1), 243.04, 0.02);
+        const arrowTop = probe(0, 250);
+        expect(arrowTop.proud).toBeGreaterThan(0.5);
+        expect(arrowTop.proud).toBeLessThan(1.2);
+      }
+      // The east and west facades take their arrow from the fitted model's own
+      // east face, 11.7 m over 38.86 m, so it is half as wide again in
+      // proportion. Inside its edge the arrow is the first surface; outside it
+      // the mapped wall.
+      for (const side of [facing(0, 1), facing(0, -1)]) {
+        const arrowHalf = side.length * sideArrowFraction / 2, chevronHalf = side.length * chevronFraction / 2;
+        near(probeOn(side, 0, 150)!.proud, 0.95, 0.03);
+        expect(probeOn(side, 0, 150)!.name).toMatch(/pier/);
+        near(probeOn(side, 0, 250)!.proud, 1.01, 0.03);
+        near(probeOn(side, arrowHalf - 0.6, 150)!.proud, 0.95, 0.03);
+        expect(probeOn(side, arrowHalf + 1, 150)!.proud).toBeLessThan(0.35);
+        const middle = middleOf(side);
+        const slope = (across: number) => hit([middle[0] + side.tangent[0] * across + side.normal[0] * 0.1, 320, middle[1] + side.tangent[1] * across + side.normal[1] * 0.1], [0, -1, 0])!.point.y;
+        near(slope(0), 259.44, 0.01);
+        near(slope(chevronHalf * 0.85), 242.9, 0.02);
+      }
       // Nothing is drawn inside the lower tier. An exterior ray cannot see
       // buried geometry, so this reads the mesh itself: no pane or pier may
-      // sit within the tier's own volume, allowing the 2 cm lap the arrow's
-      // back deliberately takes into it. The gable it hides behind folds at
+      // sit within the tier's own volume. The gable it hides behind folds at
       // the facade's centre, so a triangle crossing that fold is sampled there
       // too: its vertices can straddle the ridge while its interior dips under
-      // it.
-      for (const entry of [facing(1, 1), facing(1, -1)]) {
-        const middle = middleOf(entry), lowerHalf = entry.length * 0.707 / 2;
+      // it. Only the arrow's own stations are skipped, where its back
+      // deliberately laps 2 cm into the tier.
+      for (const entry of [wall, facing(1, -1)]) {
+        const middle = middleOf(entry), lowerHalf = entry.length * tierFractions[0]! / 2;
+        const arrowHalf = entry.length * arrowFraction / 2;
         const local = (x: number, y: number, z: number) => {
           const dx = x - middle[0], dz = z - middle[1];
           return [dx * entry.tangent[0] + dz * entry.tangent[1], y, dx * entry.normal[0] + dz * entry.normal[1]] as Vec3;
@@ -545,58 +593,20 @@ describe("mapped skyline geography", () => {
             }
             for (const [across, y, depth] of samples) {
               const gable = 180.63 - (180.63 - 155.73) * Math.min(1, Math.abs(across) / lowerHalf);
-              // From just outside the middle tier's own face, where its panes
-              // stand, to just inside the lower tier's front, which the
-              // arrow's back deliberately laps 2 cm into.
-              const inside = Math.abs(across) < lowerHalf - 0.02 && depth > 2.21 && depth < 3.9 && y < gable - 0.02;
+              const inside = Math.abs(across) > arrowHalf + 0.05 && Math.abs(across) < lowerHalf - 0.02
+                && depth > 2.21 && depth < 3.99 && y < gable - 0.02;
               expect(inside, `${mesh.name} buried in the lower tier at ${across.toFixed(2)}, ${depth.toFixed(2)}, ${y.toFixed(2)} under ${gable.toFixed(2)}`).toBe(false);
             }
           }
         }
       }
-      // Each level itself, not merely a bracket around it: a downward ray into
-      // the depth band only that tier occupies meets its ridge, and one near
-      // its end meets its shoulder. These are the fitted model's levels scaled
-      // by 240/250.916, so the values they replaced would fail here.
-      const ridge = (across: number, depth: number) => {
-        const middle = middleOf(wall);
-        return hit([middle[0] + wall.tangent[0] * across + wall.normal[0] * depth, 320, middle[1] + wall.tangent[1] * across + wall.normal[1] * depth], [0, -1, 0])!.point.y;
-      };
-      near(ridge(0, 3.5), 180.63, 0.01);
-      near(ridge(14.38, 3.5), 155.81, 0.02);
-      near(ridge(0, 1.6), 224.79, 0.01);
-      near(ridge(17.09, 1.6), 196.17, 0.02);
-      near(ridge(0, 0.1), 260.48, 0.01);
-      // The chevrons themselves, sampled off the arrow that shares their peak:
-      // two points down each slope pin both the peak and the width, so a
-      // missing or mis-sized chevron on any facade fails here.
-      near(ridge(8, 0.1), 246.61, 0.02);
-      near(ridge(10, 0.1), 243.14, 0.02);
-      const slope = (entry: typeof wall, across: number) => {
-        const middle = middleOf(entry);
-        return hit([middle[0] + entry.tangent[0] * across + entry.normal[0] * 0.1, 320, middle[1] + entry.tangent[1] * across + entry.normal[1] * 0.1], [0, -1, 0])!.point.y;
-      };
-      near(slope(facing(0, 1), 12), 244.91, 0.02);
-      near(slope(facing(0, -1), 12), 245.07, 0.02);
-      // The chevron and its arrow carry the composition over the eave, and the
-      // east and west facades carry the same arrow centred on their own merged
-      // width rather than on one traced run.
-      const chevron = probe(0, 250)!;
-      expect(chevron.proud).toBeGreaterThan(0.5);
-      expect(chevron.proud).toBeLessThan(1.2);
-      near(probe(6, 246)!.proud, 0.22, 0.08);
-      for (const side of [facing(0, 1), facing(0, -1)]) {
-        near(probeOn(side, 0, 150)!.proud, 0.95, 0.03);
-        expect(probeOn(side, 0, 150)!.name).toMatch(/pier/);
-        near(probeOn(side, 0, 250)!.proud, 1.01, 0.03);
-      }
       // Nor inside a coping. The band is 1.41 m deep and stands 0.42 m proud
       // of the face, so a pane or pier reaching its underside disappears
       // behind it. Where the coping is exposed - outside the arrow it dies
       // into - nothing else may enter its band.
-      for (const entry of [facing(1, 1), facing(1, -1)]) {
-        const middle = middleOf(entry), arrowHalf = entry.length * 0.198 / 2;
-        for (const [fraction, shoulder, peak, front] of [[0.707, 155.73, 180.63, 4], [0.84, 196.09, 224.79, 2.2]] as [number, number, number, number][]) {
+      for (const entry of [wall, facing(1, -1)]) {
+        const middle = middleOf(entry), arrowHalf = entry.length * arrowFraction / 2;
+        for (const [fraction, shoulder, peak, front] of [[tierFractions[0]!, 155.73, 180.63, 4], [tierFractions[1]!, 196.09, 224.79, 2.2]] as [number, number, number, number][]) {
           const half = entry.length * fraction / 2;
           for (const mesh of meshes) {
             if (!/glaz|pier/.test(mesh.name)) continue;
@@ -630,13 +640,10 @@ describe("mapped skyline geography", () => {
         }
       }
       // The chevron covers the middle bays only and the crown has already
-      // stepped back inside the mapped wall, so just outside the chevron the
-      // first surface is the crown and at the mapped corner there is nothing.
-      // A full-width chevron or a shaft rising past its eave would fail both.
-      const beyond = probe(15, 245)!;
-      expect(beyond.name).toMatch(/crown/);
-      expect(beyond.proud).toBeLessThan(-1);
-      expect(probe(19, 245)).toBeNull();
+      // stepped back inside the mapped wall, so at the south wall's own corner
+      // that elevation is open sky. A full-width chevron or a shaft rising
+      // past its eave would not be.
+      expect(probeOn(wall, wall.length / 2 - 1.4, 245)).toBeNull();
       // Panes and piers are the first surface on the mapped east wall.
       const eastMid = world(-87.6225092, 41.885442);
       const east = hit([eastMid[0] + 30, 100, eastMid[2]], [-1, 0, 0]);

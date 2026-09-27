@@ -37,7 +37,11 @@ const pitch = h.eave / h.floors;
 // The fitted model's south composition as fractions of its 59.01 m facade and
 // 38.86 m depth, applied to whichever mapped wall each face turns out to be.
 const tierWidths = [0.707, 0.840] as const; // lower, middle gable widths
-const arrowWidth = 0.198; // the pointed central bay
+// The pointed central bay. The fitted model draws it 11.7 m wide on every
+// facade, so each mapped facade takes the fraction that width is of the fitted
+// facade it corresponds to: its 59.01 m south face for the mapped north and
+// south walls, its 38.86 m east face for the mapped east and west ones.
+const arrowWidth = 11.7 / 59.01, sideArrowWidth = 11.7 / 38.86;
 // The eave chevron covers the middle bays, so its slope stays near the fitted
 // model's 1.2-1.75 rise over run on both the wide and the narrow facades.
 const chevronWidth = 0.58;
@@ -323,7 +327,7 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
   // it. The half-meter margins keep every drawn pier clear of those planes.
   for (const [side, facade] of facades.entries()) {
     const { face } = facade;
-    const covers: Cover[] = [{ half: face.width * arrowWidth / 2 + 0.5, height: () => h.eave }];
+    const covers: Cover[] = [{ half: face.width * (fronts.includes(facade) ? arrowWidth : sideArrowWidth) / 2 + 0.5, height: () => h.eave }];
     if (fronts.includes(facade)) {
       const tierHalf = face.width * tierWidths[1]! / 2;
       covers.push({ half: tierHalf + 0.5, height: gableAt(tierHalf, h.middleShoulder, h.middlePeak) });
@@ -384,7 +388,7 @@ export function createTwoPrudentialGeographicBuilding(record: GeoBuilding, proje
 
   // The east and west walls: a chevron at the eave over a single tall arrow.
   for (const { face } of sides) {
-    const arrowHalf = face.width * arrowWidth / 2, chevron = face.width * chevronWidth / 2;
+    const arrowHalf = face.width * sideArrowWidth / 2, chevron = face.width * chevronWidth / 2;
     extrude(stone, face, [[-chevron + 0.02, h.eave], [chevron - 0.02, h.eave], [0, h.sideChevron]], -1.2, 0.22, [[0, 1, 2]]);
     const chevronRun = faceRun(face, chevron - 0.02, 0.22);
     const chevronGable = gableAt(chevron - 0.02, h.eave, h.sideChevron);

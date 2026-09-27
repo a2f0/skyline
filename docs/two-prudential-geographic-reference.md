@@ -74,7 +74,13 @@ reads as the published 64 floors.
   its underside; reaching into it would hide them behind a band standing
   0.42 m proud of the face they sit on.
 - A pointed arrow rises from each gable to the one above, and a third reaches
-  from the middle gable over the eave to the chevron. Their panes are closed
+  from the middle gable over the eave to the chevron. The fitted model draws
+  that arrow 11.7 m wide on every facade, so each mapped facade takes the
+  fraction that width is of the fitted facade it corresponds to: 11.7/59.01 on
+  the mapped north and south walls, which answer to the fitted model's south
+  face, and 11.7/38.86 on the mapped east and west ones, which answer to its
+  east face. Taking one fraction everywhere would narrow the side arrows from
+  about 16.8 m to 11.0 m. Their panes are closed
   solids clipped to both the arrow's sloping head and the gable each stands on,
   and their bays split at the arrow's own centre where both of those turn, so
   no triangular wedge is left unglazed under either and no pane crosses into
