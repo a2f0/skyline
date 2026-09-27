@@ -24,4 +24,6 @@ merge PRs, delete branches, install hooks, or remove files.
    do not reset, rebase, or force-update it. If another worktree holds the target,
    leave that worktree intact and report the remaining checkout step.
 5. Report the branch and final SHA, including partial progress if switching
-   succeeded but fast-forwarding failed. There are no managed hooks in Skyline.
+   succeeded but fast-forwarding failed. Skyline's two managed hooks live in
+   `scripts/git/hooks` and are installed per clone by
+   `sh scripts/git/install-hooks.sh`; reset neither installs nor removes them.

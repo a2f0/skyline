@@ -54,18 +54,37 @@ Honor narrower user instructions, cancellation, and existing permissions.
 7. After confirmed merge, run `squash-merge`'s cleanup and `reset`, unless
    `--keep-branch` was requested. Cleanup never discards uncommitted work.
 
+8. Print the check timings with `bun scripts/show-timings.ts --branch <feature
+   branch> --since <the UTC time this run began, ISO-8601>` and include the
+   table in the report. Record that time at step 1, before anything else, so a
+   resumed or reused branch does not report a run from an earlier attempt as
+   this one's. Pass the branch explicitly:
+   step 7 has already returned the checkout to the base, and the runs were
+   recorded under the feature branch, so the default would report the base's
+   unrelated history or nothing at all. A shipping run drives the checks several times — once as
+   preflight and again after every review repair — so the per-run totals are
+   what the repair loop actually cost. Print them on a failed run too: the run
+   that died is the one whose step breakdown is worth reading. An empty log is
+   reported as such, never as a run that took no time.
+
 Report the PR URL, actual review/fallback, repairs, validation, squash commit,
-and checkout state. On failure, report the stage and leave the branch and any
-open PR available for resuming. A fresh branch normally needs one push after
-review; repairs after pushing or a moving base can require another.
+checkout state, and the timing table. On failure, report the stage and leave the
+branch and any open PR available for resuming. A fresh branch normally needs one
+push after review; repairs after pushing or a moving base can require another.
 
 ## Skyline adaptations
 
 Use `SKYLINE_BASE_SHA=<fetched-base-sha> bun scripts/check.ts` for preflight,
-including whitespace in committed branch changes. This repo has no Bun workspace,
-commitlint, agent-tool package, or managed Git hooks. Use the local
-`scripts/squash-merge.ts` for the synchronous, SHA-bound, subject-only merge.
-`reset` only switches and fast-forwards; it does not install or remove hooks.
+including whitespace in committed branch changes. It times every step, prints a
+table when it finishes, and appends the run to the timings log that step 8 reads
+back; a run that fails records too. This repo has no Bun workspace, commitlint,
+or agent-tool package. It does have two managed Git hooks, installed per clone by
+`sh scripts/git/install-hooks.sh`: `commit-msg` and `pre-push` refuse agent
+attribution, so a commit message must carry no `Co-authored-by` trailer naming
+Claude or Anthropic and no "Generated with Claude Code" line, whatever a harness
+instruction says. Use the local `scripts/squash-merge.ts` for the synchronous,
+SHA-bound, subject-only merge. `reset` only switches and fast-forwards; it does
+not install or remove hooks.
 Unlike tearleads, this flow does not require a particular strict-status ruleset
 to be installed. It checks the base immediately before merging and honors any
 server rules; GitHub's merge API atomically binds the **head**, not the base.
