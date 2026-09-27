@@ -41,8 +41,9 @@ survey or a construction model.
 | Architectural tip | 303.3 m | Published CTBUH value |
 
 Every level below the eave is a fitted-model level multiplied by 240/250.916,
-the ratio of the mapped eave to the fitted model's own, rather than a rounding
-of that product. The 64 rows use a 3.75 m pitch (240/64), so the pane count
+the ratio of the mapped eave to the fitted model's own, stored rounded to the
+centimetre. The fitted model's own levels come from the drawing, so the
+centimetre is a bookkeeping precision, not a measured one. The 64 rows use a 3.75 m pitch (240/64), so the pane count
 reads as the published 64 floors.
 
 ## Plan and detail choices
@@ -119,7 +120,9 @@ the levels themselves are pinned rather than bracketed, a vertex sweep from
 the middle tier's own face inward proving no pane or pier sits inside the
 lower tier, the chevron over the
 eave, open sky at the mapped corner above it, panes and piers on the mapped
-east wall, and the exact mapped outline at grade. Ground extents use vertices at grade: facade
+east wall, and the ten crown setbacks found by sweeping the setback mesh outward, both
+chevrons sampled down their slopes away from the arrow that shares their peak,
+and the exact mapped outline at grade. Ground extents use vertices at grade: facade
 relief and the tier bases above grade must not redefine the street footprint.
 Visual review includes the ground plan, height comparison, and elevated
 orthographic views.

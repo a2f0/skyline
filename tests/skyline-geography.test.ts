@@ -449,6 +449,18 @@ describe("mapped skyline geography", () => {
       expect(ledge(11.2)).toBe(ledge(12));
       expect(ledge(11.2)).toBeGreaterThan(ledge(20));
       expect(ledge(20)).toBeGreaterThan(240);
+      // Ten of them, at one floor's rise each from the mapped eave to the
+      // mapped peak. Sweeping the setback mesh outward finds every ledge top,
+      // so a crown with nine steps, or with them unevenly spaced, fails.
+      const setbacks = meshes.filter((mesh) => mesh.name === "Two Prudential · crown setbacks");
+      const tops = new Set<number>();
+      for (let radius = 0.5; radius < 26; radius += 0.5) {
+        for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as Vec2[]) {
+          const contact = hit([apex[0] + dx * radius, 320, apex[2] + dz * radius], [0, -1, 0], setbacks);
+          if (contact && contact.point.y > 240.01) tops.add(Math.round(contact.point.y * 100) / 100);
+        }
+      }
+      expect([...tops].sort((a, b) => a - b)).toEqual([243.7, 247.4, 251.1, 254.8, 258.5, 262.2, 265.9, 269.6, 273.3, 277]);
       // The stepped section on the mapped south wall. The mapped tracing splits
       // each wall into several nearly collinear edges, so consecutive ones
       // facing the same way are merged into one facade first, the same way the
@@ -540,8 +552,17 @@ describe("mapped skyline geography", () => {
       near(ridge(0, 1.6), 224.79, 0.01);
       near(ridge(17.09, 1.6), 196.17, 0.02);
       near(ridge(0, 0.1), 260.48, 0.01);
-      const sideMiddle = middleOf(facing(0, 1));
-      near(hit([sideMiddle[0] + facing(0, 1).normal[0] * 0.1, 320, sideMiddle[1] + facing(0, 1).normal[1] * 0.1], [0, -1, 0])!.point.y, 259.44, 0.01);
+      // The chevrons themselves, sampled off the arrow that shares their peak:
+      // two points down each slope pin both the peak and the width, so a
+      // missing or mis-sized chevron on any facade fails here.
+      near(ridge(8, 0.1), 246.61, 0.02);
+      near(ridge(10, 0.1), 243.14, 0.02);
+      const slope = (entry: typeof wall, across: number) => {
+        const middle = middleOf(entry);
+        return hit([middle[0] + entry.tangent[0] * across + entry.normal[0] * 0.1, 320, middle[1] + entry.tangent[1] * across + entry.normal[1] * 0.1], [0, -1, 0])!.point.y;
+      };
+      near(slope(facing(0, 1), 12), 244.91, 0.02);
+      near(slope(facing(0, -1), 12), 245.07, 0.02);
       // The chevron and its arrow carry the composition over the eave, and the
       // east and west facades carry the same arrow centred on their own merged
       // width rather than on one traced run.
