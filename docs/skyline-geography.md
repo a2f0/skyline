@@ -23,36 +23,39 @@ geometry, not a place. The mapped buildings stay where they are mapped; only
 the camera is fitted.
 
 `scripts/fit-geographic-camera.ts` solves the study's orbit camera, aimed at the
-centre of the reference excerpt's frame, against the 24 correspondences in
+centre of the reference excerpt's frame, against the 26 correspondences in
 `geographicLandmarks` in `tests/skyline-landmarks.ts`. These pair mapped spire
 tips, eaves, roof corners, and Crain's peaks, shoulders, foot and step with
 their drawn points. The eye's height is held at 2 m above the street datum. The
 drawing barely constrains it: a camera hovering about 100 m over the harbor on a
 shorter lens fits the traced heights slightly better, but the photograph was
-taken from the shore. The solve puts the eye 1481 m east and 1955 m south of
-Crain, 2.45 km away on the lakefront walk about 100 m north of the Adler
-Planetarium's centre. The camera's azimuth is 36.22° and it looks up 4.03°, with the
-frame spanning a 10.49° vertical field of view.
+taken from the shore. The solve puts the eye 1472 m east and 1949 m south of
+Crain, 2.44 km away on the lakefront walk about 110 m north of the Adler
+Planetarium's centre. The camera's azimuth is 36.13° and it looks up 4.04°, with the
+frame spanning a 10.54° vertical field of view.
 
-The fit's RMS error is 47 layer units, about 1.1% of the frame's 4430-unit
+The fit's RMS error is 46 layer units, about 1.0% of the frame's 4430-unit
 width. Horizontal errors stay within 54 units, and the larger vertical ones are
 drawn heights that differ from published ones. For example, Two Prudential's
 eaves are drawn about 100 units, roughly 12 m, below their mapped 240 m.
 
 Two sets of landmarks follow the photograph rather than a published or mapped
-figure:
+figure, and one follows the photograph in naming a different building:
 
 - **One Prudential.** Its roof corners stand at the photographed 169.5 m, and its
   tubular mast's top at 259.4 m, where the drawing stops the mast. The slim WGN antenna
   above it, to the 278 m tip, is lost against Trump Tower in the photograph.
 - **Trump.** Its spire's tip stands where the photograph shows it, 4 m west of the mapped
   spire part.
+- **330 North Wabash.** The tower the drawing labels Michigan Plaza South is 330 North
+  Wabash. Its mapped roof corners land on the drawn ones, and One Prudential covers its
+  east face where the drawing does. The mapped Michigan Plaza South stands 790–930 units
+  right of the drawn tower, behind One Prudential; see the
+  [330 North Wabash audit](north-wabash-reference.md).
 
 With those in place of the published 183.2 m penthouse top, the 278 m tip, and the
-mapped spire, the RMS fell from 67 units. The eye moved about 140 m north-west, from
-45 m off the planetarium's centre to the walk. The drawn Michigan Plaza South is
-excluded: from this camera it stands 790–1000 units left of the mapped tower,
-which One Prudential hides.
+mapped spire, and with 330 North Wabash's roof added, the RMS fell from 67 units. The
+eye moved about 150 m north-west, from 45 m off the planetarium's centre to the walk.
 
 The view keeps its eye fixed at every viewport. Its field of view, not its
 distance, changes to contain the frame, so each mapped point lands on the same
@@ -67,6 +70,8 @@ a height-limited sixth, 1440×800.
 `models/skyline-geography-data.ts` contains a local extract of
 [OpenStreetMap](https://www.openstreetmap.org/copyright), retrieved September 17,
 2026 through the [map API](https://api.openstreetmap.org/api/0.6/map?bbox=-87.628,41.882,-87.620,41.891).
+330 North Wabash's outline was added on September 27, 2026, from a
+[wider request](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6300,41.8820,-87.6180,41.8920).
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -96,6 +101,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Kemper | [64389514](https://www.openstreetmap.org/way/64389514) | 685494066, 685494067 |
 | Crain | [210671717](https://www.openstreetmap.org/way/210671717) | 284816227, 284816228, 284816229 |
 | Michigan Plaza South | [127107024](https://www.openstreetmap.org/way/127107024) | Outline with detailed grid |
+| 330 North Wabash | [64596068](https://www.openstreetmap.org/way/64596068) | Outline with detailed curtain wall; not in the original layout |
 | Trump | [64594680](https://www.openstreetmap.org/way/64594680) | Podium plus 188338549, 188338550, 188338548, 188338859, 188356529, 284773992, 284773991 |
 | One Prudential | [127107034](https://www.openstreetmap.org/way/127107034) | 685493609, 685493610, 685493612, 685493614 |
 | Two Prudential | [64388666](https://www.openstreetmap.org/way/64388666) | Outline plus inferred crown |
@@ -117,6 +123,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Kemper | 159 m | 159 m | [OSM height tag](https://www.openstreetmap.org/way/64389514) |
 | Crain | 177.4 m | 177.4 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/150-north-michigan-avenue/2441) |
 | Michigan Plaza South | 168.6 m | 168.6 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/michigan-plaza-south/2825) |
+| 330 North Wabash | 211.84 m | 211.84 m | [OSM height tag](https://www.openstreetmap.org/way/64596068), the published 695 ft |
 | Trump | 423.2 m | 423.2 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/trump-international-hotel-tower/203) |
 | One Prudential | 183.2 m | 278 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/one-prudential-plaza/2190) |
 | Two Prudential | 303.3 m | 303.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/two-prudential-plaza/489) |
@@ -171,6 +178,13 @@ Intermediate parts have less certainty than the overall height:
 - Michigan Plaza South's mapped outline now carries its 44-story curtain-wall
   grid with a roof parapet at the published 168.6 m top; see the
   [Michigan Plaza South reference audit](michigan-plaza-south-geographic-reference.md).
+  From the photograph's viewpoint it stands behind One Prudential.
+- 330 North Wabash, which the drawing labels Michigan Plaza South, carries Mies van der
+  Rohe's bronze curtain wall on its 5 ft module and 12 ft 6 in floors, its lobby on
+  the 25 ft plaza, and its louvered plant floors, to the mapped 211.84 m; see the
+  [330 North Wabash reference audit](north-wabash-reference.md). The original layout
+  has no model of it apart from the drawn one it calls Michigan Plaza South, so the
+  comparison table reports its original extents as not modeled.
 - Two Prudential's mapped outline keeps its 240 m eave, 277 m pyramid peak,
   and a narrow spire at the published 303.3 m tip, both standing over the
   outline's area centroid. The crown is ten setback rings with silver fascias

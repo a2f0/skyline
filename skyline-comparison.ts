@@ -22,10 +22,10 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
   // datum, looking up at the skyline. The buildings stay where they are mapped;
   // only the camera is fitted. Eye positions are meters east, up, and south of
   // Crain's mapped centre.
-  const photoEye: Vec3 = [1481.06, 2, 1955.01];
-  const photoAzimuth = 36.2223 * Math.PI / 180, photoPolar = 94.0267 * Math.PI / 180;
+  const photoEye: Vec3 = [1471.76, 2, 1948.8];
+  const photoAzimuth = 36.1307 * Math.PI / 180, photoPolar = 94.0443 * Math.PI / 180;
   // The reference excerpt's frame: its vertical field of view and its viewBox aspect.
-  const frameFov = 10.4912 * Math.PI / 180, frameAspect = 4430 / 3535.05;
+  const frameFov = 10.5395 * Math.PI / 180, frameAspect = 4430 / 3535.05;
   const back: Vec3 = [Math.sin(photoPolar) * Math.sin(photoAzimuth), Math.cos(photoPolar), Math.sin(photoPolar) * Math.cos(photoAzimuth)];
   // Orbit and zoom pivot on the sightline at Crain's depth.
   const photoDistance = photoEye[0] * back[0] + photoEye[1] * back[1] + photoEye[2] * back[2];
@@ -56,11 +56,13 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
   const signed = (n: number) => `${n >= 0 ? "+" : "−"}${Math.abs(n).toFixed(1)}`;
   const tbody = document.querySelector<HTMLElement>("#dimensions-body")!;
   for (const record of geographicBuildings) {
-    const model = models.find((entry) => entry.building.userData["buildingId"] === record.id)!;
-    model.building.updateMatrixWorld(true);
+    // A mapped building the drawing does not model, such as 330 North Wabash, has no
+    // original extents to compare.
+    const model = models.find((entry) => entry.building.userData["buildingId"] === record.id);
+    model?.building.updateMatrixWorld(true);
     const min = [Infinity, Infinity], max = [-Infinity, -Infinity];
     let highest = 0;
-    model.building.traverse((child) => {
+    model?.building.traverse((child) => {
       const mesh = child as THREE.Mesh;
       if (!mesh.isMesh) return;
       const positions = mesh.geometry.getAttribute("position"), point = new THREE.Vector3();
@@ -82,9 +84,9 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     row.append(name);
     const values = [
       `${signed(footprint.center[0])}, ${signed(footprint.center[1])}`,
-      `${number(max[0]! - min[0]!)} × ${number(max[1]! - min[1]!)}`,
+      model ? `${number(max[0]! - min[0]!)} × ${number(max[1]! - min[1]!)}` : "not modeled",
       `${number(footprint.size[0])} × ${number(footprint.size[1])}`,
-      `${number(highest)} → ${number(record.tipHeight)} (${signed(record.tipHeight - highest)})`,
+      model ? `${number(highest)} → ${number(record.tipHeight)} (${signed(record.tipHeight - highest)})` : `— → ${number(record.tipHeight)}`,
     ];
     for (const value of values) { const cell = document.createElement("td"); cell.textContent = value; row.append(cell); }
     const source = document.createElement("td");
@@ -102,7 +104,7 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     const geographic = name === "geographic";
     streetButton.disabled = !geographic;
     document.querySelector<HTMLElement>("#layout-status")!.textContent = geographic
-      ? "Geographic layout · mapped footprints and published heights, with detailed facades on all eight buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
+      ? "Geographic layout · mapped footprints and published heights, with detailed facades on all nine buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
       : "Original layout · proportions and spacing fitted to the drawing. Use ground plan or height comparison, then toggle layouts to compare at the same camera scale.";
     document.querySelector<HTMLElement>("#model-caption")!.textContent = geographic ? "02 / geographic study" : "02 / original 3D study";
   }

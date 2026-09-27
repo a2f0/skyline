@@ -202,8 +202,11 @@ export function createBuildingStudy({
   let modelLabels: ModelLabel[] = [];
   function prepareLabels() {
     labelLayer.replaceChildren();
-    modelLabels = labels.map(({ id, text, placement = "above" }) => {
-      const model = models.find((entry) => entry.building.userData["buildingId"] === id)!;
+    // A label names a building only in the layouts that have it: the geographic layout
+    // maps buildings the drawing does not model.
+    modelLabels = labels.flatMap(({ id, text, placement = "above" }) => {
+      const model = models.find((entry) => entry.building.userData["buildingId"] === id);
+      if (!model) return [];
       const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
       model.building.updateMatrixWorld(true);
       model.building.traverse((child) => {
@@ -220,7 +223,7 @@ export function createBuildingStudy({
       element.textContent = text;
       element.dataset["placement"] = placement;
       labelLayer.append(element);
-      return { element, position: new THREE.Vector3((min[0]! + max[0]!) / 2, max[1]! + 5, (min[2]! + max[2]!) / 2) };
+      return [{ element, position: new THREE.Vector3((min[0]! + max[0]!) / 2, max[1]! + 5, (min[2]! + max[2]!) / 2) }];
     });
   }
   prepareLabels();

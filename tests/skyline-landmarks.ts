@@ -8,6 +8,8 @@ const crain = "building-crain-communications", michigan = "building-michigan-pla
 const trump = "building-trump-tower-only";
 const prudential = "building-one-prudential-plaza", prudentialPodium = "building-prudential-plaza-podium";
 const twoPrudential = "building-two-prudential-plaza";
+// Mapped only: the drawing models the tower as Michigan Plaza South.
+const northWabash = "building-330-north-wabash";
 const aon = "layer3";
 
 // The excerpt the study shows beside the scene; scripts/reference-svg.js regenerates it.
@@ -74,9 +76,9 @@ const landmarkTolerance = 0.0151;
 // points above for the same features. Tips stand over their mapped parts, and roof
 // corners are the mapped outline vertices that the drawn corners show from the
 // photograph's viewpoint. scripts/fit-geographic-camera.ts solves the camera from them.
-// The drawn Michigan Plaza South is left out: from any camera that fits the others it
-// stands about 900 layer units left of the mapped tower, so the drawing's placement of
-// it is artistic.
+// The tower the drawing labels Michigan Plaza South is 330 North Wabash: its mapped roof
+// corners land on the drawn ones, and One Prudential covers its east face where the
+// drawing does. The mapped Michigan Plaza South stands behind One Prudential.
 const geographicLandmarks: Landmark[] = [
   ["Trump spire tip", trump, [-124.72, 423.2, -458.66], [4141.449, 187.538]],
   ["One Prudential mast top", prudential, [161.76, 259.4, -7.29], [4053.655, 879.202]],
@@ -102,6 +104,8 @@ const geographicLandmarks: Landmark[] = [
   ["Crain step east", crain, [19.43, 117.43, 7.76], [3058.4, 2072.3]],
   ["Heritage screen south", heritage, [-48.68, 192.4, 90.75], [2223.52, 1421.32]],
   ["Heritage screen north", heritage, [-48.32, 192.4, 56.84], [2440.27, 1436.67]],
+  ["330 North Wabash roof west", northWabash, [-235.234, 211.84, -383.178], [3254.78, 1577.346]],
+  ["330 North Wabash roof near", northWabash, [-197.835, 211.84, -384.123], [3465.957, 1572.425]],
 ];
 
 // Fitted buildings export their features. Each landmark pairs a feature with a vertex of

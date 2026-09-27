@@ -34,6 +34,12 @@ remain explicitly **Unidentified** rather than receiving guessed landmark names.
 | Lakefront cultural buildings | Railway Exchange Building (Santa Fe Building) | [Chicago Architecture Center](https://www.architecture.org/online-resources/buildings-of-chicago/railway-exchange-building) |
 | Aon Center | Retained | Source photograph |
 
+The geographic layout's camera, fitted later to the mapped buildings, shows that the rear
+tower labelled Michigan Plaza South is 330 North Wabash. Its mapped roof corners land on
+the drawn ones, and the mapped Michigan Plaza South stands behind One Prudential from the
+photograph's viewpoint. The label is unchanged here; the geographic layout adds 330 North
+Wabash beside it. See the [330 North Wabash audit](north-wabash-reference.md).
+
 ## Geometry corrections
 
 The old Trump group included One Prudential's entire facade, windows, and
