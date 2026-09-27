@@ -435,11 +435,13 @@ describe("mapped skyline geography", () => {
       expect(facetHit.point.y).toBeGreaterThan(250);
       expect(facetHit.point.y).toBeLessThan(277);
       // The spire: a face beside the tip (the exact 303.3 m tip is pinned by
-      // the generic bounds check).
+      // the generic bounds check). Five centimetres off the axis of a tapered
+      // face the surface is strictly below the tip, so a blunt or flat-topped
+      // spire fails here.
       const spireFace = hit([apex[0] + 0.05, 350, apex[2]], [0, -1, 0])!;
       expect(spireFace.object.name).toBe("Two Prudential · spire");
       expect(spireFace.point.y).toBeGreaterThan(273);
-      expect(spireFace.point.y).toBeLessThanOrEqual(303.3);
+      expect(spireFace.point.y).toBeLessThan(303.3);
       // The crown is a stack of flat setbacks, not a smooth cone: two rays at
       // different distances from the axis land on one ledge, and the rings
       // shrink as they rise.
