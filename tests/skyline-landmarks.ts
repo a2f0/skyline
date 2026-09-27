@@ -336,21 +336,28 @@ const fitted: FittedSpec[] = [
     id: aon,
     label: "Aon Center",
     features: "aonFeatures",
+    // The drawn roof edge's ends and its highest point, the south face's east end.
     landmarks: {
       aonRoofWest: [4807.686, 115.434],
       aonRoofNear: [5148.845, 88.061],
       aonRoofEast: [5401.877, 155.047],
     },
+    onGeometry: ["aonNotchFront", "aonNotchEast"],
     onGeometryTolerance: 0.02,
     columns: {
-      aonFrontPiers: { batch: "granite perimeter piers", drawn: [4834.765, 4856.53, 4878.294, 4900.059, 4921.824, 4943.589, 4965.354, 4987.118, 5008.883, 5030.648, 5052.412, 5074.177, 5095.942] },
-      aonSidePiers: { batch: "granite perimeter piers", drawn: [5228.75, 5241.034, 5253.318, 5265.603, 5277.887, 5290.171, 5302.456, 5314.74, 5327.025, 5339.309, 5351.593, 5363.878, 5376.162] },
-      aonCornerStrips: { batch: "wide granite corner piers", drawn: [5159.416, 5181.56, 5201.257] },
+      aonFrontPiers: { batch: "Aon · granite piers", drawn: [4834.764, 4856.53, 4878.294, 4900.059, 4921.824, 4943.589, 4965.354, 4987.118, 5008.883, 5030.648, 5052.412, 5074.177, 5095.942, 5117.707] },
+      aonSidePiers: { batch: "Aon · granite piers", drawn: [5228.75, 5241.034, 5253.318, 5265.603, 5277.887, 5290.171, 5302.456, 5314.74, 5327.025, 5339.309, 5351.594, 5363.878, 5376.162, 5388.447] },
     },
     rows: {
-      // Centers of six source front-face dark bands, spanning the shaft.
-      aonFloorRows: { drawn: [2380.034, 1987.468, 1594.902, 1202.335, 777.055, 384.489], tolerance: 0.005 },
+      // Centres of six drawn front-face bands, spanning the offices. The drawing spaces its
+      // bands about 2.5% wider than the real floors under the scale its roof and piers fit,
+      // so the top and bottom samples stray furthest; the worst, 0.00644, is at the laptop
+      // layout.
+      aonFloorRows: { drawn: [589.229, 981.795, 1374.361, 1766.927, 2159.494, 2552.06], tolerance: 0.0068 },
     },
+    // Fitted numerically at all five layouts. The drawn east end of the roof drops 67 layer
+    // units below the near corner, more than a level roof drops through this long lens;
+    // it is the worst landmark, 0.0075 at the laptop layout.
     tolerance: 0.008,
     columnTolerance: 0.0034,
     sightGap: [0.05, 0.7],

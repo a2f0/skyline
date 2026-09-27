@@ -56,7 +56,7 @@ Two things about its fit are worth knowing. Heights are measured from the study'
 
 Its spire is 345.79 m above the study platform, compared with the real building’s [303.3 m above the street](https://www.skyscrapercenter.com/building/two-prudential-plaza/489): this drawing exaggerates its height. Thirteen roof, chevron, and spire landmarks and twenty-nine facade columns are checked at all five layouts. When Two Prudential was added, the taller reference kept its width, so normalized tolerances were retained at that stage; the camera target rose and the platform deepened to contain it. That reframe also required a 5 cm leftward correction to One Prudential’s placement to retain its podium silhouette bound. Aon later widened the frame and the inherited limits were remeasured.
 
-`models/aon-center.ts` adds Aon Center's white granite outer tube around dark vertical window slots. Fifteen measured pier lines on each visible face, three broad near-corner stone strips, muted occupied panes, a raised parapet, and low screened service enclosures carry the detail around all four sides. Its illustrated roof is 411 m above the study platform, taller than the real 346 m building, because the source skyline exaggerates its height. The [reference audit](docs/aon-center-reference.md) records the drawing measurements, source photographs, camera fit, and residual. The model uses seven mesh batches and 10,798 triangles; the eight-building scene totals 115,089 triangles within its 114,000–116,000 budget.
+Aon Center is the tower as built, on its published 59.15 m square with a notch cut into each corner, from `models/aon-tower.ts`. Granite V-shaped columns stand one 10 ft module apart, fifteen bays to a face. Dark glass fills each office floor between them on the photograph's 3.87 m pitch, above a tall glazed lobby. A band of louvers hides the crown's mechanical floors under a granite cap, the notched corners are solid stone, and a louvered enclosure and an antenna stand on the roof. `models/aon-center.ts` places a copy from the drawing's 30.6 m datum up, fitted through the skyline camera at all five layouts to the drawn roof, the fifteen drawn piers on each face, and the drawn floor bands. It stands 1.329 times its real size, turned 10.2° so the camera meets its faces as the photograph does. The [reference audit](docs/aon-reference.md) records the sources, measurements, fit, and residuals. It uses seven mesh batches and 21,956 triangles; the eight-building scene totals 126,247 triangles within its 125,000–127,000 budget.
 
 The Heritage plan, heights, and placement were fitted numerically through the skyline camera to the drawn corners, mullions, fins, and lower cap. The camera-facing flat face and bow radius are about 1.3 times the OpenStreetMap trace, and the whole tower plan about 1.1–1.2 times, because the drawing is wider relative to its heights than the real building; the hidden north and west faces are simplified closures rather than that outline, and the lower tier keeps roughly its traced size; the 3.79 m floor pitch likewise follows the drawing rather than the building's 3.37 m average. The drawing also exaggerates how far the curved bands sag toward the right, roughly twice what any camera consistent with the other towers produces, so the model matches horizontal positions and corners and leaves that sag as a residual: the crown cap's north end sits about 14 layer units above its drawn corner in the desktop layout, and up to about 21 in the tall one. Framing the earlier five-building scene moved those from about 9 and 19: the sag is unchanged, but the wider frame places the camera differently. The real lower tier extends farther south, unlit and hidden in the photo; the model trims it along the skyline view's line of sight so nothing appears left of the drawn silhouette.
 
@@ -117,11 +117,10 @@ project 4.0 m and 2.2 m rather than the 9.65 m and 4.03 m its drawn proportions
 would give, which keeps the above-grade envelope near the mapped ground
 outline; see its
 [reference audit](docs/two-prudential-geographic-reference.md).
-Aon Center has a detailed one too: its mapped outline keeps the 340 m shaft
-and 346.3 m rooftop enclosure, with the granite tube's window slots, piers,
-corner stones, parapet, and enclosure louvers, and the inferred antenna at
-the published 362.5 m tip; see its
-[reference audit](docs/aon-geographic-reference.md).
+Aon Center is the same tower on its mapped outline and rooftop part: the 340 m
+shaft, fourteen bays to each mapped face, the louvered crown, the solid notched
+corners, the 346.3 m enclosure, and the inferred antenna at the published
+362.5 m tip; see its [reference audit](docs/aon-reference.md).
 Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
