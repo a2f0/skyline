@@ -290,7 +290,7 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Crain", () => {
-    test("keeps the mapped roof slopes, flat cap and glazed facades", () => {
+    test("keeps the photographed diamond, the open slot, the notches and the banded wall", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Crain")!;
       const model = models["Crain"]!;
       model.building.updateMatrixWorld(true);
@@ -304,52 +304,58 @@ describe("mapped skyline geography", () => {
         const [east, north] = projectGround([longitude, latitude]);
         return [east, 0, -north];
       };
-      // OSM's downhill bearing warp: height descends from each part's stated
-      // top along the 133° bearing. Independent samples pin the flat 152.5 m
-      // cap and the 172.4/75 and 177.4/73 sloped roofs.
+      const glass = meshes.filter((mesh) => mesh.name === "Crain · sloped glazing");
+      // Both roofs fall 1.225 m per metre along OSM's 133° bearing from peaks at the
+      // published 177.4 m, as the photograph shows, not from the mapped roof tags' 172.4 m
+      // and 177.4 m tops falling 75 and 73 m. Independent samples on each half's glass.
       const radians = Math.PI / 180;
-      const slope = (coordinates: [number, number][], top: number, fall: number) => {
-        const points = coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
-        const along = (p: Vec2) => p[0] * Math.sin(133 * radians) - p[1] * Math.cos(133 * radians);
-        const projections = points.map(along);
-        const min = Math.min(...projections), span = Math.max(...projections) - min;
-        return (p: Vec2) => top - fall * (along(p) - min) / span;
+      const roofOf = (part: (typeof record.parts)[number]) => {
+        const along = ([x, z]: Vec2) => x * Math.sin(133 * radians) - z * Math.cos(133 * radians);
+        const top = Math.min(...part.coordinates.map((p) => { const [east, north] = projectGround(p); return along([east, -north]); }));
+        return ([x, z]: Vec2) => 177.4 - 1.225 * (along([x, z]) - top);
       };
-      const flatTop = world(-87.62512, 41.88494);
-      near(hit([flatTop[0], 200, flatTop[2]], [0, -1, 0])!.point.y, 152.5, 0.001);
-      const part228 = record.parts.find((p) => p.way === 284816228)!, part229 = record.parts.find((p) => p.way === 284816229)!;
-      const roof228 = slope(part228.coordinates, part228.top, part228.roofSlope!.height);
-      const roof229 = slope(part229.coordinates, part229.top, part229.roofSlope!.height);
-      for (const probe of [world(-87.62487, 41.88468), world(-87.62505, 41.88480)]) {
-        const expected = roof228([probe[0], probe[2]]);
-        near(hit([probe[0], 200, probe[2]], [0, -1, 0])!.point.y, expected, 0.05);
+      const southWest = record.parts.find((p) => p.way === 284816228)!, northEast = record.parts.find((p) => p.way === 284816229)!;
+      for (const [part, samples] of [[southWest, [world(-87.62512, 41.88470), world(-87.62490, 41.88468)]], [northEast, [world(-87.62480, 41.88495), world(-87.62505, 41.88498)]]] as const) {
+        const roof = roofOf(part);
+        for (const probe of samples) near(hit([probe[0], 200, probe[2]], [0, -1, 0], glass)!.point.y, roof([probe[0], probe[2]]), 0.01);
       }
-      const northTip = world(-87.62476, 41.88502);
-      near(hit([northTip[0], 200, northTip[2]], [0, -1, 0])!.point.y, roof229([northTip[0], northTip[2]]), 0.05);
-      // The dark seam follows the mapped diagonal between the two sloped parts.
-      const seamMid = world(-87.62496155, 41.88478375);
-      expect(hit([seamMid[0], 200, seamMid[2]], [0, -1, 0])!.object.name).toBe("Crain · roof seam");
-      // Panes and mullions are the first surface on the mapped south wall,
-      // probed from outside the closed shell. The wall jogs at
-      // (-87.624879, 41.8846221), so probes follow the kinked outline.
-      const southCorners = [world(-87.6251984, 41.8846185), world(-87.624879, 41.8846221), world(-87.624814, 41.8846217)];
-      const southProbe = (fraction: number): Vec3 => {
-        const lengths = [0, 1].map((i) => Math.hypot(southCorners[i + 1]![0] - southCorners[i]![0], southCorners[i + 1]![2] - southCorners[i]![2]));
-        const target = fraction * (lengths[0]! + lengths[1]!);
-        const index = target <= lengths[0]! ? 0 : 1;
-        const t = (target - (index === 1 ? lengths[0]! : 0)) / lengths[index]!;
-        return southCorners[index]!.map((v, axis) => v + (southCorners[index + 1]![axis]! - v) * t) as Vec3;
-      };
-      for (const fraction of [0.25, 0.6]) {
-        const probe = southProbe(fraction);
-        const south = hit([probe[0], 100, probe[2] + 30], [0, 0, -1]);
-        expect(south!.object.name).toMatch(/glaz|mullion/);
-        expect(south!.point.z).toBeGreaterThan(probe[2] + 0.02);
-        expect(south!.point.z).toBeLessThan(probe[2] + 0.2);
+      // Both peaks reach the published top, within half a metre of each other in the
+      // photograph: the south-west half's on its west face, the north-east half's at the
+      // mapped north-west corner.
+      const roofs = glass[0]!.geometry.getAttribute("position");
+      for (const peak of [world(-87.6252086, 41.8849637), world(-87.6252038, 41.8850292)]) {
+        let top = -Infinity;
+        for (let i = 0; i < roofs.count; i += 1) if (Math.hypot(roofs.getX(i) - peak[0], roofs.getZ(i) - peak[2]) < 0.01) top = Math.max(top, roofs.getY(i));
+        near(top, 177.4, 0.001);
       }
-      // The parts' outlines contain internal seams, so grade carries their
-      // vertices too; every mapped footprint corner must still be present.
-      const groundMesh = meshes.find((mesh) => mesh.name === "Crain · mapped stone shell")!;
+      // The slot is open to the sky down to the wedge's mapped 152.5 m top.
+      const wedge = record.parts.find((p) => p.way === 284816227)!;
+      const wedgeMiddle = wedge.coordinates.map((p) => world(p[0], p[1])).reduce<Vec3>((sum, p, _, all) => [sum[0] + p[0] / all.length, 0, sum[2] + p[2] / all.length], [0, 0, 0]);
+      const floor = hit([wedgeMiddle[0], 200, wedgeMiddle[2]], [0, -1, 0])!;
+      expect(floor.object.name).toBe("Crain · slot floor");
+      near(floor.point.y, 152.5, 0.001);
+      // The mapped south wall carries ribbon windows between white spandrels: a sill-to-head
+      // probe meets glass first, a spandrel probe the wall itself.
+      const southWestCorner = world(-87.6251984, 41.8846185), southJog = world(-87.624879, 41.8846221);
+      const midSouth = southWestCorner.map((v, axis) => v + (southJog[axis]! - v) * 0.3) as Vec3;
+      const level = 7 + 3.5 * 20;
+      expect(hit([midSouth[0], level + 1.7, midSouth[2] + 30], [0, 0, -1])!.object.name).toBe("Crain · ribbon glazing");
+      expect(hit([midSouth[0], level + 3.0, midSouth[2] + 30], [0, 0, -1])!.object.name).toBe("Crain · aluminum spandrels");
+      // The south-east notch is a recessed V: a ray from the lake meets the north-east half's
+      // wall on the notch's inner arm, not a filled corner.
+      const apex = world(-87.6248301, 41.884687), eastArm = world(-87.6247375, 41.8847566);
+      const arm = apex.map((v, axis) => v + (eastArm[axis]! - v) * 0.5) as Vec3;
+      const inward: Vec3 = [-Math.SQRT1_2, 0, -Math.SQRT1_2];
+      const notchHit = hit([arm[0] - inward[0] * 30, 7 + 3.5 * 15 + 1.7, arm[2] - inward[2] * 30], inward)!;
+      expect(notchHit.object.name).toBe("Crain · ribbon glazing");
+      const armDirection = [eastArm[0] - apex[0], eastArm[2] - apex[2]], armLength = Math.hypot(armDirection[0]!, armDirection[1]!);
+      near(Math.abs((notchHit.point.x - apex[0]) * armDirection[1]! - (notchHit.point.z - apex[2]) * armDirection[0]!) / armLength, 0.08, 0.02);
+      // The lit outline runs along the south face's roof edge, standing out from the wall.
+      const edge = roofOf(southWest)([midSouth[0], midSouth[2]]);
+      expect(hit([midSouth[0], edge - 0.2, midSouth[2] + 30], [0, 0, -1])!.object.name).toBe("Crain · diamond outline lights");
+      // Every mapped footprint corner stands at grade: facade relief above grade must not
+      // redefine the street outline, and the parts share their seams.
+      const groundMesh = meshes.find((mesh) => mesh.name === "Crain · aluminum spandrels")!;
       const vertices = groundMesh.geometry.getAttribute("position");
       const grade = new Set<string>();
       for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
@@ -802,13 +808,13 @@ describe("geographic layout in the study", () => {
     // the geographic origin, so its bounds locate the scene's offset.
     const crainBounds = (await page.evaluate(() => window.__buildingStudy!.modelBounds)).find((b) => b.id === crain)!;
     const eye = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    near(eye[0]! - (crainBounds.min[0]! + crainBounds.max[0]!) / 2, 1540.4, 0.5);
+    near(eye[0]! - (crainBounds.min[0]! + crainBounds.max[0]!) / 2, 1554.87, 0.5);
     near(eye[1]!, 2, 1e-6);
-    near(eye[2]! - (crainBounds.min[2]! + crainBounds.max[2]!) / 2, 2067.92, 0.5);
+    near(eye[2]! - (crainBounds.min[2]! + crainBounds.max[2]!) / 2, 2074.57, 0.5);
     // Mapped roofs and tips land on their drawn positions in the reference frame's
     // layer units. The worst are drawn heights that differ from the published ones,
-    // such as One Prudential's mast, drawn 135 units below its mapped tip; the fit's
-    // RMS is 74.1. The same eye and frame hold at every layout, so each point lands
+    // such as One Prudential's mast, drawn 130 units below its mapped tip; the fit's
+    // RMS is 66.9. The same eye and frame hold at every layout, so each point lands
     // on the same spot. The skyline test's layouts all have canvases narrower than
     // the frame; 1440x800's is wider, so the field of view fits the frame's height.
     const placed: Record<string, [number, number][]> = {};
@@ -832,7 +838,7 @@ describe("geographic layout in the study", () => {
         squares += error * error;
         (placed[name] ||= []).push(measured[i]!);
       });
-      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${size.width}x${size.height}`).toBeLessThan(74.5);
+      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${size.width}x${size.height}`).toBeLessThan(67.5);
     }
     for (const [name, points] of Object.entries(placed)) for (const point of points) {
       expect(Math.hypot(point[0] - points[0]![0], point[1] - points[0]![1]), `${name} holds its drawn place at every layout`).toBeLessThan(0.05);

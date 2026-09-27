@@ -16,6 +16,8 @@ const cameraPosition = (page: Page) => page.evaluate(() => window.__buildingStud
 const patch = (page: Page, point: { x: number; y: number }) => page.screenshot({ style: "#tooltip { visibility: hidden !important; }", clip: { x: Math.floor(point.x) - 4, y: Math.floor(point.y) - 4, width: 8, height: 8 } });
 const heritageModule = models.find((model) => model.id === heritage)!.module;
 const heritageSpec = fitted.find((spec) => spec.id === heritage)!;
+const crainModule = models.find((model) => model.id === crain)!.module;
+const crainSpec = fitted.find((spec) => spec.id === crain)!;
 const trumpModule = models.find((model) => model.id === trump)!.module;
 const trumpSpec = fitted.find((spec) => spec.id === trump)!;
 const prudentialModule = models.find((model) => model.id === prudential)!.module;
@@ -47,6 +49,8 @@ async function checkReferenceMatch(page: Page) {
   const { projected, columns, silhouette } = buildings.find((building) => building.id === heritage)!;
   expect(above(deviations, "Kemper near roof", "Kemper left roof", "Kemper right roof")).toBe(true);
   expect(above(deviations, "Michigan near roof", "Michigan left roof", "Michigan right roof")).toBe(true);
+  // Crain's north-east half ends on a flat step above the south-west half's foot.
+  expect(above(deviations, "crainStepEast", "crainFoot")).toBe(true);
   expect(above(deviations, "screenFrontTop", "screenNorthTop", "screenSouthTop")).toBe(true);
   expect(above(deviations, "stubFrontRoof", "stubLeftRoof")).toBe(true);
   expect(above(deviations, "roofNear", "roofLeft", "roofRight")).toBe(true);
@@ -208,8 +212,9 @@ describe("eight-building skyline study", () => {
     expect(await page.evaluate(() => window.__buildingStudy!.modelNames)).toEqual(models.map((model) => model.name));
     expect(await page.evaluate(() => window.__buildingStudy!.activeView)).toBe("skyline");
     // A budget for the whole scene; raise it deliberately when a detailed building lands.
+    // Crain's banded curtain wall and glazed diamond raised it from 86,000 to 115,000.
     const triangles = await page.evaluate(() => window.__buildingStudy!.triangleCount);
-    expect(triangles > 85000 && triangles < 87000, `the eight-building scene should stay within 85,000-87,000 triangles: ${triangles}`).toBe(true);
+    expect(triangles > 114000 && triangles < 116000, `the eight-building scene should stay within 114,000-116,000 triangles: ${triangles}`).toBe(true);
     const shadowBounds = await page.evaluate(() => window.__buildingStudy!.shadowBounds);
     expect(shadowBounds.min.every((v: number) => v > -1) && shadowBounds.max.every((v: number) => v < 1),
       `all buildings and the platform should stay within the light's shadow camera: ${JSON.stringify(shadowBounds)}`).toBe(true);
@@ -242,11 +247,12 @@ describe("eight-building skyline study", () => {
     // The page serves the compiled site, so source module paths end in .js there.
     const features = async ([url, name]: [string, string]) => page.evaluate(async ([url, name]) => (await import(url))[name], [url.replace(/\.ts$/, ".js"), name] as [string, string]);
     const heritageFeatures = await features([heritageModule, heritageSpec.features]);
+    const crainFeatures = await features([crainModule, crainSpec.features]);
     const trumpFeatures = await features([trumpModule, trumpSpec.features]);
     const prudentialFeatures = await features([prudentialModule, prudentialSpec.features]);
     const twoPrudentialFeatures = await features([twoPrudentialModule, twoPrudentialSpec.features]);
     const aonFeatures = await features([aonModule, aonSpec.features]);
-    const points = [await screenPoint(page, heritage, heritageFeatures.bowFacade), await screenPoint(page, kemper, [-5, 75, 26.8]), await screenPoint(page, crain, [0, 65, 27.1]), await screenPoint(page, michigan, [0, 120, 23.4]), await screenPoint(page, trump, trumpFeatures.trumpFacadeProbe), await screenPoint(page, prudential, prudentialFeatures.southFacade), await screenPoint(page, twoPrudential, twoPrudentialFeatures.twoFacade), await screenPoint(page, aon, aonFeatures.aonFrontFacade)];
+    const points = [await screenPoint(page, heritage, heritageFeatures.bowFacade), await screenPoint(page, kemper, [-5, 75, 26.8]), await screenPoint(page, crain, crainFeatures.crainFacadeProbe), await screenPoint(page, michigan, [0, 120, 23.4]), await screenPoint(page, trump, trumpFeatures.trumpFacadeProbe), await screenPoint(page, prudential, prudentialFeatures.southFacade), await screenPoint(page, twoPrudential, twoPrudentialFeatures.twoFacade), await screenPoint(page, aon, aonFeatures.aonFrontFacade)];
     const before: Buffer[] = [];
     for (const point of points) before.push(await patch(page, point));
     for (const [index, id, label] of [[0, heritage, "The Heritage at Millennium Park"], [1, kemper, "Kemper Building"], [2, crain, "Crain Communications Building"], [3, michigan, "Michigan Plaza South"], [4, trump, "Trump International Hotel and Tower"], [5, prudential, "One Prudential Plaza"], [6, twoPrudential, "Two Prudential Plaza"], [7, aon, "Aon Center"]] as [number, string, string][]) {

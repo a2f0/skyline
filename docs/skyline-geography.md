@@ -23,21 +23,21 @@ geometry, not a place. The mapped buildings stay where they are mapped; only
 the camera is fitted.
 
 `scripts/fit-geographic-camera.ts` solves the study's orbit camera, aimed at the
-centre of the reference excerpt's frame, against the 22 correspondences in
+centre of the reference excerpt's frame, against the 24 correspondences in
 `geographicLandmarks` in `tests/skyline-landmarks.ts`. These pair mapped spire
-tips, eaves, roof corners and Crain's roof shoulders with their drawn points. The
-eye's height is held at 2 m above the street datum. The drawing barely
-constrains it: a camera hovering about 110 m over the harbor on a shorter lens
-fits the traced heights slightly better, but the photograph was taken from the
-shore. The solve puts the eye 1540 m east and 2068 m south of Crain, on the
-lakefront by the Adler Planetarium, 2.58 km away. The camera's azimuth is
-35.81° and it looks up 3.85°, with the frame spanning a 10.06° vertical field
-of view.
+tips, eaves, roof corners, and Crain's peaks, shoulders, foot and step with
+their drawn points. The eye's height is held at 2 m above the street datum. The
+drawing barely constrains it: a camera hovering about 100 m over the harbor on a
+shorter lens fits the traced heights slightly better, but the photograph was
+taken from the shore. The solve puts the eye 1555 m east and 2075 m south of
+Crain, on the lakefront by the Adler Planetarium, 2.59 km away. The camera's
+azimuth is 35.98° and it looks up 3.86°, with the frame spanning a 9.94°
+vertical field of view.
 
-The fit's RMS error is 74 layer units, about 1.7% of the frame's 4430-unit
-width. Horizontal errors stay within 52 units, and the larger vertical ones are
+The fit's RMS error is 67 layer units, about 1.5% of the frame's 4430-unit
+width. Horizontal errors stay within 55 units, and the larger vertical ones are
 drawn heights that differ from published ones. For example, One Prudential's
-mast is drawn 135 units, roughly 17 m, below its 278 m tip. The drawn
+mast is drawn 130 units, roughly 16 m, below its 278 m tip. The drawn
 Michigan Plaza South is excluded: from this camera it stands 790–1000 units left
 of the mapped tower, which One Prudential hides.
 
@@ -141,11 +141,14 @@ Intermediate parts have less certainty than the overall height:
   crown, and a tapered mast; see the [Trump reference audit](trump-geographic-reference.md).
   Nested tiers start at the previous tier's top, avoiding coincident exterior
   walls over their full height.
-- Crain's two sloping roof parts use OSM's downhill bearing of 133° and roof
-  heights of 75 and 73 m. These are map data, not a surveyed roof model; the
-  parts now carry clipped window cells, mullions, sloping roof rims, and a
-  dark seam along the mapped diagonal; see the
-  [Crain reference audit](crain-geographic-reference.md).
+- Crain's two sloping roof parts keep OSM's downhill bearing of 133°, but not
+  its roof tags, which put the two peaks 5 m apart and fall 75 and 73 m. The
+  photograph shows both peaks at the published 177.4 m and both roofs falling
+  1.225 m per metre, about 51°. Those planes put the north-east half's step about
+  6.9 m above the south-west half's foot, where the drawing shows 7.3 m. The
+  wedge between them is the slot's 152.5 m floor. The halves carry the banded
+  curtain wall, glazed roofs with a lit outline, and the notches at both ends of
+  the split; see the [Crain reference audit](crain-reference.md).
 - Michigan Plaza South's mapped outline now carries its 44-story curtain-wall
   grid with a roof parapet at the published 168.6 m top; see the
   [Michigan Plaza South reference audit](michigan-plaza-south-geographic-reference.md).
