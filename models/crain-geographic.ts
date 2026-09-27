@@ -13,9 +13,9 @@ import type { GeoBuilding, GeoPart } from "./skyline-geography-data.js";
 // drawing was traced from, not from OSM's roof tags. Those put the south-west peak 5 m below
 // the north-east one and fall 75 and 73 m, 54° and 56°. Measured through the solved skyline
 // camera, both peaks stand within half a metre of each other at the published 177.4 m, and
-// both roofs fall 1.225 m per metre, about 51°. The drawing's right half ends 7.3 m above
-// the left, as those planes give. See docs/crain-reference.md. Units are meters; +x is
-// east, +z is south.
+// both roofs fall 1.225 m per metre, about 51°. Those planes end the north-east half about
+// 6.9 m above the south-west half's foot, where the drawing shows 7.3 m. See
+// docs/crain-reference.md. Units are meters; +x is east, +z is south.
 export const crainGeographicLevels = Object.freeze({
   tip: 177.4,
   fall: 1.225,

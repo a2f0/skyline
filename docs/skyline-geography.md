@@ -144,11 +144,11 @@ Intermediate parts have less certainty than the overall height:
 - Crain's two sloping roof parts keep OSM's downhill bearing of 133°, but not
   its roof tags, which put the two peaks 5 m apart and fall 75 and 73 m. The
   photograph shows both peaks at the published 177.4 m and both roofs falling
-  1.225 m per metre, about 51°, which also puts the north-east half's step 7.3 m
-  above the south-west half's foot, as drawn. The wedge between them is the
-  slot's 152.5 m floor. The halves carry the banded curtain wall, glazed roofs
-  with a lit outline, and the notches at both ends of the split; see the
-  [Crain reference audit](crain-reference.md).
+  1.225 m per metre, about 51°. Those planes put the north-east half's step about
+  6.9 m above the south-west half's foot, where the drawing shows 7.3 m. The
+  wedge between them is the slot's 152.5 m floor. The halves carry the banded
+  curtain wall, glazed roofs with a lit outline, and the notches at both ends of
+  the split; see the [Crain reference audit](crain-reference.md).
 - Michigan Plaza South's mapped outline now carries its 44-story curtain-wall
   grid with a roof parapet at the published 168.6 m top; see the
   [Michigan Plaza South reference audit](michigan-plaza-south-geographic-reference.md).
