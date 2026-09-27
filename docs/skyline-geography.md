@@ -29,21 +29,28 @@ tips, eaves, roof corners, and Crain's peaks, shoulders, foot and step with
 their drawn points. The eye's height is held at 2 m above the street datum. The
 drawing barely constrains it: a camera hovering about 100 m over the harbor on a
 shorter lens fits the traced heights slightly better, but the photograph was
-taken from the shore. The solve puts the eye 1458 m east and 1938 m south of
-Crain, 2.43 km away on the lakefront walk about 125 m north of the Adler
-Planetarium's centre. The camera's azimuth is 36.02° and it looks up 4.07°, with the
-frame spanning a 10.63° vertical field of view.
+taken from the shore. The solve puts the eye 1481 m east and 1955 m south of
+Crain, 2.45 km away on the lakefront walk about 100 m north of the Adler
+Planetarium's centre. The camera's azimuth is 36.22° and it looks up 4.03°, with the
+frame spanning a 10.49° vertical field of view.
 
-The fit's RMS error is 48 layer units, about 1.1% of the frame's 4430-unit
-width. Horizontal errors stay within 52 units, and the larger vertical ones are
+The fit's RMS error is 47 layer units, about 1.1% of the frame's 4430-unit
+width. Horizontal errors stay within 54 units, and the larger vertical ones are
 drawn heights that differ from published ones. For example, Two Prudential's
-eaves are drawn about 100 units, roughly 12 m, below their mapped 240 m. One
-Prudential's landmarks are its roof corners at the photographed 169.5 m and its
-tubular mast's top at 259.4 m, where the drawing stops the mast; the slim WGN
-antenna above it, to the 278 m tip, is lost against Trump Tower in the
-photograph. With those in place of the published 183.2 m penthouse top and
-278 m tip, the RMS fell from 67 units and the eye moved about 170 m north-west,
-from 45 m off the planetarium's centre to the walk. The drawn Michigan Plaza South is
+eaves are drawn about 100 units, roughly 12 m, below their mapped 240 m.
+
+Two sets of landmarks follow the photograph rather than a published or mapped
+figure:
+
+- **One Prudential.** Its roof corners stand at the photographed 169.5 m, and its
+  tubular mast's top at 259.4 m, where the drawing stops the mast. The slim WGN antenna
+  above it, to the 278 m tip, is lost against Trump Tower in the photograph.
+- **Trump.** Its spire's tip stands where the photograph shows it, 4 m west of the mapped
+  spire part.
+
+With those in place of the published 183.2 m penthouse top, the 278 m tip, and the
+mapped spire, the RMS fell from 67 units. The eye moved about 140 m north-west, from
+45 m off the planetarium's centre to the walk. The drawn Michigan Plaza South is
 excluded: from this camera it stands 790–1000 units left of the mapped tower,
 which One Prudential hides.
 
@@ -145,12 +152,14 @@ Intermediate parts have less certainty than the overall height:
   278 m tip at the mapped antenna. Its limestone piers, windows, and wing ribs
   follow the photographed 2.35 m bay and 3.93 m floors; see the
   [One Prudential reference audit](one-prudential-reference.md).
-- Trump's mapped tiers keep their OSM part heights of 60, 120, 200, 345, 357,
-  380 and 400 m, then the published 423.2 m tip. The tier outlines now carry a
-  glazed facade with panes, mullions and floor bands, terrace parapets, a ribbed
-  crown, and a tapered mast; see the [Trump reference audit](trump-geographic-reference.md).
-  Nested tiers start at the previous tier's top, avoiding coincident exterior
-  walls over their full height.
+- Trump's mapped podium and setbacks keep their OSM part heights of 60, 120 and
+  200 m. Above them the photograph, measured down from the published 423.2 m tip,
+  puts the main roof at 354.4 m, stepping down to 347.3 m north of the east
+  face's notch, and the crown at 364.9 m. The map's 345 and 357 m run about ten
+  metres low. The spire's joints are the photographed 377.4 and 402.2 m, and it
+  stands where the photograph shows it on the crown. Every tier wears the
+  stainless curtain wall on its 6 ft units; see the
+  [Trump reference audit](trump-reference.md).
 - Crain's two sloping roof parts keep OSM's downhill bearing of 133°, but not
   its roof tags, which put the two peaks 5 m apart and fall 75 and 73 m. The
   photograph shows both peaks at the published 177.4 m and both roofs falling

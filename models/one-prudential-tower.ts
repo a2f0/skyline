@@ -1,7 +1,7 @@
 import * as THREE from "../vendor/three-r186.js";
 import { createBuilder, inside } from "./building-kit.js";
 import type { BuildingModel, Builder, Plan, Run, Vec2, Vec3 } from "./building-kit.js";
-import { chainsOf, gridBox, mitredBox, orient, paintedSlab, planOf, turnAt } from "./facade-grid.js";
+import { chainPier, chainsOf, gridBox, jointTrim, mitredBox, orient, paintedSlab, planOf, turnsAt } from "./facade-grid.js";
 import type { Chain } from "./facade-grid.js";
 
 // One Prudential Plaza, 130 East Randolph Street (Naess & Murphy, 1955), shared by the
@@ -137,7 +137,7 @@ export function buildOnePrudentialTower(form: OnePrudentialForm): BuildingModel 
   // that neighbour: the tower covers its wings' inner walls, and the wings the tower's lower ones.
   const parts = [{ outline: tower, top: h.roof }, ...wings.map(({ outline, top }) => ({ outline, top }))];
   const coveredTo = (run: Run, own: Vec2[]) => Math.max(base, ...parts.filter(({ outline }) => outline !== own && inside(outline, run.at(run.length / 2, 0.3))).map(({ top }) => top));
-  const turns = (plan: Plan, index: number) => [turnAt(plan[(index + plan.length - 1) % plan.length]!, plan[index]!), turnAt(plan[index]!, plan[(index + 1) % plan.length]!)] as const;
+  const turns = turnsAt;
 
   // The solids: walls, floors, and roofs, closed. Walls behind the facade are spandrel
   // aluminium; a wall too short for a bay is plain limestone.
@@ -150,35 +150,10 @@ export function buildOnePrudentialTower(form: OnePrudentialForm): BuildingModel 
     paintedSlab(kit, shell, outline, y(top), true, roofing);
   };
 
-  // Piers cross the joints of a chain in pieces, one per run, mitred on each joint's bisector
-  // as the courses are, each standing above whatever covers its own run. Where the cover
-  // changes at a joint, the less covered run's last 2 cm stand from the higher cover, so the
-  // piece ends clear of the neighbour's wall. Cells stop a little short of every joint, of
-  // a more covered neighbour, and of the wedge a concave joint would push into the next run's.
-  const trim = (plan: Plan, chain: Chain, froms: number[], k: number, other: number) => {
-    if (other < 0 || other >= chain.runs.length) return 0;
-    const [a, b] = other > k ? [chain.runs[k]!, chain.runs[other]!] : [chain.runs[other]!, chain.runs[k]!];
-    const turn = turnAt(plan[a]!, plan[b]!);
-    return 0.005 + (turn > 0 ? 0.08 * Math.tan(turn / 2) : 0) + (froms[k]! < froms[other]! ? 0.01 : 0);
-  };
-  const pierOn = (plan: Plan, chain: Chain, froms: number[], a: number, b: number, depth: number, top: number) => {
-    const last = chain.runs.length - 1;
-    chain.runs.forEach((index, k) => {
-      const run = plan[index]!, start = chain.starts[k]!, end = start + run.length;
-      const lo = Math.max(a, start), hi = Math.min(b, end);
-      if (hi - lo < 0.005) return;
-      const [before, after] = turns(plan, index);
-      const mitreLo = lo === start && (a < start || (k === 0 && a === 0)) ? before : undefined;
-      const mitreHi = hi === end && (b > end || (k === last && b === chain.length)) ? after : undefined;
-      const pieces: [number, number, number, number | undefined, number | undefined][] = [[lo, hi, froms[k]!, mitreLo, mitreHi]];
-      if (mitreHi !== undefined && k < last && froms[k]! < froms[k + 1]! && hi - 0.02 > lo) pieces.splice(0, 1, [lo, hi - 0.02, froms[k]!, mitreLo, undefined], [hi - 0.02, hi, froms[k + 1]!, undefined, mitreHi]);
-      const first = pieces[0]!;
-      if (mitreLo !== undefined && k > 0 && froms[k]! < froms[k - 1]! && first[1] > lo + 0.02) pieces.splice(0, 1, [lo, lo + 0.02, froms[k - 1]!, mitreLo, undefined], [lo + 0.02, first[1], first[2], undefined, first[4]]);
-      for (const [p0, p1, from, m0, m1] of pieces) {
-        if (from < top) mitredBox(kit, piers, run, p0 - start, p1 - start, m0, m1, depth, Math.max(from, 0.3), top, y);
-      }
-    });
-  };
+  // Piers cross a chain's joints in pieces, and cells stop short of them: see chainPier and
+  // jointTrim in facade-grid.ts.
+  const trim = jointTrim;
+  const pierOn = (plan: Plan, chain: Chain, froms: number[], a: number, b: number, depth: number, top: number) => chainPier(kit, piers, plan, chain, froms, a, b, depth, top, y);
   // A run's cells start just above its piers, so their undersides never share a plane.
   const cellsFrom = (from: number) => from + 0.1;
 

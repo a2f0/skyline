@@ -55,10 +55,13 @@ place(heritage, -91.9, -31.85);
 prudential.building.scale.setScalar(1.314);
 prudential.building.rotation.y = 7.29 * Math.PI / 180;
 place(prudential, 179.02, 25);
-// Trump stands behind One Prudential in the SVG. Its depth maintains that lower-facade
-// occlusion while the fitted crown and spire remain visible above the foreground slab.
-place(trump, 200.5, -40);
-trump.building.rotation.y = 1.8 * Math.PI / 180;
+// The real Trump shaft from the drawing's 40.7 m datum up, fitted through this camera at all
+// five test layouts to the drawn roof, step, crown, and spire, the drawn mullion lines, and
+// the drawn floor rows: 1.065 times its size and turned 7.95°. It stands behind One
+// Prudential in the SVG, and its depth keeps that lower-facade occlusion.
+trump.building.scale.setScalar(1.065);
+trump.building.rotation.y = 7.95 * Math.PI / 180;
+place(trump, 201.61, -40);
 // Two Prudential stands behind the shared podium; its plan and roof features were
 // fitted through this camera to the drawing, with depth fixed by that occlusion.
 place(twoPrudential, 270.727, -45);

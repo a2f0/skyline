@@ -22,10 +22,10 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
   // datum, looking up at the skyline. The buildings stay where they are mapped;
   // only the camera is fitted. Eye positions are meters east, up, and south of
   // Crain's mapped centre.
-  const photoEye: Vec3 = [1458.2, 2, 1938.13];
-  const photoAzimuth = 36.0204 * Math.PI / 180, photoPolar = 94.0693 * Math.PI / 180;
+  const photoEye: Vec3 = [1481.06, 2, 1955.01];
+  const photoAzimuth = 36.2223 * Math.PI / 180, photoPolar = 94.0267 * Math.PI / 180;
   // The reference excerpt's frame: its vertical field of view and its viewBox aspect.
-  const frameFov = 10.6258 * Math.PI / 180, frameAspect = 4430 / 3535.05;
+  const frameFov = 10.4912 * Math.PI / 180, frameAspect = 4430 / 3535.05;
   const back: Vec3 = [Math.sin(photoPolar) * Math.sin(photoAzimuth), Math.cos(photoPolar), Math.sin(photoPolar) * Math.cos(photoAzimuth)];
   // Orbit and zoom pivot on the sightline at Crain's depth.
   const photoDistance = photoEye[0] * back[0] + photoEye[1] * back[1] + photoEye[2] * back[2];

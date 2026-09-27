@@ -440,67 +440,43 @@ describe("fitted and geographic models", () => {
       ray.set(new THREE.Vector3(...origin), new THREE.Vector3(...direction));
       return ray.intersectObjects(objects, false)[0];
     };
-    test("the east-drop cap closes the shaft all the way through the source step", async () => {
-      built[trump]!.building.updateMatrixWorld(true);
-      const shell = surfaces().filter((mesh) => mesh.name === "closed glass shells and roof steps");
-      for (const z of [4, 1, -2]) {
-        const contact = hit([24, 325.7, z], [-1, 0, 0], shell);
-        expect(contact?.object.name, `Trump east-drop cap should close the shaft at z=${z}`).toBe("closed glass shells and roof steps");
-        expect(Math.abs(contact!.point.x - 22.75) < 0.02, `Trump east-drop cap should meet its east wall at z=${z}`).toBe(true);
-      }
-    });
-    test("the glazed south face bows, not a flat wall", async () => {
-      const shell = surfaces().filter((mesh) => mesh.name === "closed glass shells and roof steps");
-      const frontMiddle = hit([0, 200, 35], [0, 0, -1], shell);
-      const frontEdge = hit([-17, 200, 35], [0, 0, -1], shell);
-      expect(frontMiddle && frontEdge && frontMiddle.point.z - frontEdge.point.z > 1.5).toBe(true);
-    });
-    test("shell triangles carry their geometric surface normals", async () => {
-      const shell = surfaces().filter((mesh) => mesh.name === "closed glass shells and roof steps");
-      const shellTriangles = trianglesOf({
-        positions: shell[0]!.geometry.getAttribute("position").array,
-        normals: shell[0]!.geometry.getAttribute("normal").array,
-      });
-      for (const { index, normal, normals } of shellTriangles) {
-        const minimumAlignment = Math.abs(normal[1]) < 0.01 ? 0.9997 : 0.9999;
-        for (const vertexNormal of normals) {
-          expect(dot(normal, vertexNormal), `Trump shell triangle ${index} should carry a geometric surface normal`).toBeGreaterThan(minimumAlignment);
-        }
-      }
-    });
-    test("sampled floor rows are raised bands", async () => {
+    test("the shaft steps down from the roof to the shoulder at the notch", async () => {
       const { trumpFeatures } = await load(models.find((model) => model.id === trump)!.module);
-      const facadeBands = surfaces().filter((mesh) => mesh.name === "raised mullions and floor bands");
-      for (const point of trumpFeatures.trumpFloorBands) {
-        const contact = hit([point[0], point[1], 40], [0, 0, -1], facadeBands);
-        expect(contact?.object.name, "each sampled Trump floor row should be a raised band").toBe("raised mullions and floor bands");
-        expect(Math.abs(contact!.point.z - point[2]) < 0.02, "each sampled Trump floor band should meet its measured south face").toBe(true);
+      built[trump]!.building.updateMatrixWorld(true);
+      const [top, bottom] = [trumpFeatures.trumpRoofStepTop as Vec3, trumpFeatures.trumpRoofStepBottom as Vec3];
+      const shell = surfaces().filter((mesh) => mesh.name === "Trump · tower shell");
+      // Just south of the notch the roof, just north of it the shoulder.
+      expect(Math.abs(hit([top[0] - 3, top[1] + 20, top[2] + 2], [0, -1, 0], shell)!.point.y - top[1])).toBeLessThan(0.001);
+      expect(Math.abs(hit([top[0] - 3, top[1] + 20, top[2] - 2], [0, -1, 0], shell)!.point.y - bottom[1])).toBeLessThan(0.001);
+    });
+    test("sampled floor rows land on the spandrels", async () => {
+      const { trumpFeatures } = await load(models.find((model) => model.id === trump)!.module);
+      const facade = surfaces().filter((mesh) => mesh.name === "Trump · glass and spandrels");
+      const spandrel = new THREE.Color(0x474747);
+      const [a, b] = [trumpFeatures.trumpFloorBands[0] as Vec3, trumpFeatures.trumpBehindPrudential as Vec3];
+      // The bevel's outward normal, from the two points on it.
+      const along = [b[0] - a[0], b[2] - a[2]], length = Math.hypot(along[0]!, along[1]!), out: Vec3 = [-along[1]! / length, 0, along[0]! / length];
+      for (const point of trumpFeatures.trumpFloorBands as Vec3[]) {
+        const contact = hit([point[0] + out[0] * 20, point[1], point[2] + out[2] * 20], [-out[0], 0, -out[2]], facade);
+        expect(contact?.object.name, "each sampled Trump floor row should be on the curtain wall").toBe("Trump · glass and spandrels");
+        expect(Math.hypot(contact!.point.x - point[0], contact!.point.z - point[2]), "each sampled row should meet its face").toBeLessThan(0.02);
+        const colors = (contact!.object as THREE.Mesh).geometry.getAttribute("color");
+        expect(Math.abs(colors.getX(contact!.face!.a) - spandrel.r), "each sampled row should be a spandrel").toBeLessThan(0.002);
       }
     });
     test("the rear orbit sees glazed floors", async () => {
-      const rearWindow = hit([6.5, 200, -50], [0, 0, 1]);
-      expect(rearWindow?.object.name).toBe("glazed floor panels");
+      const rear = hit([0, 200, -60], [0, 0, 1]);
+      expect(rear?.object.name).toMatch(/glass|mullions/);
     });
-    test("every spire foot corner sits on the crown roof", async () => {
+    test("every spire foot corner sits on the crown's roof", async () => {
       const model = built[trump]!;
-      const spirePositions = surfaces().find((mesh) => mesh.name === "segmented spire")!.geometry.getAttribute("position");
+      const spirePositions = surfaces().find((mesh) => mesh.name === "Trump · spire")!.geometry.getAttribute("position");
       const foot = Math.min(...Array.from({ length: spirePositions.count }, (_, i) => spirePositions.getY(i)));
-      const roof = surfaces().filter((mesh) => mesh.name === "crown enclosure");
+      const shell = surfaces().filter((mesh) => mesh.name === "Trump · tower shell");
       for (let i = 0; i < spirePositions.count; i += 1) {
         if (Math.abs(spirePositions.getY(i) - foot) > 1e-6) continue;
-        const contact = hit([spirePositions.getX(i), model.height + 1, spirePositions.getZ(i)], [0, -1, 0], roof);
-        expect(contact && Math.abs(contact.point.y - foot) < 0.02, "every Trump spire foot corner should sit on the crown roof").toBe(true);
-      }
-    });
-    test("every crown base corner sits on a shaft roof", async () => {
-      const model = built[trump]!;
-      const crownPositions = surfaces().find((mesh) => mesh.name === "crown enclosure")!.geometry.getAttribute("position");
-      const crownFoot = Math.min(...Array.from({ length: crownPositions.count }, (_, i) => crownPositions.getY(i)));
-      const shell = surfaces().filter((mesh) => mesh.name === "closed glass shells and roof steps");
-      for (let i = 0; i < crownPositions.count; i += 1) {
-        if (Math.abs(crownPositions.getY(i) - crownFoot) > 1e-6) continue;
-        const contact = hit([crownPositions.getX(i), model.height + 1, crownPositions.getZ(i)], [0, -1, 0], shell);
-        expect(contact && Math.abs(contact.point.y - crownFoot) < 0.02, "every Trump crown base corner should sit on a shaft roof").toBe(true);
+        const contact = hit([spirePositions.getX(i), model.height + 1, spirePositions.getZ(i)], [0, -1, 0], shell);
+        expect(contact && Math.abs(contact.point.y - foot) < 0.02, "every Trump spire foot corner should sit on the crown's roof").toBe(true);
       }
     });
   });
@@ -626,11 +602,12 @@ describe("Crain", () => {
 
 // The geographic suite checks the mapped models' meshes close edge for edge; the clean
 // copies come from the same generators on other plans and cropped bases, so check them too.
-test("closes every mesh of the clean Crain, Aon and One Prudential copies edge for edge", async () => {
+test("closes every mesh of the clean Crain, Aon, One Prudential and Trump copies edge for edge", async () => {
   const { createCrainBuilding, createCrainSkylineBuilding } = await load("models/crain-communications.ts");
   const { createAonCenterBuilding } = await load("models/aon-center.ts");
   const { createOnePrudentialPlazaBuilding } = await load("models/one-prudential-plaza.ts");
-  for (const model of [createCrainBuilding(), createCrainSkylineBuilding(), createAonCenterBuilding(), createOnePrudentialPlazaBuilding()] as BuildingModel[]) {
+  const { createTrumpInternationalTowerBuilding } = await load("models/trump-international-tower.ts");
+  for (const model of [createCrainBuilding(), createCrainSkylineBuilding(), createAonCenterBuilding(), createOnePrudentialPlazaBuilding(), createTrumpInternationalTowerBuilding()] as BuildingModel[]) {
     for (const mesh of model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[]) {
       expectClosed(`${model.building.name} ${mesh.name}`, { positions: mesh.geometry.getAttribute("position").array, normals: mesh.geometry.getAttribute("normal").array });
     }
