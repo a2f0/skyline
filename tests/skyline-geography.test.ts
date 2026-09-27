@@ -548,6 +548,35 @@ describe("mapped skyline geography", () => {
         const arrowTop = probe(0, 250);
         expect(arrowTop.proud).toBeGreaterThan(0.5);
         expect(arrowTop.proud).toBeLessThan(1.2);
+        // All three arrows, each at its own depth band, where nothing else
+        // reaches: the lower one over the lower tier's front, the middle one
+        // over the middle tier's, and the top one on the shaft wall. Each
+        // carries its gable's own peak, and the middle one's shoulder pins its
+        // head's slope, so an arrow cannot be omitted or stop short.
+        near(ridge(0, 4.5), 180.63, 0.01);
+        near(ridge(0, 2.7), 224.79, 0.01);
+        near(ridge(0, 0.7), 260.48, 0.01);
+        near(ridge(arrowHalf - 0.3, 2.7), 218.8, 0.02);
+        // The pier heads step floor by floor into the gable rather than
+        // following it as a clean diagonal: each lands on a floor line, they
+        // rise toward the centre, and at least one neighbouring pair is
+        // exactly one floor apart.
+        const bays = Math.max(1, Math.round(lowerHalf * 2 / 3.5)), bayWidth = lowerHalf * 2 / bays;
+        const heads: number[] = [];
+        for (let i = 0; i <= bays; i += 1) {
+          const centred = Math.max(-lowerHalf + 0.42, Math.min(lowerHalf - 0.42, -lowerHalf + i * bayWidth));
+          if (centred > -arrowHalf - 0.5) break;
+          // Against the pier mesh alone: the coping over them occupies the
+          // same depth band.
+          const middle = middleOf(front);
+          const top = hit([middle[0] + front.tangent[0] * centred + front.normal[0] * 4.2, 320, middle[1] + front.tangent[1] * centred + front.normal[1] * 4.2], [0, -1, 0], meshes.filter((mesh) => mesh.name === "Two Prudential · piers and bands"))!.point.y;
+          const floors = (top + 0.12 - 0.3) / 3.75;
+          near(floors, Math.round(floors), 0.002);
+          heads.push(Math.round(floors));
+        }
+        expect(heads.length).toBeGreaterThan(2);
+        for (let i = 1; i < heads.length; i += 1) expect(heads[i]!, "pier heads rise toward the gable's peak").toBeGreaterThan(heads[i - 1]!);
+        expect(heads.some((value, i) => i > 0 && value - heads[i - 1]! === 1), "a neighbouring pair of pier heads is one floor apart").toBe(true);
       }
       // The east and west facades take their arrow from the fitted model's own
       // east face, 11.7 m over 38.86 m, so it is half as wide again in
