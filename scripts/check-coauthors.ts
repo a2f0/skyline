@@ -24,7 +24,9 @@ const command: Runner = (file, args) => execFileSync(file, args, { encoding: "ut
 // to commit messages and the line it adds to pull request bodies, which lands
 // in a commit whenever a body is reused as one. A trailer naming a person is
 // left alone.
-const AGENT = /claude|anthropic/i;
+// Word boundaries, so a colleague called Claudette and an address at
+// notanthropic.com are not mistaken for the agent.
+const AGENT = /\bclaude\b|\banthropic\b/i;
 // Both patterns anchor at the start of the line, because attribution is a line
 // in its own right: a trailer, or the generated-with line behind its emoji and
 // markdown. Matching the phrase anywhere would reject a commit or a doc that

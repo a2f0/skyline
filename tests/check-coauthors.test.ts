@@ -17,9 +17,14 @@ describe("agent attribution in a message", () => {
   test("catches the generated-with line a reused pull request body carries in", () => {
     expect(attributionIn(`feat: a thing\n\n${generated}\n`)).toEqual([generated]);
   });
-  test("leaves a human co-author alone", () => {
-    const human = "Co-authored-by: Dan Sullivan <dansullivan@gmail.com>";
-    expect(attributionIn(`fix: a thing\n\n${human}\n`)).toEqual([]);
+  test("leaves a human co-author alone, including near-misses on the agent's own name", () => {
+    for (const human of [
+      "Co-authored-by: Dan Sullivan <dansullivan@gmail.com>",
+      "Co-authored-by: Claudette Smith <claudette@example.com>",
+      "Co-authored-by: Sam Jones <sam@notanthropic.com>",
+    ]) {
+      expect(attributionIn(`fix: a thing\n\n${human}\n`), human).toEqual([]);
+    }
   });
   test("leaves a message that describes this very rule alone", () => {
     // The commit that introduced the rule quotes both patterns in prose, and

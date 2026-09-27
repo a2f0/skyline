@@ -32,7 +32,13 @@ repo_scoped="$(git config --worktree --get core.hooksPath 2>/dev/null || git con
 if [ -n "$repo_scoped" ]; then
   case "$repo_scoped" in
     /*) HOOKS_DST="$repo_scoped" ;;
-    *) HOOKS_DST="$REPO_ROOT/$repo_scoped" ;;
+    *)
+      HOOKS_DST="$REPO_ROOT/$repo_scoped"
+      # Local config is shared across linked worktrees but a relative path is
+      # resolved against each one, so this only covers the worktree it ran in.
+      echo "Note: core.hooksPath is relative ($repo_scoped); each linked worktree"
+      echo "      resolves it separately, so run this installer in each of them."
+      ;;
   esac
   echo "Using core.hooksPath configured for this repository: $HOOKS_DST"
 else
@@ -44,8 +50,11 @@ mkdir -p "$HOOKS_DST"
 
 # -P so a symlinked hook is preserved as a symlink rather than flattened into a
 # copy of whatever it pointed at.
+# Never overwrite an existing .bak: the first one holds whatever was there
+# before this installer ever ran, and a later reinstall would replace it with a
+# copy of the managed hook, losing the very thing the backup promised to keep.
 save() {
-  if [ -e "$1" ] && ! cmp -s "$1" "$2"; then
+  if [ -e "$1" ] && [ ! -e "$1.bak" ] && ! cmp -s "$1" "$2"; then
     cp -P "$1" "$1.bak"
     echo "Kept the previous $(basename "$1") as $(basename "$1").bak"
   fi
@@ -89,8 +98,9 @@ if [ -f "$MANIFEST" ]; then
 "*) continue ;;
     esac
     if [ -e "$HOOKS_DST/$previous" ]; then
-      # Something may have replaced it since; keep whatever is there.
-      cp -P "$HOOKS_DST/$previous" "$HOOKS_DST/$previous.bak"
+      # Something may have replaced it since; keep whatever is there, unless an
+      # older backup already holds what came before this installer.
+      [ -e "$HOOKS_DST/$previous.bak" ] || cp -P "$HOOKS_DST/$previous" "$HOOKS_DST/$previous.bak"
       rm -f "$HOOKS_DST/$previous"
       echo "Removed $previous, which this installer no longer ships; kept it as $previous.bak"
     fi

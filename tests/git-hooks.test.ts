@@ -160,6 +160,19 @@ describe("what the installer protects", () => {
     execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
     expect(existsSync(path.join(hooks, "post-commit"))).toBe(false);
   });
+  test("keeps the first backup when it is reinstalled", () => {
+    // The .bak holds what was there before this installer ever ran; a later
+    // reinstall must not replace it with a copy of the managed hook.
+    const hooks = path.join(repo, ".git/hooks");
+    const target = path.join(hooks, "commit-msg");
+    rmSync(path.join(hooks, "commit-msg.bak"), { force: true });
+    writeFileSync(target, "#!/bin/sh\n# somebody else's\nexit 0\n", { mode: 0o755 });
+    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
+    expect(readFileSync(path.join(hooks, "commit-msg.bak"), "utf8")).toContain("somebody else's");
+    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
+    expect(readFileSync(path.join(hooks, "commit-msg.bak"), "utf8")).toContain("somebody else's");
+    rmSync(path.join(hooks, "commit-msg.bak"), { force: true });
+  });
   test("replaces a symlinked hook without writing through it", () => {
     // Copying onto a symlink edits a target that may be shared with other
     // repositories, and leaves the destination a symlink.

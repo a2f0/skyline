@@ -78,8 +78,14 @@ while read -r _ local_sha _ remote_sha; do
     else
       set -- "$local_sha"
     fi
-  else
+  elif git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
     set -- "$remote_sha..$local_sha"
+  else
+    # Git can advertise a tip this clone has never fetched — a narrow refspec,
+    # or a push to another remote's branch. Asking git log for it would die on
+    # the unknown object and block a clean push for an unrelated reason, so
+    # fall back to what no remote has, which over-scans rather than failing.
+    set -- "$local_sha" --not --remotes
   fi
 
   "$BUN" "$CHECK" --range "$@" </dev/null
