@@ -17,7 +17,7 @@ const wingWest = 26, wingBack = 11.5;
 const tower: Vec2[] = [[-half, south], [wingWest, south], [half, south], [half, north], [wingBack, north], [7, north], [7, -26.6], [-22, -26.6], [-22, north], [-38.7, north], [-38.7, 4.1], [-half, 4.1]];
 const wingSouth = south + 15, wingEast = wingWest + 38.2, wingNorth = wingSouth - 60.4;
 const eastWing: Vec2[] = [[half, south], [wingWest, south], [wingWest, wingSouth], [wingEast, wingSouth], [wingEast, wingNorth], [wingBack, wingNorth], [wingBack, north], [half, north]];
-// The east wing's roof, measured on the photograph through its camera. The map gives the
+// The east wing's roof, measured on the photograph down from the tower's. The map gives the
 // wing ten levels and no height; its windows keep the tower's floors.
 export const onePrudentialWingTop = 56.4;
 // The penthouse starts 2.3 m in from the west end and runs 50.1 m along the south face,

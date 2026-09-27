@@ -30,7 +30,8 @@ construction drawings.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront.
   The drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its
   camera; see [the geographic audit](skyline-geography.md#skyline-camera). At One
-  Prudential, 6.05 photo pixels, or 8.07 of the drawing's layer units, are one metre.
+  Prudential about 8.1 of the drawing's layer units, or 6.1 photo pixels, are one metre:
+  through that camera the mapped south face spans the drawn one's 487.3 units exactly.
 
 ## Plan
 
@@ -65,31 +66,37 @@ The clean plan squares the plan to the slab and keeps each mapped wall's length.
 | Ground storey | 0–12.03 m | What thirty-nine office floors leave under the observatory; estimate |
 | Office floors 2–40 | 3.93 m pitch | Photograph 23.9 px; the drawing's 31 rows at 31.7 layer units |
 | Windows | 0.85–2.45 m above each floor | The drawing's windows: 1.6 m tall, their heads 1.6 m under the band |
-| Observatory band, the 41st floor | 165.3–169 m | The drawing's band foot, through the photograph's camera 165.4 m |
-| Coping and main roof | 169–169.5 m | Photograph: the drawn roof corners at 169.0–170.1 m |
+| Observatory band, the 41st floor | 165.3–169 m | Drawn 4.0–4.6 m deep under the roof |
+| Coping and main roof | 169–169.5 m | Drawn 13.3 m under the screen's top, so about 169.9 m |
 | Sign | 171–179.5 m | Photograph |
-| Penthouse wall | to 180.3 m | Photograph: 180.1–180.4 m |
-| Louvered screen | 180.3–183.2 m | Published architectural height; photograph 182.7 m |
-| Tubular mast | 169.5–259.4 m | The tip less WGN's exposed antenna; the drawing stops at 261.8 m |
+| Penthouse wall | to 180.3 m | Drawn 10.2–10.5 m above the roof |
+| Louvered screen | 180.3–183.2 m | Published architectural height |
+| Tubular mast | 169.5–259.4 m | The tip less WGN's exposed antenna; the drawing stops about 262 m |
 | Antenna | 259.4–278 m | Published tip; 73 ft, 12 ft of it in the mast's socket |
-| East wing | 56.4 m | Photograph: 56.2–56.7 m at its three drawn corners |
+| East wing | 56.4 m | Drawn 112.9 m under the tower's roof, so about 57.0 m |
 | West wing | 13.4 m | Three levels at 183.2/41; the photograph cannot see it |
 
-The published 183.2 m (601 ft) is the penthouse's top, not the main roof. Through the
-camera that the other seven buildings fix, the drawn roof corners stand at 169.0–170.1 m
-and the drawn screen's top at 182.7 m, and forty-one floors at the photographed pitch fill
-169.5 m. The ground storey, thirty-nine office floors and the observatory make the
-published 41.
+The published 183.2 m (601 ft) is the penthouse's top, not the main roof. The heights
+above are measured down from it, in the photograph through its recovered camera. A
+difference within one building cancels the camera's own vertical error, which an absolute
+reading keeps: the camera is a compromise across eight buildings, and read on their own the
+drawn roof corners stand at 166.4–167.6 m through it, or at 169.0–170.1 m through the
+camera before its refit. The drawn roof stands 13.3 m under the drawn screen's top, at about
+169.9 m. Forty-one floors at the
+photographed pitch, with the drawn 4.0–4.6 m band, fill the model's 169.5 m, within the
+half metre a drawn line spans at this scale. The ground storey, thirty-nine office floors
+and the observatory make the published 41.
 
 The article's mast and antenna add up to 113.4 m: 311 ft of tube and the antenna's
 61 exposed feet. Above a 169.5 m roof that would reach 282.9 m, 4.9 m over the published
 tip. The model keeps the published tip and the antenna's exposed length, so the tube's top
-stands at 259.4 m, 2.4 m under where the drawing stops it. The photograph loses the slim
-antenna against Trump Tower's dark glass.
+stands at 259.4 m, about 2.7 m under where the drawing stops the mast, 92.2 m above the
+drawn roof. The photograph loses the slim antenna against Trump Tower's dark glass.
 
 The map gives the east wing ten levels and no height, which the earlier model took at
-183.2/41 a level, 44.7 m. The photograph puts its roof at 56.4 m, and its lit windows fall
-on the tower's floor lines, 25 pixels apart.
+183.2/41 a level, 44.7 m. The photograph puts its roof about 57 m up, and the model takes
+56.4 m, the first measurement's; its lit windows fall on the tower's floor lines, 25 pixels
+apart.
 
 ## Facade
 

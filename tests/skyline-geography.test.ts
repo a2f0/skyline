@@ -436,6 +436,17 @@ describe("mapped skyline geography", () => {
       expect(board.object.name).toBe("One Prudential · penthouse and sign");
       expect(board.point.z).toBeGreaterThan(sign[2] + 0.2);
       expect(hit([fin[0], 181.7, fin[2] + 30], [0, 0, -1])!.object.name).toBe("One Prudential · screen louvers");
+      // The sign's paint: the logo and the letters light on the dark board, the capital P
+      // tall and the r beside it short, and the gap between them board.
+      const signTone = (along: number, height: number) => { const p = at(2.3 + along, 0); return tone(hit([p[0], height, p[2] + 30], [0, 0, -1])!); };
+      const pitch = (42.8 - 14) / 10;
+      expect(signTone(10, 175), "the logo").toBeGreaterThan(0.3);
+      expect(signTone(14 + pitch / 2, 175), "the P").toBeGreaterThan(0.3);
+      expect(signTone(14 + pitch / 2, 177.8), "the P's top").toBeGreaterThan(0.3);
+      expect(signTone(14 + 1.5 * pitch, 175), "the r").toBeGreaterThan(0.3);
+      expect(signTone(14 + 1.5 * pitch, 177.8), "above the r").toBeLessThan(0.05);
+      expect(signTone(14 + pitch, 175), "between the P and the r").toBeLessThan(0.05);
+      expect(signTone(5.5, 175), "the board").toBeLessThan(0.05);
       // The mapped footprint's corners at grade.
       const groundMesh = meshes.find((mesh) => mesh.name === "One Prudential · shell")!;
       const vertices = groundMesh.geometry.getAttribute("position");

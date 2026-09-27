@@ -44,8 +44,10 @@ height appears**, in the model header and the README, or a copy that starts 40 m
 short against any published height.
 
 **Check a published height against the photograph before trusting it.** One Prudential's published
-183.2 m is its penthouse's top, not its roof: through the geographic camera the drawn roof corners
-stand at 169.0–170.1 m, and forty-one floors at the photographed pitch fill 169.5 m. The earlier
+183.2 m is its penthouse's top, not its roof: the drawn roof stands 13.3 m under the drawn screen's
+top, and forty-one floors at the photographed pitch fill 169.5 m. Measure such differences within
+one building, where the camera's own vertical error cancels; an absolute height read through the
+geographic camera moves by metres whenever the camera is refitted. The earlier
 models took 183.2 m as the roof: the fitted one put its 170 m down to the drawing's ground band, and
 the geographic one stood its roof at 181.2 m under a 2 m penthouse.
 

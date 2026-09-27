@@ -33,10 +33,10 @@ export interface OnePrudentialForm {
   base: number;
 }
 
-// Heights above the street. The roof, the observatory band, the penthouse's louvers, the
+// Heights above the street. The penthouse top and the antenna tip are published, and the
+// antenna's length is WGN's. The roof, the observatory band, the penthouse's louvers, the
 // floor pitch, and the window rows are measured on the photograph the drawing was traced
-// from, through its recovered camera; the penthouse top and the antenna tip are published,
-// and the antenna's length is WGN's. See docs/one-prudential-reference.md.
+// from, down from the published penthouse top. See docs/one-prudential-reference.md.
 export const onePrudentialLevels = Object.freeze({
   // The ground storey, then thirty-nine office floors, then the observatory: forty-one.
   lobbyTop: 12.03,
@@ -290,8 +290,10 @@ export function buildOnePrudentialTower(form: OnePrudentialForm): BuildingModel 
   const [mx, mz] = form.mast, sides = 8;
   const ring = (radius: number, v: number): Vec3[] => Array.from({ length: sides }, (_, i) => { const a = (i + 0.5) * 2 * Math.PI / sides; return [mx + radius * Math.cos(a), y(v), mz - radius * Math.sin(a)]; });
   const foot = ring(mastFoot, h.roof), head = ring(mastHead, h.mastTop);
+  // Each side leans in with the taper, so its normal tilts up by the apothem's fall per metre.
+  const lean = (mastFoot - mastHead) * Math.cos(Math.PI / sides) / (h.mastTop - h.roof);
   for (let i = 0; i < sides; i += 1) {
-    const j = (i + 1) % sides, a = (i + 1) * 2 * Math.PI / sides, out: Vec3 = [Math.cos(a), 0, -Math.sin(a)];
+    const j = (i + 1) % sides, a = (i + 1) * 2 * Math.PI / sides, l = Math.hypot(1, lean), out: Vec3 = [Math.cos(a) / l, lean / l, -Math.sin(a) / l];
     kit.quad(mast, [foot[i]!, foot[j]!, head[j]!, head[i]!], [out]);
     kit.triangle(mast, [[mx, y(h.mastTop), mz], head[i]!, head[j]!], [[0, 1, 0], [0, 1, 0], [0, 1, 0]]);
     kit.triangle(mast, [[mx, y(h.roof), mz], foot[j]!, foot[i]!], [[0, -1, 0], [0, -1, 0], [0, -1, 0]]);
