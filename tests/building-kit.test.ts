@@ -624,6 +624,18 @@ describe("Crain", () => {
   });
 });
 
+// The geographic suite checks the mapped models' meshes close edge for edge; the clean
+// copies come from the same generators on other plans and cropped bases, so check them too.
+test("closes every mesh of the clean Crain and Aon copies edge for edge", async () => {
+  const { createCrainBuilding, createCrainSkylineBuilding } = await load("models/crain-communications.ts");
+  const { createAonCenterBuilding } = await load("models/aon-center.ts");
+  for (const model of [createCrainBuilding(), createCrainSkylineBuilding(), createAonCenterBuilding()] as BuildingModel[]) {
+    for (const mesh of model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[]) {
+      expectClosed(`${model.building.name} ${mesh.name}`, { positions: mesh.geometry.getAttribute("position").array, normals: mesh.geometry.getAttribute("normal").array });
+    }
+  }
+}, { timeout: 120_000 });
+
 describe("Aon", () => {
   test("puts each drawn floor row of the skyline copy on window glass", async () => {
     const { createAonCenterBuilding, aonFeatures } = await load("models/aon-center.ts");

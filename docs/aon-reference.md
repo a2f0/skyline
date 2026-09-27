@@ -120,7 +120,8 @@ shows them.
 
 - `tests/building-kit.test.ts` checks the skyline copy and the geographic model for
   counted triangles, winding, same-facing coplanar overlaps, and covered omissions. It
-  also raycasts each drawn floor row onto the skyline copy's window glass.
+  checks that every mesh of the skyline copy closes edge for edge, and raycasts each
+  drawn floor row onto its window glass.
 - `tests/skyline-study.test.ts` projects the skyline copy against the drawing at five
   layouts:
   - the roof landmarks, with the near corner above both ends;
@@ -131,8 +132,9 @@ shows them.
   It also checks hover and occlusion.
 - `tests/skyline-geography.test.ts` raycasts the geographic model:
   - the roof, the enclosure, and the antenna tip;
+  - the antenna at the enclosure's area centroid;
   - on the mapped south face, glass, spandrel, column, louvers and cap in turn;
-  - the solid notch;
+  - all four notches, solid and painted stone;
   - the exact mapped outline at grade.
 
   Every mesh is closed.

@@ -21,7 +21,14 @@ const h = aonGeographicLevels;
 export function createAonGeographicBuilding(record: GeoBuilding, projectPlan: (coordinates: [number, number][]) => Plan, offset: [number, number]): BuildingModel {
   const enclosurePart = record.parts.find((p) => p.way === 284775635)!;
   const enclosure = polygonOf(projectPlan(enclosurePart.coordinates));
-  const mast: Vec2 = enclosure.reduce<Vec2>((sum, p) => [sum[0] + p[0] / enclosure.length, sum[1] + p[1] / enclosure.length], [0, 0]);
+  // The antenna at the enclosure's area centroid: its traced outline carries an extra
+  // vertex on one edge, which would pull a mean of its vertices off centre.
+  let twice = 0, cx = 0, cz = 0;
+  enclosure.forEach(([x, z], i) => {
+    const [x2, z2] = enclosure[(i + 1) % enclosure.length]!, cross = x * z2 - x2 * z;
+    twice += cross; cx += (x + x2) * cross; cz += (z + z2) * cross;
+  });
+  const mast: Vec2 = [cx / (3 * twice), cz / (3 * twice)];
   const model = buildAonTower({ name: record.name, id: record.id, outline: polygonOf(projectPlan(record.footprint.coordinates)), enclosure, mast, base: 0 });
   model.building.position.set(offset[0], 0, offset[1]);
   model.building.userData["geography"] = record;

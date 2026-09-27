@@ -744,15 +744,22 @@ describe("mapped skyline geography", () => {
       // at its mapped 346.3 m top, probed beside the mast; and the antenna's published tip.
       const interior = world(-87.62178, 41.88527);
       near(hit([interior[0], 380, interior[2]], [0, -1, 0])!.point.y, 340, 0.001);
+      // The antenna stands at the enclosure's area centroid, not the mean of its traced
+      // vertices, which an extra vertex on one edge pulls metres off centre: half a metre
+      // beside the centroid a probe already falls past the mast onto the enclosure.
       const enclosurePart = record.parts.find((p) => p.way === 284775635)!;
       const enclosurePoints = enclosurePart.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
-      const enclosureCenter: Vec3 = [
-        enclosurePoints.reduce((sum, p) => sum + p[0], 0) / enclosurePoints.length,
-        0,
-        enclosurePoints.reduce((sum, p) => sum + p[1], 0) / enclosurePoints.length,
-      ];
+      let twice = 0, sumX = 0, sumZ = 0;
+      enclosurePoints.forEach(([x, z], i) => {
+        const [x2, z2] = enclosurePoints[(i + 1) % enclosurePoints.length]!, cross = x * z2 - x2 * z;
+        twice += cross; sumX += (x + x2) * cross; sumZ += (z + z2) * cross;
+      });
+      const enclosureCenter: Vec3 = [sumX / (3 * twice), 0, sumZ / (3 * twice)];
       near(hit([enclosureCenter[0] + 2, 380, enclosureCenter[2]], [0, -1, 0])!.point.y, 346.3, 0.001);
       near(hit([enclosureCenter[0], 400, enclosureCenter[2]], [0, -1, 0])!.point.y, 362.5, 0.001);
+      for (const [dx, dz] of [[0.5, 0], [-0.5, 0], [0, 0.5], [0, -0.5]]) {
+        near(hit([enclosureCenter[0] + dx!, 400, enclosureCenter[2] + dz!], [0, -1, 0])!.point.y, 346.3, 0.001);
+      }
       // The mapped south face between its notches holds fourteen 10 ft bays. From the
       // lake, a mid-bay probe meets the glass on an office floor and the dark spandrel
       // between floors, one on a bay line meets a column, and higher up the louvered crown
@@ -769,12 +776,27 @@ describe("mapped skyline geography", () => {
       expect(column.point.z).toBeGreaterThan(along(7 * bay)[2] + 0.6);
       expect(fromLake(7.5 * bay, 330).object.name).toBe("Aon · crown louvers");
       expect(fromLake(7.5 * bay, 339.2).object.name).toBe("Aon · granite cap");
-      // The south-east notch is solid stone: a probe from the east meets its east-facing
-      // step, set back from the east face, with no glass on it.
-      const step = world(-87.6212581, 41.8850684);
-      const notch = hit([step[0] + 20, 200, step[2] + 1.5], [-1, 0, 0])!;
-      expect(notch.object.name).toBe("Aon · tube shell");
-      near(notch.point.x, step[0], 0.1);
+      // Every notched corner is solid stone: a probe meets each notch's square step, set
+      // back from the faces beside it, on the shell painted granite rather than the faces'
+      // dark spandrel. [a step corner, the way the step faces, how far along it to probe]
+      const stoneAt = (found: THREE.Intersection) => {
+        const colors = (found.object as THREE.Mesh).geometry.getAttribute("color");
+        return colors.getX(found.face!.a);
+      };
+      const notches: [Vec3, Vec3, number][] = [
+        [world(-87.6212581, 41.8850684), [1, 0, 0], 1.6], // south-east, facing east
+        [world(-87.6212688, 41.8855018), [1, 0, 0], -1.7], // north-east, facing east
+        [world(-87.6218361, 41.8855244), [-1, 0, 0], 1.6], // north-west, facing west
+        [world(-87.6218248, 41.8850607), [-1, 0, 0], 1.6], // south-west, facing west
+      ];
+      for (const [corner, out, along] of notches) {
+        const found = hit([corner[0] + out[0] * 20, 200, corner[2] + along], [-out[0], 0, 0])!;
+        expect(found.object.name).toBe("Aon · tube shell");
+        near(found.point.x, corner[0], 0.1);
+        expect(stoneAt(found), `the notch at ${corner[0].toFixed(1)}, ${corner[2].toFixed(1)} should be stone`).toBeGreaterThan(0.3);
+      }
+      // The spandrel between floors on the south face is the dark shell.
+      expect(stoneAt(fromLake(7.5 * bay, level - 0.5))).toBeLessThan(0.05);
       // The exact mapped outline at grade.
       const groundMesh = meshes.find((mesh) => mesh.name === "Aon · tube shell")!;
       const vertices = groundMesh.geometry.getAttribute("position");
