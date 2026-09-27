@@ -45,13 +45,15 @@ describe("agent attribution in a message", () => {
 });
 
 describe("agent attribution in a range", () => {
+  let revisions: string[] = [];
   const log = (entries: string[]): Runner => (file, args) => {
     expect(file).toBe("git");
     expect(args.slice(0, 3)).toEqual(["log", "-z", "--format=%H%n%B"]);
+    revisions = args.slice(3);
     return entries.join("\0");
   };
   test("finds the commits that carry it and leaves the rest", () => {
-    const offenders = offendersIn("main..HEAD", log([
+    const offenders = offendersIn(["main..HEAD"], log([
       `${"a".repeat(40)}\nfeat: clean\n\nA body.\n`,
       `${"b".repeat(40)}\nfix: dirty\n\n${trailer}\n`,
     ]));
@@ -63,10 +65,16 @@ describe("agent attribution in a range", () => {
     // A body line that looks like a SHA and a subject would split a
     // newline-separated log into the wrong commits.
     const body = `${"c".repeat(40)}\nfix: not a real commit`;
-    expect(offendersIn("main..HEAD", log([`${"a".repeat(40)}\nfeat: quoting\n\n${body}\n`]))).toEqual([]);
+    expect(offendersIn(["main..HEAD"], log([`${"a".repeat(40)}\nfeat: quoting\n\n${body}\n`]))).toEqual([]);
+  });
+  test("passes every revision argument through to git log", () => {
+    // The pre-push hook asks for "<sha> --not --remotes" on a branch the remote
+    // does not have yet, which is not a two-dot range.
+    offendersIn(["abc123", "--not", "--remotes"], log([]));
+    expect(revisions).toEqual(["abc123", "--not", "--remotes"]);
   });
   test("passes an empty range", () => {
-    expect(offendersIn("main..HEAD", log([]))).toEqual([]);
+    expect(offendersIn(["main..HEAD"], log([]))).toEqual([]);
   });
   test("names every offender and says how to remove it", () => {
     const text = report([{ commit: "b".repeat(40), subject: "fix: dirty", lines: [trailer] }]);
@@ -82,6 +90,7 @@ describe("the command line", () => {
   test("fails a range that carries attribution and passes one that does not", () => {
     const dirty = log([`${"b".repeat(40)}\nfix: dirty\n\n${trailer}\n`]);
     expect(checkCoauthors(["--range", "main..HEAD"], dirty)).toContain("agent attribution");
+    expect(checkCoauthors(["--range", "abc", "--not", "--remotes"], dirty)).toContain("agent attribution");
     expect(checkCoauthors(["--range", "main..HEAD"], log([`${"a".repeat(40)}\nfeat: clean\n`]))).toBeNull();
   });
   const log = (entries: string[]): Runner => () => entries.join("\0");
@@ -91,14 +100,18 @@ describe("the command line", () => {
     writeFileSync(file, `fix: a thing\n\n${trailer}\n`);
     const failure = checkCoauthors(["--message", file])!;
     expect(failure).toContain("agent attribution");
-    // The label is words, not a SHA, so it must not be abbreviated to nonsense.
-    expect(failure).toContain("the message being written");
+    // At commit-msg time there is no commit to amend, and the change is still
+    // staged: telling it to amend would rewrite the previous commit and fold
+    // this work into it.
+    expect(failure).toContain("nothing has been committed");
+    expect(failure).not.toContain("--amend");
+    expect(failure).not.toContain("rebase");
     writeFileSync(file, "fix: a thing\n\nA body.\n");
     expect(checkCoauthors(["--message", file])).toBeNull();
   });
   test("rejects arguments it cannot act on rather than passing", () => {
     // A usage slip must not read as a clean check.
-    for (const args of [[], ["--range"], ["main..HEAD"], ["--branch", "main"], ["--range", ""]]) {
+    for (const args of [[], ["--range"], ["main..HEAD"], ["--branch", "main"], ["--range", ""], ["--message", "a", "b"]]) {
       expect(() => checkCoauthors(args, log([]))).toThrow(/Usage/);
     }
   });

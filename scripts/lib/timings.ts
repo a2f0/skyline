@@ -27,7 +27,9 @@ export interface Run {
 
 export interface Timings {
   run<T>(label: string, work: () => Promise<T>): Promise<T>;
-  finish(branch: string): Run;
+  // `failed` marks a run that died outside any timed step — a bad argument, a
+  // server that would not start — which has no failing row to infer it from.
+  finish(branch: string, failed?: boolean): Run;
 }
 
 export function createTimings(now: () => number = Date.now): Timings {
@@ -45,12 +47,12 @@ export function createTimings(now: () => number = Date.now): Timings {
         throw error;
       }
     },
-    finish(branch) {
+    finish(branch, failed = false) {
       return {
         started: new Date(startedAt).toISOString(),
         branch,
         seconds: (now() - startedAt) / 1000,
-        status: steps.some((step) => step.status === "failed") ? "failed" : "passed",
+        status: failed || steps.some((step) => step.status === "failed") ? "failed" : "passed",
         steps,
       };
     },

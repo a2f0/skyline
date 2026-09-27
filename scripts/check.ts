@@ -52,17 +52,20 @@ async function main() {
 
 // The timings are recorded and printed whether the run passed or failed: a run
 // that died is the one whose step breakdown is worth reading.
-function report() {
-  let branch = "unknown", gitDir = path.join(root, ".git");
+function report(failed: boolean) {
+  let branch = "unknown", gitDir: string | null = null;
   try {
     branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
     gitDir = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { cwd: root, encoding: "utf8" }).trim();
   } catch {
     // A checkout without git still runs its checks; it just cannot label or
-    // persist them. Losing the log must not turn a passing run into a failure.
+    // persist them. Losing the log must not turn a passing run into a failure,
+    // and must not conjure a .git directory that makes an archive look like a
+    // malformed repository.
   }
-  const finished = timings.finish(branch);
+  const finished = timings.finish(branch, failed);
   console.log(`\n${stepTable(finished)}`);
+  if (!gitDir) return;
   try {
     appendRun(logPath(gitDir), finished);
   } catch (error) {
@@ -70,8 +73,10 @@ function report() {
   }
 }
 
-main().then(report, (error) => {
-  report();
+main().then(() => report(false), (error) => {
+  // A run can die outside a timed step, so the failure is passed in rather than
+  // inferred from the rows.
+  report(true);
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
 });

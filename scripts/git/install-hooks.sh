@@ -17,6 +17,13 @@ HOOKS_SRC="$REPO_ROOT/scripts/git/hooks"
 HOOKS_DST="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
 mkdir -p "$HOOKS_DST"
 
+# Repointing core.hooksPath silently would disable whatever was configured
+# there. Say so rather than making the change invisible.
+existing_path="$(git config --get core.hooksPath || true)"
+if [ -n "$existing_path" ] && [ "$existing_path" != "$HOOKS_DST" ]; then
+  echo "Note: core.hooksPath was $existing_path; hooks there will stop running."
+fi
+
 for hook in "$HOOKS_SRC"/*; do
   if [ -f "$hook" ]; then
     hook_name="$(basename "$hook")"
@@ -37,7 +44,9 @@ for installed in "$HOOKS_DST"/*; do
   esac
   if [ ! -f "$HOOKS_SRC/$installed_name" ]; then
     rm -f "$installed"
-    echo "Removed stale $installed_name hook"
+    # Named loudly: this deletes a hook the repository does not ship, which is
+    # the point when one was renamed, and a surprise when it was someone's own.
+    echo "Removed $installed_name hook (not in $HOOKS_SRC)"
   fi
 done
 

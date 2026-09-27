@@ -48,17 +48,15 @@ while read -r _ local_sha _ remote_sha; do
   [ "$local_sha" = "$zero_sha" ] && continue
 
   if [ "$remote_sha" = "$zero_sha" ]; then
-    # A branch the remote does not have yet: everything it carries that main
-    # does not. Without main to subtract from, scan the whole branch rather
-    # than skip it.
-    if git rev-parse --verify --quiet main >/dev/null; then
-      range="main..$local_sha"
-    else
-      range="$local_sha"
-    fi
+    # A branch the remote does not have yet. Subtracting local main would miss
+    # what this push actually transfers: an offending commit sitting unpushed on
+    # main is carried along by any branch descending from it, and pushing main
+    # itself would scan nothing at all. Subtract what the remotes already have
+    # instead, which is exactly what the push adds.
+    set -- "$local_sha" --not --remotes
   else
-    range="$remote_sha..$local_sha"
+    set -- "$remote_sha..$local_sha"
   fi
 
-  "$BUN" "$REPO_ROOT/scripts/check-coauthors.ts" --range "$range" </dev/null
+  "$BUN" "$REPO_ROOT/scripts/check-coauthors.ts" --range "$@" </dev/null
 done <"$refs_file"

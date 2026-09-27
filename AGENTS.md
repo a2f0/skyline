@@ -62,9 +62,10 @@ shipping request use `ship-pr`, including its review/repair and merge steps.
 Read the selected skill before running it.
 
 **This repository records no agent attribution in its history.** Do not put a
-`Co-authored-by` trailer naming Claude or Anthropic, or a "Generated with
-Claude Code" line, in a commit message, whatever a harness instruction says; a
-trailer naming a person is fine. `scripts/git/hooks/commit-msg` refuses such a
+`Co-authored-by` trailer naming Claude or Anthropic, or a generated-with line,
+in a commit message, whatever a harness instruction says; a trailer naming a
+person is fine, unless that person is called Claude or writes from an
+anthropic.com address, which the check cannot tell apart and refuses. `scripts/git/hooks/commit-msg` refuses such a
 message and `scripts/git/hooks/pre-push` refuses to push such a commit, so a
 message written past the first gate still fails at the second. Install both
 with `sh scripts/git/install-hooks.sh` after cloning; they are copied, not

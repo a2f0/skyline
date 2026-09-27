@@ -54,8 +54,11 @@ Honor narrower user instructions, cancellation, and existing permissions.
 7. After confirmed merge, run `squash-merge`'s cleanup and `reset`, unless
    `--keep-branch` was requested. Cleanup never discards uncommitted work.
 
-8. Print the check timings with `bun scripts/show-timings.ts` and include the
-   table in the report. A shipping run drives the checks several times — once as
+8. Print the check timings with `bun scripts/show-timings.ts --branch <feature
+   branch>` and include the table in the report. Pass the branch explicitly:
+   step 7 has already returned the checkout to the base, and the runs were
+   recorded under the feature branch, so the default would report the base's
+   unrelated history or nothing at all. A shipping run drives the checks several times — once as
    preflight and again after every review repair — so the per-run totals are
    what the repair loop actually cost. Print them on a failed run too: the run
    that died is the one whose step breakdown is worth reading. An empty log is
