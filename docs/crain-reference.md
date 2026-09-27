@@ -127,7 +127,10 @@ corners are therefore held to the geometry, not to the drawing.
 `bun run check` covers all three:
 
 - `tests/building-kit.test.ts` checks the skyline copy and the geographic model for
-  counted triangles, winding, same-facing coplanar overlaps, and covered omissions.
+  counted triangles, winding, same-facing coplanar overlaps, and covered omissions. It
+  also raycasts the skyline copy's facade either side of each drawn sill, finding
+  spandrel below and glass above, and it keeps every roof-grid bar of all three models
+  over the glass.
 - `tests/skyline-study.test.ts` projects the skyline copy's six diamond vertices and
   twenty-nine sills against the drawing at five layouts. It holds the slot corners to the
   geometry and the step above the foot, and hovers a probe on the south face.

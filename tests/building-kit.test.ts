@@ -581,3 +581,45 @@ describe("fitted and geographic models", () => {
     });
   });
 });
+
+describe("Crain", () => {
+  const grounded = (model: BuildingModel) => {
+    model.building.updateMatrixWorld(true);
+    const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+    const ray = new THREE.Raycaster();
+    const first = (from: Vec3, direction: Vec3, targets: THREE.Object3D[] = meshes) => {
+      ray.set(new THREE.Vector3(...from), new THREE.Vector3(...direction));
+      return ray.intersectObjects(targets, false)[0];
+    };
+    return { meshes, first };
+  };
+  // A grid bar that leans out over an edge would stand in the air beside the roof: every
+  // corner of every bar must have glass beneath it.
+  const expectGridOnGlass = (model: BuildingModel) => {
+    const { meshes, first } = grounded(model);
+    const glass = meshes.filter((mesh) => mesh.name === "Crain · sloped glazing");
+    const bars = meshes.find((mesh) => mesh.name === "Crain · glazing grid")!.geometry.getAttribute("position");
+    expect(bars.count).toBeGreaterThan(0);
+    for (let i = 0; i < bars.count; i += 1) {
+      expect(first([bars.getX(i), 400, bars.getZ(i)], [0, -1, 0], glass), `grid vertex ${i} should stand over the glass`).toBeDefined();
+    }
+  };
+
+  test("puts each drawn sill of the skyline copy where its spandrel gives way to glass", async () => {
+    const { createCrainSkylineBuilding, crainFeatures } = await load("models/crain-communications.ts");
+    const { first } = grounded(createCrainSkylineBuilding());
+    // The drawn sills are exported points on the south-west corner; the rendered facade 1 m in
+    // from that corner, clear of the ribbons' corner clearance, must change there.
+    for (const [x, y, z] of crainFeatures.crainSills as Vec3[]) {
+      expect(first([x + 1, y - 0.1, z + 10], [0, 0, -1])!.object.name, `spandrel below the sill at ${y}`).toBe("Crain · aluminum spandrels");
+      expect(first([x + 1, y + 0.1, z + 10], [0, 0, -1])!.object.name, `glass above the sill at ${y}`).toBe("Crain · ribbon glazing");
+    }
+  });
+
+  test("keeps every roof-grid bar on the glass", async () => {
+    const { createCrainBuilding, createCrainSkylineBuilding } = await load("models/crain-communications.ts");
+    expectGridOnGlass(createCrainBuilding());
+    expectGridOnGlass(createCrainSkylineBuilding());
+    expectGridOnGlass(createGeographicBuilding(geographicBuildings.find((record) => record.shortName === "Crain")!));
+  });
+});

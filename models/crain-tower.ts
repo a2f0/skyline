@@ -343,7 +343,8 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
   // The sloped glazing's grid, raised a little above the glass along the building's axes and
   // seated in it, between the glass's top and its underside. The two directions stand and
   // sit at different depths, so their crossings never share a plane.
-  const spacing = 2 * crainFloors.module, inset = 0.9;
+  // Bars keep their full width at least 0.3 m inside the roof's edge.
+  const spacing = 2 * crainFloors.module, inset = 0.9, barHalf = 0.08, barReach = barHalf + 0.3;
   const { origin, axis } = form.grid;
   const across: Vec2 = [-axis[1], axis[0]];
   for (const volume of volumes.filter((v) => v.glazed)) {
@@ -351,11 +352,19 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
       const offsets = volume.corners.map((p) => (p[0] - origin[0]) * normal[0] + (p[1] - origin[1]) * normal[1]);
       for (let k = Math.ceil(Math.min(...offsets) / spacing + 1e-9); k * spacing < Math.max(...offsets) - 1e-9; k += 1) {
         const start: Vec2 = [origin[0] + normal[0] * k * spacing, origin[1] + normal[1] * k * spacing];
-        for (const [t0, t1] of clipLine(volume.corners, start, direction)) {
-          if (t1 - t0 < 2 * inset + 0.6) continue;
-          const p0: Vec2 = [start[0] + direction[0] * (t0 + inset), start[1] + direction[1] * (t0 + inset)];
-          const p1: Vec2 = [start[0] + direction[0] * (t1 - inset), start[1] + direction[1] * (t1 - inset)];
-          roofBox(grid, p0, p1, volume.roof, 0.08, lift, seat);
+        // Clip both long sides of the bar's footprint, not just its centre line, so a bar
+        // running nearly parallel to an edge cannot lean out over it.
+        const side = (offset: number): Vec2 => [start[0] + normal[0] * offset, start[1] + normal[1] * offset];
+        const [left, right] = [clipLine(volume.corners, side(-barReach), direction), clipLine(volume.corners, side(barReach), direction)];
+        // Each end stops midway between two crossing bars, so no end face can come to rest
+        // against a crossing bar's side.
+        for (const [a0, a1] of left) for (const [b0, b1] of right) {
+          const t0 = (Math.ceil((Math.max(a0, b0) + inset) / spacing - 0.5) + 0.5) * spacing;
+          const t1 = (Math.floor((Math.min(a1, b1) - inset) / spacing - 0.5) + 0.5) * spacing;
+          if (t1 - t0 < spacing - 1e-9) continue;
+          const p0: Vec2 = [start[0] + direction[0] * t0, start[1] + direction[1] * t0];
+          const p1: Vec2 = [start[0] + direction[0] * t1, start[1] + direction[1] * t1];
+          roofBox(grid, p0, p1, volume.roof, barHalf, lift, seat);
         }
       }
     }
