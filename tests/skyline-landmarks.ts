@@ -78,7 +78,7 @@ const landmarkTolerance = 0.0151;
 // stands about 900 layer units left of the mapped tower, so the drawing's placement of
 // it is artistic.
 const geographicLandmarks: Landmark[] = [
-  ["Trump spire tip", trump, [-121.43, 423.2, -461.05], [4141.449, 187.538]],
+  ["Trump spire tip", trump, [-124.72, 423.2, -458.66], [4141.449, 187.538]],
   ["One Prudential mast top", prudential, [161.76, 259.4, -7.29], [4053.655, 879.202]],
   ["Two Prudential spire tip", twoPrudential, [186.87, 303.3, -65.81], [4475.207, 565.047]],
   ["Two Prudential pyramid peak", twoPrudential, [186.87, 277, -65.81], [4475.207, 748.347]],
@@ -216,9 +216,9 @@ const fitted: FittedSpec[] = [
     id: trump,
     label: "Trump International Hotel and Tower",
     features: "trumpFeatures",
-    // The tower's high south roof, east-face drop, narrow offset crown, and segmented spire
-    // are all sharp SVG vertices. Their placement is fitted through the real skyline camera
-    // rather than a parallel approximation of the source drawing.
+    // The shaft's roof, its step down to the north-east shoulder, the crown, and the spire's
+    // tip and joints are all sharp SVG vertices, on the real tower's mapped corners and
+    // photographed heights.
     landmarks: {
       trumpTowerWestRoof: [3890.364, 621.787],
       trumpTowerEastStart: [4131.601, 615.557],
@@ -233,24 +233,29 @@ const fitted: FittedSpec[] = [
     },
     onGeometryTolerance: 0.02,
     columns: {
-      // Fifty-two unobscured upper-shaft and crown mullions, measured where their source lines
-      // cross layer y≈1052 or at the crown's upper edge. The pitch opens across each face.
-      trumpFrontMullions: { batch: "raised mullions and floor bands", drawn: [3901.538, 3907.527, 3915.549, 3923.569, 3931.591, 3939.612, 3947.632, 3956.976, 3967.882, 3979.035, 3991.065, 4003.399, 4015.431, 4028.17, 4041.953, 4057.076] },
-      trumpCornerMullions: { batch: "raised mullions and floor bands", drawn: [4073.889, 4090.699, 4107.844] },
-      trumpEastMullions: { batch: "raised mullions and floor bands", drawn: [4132.294, 4143.203, 4153.301, 4163.411, 4172.917, 4179.801, 4187.73, 4196.078, 4204.42, 4210.454] },
-      trumpCrownMullions: { batch: "ribbed crown", drawn: [4042.783, 4047.166, 4051.336, 4056.356, 4061.407, 4068.232, 4076.372, 4084.83, 4094.737, 4103.839, 4113.424, 4123.676, 4133.78, 4144.157, 4154.945, 4164.957, 4174.571, 4182.598, 4189.196, 4193.491, 4196.86, 4200.233, 4203.905] },
+      // Fifty-two drawn mullion lines on the upper shaft and the crown, measured where they
+      // cross layer y≈1052 or at the crown's upper edge, each against the model's nearest
+      // mullion on its 6 ft module. The drawing spaces them unevenly, doubling some round the
+      // curves and skipping most of the east face's.
+      trumpFrontMullions: { batch: "Trump · stainless mullions", drawn: [3901.538, 3907.527, 3915.549, 3923.569, 3931.591, 3939.612, 3947.632, 3956.976, 3967.882, 3979.035, 3991.065, 4003.399, 4015.431, 4028.17, 4041.953, 4057.076] },
+      trumpCornerMullions: { batch: "Trump · stainless mullions", drawn: [4073.889, 4090.699, 4107.844] },
+      trumpEastMullions: { batch: "Trump · stainless mullions", drawn: [4132.294, 4143.203, 4153.301, 4163.411, 4172.917, 4179.801, 4187.73, 4196.078, 4204.42, 4210.454] },
+      trumpCrownMullions: { batch: "Trump · crown mullions", drawn: [4042.783, 4047.166, 4051.336, 4056.356, 4061.407, 4068.232, 4076.372, 4084.83, 4094.737, 4103.839, 4113.424, 4123.676, 4133.78, 4144.157, 4154.945, 4164.957, 4174.571, 4182.598, 4189.196, 4193.491, 4196.86, 4200.233, 4203.905] },
     },
     // Samples of the forty-one regular shaft rows, measured through a south bay between the
     // eighth and ninth mullions. They span the One Prudential occlusion edge to the upper shaft, so a
-    // wrong pitch or phase cannot hide behind the foreground building.
+    // wrong pitch or phase cannot hide behind the foreground building. The drawing keeps the
+    // photograph's upward-looking perspective, which spaces these rows about 1.5% tighter
+    // through this camera than the landmarks above them allow; the ends stray furthest.
     rows: {
-      trumpFloorBands: { drawn: [1723.07, 1573.522, 1423.974, 1274.426, 1124.877, 975.329, 868.509], tolerance: 0.00083 },
+      trumpFloorBands: { drawn: [1723.07, 1573.522, 1423.974, 1274.426, 1124.877, 975.329, 868.509], tolerance: 0.0022 },
     },
     sightGap: [0.05, 1],
-    // The compact crown's hand-drawn sloping edge is the limiting landmark; all five
-    // layouts remain within this measured 0.0027 canvas-unit bound.
-    tolerance: 0.0027,
-    columnTolerance: 0.0018,
+    // Fitted numerically at all five layouts. The worst landmark is the drawn roof's east end
+    // at the bevel, 0.00232 at the laptop layout; the worst column is a crown mullion,
+    // 0.00175 at the tall layout; the rows reach 0.0020.
+    tolerance: 0.0025,
+    columnTolerance: 0.0019,
   },
   {
     id: prudential,

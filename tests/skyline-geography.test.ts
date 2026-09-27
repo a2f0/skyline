@@ -6,6 +6,8 @@ import type { BuildingModel, Vec2, Vec3 } from "../models/building-kit.js";
 import { geographicBuildings, geographicStreets } from "../models/skyline-geography-data.js";
 import { projectGround, footprintMetrics, createGeographicBuilding } from "../models/skyline-geography.js";
 import { floorLevel, onePrudentialLevels, wallStations } from "../models/one-prudential-tower.js";
+import { trumpSpire } from "../models/trump-geographic.js";
+import { trumpLevels } from "../models/trump-tower.js";
 import { crain, geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 
@@ -138,7 +140,8 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Trump", () => {
-    test("keeps the mapped tier roofs, spire joints and setback walls", () => {
+    test("keeps the mapped setbacks, the photographed roof, step and crown, and the spire", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Trump")!;
       const model = models["Trump"]!;
       model.building.updateMatrixWorld(true);
       const ray = new THREE.Raycaster();
@@ -147,33 +150,48 @@ describe("mapped skyline geography", () => {
         ray.set(new THREE.Vector3(...hitOrigin), new THREE.Vector3(...direction));
         return ray.intersectObjects(targets, false)[0];
       };
-      // The mapped tier boundaries: a downward ray meets each tier's roof at its
-      // OSM part height where the next tier does not cover it.
+      // The mapped setbacks: a downward ray meets each tier's roof at its mapped height
+      // where the next tier does not cover it.
       near(hit([-95, 100, -450], [0, -1, 0])!.point.y, 60, 0.001);
       near(hit([-150, 150, -430], [0, -1, 0])!.point.y, 120, 0.001);
       near(hit([-104, 250, -450], [0, -1, 0])!.point.y, 200, 0.001);
-      near(hit([-115, 360, -450], [0, -1, 0])!.point.y, 345, 0.001);
-      near(hit([-126, 370, -450], [0, -1, 0])!.point.y, 357, 0.001);
-      // The three-section mast: mapped joints at 380 and 400, the published tip
-      // above them, and a seated base on the crown roof.
-      near(hit([-121.45, 430, -461.04], [0, -1, 0])!.point.y, 423.2, 0.001);
-      near(hit([-121.45, 410, -461.04], [0, -1, 0])!.point.y, 400, 0.001);
-      near(hit([-121.45, 390, -461.04], [0, -1, 0])!.point.y, 380, 0.001);
-      near(hit([-121.45, 350, -461.04], [0, 1, 0])!.point.y, 357, 0.001);
-      // The mapped setbacks: the east wall stands on the base tier line, then
-      // steps 15 m west for the shaft, while the west wall leaves the Wabash lot
-      // line for the shaft. Glazed facade detail must be the first surface.
-      near(hit([-90, 90, -455], [-1, 0, 0])!.point.x, -98.509, 0.02);
-      near(hit([-90, 150, -455], [-1, 0, 0])!.point.x, -98.579, 0.02);
-      near(hit([-90, 250, -455], [-1, 0, 0])!.point.x, -113.464, 0.02);
-      near(hit([-90, 350, -455], [-1, 0, 0])!.point.x, -115.182, 0.02);
-      near(hit([-165, 90, -430], [1, 0, 0])!.point.x, -161.684, 0.02);
-      near(hit([-165, 150, -430], [1, 0, 0])!.point.x, -146.86, 0.02);
-      // The glazed south face carries panes, bands and mullions rather than a
-      // bare mapped shell.
-      const south = hit([-120, 300, -380], [0, 0, -1]);
-      expect(south!.object.name).toMatch(/glaz|mullion/);
-      near(south!.point.z, -427.198, 0.02);
+      // The photographed roof, south of the step, and the shoulder north of it, both clear
+      // of the crown; the crown's top; and the spire's tip and joints where the photograph
+      // shows them, over the crown.
+      near(hit([-140, 400, -430], [0, -1, 0])!.point.y, 354.4, 0.001);
+      near(hit([-140, 400, -450], [0, -1, 0])!.point.y, 347.3, 0.001);
+      near(hit([-126, 400, -450], [0, -1, 0])!.point.y, 364.9, 0.001);
+      const [sx, sz] = trumpSpire;
+      near(hit([sx, 430, sz], [0, -1, 0])!.point.y, 423.2, 0.001);
+      near(hit([sx + 0.9, 430, sz], [0, -1, 0])!.point.y, 402.2, 0.001);
+      near(hit([sx + 1.25, 430, sz], [0, -1, 0])!.point.y, 377.4, 0.001);
+      expect(hit([sx + 20, 400, sz], [-1, 0, 0])!.object.name).toBe("Trump · spire");
+      // The curtain wall is the first surface on the shaft's south-west face and on the
+      // step's north face: glass or a stainless mullion, just outside the mapped wall.
+      const south = hit([-135.5, 300, -380], [0, 0, -1])!;
+      expect(south.object.name).toMatch(/glass|mullions/);
+      expect(south.point.z).toBeGreaterThan(-416.3 - 0.05);
+      expect(south.point.z).toBeLessThan(-416.3 + 0.3);
+      const step = hit([-140, 351, -470], [0, 0, 1])!;
+      expect(step.object.name).toMatch(/glass|mullions/);
+      expect(step.point.z).toBeLessThan(-448.4);
+      expect(step.point.z).toBeGreaterThan(-448.4 - 0.3);
+      // The glass is cut into floors: a spandrel on a drawn floor line, glass between.
+      const tone = (found: THREE.Intersection) => (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
+      const probe = (height: number) => hit([-137, height, -380], [0, 0, -1])!;
+      const glass = probe(trumpLevels.floorLine + 1.6), band = probe(trumpLevels.floorLine + 0.1);
+      expect(glass.object.name).toBe("Trump · glass and spandrels");
+      expect(band.object.name).toBe("Trump · glass and spandrels");
+      const spandrel = new THREE.Color(0x474747).r;
+      expect(Math.abs(tone(band) - spandrel), "the floor line is a spandrel").toBeLessThan(0.002);
+      expect(Math.abs(tone(glass) - spandrel), "the storey above it is glass").toBeGreaterThan(0.01);
+      // The mapped footprint's corners at grade.
+      const shell = meshes.find((mesh) => mesh.name === "Trump · tower shell")!;
+      const vertices = shell.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = record.footprint.coordinates.map((c) => { const [east, north] = projectGround(c); return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(","); });
+      expect(mapped.every((corner) => grade.has(corner))).toBe(true);
     });
   });
 
@@ -876,13 +894,13 @@ describe("geographic layout in the study", () => {
     // the geographic origin, so its bounds locate the scene's offset.
     const crainBounds = (await page.evaluate(() => window.__buildingStudy!.modelBounds)).find((b) => b.id === crain)!;
     const eye = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    near(eye[0]! - (crainBounds.min[0]! + crainBounds.max[0]!) / 2, 1458.2, 0.5);
+    near(eye[0]! - (crainBounds.min[0]! + crainBounds.max[0]!) / 2, 1481.06, 0.5);
     near(eye[1]!, 2, 1e-6);
-    near(eye[2]! - (crainBounds.min[2]! + crainBounds.max[2]!) / 2, 1938.13, 0.5);
+    near(eye[2]! - (crainBounds.min[2]! + crainBounds.max[2]!) / 2, 1955.01, 0.5);
     // Mapped roofs and tips land on their drawn positions in the reference frame's
     // layer units. The worst are drawn heights that differ from the published ones,
     // such as Two Prudential's eaves, drawn about 100 units below their mapped 240 m;
-    // the fit's RMS is 47.6. The same eye and frame hold at every layout, so each point
+    // the fit's RMS is 47.2. The same eye and frame hold at every layout, so each point
     // lands on the same spot. The skyline test's layouts all have canvases narrower than
     // the frame; 1440x800's is wider, so the field of view fits the frame's height.
     const placed: Record<string, [number, number][]> = {};
@@ -906,7 +924,7 @@ describe("geographic layout in the study", () => {
         squares += error * error;
         (placed[name] ||= []).push(measured[i]!);
       });
-      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${size.width}x${size.height}`).toBeLessThan(48.2);
+      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${size.width}x${size.height}`).toBeLessThan(47.8);
     }
     for (const [name, points] of Object.entries(placed)) for (const point of points) {
       expect(Math.hypot(point[0] - points[0]![0], point[1] - points[0]![1]), `${name} holds its drawn place at every layout`).toBeLessThan(0.05);
