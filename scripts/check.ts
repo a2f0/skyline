@@ -1,7 +1,8 @@
 import path from "node:path";
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { startServer } from "./lib/static-server.js";
 import { buildSite, dist } from "./build-site.js";
+import { appendRun, createTimings, logPath, stepTable } from "./lib/timings.js";
 
 const root = path.resolve(import.meta.dirname, "..");
 function run(command: string, args: string[], env: NodeJS.ProcessEnv = process.env) {
@@ -12,29 +13,65 @@ function run(command: string, args: string[], env: NodeJS.ProcessEnv = process.e
   });
 }
 
+const timings = createTimings();
+// The label a step is timed under. Suites keep their file's own name so a slow
+// row points straight at the file to run on its own.
+const suite = (file: string) => timings.run(`test:${path.basename(file, ".test.ts")}`, () => run(process.execPath, ["test", `tests/${file}`]));
+
 async function main() {
   const baseSha = process.env["SKYLINE_BASE_SHA"];
   if (baseSha && !/^[a-f0-9]{40}$/.test(baseSha)) throw new Error("SKYLINE_BASE_SHA must be a full commit SHA.");
-  await run("git", ["diff", "--check"]);
-  await run("git", ["diff", "--cached", "--check"]);
-  if (baseSha) await run("git", ["diff", "--check", `${baseSha}...HEAD`]);
+  await timings.run("whitespace", async () => {
+    await run("git", ["diff", "--check"]);
+    await run("git", ["diff", "--cached", "--check"]);
+    if (baseSha) await run("git", ["diff", "--check", `${baseSha}...HEAD`]);
+  });
   // The strictest-config typecheck over the whole repository.
-  await run(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]);
-  await run(process.execPath, ["test", "tests/squash-merge.test.ts"]);
-  await run(process.execPath, ["test", "tests/verify-deploy.test.ts"]);
-  await run(process.execPath, ["scripts/reference-svg.ts", "--check"]);
-  await run(process.execPath, ["test", "tests/building-kit.test.ts"]);
+  await timings.run("typecheck", () => run(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]));
+  await suite("check-coauthors.test.ts");
+  await suite("git-hooks.test.ts");
+  await suite("timings.test.ts");
+  await suite("squash-merge.test.ts");
+  await suite("verify-deploy.test.ts");
+  await timings.run("reference-svg", () => run(process.execPath, ["scripts/reference-svg.ts", "--check"]));
+  await suite("building-kit.test.ts");
   // The browser suites exercise the compiled site: build first, then serve dist/.
-  await buildSite();
+  await timings.run("build:site", () => buildSite().then(() => undefined));
   const server = await startServer(dist);
   try {
     const env = { ...process.env, SKYLINE_TEST_URL: server.origin };
-    await run(process.execPath, ["test", "tests/building-hover.test.ts"], env);
-    await run(process.execPath, ["test", "tests/building-study.test.ts"], env);
-    await run(process.execPath, ["test", "tests/skyline-study.test.ts"], env);
-    await run(process.execPath, ["test", "tests/skyline-geography.test.ts"], env);
+    const browserSuite = (file: string) => timings.run(`test:${path.basename(file, ".test.ts")}`, () => run(process.execPath, ["test", `tests/${file}`], env));
+    await browserSuite("building-hover.test.ts");
+    await browserSuite("building-study.test.ts");
+    await browserSuite("skyline-study.test.ts");
+    await browserSuite("skyline-geography.test.ts");
   } finally {
     await server.close();
   }
 }
-main().catch((error) => { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; });
+
+// The timings are recorded and printed whether the run passed or failed: a run
+// that died is the one whose step breakdown is worth reading.
+function report() {
+  let branch = "unknown", gitDir = path.join(root, ".git");
+  try {
+    branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
+    gitDir = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { cwd: root, encoding: "utf8" }).trim();
+  } catch {
+    // A checkout without git still runs its checks; it just cannot label or
+    // persist them. Losing the log must not turn a passing run into a failure.
+  }
+  const finished = timings.finish(branch);
+  console.log(`\n${stepTable(finished)}`);
+  try {
+    appendRun(logPath(gitDir), finished);
+  } catch (error) {
+    console.error(`Could not record timings: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+main().then(report, (error) => {
+  report();
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+});

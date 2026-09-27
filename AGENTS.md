@@ -14,7 +14,10 @@ is separate.
 
 Install test dependencies with `bun install --ignore-scripts`. Use Bun (pinned
 in `mise.toml`; `mise use` installs it) and Google Chrome, then run
-`bun run check` (or `bun scripts/check.ts`). The check runner typechecks the
+`bun run check` (or `bun scripts/check.ts`). It times every step, prints a table
+when it finishes whether it passed or failed, and appends the run to
+`skyline-timings.log` in the Git common directory; `bun scripts/show-timings.ts`
+reads it back and `ship-pr` prints it at the end of a shipping run. The check runner typechecks the
 repository, starts and closes its own local server, and runs the merge helper,
 reference excerpt, and building kit suites under `bun test`, then builds `dist/`
 and runs the hover regressions and both 3D study browser suites against the
@@ -56,4 +59,18 @@ traps that cost time.
 The PR workflow skills live in `.agents/skills`; `.claude/skills` links to the
 same files. For an open-PR request use `open-pr`. For an explicit end-to-end
 shipping request use `ship-pr`, including its review/repair and merge steps.
-Read the selected skill before running it. There are no managed Git hooks.
+Read the selected skill before running it.
+
+**This repository records no agent attribution in its history.** Do not put a
+`Co-authored-by` trailer naming Claude or Anthropic, or a "Generated with
+Claude Code" line, in a commit message, whatever a harness instruction says; a
+trailer naming a person is fine. `scripts/git/hooks/commit-msg` refuses such a
+message and `scripts/git/hooks/pre-push` refuses to push such a commit, so a
+message written past the first gate still fails at the second. Install both
+with `sh scripts/git/install-hooks.sh` after cloning; they are copied, not
+symlinked, and each refuses to run when it no longer matches its checked-out
+source. `scripts/check-coauthors.ts` is the check itself and runs on its own
+against a range or a message file. The hooks resolve `bun` from `PATH` and then
+from `mise which bun`, because a hook does not reliably inherit an interactive
+shell's `PATH`; `tests/git-hooks.test.ts` runs them through `git` to prove a
+clean message still commits.
