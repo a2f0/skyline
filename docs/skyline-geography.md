@@ -1,8 +1,9 @@
 # Geographic skyline comparison
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
-study of the same eight buildings. Every geographic building carries a
-detailed facade reconstruction on its mapped outlines. The original factories,
+study of the same eight buildings, plus 330 North Wabash, which only the
+geographic layout maps. Every geographic building carries a detailed facade
+reconstruction on its mapped outlines. The original factories,
 placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Switching layouts
@@ -217,7 +218,7 @@ fits. Checking curb clearances or Chicago's stacked streets requires additional
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all eight rendered ground
+coordinate anchors, meter scale and north direction, all nine rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,

@@ -414,7 +414,27 @@ describe("mapped skyline geography", () => {
       expect(Math.abs(tone(glassCell) - spandrel!), "glass above it").toBeGreaterThan(0.001);
       expect(Math.abs(tone(louverCell) - louver!), "louvers at the top").toBeLessThan(0.002);
       expect(Math.abs(tone(lobbyCell) - lobby!), "the lobby's glass").toBeLessThan(0.002);
-      expect(fromSouth(4, meshes).object.name).toBe("330 North Wabash · shell");
+      // The two mechanical floors above the sixteenth, 72.7 to 82 m, carry louvers too.
+      expect(Math.abs(tone(fromSouth(75)) - louver!), "louvers above the sixteenth floor").toBeLessThan(0.002);
+      // Below the plaza, granite.
+      const plinth = fromSouth(4, meshes);
+      expect(plinth.object.name).toBe("330 North Wabash · shell");
+      expect(Math.abs(tone(plinth) - new THREE.Color(0x464646).r), "granite below the plaza").toBeLessThan(0.002);
+      // Along the south face, the I-beam mullions stand one 5 ft module apart in front of
+      // the glass, and bronze columns stand in front of the lobby on the 40 ft bays.
+      const frames = meshes.filter((mesh) => mesh.name === "330 North Wabash · bronze mullions and columns");
+      const standing = (height: number, from: number, to: number) => {
+        const hits: number[] = [];
+        for (let x = from; x <= to; x += 0.05) { const found = hit([x, height, -360], [0, 0, -1], frames); if (found && found.point.z > -383.7) hits.push(x); }
+        return hits.filter((x, i) => i === 0 || x - hits[i - 1]! > 0.2);
+      };
+      const mullions = standing(floor + 2, -230, -205);
+      expect(mullions.length, "mullions across 25 m of the south face").toBeGreaterThanOrEqual(15);
+      const gaps = mullions.slice(1).map((x, i) => x - mullions[i]!);
+      expect(Math.max(...gaps) - Math.min(...gaps), "mullions one module apart").toBeLessThan(0.15);
+      expect(Math.abs(gaps.reduce((a, b) => a + b, 0) / gaps.length - 1.52), "a 5 ft module").toBeLessThan(0.05);
+      const columns = standing(11, -236, -197);
+      expect(columns.length, "the lobby's columns on the south face's 40 ft bays").toBe(4);
       // The mapped outline at grade.
       const shell = meshes.find((mesh) => mesh.name === "330 North Wabash · shell")!;
       const vertices = shell.geometry.getAttribute("position");
