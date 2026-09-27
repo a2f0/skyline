@@ -622,12 +622,13 @@ describe("Crain", () => {
 
 // The geographic suite checks the mapped models' meshes close edge for edge; the clean
 // copies come from the same generators on other plans and cropped bases, so check them too.
-test("closes every mesh of the clean Crain, Aon, One Prudential and Trump copies edge for edge", async () => {
+test("closes every mesh of the clean Crain, Aon, One and Two Prudential and Trump copies edge for edge", async () => {
   const { createCrainBuilding, createCrainSkylineBuilding } = await load("models/crain-communications.ts");
   const { createAonCenterBuilding } = await load("models/aon-center.ts");
   const { createOnePrudentialPlazaBuilding } = await load("models/one-prudential-plaza.ts");
   const { createTrumpInternationalTowerBuilding } = await load("models/trump-international-tower.ts");
-  for (const model of [createCrainBuilding(), createCrainSkylineBuilding(), createAonCenterBuilding(), createOnePrudentialPlazaBuilding(), createTrumpInternationalTowerBuilding()] as BuildingModel[]) {
+  const { createTwoPrudentialPlazaBuilding } = await load("models/two-prudential-plaza.ts");
+  for (const model of [createCrainBuilding(), createCrainSkylineBuilding(), createAonCenterBuilding(), createOnePrudentialPlazaBuilding(), createTrumpInternationalTowerBuilding(), createTwoPrudentialPlazaBuilding()] as BuildingModel[]) {
     for (const mesh of model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[]) {
       expectClosed(`${model.building.name} ${mesh.name}`, { positions: mesh.geometry.getAttribute("position").array, normals: mesh.geometry.getAttribute("normal").array });
     }

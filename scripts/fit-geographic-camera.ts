@@ -38,8 +38,12 @@ function solveLinear(matrix: number[][], vector: number[]): number[] {
 
 command(usage, { height: { type: "string" }, eye: { type: "string" } }, ({ values }) => {
   const height = Number(values["height"] ?? 2);
-  const held = values["eye"] ? (values["eye"] as string).split(",").map(Number) as [number, number] : null;
-  if (held && (held.length !== 2 || held.some((value) => !Number.isFinite(value)))) throw new Error(`--eye takes east,south in meters, not ${values["eye"]}.`);
+  // Two nonempty numbers, so a stray comma cannot pin a coordinate to zero and an empty
+  // value cannot quietly free the eye.
+  const eye = values["eye"] as string | undefined;
+  const parts = eye === undefined ? null : eye.split(",").map((part) => part.trim());
+  if (parts && (parts.length !== 2 || parts.some((part) => part === "" || !Number.isFinite(Number(part))))) throw new Error(`--eye takes east,south in meters, not "${eye}".`);
+  const held = parts ? parts.map(Number) as [number, number] : null;
   // The camera's entries the solve moves: all five, or only the angles and the lens.
   const free = held ? [2, 3, 4] : [0, 1, 2, 3, 4];
   const [left, top, width, frameHeight] = reference.viewBox.split(" ").map(Number) as [number, number, number, number];
