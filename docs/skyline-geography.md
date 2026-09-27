@@ -37,15 +37,17 @@ of view.
 The fit's RMS error is 74 layer units, about 1.7% of the frame's 4430-unit
 width. Horizontal errors stay within 52 units, and the larger vertical ones are
 drawn heights that differ from published ones. For example, One Prudential's
-mast is drawn 135 units, roughly 17 m, higher than its 278 m tip. The drawn
+mast is drawn 135 units, roughly 17 m, below its 278 m tip. The drawn
 Michigan Plaza South is excluded: from this camera it stands 790–1000 units left
 of the mapped tower, which One Prudential hides.
 
 The view keeps its eye fixed at every viewport. Its field of view, not its
 distance, changes to contain the frame, so each mapped point lands on the same
 drawn spot at every layout. Other perspective views keep the study's 6° lens.
-`tests/skyline-geography.test.ts` checks the eye's position, each landmark's
-error, the RMS, and that the placement is identical across the five layouts.
+`tests/skyline-geography.test.ts` checks that each landmark lies on its mapped
+model, and the eye's position. It also checks each landmark's error, the RMS,
+and that the placement is identical across the skyline test's five layouts and
+a height-limited sixth, 1440×800.
 
 ## Coordinates and footprints
 

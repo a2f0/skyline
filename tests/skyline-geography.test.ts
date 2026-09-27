@@ -19,6 +19,33 @@ describe("mapped skyline geography", () => {
     for (const record of geographicBuildings) models[record.shortName] = createGeographicBuilding(record);
   }, { timeout: 180_000 });
 
+  test("anchors the skyline camera's landmarks on the mapped geometry", () => {
+    // The camera fit and its browser check project these coordinates, not the
+    // meshes, so each must stay on an edge of its model: a tip, eave, roof corner,
+    // or roof shoulder that moves with the geometry fails here.
+    for (const [name, id, point] of geographicLandmarks) {
+      const model = models[geographicBuildings.find((record) => record.id === id)!.shortName]!;
+      model.building.updateMatrixWorld(true);
+      let nearest = Infinity;
+      const a = new THREE.Vector3(), b = new THREE.Vector3();
+      model.building.traverse((child) => {
+        const mesh = child as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        const position = mesh.geometry.getAttribute("position");
+        for (let i = 0; i < position.count; i += 3) {
+          for (const [s, e] of [[i, i + 1], [i + 1, i + 2], [i + 2, i]] as [number, number][]) {
+            a.fromBufferAttribute(position, s).applyMatrix4(mesh.matrixWorld);
+            b.fromBufferAttribute(position, e).applyMatrix4(mesh.matrixWorld);
+            const d = b.clone().sub(a), w = new THREE.Vector3(...point).sub(a);
+            const t = Math.max(0, Math.min(1, w.dot(d) / (d.lengthSq() || 1)));
+            nearest = Math.min(nearest, w.sub(d.multiplyScalar(t)).length());
+          }
+        }
+      });
+      expect(nearest, `${name} lies on its mapped model`).toBeLessThan(0.1);
+    }
+  }, { timeout: 180_000 });
+
   test("projects ground coordinates from the tangent-plane origin", () => {
     // Independent geographic anchors catch swapped coordinates, reversed north,
     // degrees-as-meters, and the temptation to retain the drawing's tower order.
@@ -780,11 +807,13 @@ describe("geographic layout in the study", () => {
     near(eye[2]! - (crainBounds.min[2]! + crainBounds.max[2]!) / 2, 2067.92, 0.5);
     // Mapped roofs and tips land on their drawn positions in the reference frame's
     // layer units. The worst are drawn heights that differ from the published ones,
-    // such as One Prudential's mast, 135 units high; the fit's RMS is 74.1. The same
-    // eye and frame hold at every layout, so each point lands on the same spot.
+    // such as One Prudential's mast, drawn 135 units below its mapped tip; the fit's
+    // RMS is 74.1. The same eye and frame hold at every layout, so each point lands
+    // on the same spot. The skyline test's layouts all have canvases narrower than
+    // the frame; 1440x800's is wider, so the field of view fits the frame's height.
     const placed: Record<string, [number, number][]> = {};
-    for (const { options } of viewports) {
-      await page.setViewportSize(options.viewport!);
+    for (const size of [...viewports.map(({ options }) => options.viewport!), { width: 1440, height: 800 }]) {
+      await page.setViewportSize(size);
       await settle(page);
       const measured = await page.evaluate(async (landmarks) => {
         const source = await (await fetch((document.querySelector(".reference img") as HTMLImageElement).src)).text();
@@ -799,17 +828,23 @@ describe("geographic layout in the study", () => {
       let squares = 0;
       geographicLandmarks.forEach(([name, , , drawn], i) => {
         const error = Math.hypot(measured[i]![0] - drawn[0], measured[i]![1] - drawn[1]);
-        expect(error, `${name} at ${options.viewport!.width}x${options.viewport!.height}`).toBeLessThan(140);
+        expect(error, `${name} at ${size.width}x${size.height}`).toBeLessThan(140);
         squares += error * error;
         (placed[name] ||= []).push(measured[i]!);
       });
-      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${options.viewport!.width}x${options.viewport!.height}`).toBeLessThan(74.5);
+      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${size.width}x${size.height}`).toBeLessThan(74.5);
     }
     for (const [name, points] of Object.entries(placed)) for (const point of points) {
       expect(Math.hypot(point[0] - points[0]![0], point[1] - points[0]![1]), `${name} holds its drawn place at every layout`).toBeLessThan(0.05);
     }
+    // After an orbit, a resize keeps the fixed eye where it is.
+    await page.locator("#building").focus();
+    await page.keyboard.press("ArrowLeft");
+    const orbit = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
     await page.setViewportSize({ width: 1440, height: 1000 });
     await settle(page);
+    expect(await page.evaluate(() => window.__buildingStudy!.activeView)).toBeNull();
+    (await page.evaluate(() => window.__buildingStudy!.cameraPosition)).forEach((value, axis) => near(value, orbit[axis]!, 1e-6));
     // Reset returns to the skyline camera from any other view.
     await page.locator('[data-view="top"]').click();
     await page.locator("#reset").click();
