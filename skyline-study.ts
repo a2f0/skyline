@@ -46,13 +46,15 @@ michigan.building.rotation.y = -1.4 * Math.PI / 180;
 // Fitted through this camera to Heritage's drawn corners, mullions, and crown fins.
 // The plan needs no rotation, and its depth keeps the tower behind Kemper's left face.
 place(heritage, -91.9, -31.85);
-// Fitted through this camera to the drawn roof corners and the mast tip. Depth barely
-// changes the picture, so it comes from the drawing's occlusion instead: One Prudential is
-// drawn over Michigan Plaza's rightmost 47 layer units, so it has to stand in front of it.
-// The taller frame needs a 5 cm leftward correction to retain the podium's existing
-// right-silhouette bound at the laptop layout.
-place(prudential, 178.75, 25);
-prudential.building.rotation.y = 6.07 * Math.PI / 180;
+// The real One Prudential from the drawing's 40 m datum up, fitted through this camera at
+// all five test layouts to the drawn roof, band, penthouse, and mast, the drawn piers, the
+// screen's fins, the wing's ribs and corners, and the drawn window rows: 1.314 times its
+// size and turned 7.29°. Depth barely changes the picture, so it comes from the drawing's
+// occlusion instead: One Prudential is drawn over Michigan Plaza's rightmost 47 layer
+// units, so it has to stand in front of it.
+prudential.building.scale.setScalar(1.314);
+prudential.building.rotation.y = 7.29 * Math.PI / 180;
+place(prudential, 179.02, 25);
 // Trump stands behind One Prudential in the SVG. Its depth maintains that lower-facade
 // occlusion while the fitted crown and spire remain visible above the foreground slab.
 place(trump, 200.5, -40);

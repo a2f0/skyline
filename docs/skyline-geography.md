@@ -29,17 +29,23 @@ tips, eaves, roof corners, and Crain's peaks, shoulders, foot and step with
 their drawn points. The eye's height is held at 2 m above the street datum. The
 drawing barely constrains it: a camera hovering about 100 m over the harbor on a
 shorter lens fits the traced heights slightly better, but the photograph was
-taken from the shore. The solve puts the eye 1555 m east and 2075 m south of
-Crain, on the lakefront by the Adler Planetarium, 2.59 km away. The camera's
-azimuth is 35.98° and it looks up 3.86°, with the frame spanning a 9.94°
-vertical field of view.
+taken from the shore. The solve puts the eye 1458 m east and 1938 m south of
+Crain, 2.43 km away on the lakefront walk about 125 m north of the Adler
+Planetarium's centre. The camera's azimuth is 36.02° and it looks up 4.07°, with the
+frame spanning a 10.63° vertical field of view.
 
-The fit's RMS error is 67 layer units, about 1.5% of the frame's 4430-unit
-width. Horizontal errors stay within 55 units, and the larger vertical ones are
-drawn heights that differ from published ones. For example, One Prudential's
-mast is drawn 130 units, roughly 16 m, below its 278 m tip. The drawn
-Michigan Plaza South is excluded: from this camera it stands 790–1000 units left
-of the mapped tower, which One Prudential hides.
+The fit's RMS error is 48 layer units, about 1.1% of the frame's 4430-unit
+width. Horizontal errors stay within 52 units, and the larger vertical ones are
+drawn heights that differ from published ones. For example, Two Prudential's
+eaves are drawn about 100 units, roughly 12 m, below their mapped 240 m. One
+Prudential's landmarks are its roof corners at the photographed 169.5 m and its
+tubular mast's top at 259.4 m, where the drawing stops the mast; the slim WGN
+antenna above it, to the 278 m tip, is lost against Trump Tower in the
+photograph. With those in place of the published 183.2 m penthouse top and
+278 m tip, the RMS fell from 67 units and the eye moved about 170 m north-west,
+from 45 m off the planetarium's centre to the walk. The drawn Michigan Plaza South is
+excluded: from this camera it stands 790–1000 units left of the mapped tower,
+which One Prudential hides.
 
 The view keeps its eye fixed at every viewport. Its field of view, not its
 distance, changes to contain the frame, so each mapped point lands on the same
@@ -130,12 +136,15 @@ Intermediate parts have less certainty than the overall height:
   tower now carries its marble shell, window bays, mullions, dark crown band
   with light fins, and projecting cap at meter scale; see the
   [Kemper reference audit](kemper-geographic-reference.md).
-- One Prudential's mapped tower part sits between its nested ten- and
-  three-floor wing parts (estimated at 44.7 and 13.4 m using 183.2/41), whose
-  outlines overlap the tower's ends; the tower now carries its punch-card
-  facade, the wings their ribbed podiums, and the penthouse, louvers, and
-  mapped 278 m mast sit on the roof; see the
-  [One Prudential reference audit](one-prudential-geographic-reference.md).
+- One Prudential's mapped tower part stands between its ten- and three-level
+  wing parts, which the map gives no heights. The east wing's 56.4 m roof is
+  measured on the photograph, and the west wing, which the photograph cannot
+  see, keeps its 13.4 m estimate at 183.2/41 a level. The tower's main roof is
+  the photographed 169.5 m, under the 41st floor's observatory band; the
+  published 183.2 m is its sign penthouse's top, and the WGN mast reaches the
+  278 m tip at the mapped antenna. Its limestone piers, windows, and wing ribs
+  follow the photographed 2.35 m bay and 3.93 m floors; see the
+  [One Prudential reference audit](one-prudential-reference.md).
 - Trump's mapped tiers keep their OSM part heights of 60, 120, 200, 345, 357,
   380 and 400 m, then the published 423.2 m tip. The tier outlines now carry a
   glazed facade with panes, mullions and floor bands, terrace parapets, a ribbed

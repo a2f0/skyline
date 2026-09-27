@@ -626,10 +626,11 @@ describe("Crain", () => {
 
 // The geographic suite checks the mapped models' meshes close edge for edge; the clean
 // copies come from the same generators on other plans and cropped bases, so check them too.
-test("closes every mesh of the clean Crain and Aon copies edge for edge", async () => {
+test("closes every mesh of the clean Crain, Aon and One Prudential copies edge for edge", async () => {
   const { createCrainBuilding, createCrainSkylineBuilding } = await load("models/crain-communications.ts");
   const { createAonCenterBuilding } = await load("models/aon-center.ts");
-  for (const model of [createCrainBuilding(), createCrainSkylineBuilding(), createAonCenterBuilding()] as BuildingModel[]) {
+  const { createOnePrudentialPlazaBuilding } = await load("models/one-prudential-plaza.ts");
+  for (const model of [createCrainBuilding(), createCrainSkylineBuilding(), createAonCenterBuilding(), createOnePrudentialPlazaBuilding()] as BuildingModel[]) {
     for (const mesh of model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[]) {
       expectClosed(`${model.building.name} ${mesh.name}`, { positions: mesh.geometry.getAttribute("position").array, normals: mesh.geometry.getAttribute("normal").array });
     }
@@ -650,6 +651,25 @@ describe("Aon", () => {
       const first = ray.intersectObjects(meshes, false)[0]!;
       expect(first.object.name, `glass at the row ${y}`).toBe("Aon · window ribbons");
       expect(Math.abs(first.point.z - z), `the row ${y} sits on the glass`).toBeLessThan(0.01);
+    }
+  });
+});
+
+describe("One Prudential", () => {
+  test("puts each drawn window row of the skyline copy on a window's glass", async () => {
+    const { createOnePrudentialPlazaBuilding, onePrudentialFeatures } = await load("models/one-prudential-plaza.ts");
+    const model: BuildingModel = createOnePrudentialPlazaBuilding();
+    model.building.updateMatrixWorld(true);
+    const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+    const ray = new THREE.Raycaster();
+    // Each exported row is a window's centre on the south face; a probe from the lake must
+    // meet dark glass there, in the windows' box just in front of the wall, between piers.
+    for (const [x, y, z] of onePrudentialFeatures.floorRows as Vec3[]) {
+      ray.set(new THREE.Vector3(x, y, z + 10), new THREE.Vector3(0, 0, -1));
+      const first = ray.intersectObjects(meshes, false)[0]!;
+      expect(first.object.name, `glass at the row ${y}`).toBe("One Prudential · windows and spandrels");
+      expect(Math.abs(first.point.z - z), `the row ${y} sits on the glass`).toBeLessThan(0.01);
+      expect((first.object as THREE.Mesh).geometry.getAttribute("color").getX(first.face!.a), `the row ${y} is a window, not a spandrel`).toBeLessThan(0.22);
     }
   });
 });

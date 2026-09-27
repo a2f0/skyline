@@ -79,7 +79,7 @@ const landmarkTolerance = 0.0151;
 // it is artistic.
 const geographicLandmarks: Landmark[] = [
   ["Trump spire tip", trump, [-121.43, 423.2, -461.05], [4141.449, 187.538]],
-  ["One Prudential mast tip", prudential, [161.78, 278, -7.29], [4053.655, 879.202]],
+  ["One Prudential mast top", prudential, [161.76, 259.4, -7.29], [4053.655, 879.202]],
   ["Two Prudential spire tip", twoPrudential, [186.87, 303.3, -65.81], [4475.207, 565.047]],
   ["Two Prudential pyramid peak", twoPrudential, [186.87, 277, -65.81], [4475.207, 748.347]],
   ["Two Prudential eave west", twoPrudential, [167, 240, -37.5], [4261.006, 1151.884]],
@@ -88,9 +88,9 @@ const geographicLandmarks: Landmark[] = [
   ["Aon roof west", aon, [254.75, 340, -28.62], [4807.686, 115.434]],
   ["Aon roof near", aon, [306.05, 340, -21.16], [5148.845, 88.061]],
   ["Aon roof east", aon, [313.23, 340, -72.55], [5401.877, 155.047]],
-  ["One Prudential roof west", prudential, [109.48, 181.2, 8.58], [3629.988, 1627.757]],
-  ["One Prudential roof near", prudential, [181.05, 181.2, 7.21], [4117.251, 1611.589]],
-  ["One Prudential roof east", prudential, [181.03, 181.2, -15.01], [4220.171, 1624.276]],
+  ["One Prudential roof west", prudential, [109.48, 169.5, 8.58], [3629.988, 1627.757]],
+  ["One Prudential roof near", prudential, [181.05, 169.5, 7.21], [4117.251, 1611.589]],
+  ["One Prudential roof east", prudential, [181.03, 169.5, -15.01], [4220.171, 1624.276]],
   ["Kemper roof west", kemper, [-230.6, 159, -167.83], [2440, 1811]],
   ["Kemper roof near", kemper, [-196.64, 159, -168.51], [2588, 1803]],
   ["Kemper roof east", kemper, [-197.23, 159, -210.29], [2759, 1819]],
@@ -262,38 +262,43 @@ const fitted: FittedSpec[] = [
       roofRight: [4220.171, 1624.276],
       bandFootLeft: [3629.988, 1664.827],
       bandFootNear: [4117.251, 1644.403],
+      // The penthouse's south face: the sign wall's top corners under the screen, and the
+      // screen's top at its ends.
       penthouseTopWest: [3645.72, 1544.83],
       penthouseTopEast: [3986.5, 1529.47],
+      screenTopWest: [3650, 1525.9],
+      screenTopEast: [3986.5, 1508.4],
       mastTip: [4053.655, 879.202],
       wingSouthWest: [3979.05, 2532.59],
       wingCorner: [4244.76, 2532.59],
       wingEastEnd: [4507.699, 2540.26],
     },
     onGeometryTolerance: 0.02,
-    // Piers between the thirty south and nine east window columns, and the wing's ribs.
-    // A pier's drawn position is the gap between two window columns; a rib is drawn
-    // directly.
+    // Piers between the thirty south and nine east window columns, the screen's fins, and
+    // the wing's ribs. A pier's drawn position is the gap between two window columns; a fin
+    // or a rib is drawn directly.
     columns: {
-      southPiers: { batch: "piers, ribs, and louvers", drawn: [3649.8, 3665.82, 3681.84, 3697.86, 3713.89, 3729.91, 3745.93, 3761.96, 3777.98, 3794, 3810.03, 3826.05, 3842.07, 3858.1, 3874.12, 3890.14, 3906.16, 3922.19, 3938.21, 3954.23, 3970.26, 3986.28, 4002.3, 4018.33, 4034.35, 4050.37, 4066.4, 4082.42, 4098.44] },
-      eastPiers: { batch: "piers, ribs, and louvers", drawn: [4130.77, 4141.45, 4152.13, 4162.81, 4173.49, 4184.18, 4194.86, 4205.54] },
-      screenLouvers: { batch: "piers, ribs, and louvers", drawn: [3660.59, 3667.26, 3673.94, 3680.62, 3687.29, 3693.97, 3700.64, 3707.32, 3714, 3720.67, 3727.35, 3734.03, 3740.7, 3747.38, 3754.06, 3760.73, 3767.41, 3774.08, 3780.76, 3787.44, 3794.11, 3800.79, 3807.47, 3814.14, 3820.82, 3827.49, 3834.17, 3840.85, 3847.52, 3854.2, 3860.88, 3867.55, 3874.23, 3880.9, 3887.58, 3894.26, 3900.93, 3907.61, 3914.29, 3920.96, 3927.64, 3934.32, 3940.99, 3947.67, 3954.34, 3961.02, 3967.7, 3974.37, 3981.05] },
-      // The drawn podium does not share its tower's projection: its top is flat where
-      // the tower's own window rows slope -0.0333. Its ribs therefore land about three
-      // times looser than the tower's piers, worst at the ends and at the narrowest
-      // viewport, so they carry their own bound rather than relaxing the tower's.
-      southRibs: { tolerance: 0.0063, batch: "piers, ribs, and louvers", drawn: [3990.9, 4007.05, 4023.21, 4039.37, 4055.52, 4071.68, 4087.84, 4103.99, 4120.15, 4136.31, 4152.46, 4168.62, 4184.78, 4200.93, 4217.09, 4233.25] },
-      eastRibs: { tolerance: 0.0063, batch: "piers, ribs, and louvers", drawn: [4252.78, 4263.33, 4273.88, 4284.43, 4294.98, 4305.52, 4316.07, 4326.62, 4337.17, 4347.72, 4358.27, 4368.82, 4379.36, 4389.91, 4400.46, 4411.01, 4421.56, 4432.11, 4442.66, 4453.2, 4463.75, 4474.3, 4484.85, 4495.4] },
+      southPiers: { batch: "One Prudential · limestone piers", drawn: [3649.8, 3665.82, 3681.84, 3697.86, 3713.89, 3729.91, 3745.93, 3761.96, 3777.98, 3794, 3810.03, 3826.05, 3842.07, 3858.1, 3874.12, 3890.14, 3906.16, 3922.19, 3938.21, 3954.23, 3970.26, 3986.28, 4002.3, 4018.33, 4034.35, 4050.37, 4066.4, 4082.42, 4098.44] },
+      eastPiers: { batch: "One Prudential · limestone piers", drawn: [4130.77, 4141.45, 4152.13, 4162.81, 4173.49, 4184.18, 4194.86, 4205.54] },
+      screenLouvers: { batch: "One Prudential · screen louvers", drawn: [3660.59, 3667.26, 3673.94, 3680.62, 3687.29, 3693.97, 3700.64, 3707.32, 3714, 3720.67, 3727.35, 3734.03, 3740.7, 3747.38, 3754.06, 3760.73, 3767.41, 3774.08, 3780.76, 3787.44, 3794.11, 3800.79, 3807.47, 3814.14, 3820.82, 3827.49, 3834.17, 3840.85, 3847.52, 3854.2, 3860.88, 3867.55, 3874.23, 3880.9, 3887.58, 3894.26, 3900.93, 3907.61, 3914.29, 3920.96, 3927.64, 3934.32, 3940.99, 3947.67, 3954.34, 3961.02, 3967.7, 3974.37, 3981.05] },
+      // The drawn podium's ribs keep the tower's module but not quite its projection, so
+      // they carry their own bound rather than relaxing the tower's.
+      southRibs: { tolerance: 0.0021, batch: "One Prudential · limestone piers", drawn: [3990.9, 4007.05, 4023.21, 4039.37, 4055.52, 4071.68, 4087.84, 4103.99, 4120.15, 4136.31, 4152.46, 4168.62, 4184.78, 4200.93, 4217.09, 4233.25] },
+      eastRibs: { tolerance: 0.0021, batch: "One Prudential · limestone piers", drawn: [4252.78, 4263.33, 4273.88, 4284.43, 4294.98, 4305.52, 4316.07, 4326.62, 4337.17, 4347.72, 4358.27, 4368.82, 4379.36, 4389.91, 4400.46, 4411.01, 4421.56, 4432.11, 4442.66, 4453.2, 4463.75, 4474.3, 4484.85, 4495.4] },
+    },
+    rows: {
+      // Centres of six drawn window rows in the south face's fourth bay: the top row, the
+      // fortieth floor, and every sixth below it.
+      floorRows: { drawn: [1681.648, 1871.923, 2062.197, 2252.471, 2442.746, 2633.02], tolerance: 0.0014 },
     },
     // Each column point sits at half its pier's depth, so a present pier is met a little
     // before the point and a missing one leaves the wall behind it.
     sightGap: [0.05, 1],
-    // Measured across all five layouts. The tower's piers are the tight set; the wing's
-    // ribs are three times looser and carry their own bound below.
-    // The wing's corners are the worst landmarks, near 0.00551: the drawn podium does not
-    // share its tower's projection, so it cannot sit as tightly as the tower does. The
-    // tower's own landmarks are inside 0.0026.
-    tolerance: 0.0063,
-    columnTolerance: 0.0021,
+    // Fitted numerically at all five layouts. The worst landmark is the drawn screen's
+    // west end, which the drawing slopes a little more steeply than the penthouse under it,
+    // near 0.00325 at the laptop layout.
+    tolerance: 0.0036,
+    columnTolerance: 0.0011,
     // The right silhouette is the wing's drawn east end.
     silhouette: 4507.699,
   },

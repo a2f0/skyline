@@ -5,6 +5,7 @@ import * as THREE from "../vendor/three-r186.js";
 import type { BuildingModel, Vec2, Vec3 } from "../models/building-kit.js";
 import { geographicBuildings, geographicStreets } from "../models/skyline-geography-data.js";
 import { projectGround, footprintMetrics, createGeographicBuilding } from "../models/skyline-geography.js";
+import { floorLevel, onePrudentialLevels, wallStations } from "../models/one-prudential-tower.js";
 import { crain, geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 
@@ -368,7 +369,7 @@ describe("mapped skyline geography", () => {
   });
 
   describe("One Prudential", () => {
-    test("keeps the mapped tower, penthouse, mast and punch-card facade", () => {
+    test("keeps the mapped tower and wings, the photographed roof, the sign penthouse and the WGN mast", () => {
       const record = geographicBuildings.find((r) => r.shortName === "One Prudential")!;
       const model = models["One Prudential"]!;
       model.building.updateMatrixWorld(true);
@@ -382,40 +383,61 @@ describe("mapped skyline geography", () => {
         const [east, north] = projectGround([longitude, latitude]);
         return [east, 0, -north];
       };
-      // The interior roof under the parapet, the east wing's estimated roof,
-      // the penthouse at the mapped 183.2 m tower top, and the mapped mast
-      // rising to the 278 m tip.
-      const interior = world(-87.6231, 41.88481);
-      near(hit([interior[0], 200, interior[2]], [0, -1, 0])!.point.y, 181.2, 0.001);
-      const eastWing = world(-87.6226, 41.88495);
-      near(hit([eastWing[0], 100, eastWing[2]], [0, -1, 0])!.point.y, 44.7, 0.001);
-      const mastPart = record.parts.find((p) => p.way === 685493614)!;
-      const mastPoints = mastPart.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
-      const mastCenter: Vec3 = [
-        mastPoints.reduce((sum, p) => sum + p[0], 0) / mastPoints.length,
-        0,
-        mastPoints.reduce((sum, p) => sum + p[1], 0) / mastPoints.length,
-      ];
-      // The penthouse top, probed beside the mast ring so the ray stays
-      // outside the single-sided mast walls.
-      near(hit([mastCenter[0] + 2.5, 200, mastCenter[2]], [0, -1, 0])!.point.y, 183.2, 0.001);
-      near(hit([mastCenter[0], 300, mastCenter[2]], [0, -1, 0])!.point.y, 278, 0.001);
-      // Panes and piers are the first surface on the mapped tower's south and
-      // east walls, probed from outside the closed shell.
-      const lerp = (a: Vec3, b: Vec3, t: number): Vec3 => a.map((v, axis) => v + (b[axis]! - v) * t) as Vec3;
-      const southMid = lerp(world(-87.6234169, 41.8847507), world(-87.6227902, 41.8847615), 0.5);
-      const south = hit([southMid[0], 100, southMid[2] + 30], [0, 0, -1]);
-      expect(south!.object.name).toMatch(/glaz|pier/);
-      expect(south!.point.z).toBeGreaterThan(southMid[2] + 0.005);
-      expect(south!.point.z).toBeLessThan(southMid[2] + 0.4);
-      const eastMid = lerp(world(-87.6227902, 41.8847615), world(-87.6227905, 41.8849616), 0.5);
-      const eastWall = hit([eastMid[0] + 30, 100, eastMid[2]], [-1, 0, 0]);
-      expect(eastWall!.object.name).toMatch(/glaz|pier/);
-      expect(eastWall!.point.x).toBeGreaterThan(eastMid[0] + 0.005);
-      expect(eastWall!.point.x).toBeLessThan(eastMid[0] + 0.4);
-      // The tower and wing parts share interior edges, so grade carries their
-      // vertices too; every mapped footprint corner must still be present.
-      const groundMesh = meshes.find((mesh) => mesh.name === "One Prudential · limestone shell")!;
+      const tone = (found: THREE.Intersection) => (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
+      // Points measured along the mapped south face's chord and north of it.
+      const sw = world(-87.6236525, 41.8847492), se = world(-87.6227902, 41.8847615);
+      const chord = Math.hypot(se[0] - sw[0], se[2] - sw[2]), u = [(se[0] - sw[0]) / chord, (se[2] - sw[2]) / chord] as const;
+      const at = (s: number, north: number): Vec3 => [sw[0] + u[0] * s + u[1] * north, 0, sw[2] + u[1] * s - u[0] * north];
+      // The roof at the photographed 169.5 m, the penthouse at the published 183.2 m, and
+      // the east wing at its photographed 56.4 m and the west wing at its estimated 13.4 m.
+      const roof = at(20, 17), penthouse = at(30, 6);
+      near(hit([roof[0], 200, roof[2]], [0, -1, 0])!.point.y, 169.5, 0.001);
+      near(hit([penthouse[0], 200, penthouse[2]], [0, -1, 0])!.point.y, 183.2, 0.001);
+      const eastWing = world(-87.6226, 41.88495), westWing = world(-87.6235849, 41.8846915);
+      near(hit([eastWing[0], 100, eastWing[2]], [0, -1, 0])!.point.y, 56.4, 0.001);
+      near(hit([westWing[0], 100, westWing[2]], [0, -1, 0])!.point.y, 13.4, 0.001);
+      // The mast stands at the mapped antenna part's area centroid. Its tubular top is at
+      // 259.4 m, where the drawing stops it, and WGN's slim antenna reaches the 278 m tip.
+      const mastPoints = record.parts.find((p) => p.way === 685493614)!.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
+      let twice = 0, sumX = 0, sumZ = 0;
+      mastPoints.forEach(([x, z], i) => {
+        const [x2, z2] = mastPoints[(i + 1) % mastPoints.length]!, cross = x * z2 - x2 * z;
+        twice += cross; sumX += (x + x2) * cross; sumZ += (z + z2) * cross;
+      });
+      const mast: Vec3 = [sumX / (3 * twice), 0, sumZ / (3 * twice)];
+      near(hit([mast[0], 300, mast[2]], [0, -1, 0])!.point.y, 278, 0.001);
+      near(hit([mast[0] + 0.35, 300, mast[2]], [0, -1, 0])!.point.y, 259.4, 0.001);
+      expect(hit([mast[0] + 20, 200, mast[2]], [-1, 0, 0])!.object.name).toBe("One Prudential · antenna mast");
+      // The south face's bays: from the lake, a window's centre meets dark glass, the floor
+      // line between two windows the aluminium spandrel, and a bay line a limestone pier
+      // standing proud; higher up, the sill course, the observatory's glass, and the coping.
+      const runLength = Math.hypot(world(-87.6234169, 41.8847507)[0] - sw[0], world(-87.6234169, 41.8847507)[2] - sw[2]);
+      const southLength = runLength + [[-87.6234169, 41.8847507, -87.6231733, 41.8847538], [-87.6231733, 41.8847538, -87.6229073, 41.8847597], [-87.6229073, 41.8847597, -87.6227902, 41.8847615]]
+        .reduce((sum, [a, b, c, d]) => { const [p, q] = [world(a!, b!), world(c!, d!)]; return sum + Math.hypot(q[0] - p[0], q[2] - p[2]); }, 0);
+      const { piers } = wallStations(southLength);
+      expect(piers).toHaveLength(29);
+      const firstRun = (s: number): Vec3 => { const q = world(-87.6234169, 41.8847507); return [sw[0] + (q[0] - sw[0]) * s / runLength, 0, sw[2] + (q[2] - sw[2]) * s / runLength]; };
+      const fromLake = (s: number, height: number) => { const p = firstRun(s); return hit([p[0], height, p[2] + 30], [0, 0, -1])!; };
+      const pane = fromLake(piers[5]! - onePrudentialLevels.bay / 2, floorLevel(30) + 1.65);
+      expect(pane.object.name).toBe("One Prudential · windows and spandrels");
+      expect(tone(pane)).toBeLessThan(0.22);
+      const spandrel = fromLake(piers[5]! - onePrudentialLevels.bay / 2, floorLevel(30) + 0.3);
+      expect(spandrel.object.name).toBe("One Prudential · windows and spandrels");
+      expect(tone(spandrel)).toBeGreaterThan(0.25);
+      const pier = fromLake(piers[5]!, floorLevel(30) + 1.65);
+      expect(pier.object.name).toBe("One Prudential · limestone piers");
+      expect(pier.point.z).toBeGreaterThan(firstRun(piers[5]!)[2] + 0.25);
+      expect(fromLake(piers[5]! - onePrudentialLevels.bay / 2, 165.1).object.name).toBe("One Prudential · limestone courses");
+      expect(fromLake(piers[5]! - onePrudentialLevels.bay / 2, 167).object.name).toBe("One Prudential · windows and spandrels");
+      expect(fromLake(piers[5]! - onePrudentialLevels.bay / 2, 169.25).object.name).toBe("One Prudential · limestone courses");
+      // The penthouse's south face: the sign's board and a louvered screen's first fin.
+      const sign = at(2.3 + 20, 0), fin = at(2.3 + 2.2, 0);
+      const board = hit([sign[0], 175, sign[2] + 30], [0, 0, -1])!;
+      expect(board.object.name).toBe("One Prudential · penthouse and sign");
+      expect(board.point.z).toBeGreaterThan(sign[2] + 0.2);
+      expect(hit([fin[0], 181.7, fin[2] + 30], [0, 0, -1])!.object.name).toBe("One Prudential · screen louvers");
+      // The mapped footprint's corners at grade.
+      const groundMesh = meshes.find((mesh) => mesh.name === "One Prudential · shell")!;
       const vertices = groundMesh.geometry.getAttribute("position");
       const grade = new Set<string>();
       for (let i = 0; i < vertices.count; i += 1) if (vertices.getY(i) === 0) grade.add([vertices.getX(i), vertices.getZ(i)].map((n) => n.toFixed(3)).join(","));
@@ -843,14 +865,14 @@ describe("geographic layout in the study", () => {
     // the geographic origin, so its bounds locate the scene's offset.
     const crainBounds = (await page.evaluate(() => window.__buildingStudy!.modelBounds)).find((b) => b.id === crain)!;
     const eye = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    near(eye[0]! - (crainBounds.min[0]! + crainBounds.max[0]!) / 2, 1554.87, 0.5);
+    near(eye[0]! - (crainBounds.min[0]! + crainBounds.max[0]!) / 2, 1458.2, 0.5);
     near(eye[1]!, 2, 1e-6);
-    near(eye[2]! - (crainBounds.min[2]! + crainBounds.max[2]!) / 2, 2074.57, 0.5);
+    near(eye[2]! - (crainBounds.min[2]! + crainBounds.max[2]!) / 2, 1938.13, 0.5);
     // Mapped roofs and tips land on their drawn positions in the reference frame's
     // layer units. The worst are drawn heights that differ from the published ones,
-    // such as One Prudential's mast, drawn 130 units below its mapped tip; the fit's
-    // RMS is 66.9. The same eye and frame hold at every layout, so each point lands
-    // on the same spot. The skyline test's layouts all have canvases narrower than
+    // such as Two Prudential's eaves, drawn about 100 units below their mapped 240 m;
+    // the fit's RMS is 47.6. The same eye and frame hold at every layout, so each point
+    // lands on the same spot. The skyline test's layouts all have canvases narrower than
     // the frame; 1440x800's is wider, so the field of view fits the frame's height.
     const placed: Record<string, [number, number][]> = {};
     for (const size of [...viewports.map(({ options }) => options.viewport!), { width: 1440, height: 800 }]) {
@@ -869,11 +891,11 @@ describe("geographic layout in the study", () => {
       let squares = 0;
       geographicLandmarks.forEach(([name, , , drawn], i) => {
         const error = Math.hypot(measured[i]![0] - drawn[0], measured[i]![1] - drawn[1]);
-        expect(error, `${name} at ${size.width}x${size.height}`).toBeLessThan(140);
+        expect(error, `${name} at ${size.width}x${size.height}`).toBeLessThan(110);
         squares += error * error;
         (placed[name] ||= []).push(measured[i]!);
       });
-      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${size.width}x${size.height}`).toBeLessThan(67.5);
+      expect(Math.sqrt(squares / geographicLandmarks.length), `RMS at ${size.width}x${size.height}`).toBeLessThan(48.2);
     }
     for (const [name, points] of Object.entries(placed)) for (const point of points) {
       expect(Math.hypot(point[0] - points[0]![0], point[1] - points[0]![1]), `${name} holds its drawn place at every layout`).toBeLessThan(0.05);
