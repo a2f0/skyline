@@ -590,6 +590,23 @@ describe("mapped skyline geography", () => {
         expect(probeOn(side, 0, 150)!.name).toMatch(/pier/);
         near(probeOn(side, 0, 250)!.proud, 1.01, 0.03);
       }
+      // Detail crosses the joints where the mapped tracing splits a wall. The
+      // north wall is two traced edges; a pane spanning their joint is the
+      // same surface at the joint as on either side of it. Reserving clearance
+      // at each traced end instead would leave a 19 cm break up its full
+      // height.
+      const split = groups.find((group) => group.length > 1 && group[0]!.normal[1] < -0.9)!;
+      const northWall = facing(1, -1);
+      const joint = split.slice(0, -1).reduce((sum, edge) => sum + edge.length, 0) - northWall.length / 2;
+      for (const height of [100, 140]) {
+        const surface = probeOn(northWall, joint, height)!;
+        expect(surface.name).toMatch(/glaz/);
+        for (const offset of [-0.2, 0.2]) {
+          const beside = probeOn(northWall, joint + offset, height)!;
+          expect(beside.name, `north wall pane breaks at its traced joint at ${height} m`).toBe(surface.name);
+          near(beside.proud, surface.proud, 0.01);
+        }
+      }
       // The chevron covers the middle bays only and the crown has already
       // stepped back inside the mapped wall, so just outside the chevron the
       // first surface is the crown and at the mapped corner there is nothing.

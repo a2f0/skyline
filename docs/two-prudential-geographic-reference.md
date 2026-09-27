@@ -78,10 +78,12 @@ reads as the published 64 floors.
   no triangular wedge is left unglazed under either and no pane crosses into
   the tier below.
 - **The tiers project less than the fitted model's proportions.** The fitted
-  tiers stand 10.12 m and 4.23 m proud of its own south wall; scaled by the
-  mapped 56.39 m depth over the fitted model's full 59.10 m drawn depth, that
-  is 9.65 m and 4.03 m, which above grade would claim 34% more ground than
-  OpenStreetMap records.
+  tiers stand 10.12 m and 4.23 m proud of its own south wall. Its whole built
+  north-to-south depth is 59.10 m — its 38.86 m tower plus both projecting
+  prows, 29.548 m either side of the tower's centre, and not to be confused
+  with its 59.01 m facade width — so scaling by the mapped 56.39 m depth over
+  that 59.10 m gives 9.65 m and 4.03 m, which above grade would claim 34% more
+  ground than OpenStreetMap records.
   They are compressed to 4.0 m and 2.2 m, with the arrow another 0.9 m, which
   keeps the drawing's stepped section and its shadows while holding the
   above-grade envelope within about 16% of the mapped outline. Their feet sit
