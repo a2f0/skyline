@@ -8,18 +8,18 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // on the mapped outline 210671714. The original layout has no model of it; the drawing
 // shows its south wall behind Millennium Park Plaza, which hides its Michigan front.
 //
-// A brown masonry block of twenty-four storeys over the whole mapped lot, on a double-height
-// ground floor, with string courses over the seventeenth and twentieth floors and a top floor of
+// A brown masonry block of twenty-four storeys over the whole mapped lot, on a ground floor
+// as tall as three of its floors, with string courses over the seventeenth and twentieth floors and a top floor of
 // arched windows under a band and a parapet at 86.3 m. No height is published; the parapet
 // is read on the drawing, whose nearby tops fall within about a metre of their published
 // heights, and the storeys are Marc Realty's. See docs/north-michigan-180-reference.md.
 // Units are meters; +x is east, +z is south.
 export const northMichigan180Levels = Object.freeze({
-  base: 9.85, // the double-height ground floor, under the second
+  base: 9.85, // the tall ground floor, under the second
   top: 86.3, // the parapet, read on the drawing
 });
 const h = northMichigan180Levels;
-// Each floor's level: the double-height ground floor, then 3.25 m floors, the twenty-fourth
+// Each floor's level: the tall ground floor, then 3.25 m floors, the twenty-fourth
 // the last.
 const floor = (n: number) => (n < 2 ? 0 : h.base + (n - 2) * 3.25);
 

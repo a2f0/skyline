@@ -56,7 +56,7 @@ Heights are read on the drawn south wall through the geographic camera, without 
 
 | Feature | Height | Basis |
 | --- | ---: | --- |
-| Ground floor | 0–9.85 m | Estimate: double height, under the drawn floors |
+| Ground floor | 0–9.85 m | Estimate: what the 24 storeys leave under the drawn floors |
 | Typical floor | 3.25 m | Drawing: the window rows, 24 storeys in all |
 | String courses | 61.85 and 71.6 m | Drawing: over the seventeenth and twentieth floors |
 | Top floor's band | 81.75–82.3 m | Drawing |
@@ -64,11 +64,11 @@ Heights are read on the drawn south wall through the geographic camera, without 
 | Parapet | 86.3 m | Drawing: the wall's top edges |
 
 The drawn rows stand 3.25 m apart. Below the top floor, the published 24 storeys then leave
-the ground floor 9.85 m, double height; the hill in the drawing hides it. The drawing reads
-3 to 4 m high a few blocks south, at Six North Michigan and the Michigan Boulevard Building.
-If it does here, the parapet would stand near 83 m, and the ground floor would be an
-ordinary one. The drawn top bows up about a metre at its middle; the model's parapet is
-level at its edges.
+the ground floor 9.85 m, as tall as three typical floors; the hill in the drawing hides it,
+so the model keeps that estimate. The drawing reads 3 to 4 m high a few blocks south, at Six
+North Michigan and the Michigan Boulevard Building. If it does here, the parapet would stand
+near 83 m, and the ground floor would still be 6 to 7 m, about two typical floors. The drawn
+top bows up about a metre at its middle; the model's parapet is level at its edges.
 
 ## Model
 
