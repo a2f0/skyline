@@ -3,8 +3,9 @@
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings, plus 330 North Wabash, the Blue Cross and Blue
 Shield Tower, 340 on the Park, The Buckingham, Millennium Park Plaza, Willoughby Tower,
-Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, and the
-University Club of Chicago, which only the geographic layout maps. The page
+Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, the
+University Club of Chicago, and the Monroe Building, which only the geographic layout maps.
+The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
@@ -108,7 +109,7 @@ a wider sixth, 1600×700, whose canvas fits the frame to its height.
 and the Blue Cross and Blue Shield Tower's outline and parts on September 28, 2026,
 from [another](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6212,41.8845,-87.6180,41.8862),
 as were 340 on the Park's and The Buckingham's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862),
-and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's, 180 North Michigan Avenue's and the University Club's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
+and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's, 180 North Michigan Avenue's, the University Club's and the Monroe Building's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -152,6 +153,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Michigan Boulevard Building | [126982630](https://www.openstreetmap.org/way/126982630) | Outline, with the levels from the drawing; not in the original layout |
 | 180 North Michigan Avenue | [210671714](https://www.openstreetmap.org/way/210671714) | Outline, with the height and levels from the drawing; not in the original layout |
 | University Club of Chicago | [126982632](https://www.openstreetmap.org/way/126982632) | Outline, with the upper floor, roof and levels from the drawing; not in the original layout |
+| Monroe Building | [145498713](https://www.openstreetmap.org/way/145498713) | Outline, with the height, roof and levels from the drawing; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -183,10 +185,11 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Michigan Boulevard Building | 82 m | 83.3 m | [Emporis, archived](https://web.archive.org/web/20070216134331/http://www.emporis.com/en/wm/bu/?id=michiganboulevardbuilding-chicago-il-usa) |
 | 180 North Michigan Avenue | 86.3 m, drawing | 86.3 m | None published; storeys from [Marc Realty](https://marcrealty.com/180-north-michigan-office-space-chicago/) |
 | University Club of Chicago | 67.7 m | 69.75 m | [OSM height tag](https://www.openstreetmap.org/way/126982632) |
+| Monroe Building | 67.1 m, drawing | 67.1 m | None published; storeys from [Chicagology](https://chicagology.com/skyscrapers/skyscrapers048/) |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
-Michigan Avenue has none published, so its height is read on the drawing, and the page's
-dimension table says so. The
+Michigan Avenue and the Monroe Building have none published, so their heights are read on
+the drawing, and the page's dimension table says so. The
 table's before/after comparison uses the highest actual rendered vertex, so One
 Prudential's antenna is not compared to its roof. Aon's original copy is the real
 tower from the drawing's 30.6 m datum up at 1.329 times its size, so its antenna
@@ -312,6 +315,12 @@ Intermediate parts have less certainty than the overall height:
   peak at OpenStreetMap's 67.7 m under a cross. The levels and the upper floor's setbacks
   are read from the drawing; see the
   [University Club reference audit](university-club-reference.md).
+- The Monroe Building stands across Monroe from the University Club. Twelve storeys of
+  terracotta over two of granite rise in bays of paired windows to a cornice under a steep
+  gable roof holding two more floors, sixteen in all, its gable facing Michigan with small
+  arched windows.
+  No height is published: its 67.1 m ridge is read on the drawing, lowered by the
+  University Club's reading next door; see the [Monroe Building reference audit](monroe-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -329,7 +338,7 @@ mapped footprints help inspect whether the street arrangement fits. Checking cur
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all eighteen rendered ground
+coordinate anchors, meter scale and north direction, all nineteen rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
