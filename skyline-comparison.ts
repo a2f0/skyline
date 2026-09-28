@@ -6,6 +6,18 @@ import type { StudyLayout, StudyView } from "./study-viewer.js";
 
 // The drawing has no geographic position. Register the two scenes at Crain's
 // center without changing the original models, rotations, or skyline camera.
+// The drawing shown under each layout's scene.
+const drawings = {
+  original: {
+    src: "models/skyline-reference.svg",
+    alt: "Original SVG geometry showing the Heritage at Millennium Park's bowed, finned crown and rooftop screen, Kemper's vertical ribs, Crain's diamond roof, the dark, gridded Michigan Plaza South tower, Trump International Hotel and Tower's stepped shaft and spire, One Prudential Plaza's punch-card slab under a tall antenna mast, Two Prudential Plaza's chevrons and spire, and Aon Center's granite piers",
+  },
+  geographic: {
+    src: "models/skyline-panorama.svg",
+    alt: "The whole drawn skyline, every building the drawing shows, from the Railway Exchange Building on the left to the towers around The Buckingham on the right",
+  },
+};
+
 export function createSkylineComparison(models: BuildingModel[], anchor: THREE.Vector3) {
   const offset: [number, number] = [anchor.x, anchor.z];
   const geographicModels = geographicBuildings.map((record) => createGeographicBuilding(record, offset));
@@ -112,10 +124,9 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     document.querySelector<HTMLElement>("#model-caption")!.textContent = geographic ? "01 / geographic study" : "01 / original 3D study";
     // The drawing under the scene frames what the scene does: the whole skyline for the
     // geographic layout, the excerpt the original layout is fitted to otherwise.
-    const drawing = document.querySelector<HTMLImageElement>(".reference img")!;
-    if (!drawing.dataset["excerpt"]) Object.assign(drawing.dataset, { excerpt: drawing.getAttribute("src"), excerptAlt: drawing.alt });
-    drawing.src = geographic ? "models/skyline-panorama.svg" : drawing.dataset["excerpt"]!;
-    drawing.alt = geographic ? "The whole drawn skyline, every building the drawing shows, from the Railway Exchange Building on the left to the towers around The Buckingham on the right" : drawing.dataset["excerptAlt"]!;
+    const drawing = document.querySelector<HTMLImageElement>(".reference img")!, { src, alt } = drawings[geographic ? "geographic" : "original"];
+    if (drawing.getAttribute("src") !== src) drawing.src = src;
+    drawing.alt = alt;
   }
   function connect(viewer: { requestRender(): void }) {
     streetButton.addEventListener("click", () => {

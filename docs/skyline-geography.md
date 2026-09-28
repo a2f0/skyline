@@ -2,7 +2,9 @@
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings, plus 330 North Wabash, the Blue Cross and Blue
-Shield Tower, and 340 on the Park, which only the geographic layout maps. Every geographic building carries a detailed facade
+Shield Tower, and 340 on the Park, which only the geographic layout maps. The page
+opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
+browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
 placement and camera remain intact.
 

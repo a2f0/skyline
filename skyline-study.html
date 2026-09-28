@@ -24,16 +24,16 @@
     <main>
       <div class="layout-controls">
         <div class="button-group" role="group" aria-label="Building layout">
-          <button type="button" data-layout="original" aria-pressed="true">original drawing</button>
-          <button type="button" data-layout="geographic" aria-pressed="false">geographic layout</button>
+          <button type="button" data-layout="original" aria-pressed="false">original drawing</button>
+          <button type="button" data-layout="geographic" aria-pressed="true">geographic layout</button>
         </div>
-        <p id="layout-status" role="status">Original layout · proportions and spacing fitted to the drawing. Switch to geographic layout to see the mapped buildings from the drawing’s camera.</p>
+        <p id="layout-status" role="status">Geographic layout · mapped footprints and published heights, with detailed facades on all eleven buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m.</p>
       </div>
       <div class="comparison">
         <figure>
-          <figcaption class="caption" id="model-caption">01 / original 3D study</figcaption>
+          <figcaption class="caption" id="model-caption">01 / geographic study</figcaption>
           <div class="viewport" id="viewport">
-            <canvas id="building" tabindex="0" role="img" aria-label="Interactive 3D study of the Heritage at Millennium Park, Kemper, Crain Communications, Michigan Plaza South, Trump International Hotel and Tower, One and Two Prudential Plaza, and Aon Center" aria-describedby="camera-hint"></canvas>
+            <canvas id="building" tabindex="0" role="img" aria-label="Interactive 3D study of the Heritage at Millennium Park, Kemper, Crain Communications, Michigan Plaza South, Trump International Hotel and Tower, One and Two Prudential Plaza, and Aon Center, with 330 North Wabash, the Blue Cross and Blue Shield Tower, and 340 on the Park in the geographic layout" aria-describedby="camera-hint"></canvas>
             <span class="view-label" id="view-label">skyline view</span>
             <p class="loading" id="loading" role="status">Preparing the skyline…</p>
             <p class="hint" id="camera-hint">Drag to orbit · scroll or pinch to zoom<br />Arrow keys rotate · + / − zoom · Home resets</p>
@@ -57,7 +57,7 @@
       </div>
       <figure class="reference">
         <figcaption class="caption">02 / source SVG</figcaption>
-        <img src="models/skyline-reference.svg" alt="Original SVG geometry showing the Heritage at Millennium Park's bowed, finned crown and rooftop screen, Kemper's vertical ribs, Crain's diamond roof, the dark, gridded Michigan Plaza South tower, Trump International Hotel and Tower's stepped shaft and spire, One Prudential Plaza's punch-card slab under a tall antenna mast, Two Prudential Plaza's chevrons and spire, and Aon Center's granite piers" />
+        <img src="models/skyline-panorama.svg" alt="The whole drawn skyline, every building the drawing shows, from the Railway Exchange Building on the left to the towers around The Buckingham on the right" />
       </figure>
       <details class="geographic-details" open>
         <summary>Footprints, coordinates &amp; height differences</summary>

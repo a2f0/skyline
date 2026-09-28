@@ -36,7 +36,7 @@ Three.js is vendored under its MIT license; see `vendor/README.md` for provenanc
 
 ## Eight-building skyline study
 
-Select **3d skyline** in the viewer, follow **Eight-building skyline** from the solo study, or open `http://localhost:8000/skyline-study.html`. This experiment places the Heritage at Millennium Park, Kemper, Crain Communications, Michigan Plaza South, Trump International Hotel and Tower, One and Two Prudential Plaza, and Aon Center together in one 3D scene, beside an excerpt of their original SVG geometry. Each building highlights independently, and a nearer tower blocks hover on the one behind it. **Skyline view**, **reset view**, and the `Home` key return to the composition fitted to the drawing; three-quarter, side, orbit, zoom, wireframe, and turntable let you inspect the depth. The comparison stacks vertically on mobile.
+Select **3d skyline** in the viewer, follow **Eight-building skyline** from the solo study, or open `http://localhost:8000/skyline-study.html`. The page opens on the geographic layout, described below; **original drawing**, or `skyline-study.html?layout=original`, shows the drawing's fit. That layout places the Heritage at Millennium Park, Kemper, Crain Communications, Michigan Plaza South, Trump International Hotel and Tower, One and Two Prudential Plaza, and Aon Center together in one 3D scene, beside an excerpt of their original SVG geometry. Each building highlights independently, and a nearer tower blocks hover on the one behind it. **Skyline view**, **reset view**, and the `Home` key return to the composition fitted to the drawing; three-quarter, side, orbit, zoom, wireframe, and turntable let you inspect the depth. The comparison stacks vertically on mobile.
 
 The initial camera uses a 6° field of view, approximately 41.5° azimuth, and a low eye position below the roofs. Its −2° elevation preset is limited by the camera's above-ground height constraint as the framing widens. The SVG's facade widths, shallow roof slopes, and relative placement guide the fit. A long lens keeps the verticals nearly parallel. The clipping range follows the allowed zoom distances with a margin around the scene, preserving fine facade detail and keeping the towers visible even in tall tablet layouts. The camera stays above ground at every orbit and zoom distance, including on mobile. This is a visual fit to the drawing, not recovered camera metadata or a geographic reconstruction. Depth, hidden faces, lower floors, and tower proportions are approximate.
 
@@ -64,7 +64,7 @@ The Heritage plan, heights, and placement were fitted numerically through the sk
 
 ## Geographic skyline comparison
 
-In `skyline-study.html`, **geographic layout** switches the same eight buildings
+In `skyline-study.html`, the **geographic layout**, the page's default, moves the same eight buildings
 to local OpenStreetMap footprints and parts, with published overall heights
 (Kemper uses OSM's height), and adds 330 North Wabash, the Blue Cross and Blue
 Shield Tower, and 340 on the Park. It opens on the skyline view from the drawing's

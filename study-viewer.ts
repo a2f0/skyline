@@ -149,6 +149,8 @@ interface BuildingStudyOptions {
   lightPosition?: Vec3;
   shadowCamera?: ShadowCameraOptions;
   layouts?: Record<string, StudyLayout> | null;
+  // The layout the page opens on; the original drawing's fit unless a page chooses another.
+  initialLayout?: string;
   onLayoutChange?: (name: string) => void;
   labels?: StudyLabel[];
 }
@@ -175,6 +177,7 @@ export function createBuildingStudy({
   lightPosition = [-110, 240, 170],
   shadowCamera = { left: -140, right: 140, top: 160, bottom: -160, near: 1, far: 600 },
   layouts = null,
+  initialLayout = "original",
   onLayoutChange = () => {},
   labels = [],
 }: BuildingStudyOptions) {
@@ -545,9 +548,12 @@ export function createBuildingStudy({
       camera.updateProjectionMatrix(); controls.update();
       if (!previousView) markView(null);
     }
-    document.querySelectorAll<HTMLElement>("[data-layout]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset["layout"] === name)));
+    markLayout(name);
     onLayoutChange(name);
     requestRender();
+  }
+  function markLayout(name: string) {
+    document.querySelectorAll<HTMLElement>("[data-layout]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset["layout"] === name)));
   }
   document.querySelectorAll<HTMLElement>("[data-layout]").forEach((button) => button.addEventListener("click", () => setLayout(button.dataset["layout"]!)));
 
@@ -588,6 +594,10 @@ export function createBuildingStudy({
   new ResizeObserver(resize).observe(viewport);
   updateMotionPreference();
   resize();
+  // Open on the page's layout, and bring the page's controls and text to it, whichever
+  // layout its markup starts in.
+  if (initialLayout !== layout) setLayout(initialLayout);
+  else { markLayout(layout); onLayoutChange(layout); }
   renderer.render(scene, camera);
   document.querySelector<HTMLElement>("#loading")!.hidden = true;
   window.__buildingStudy = {
