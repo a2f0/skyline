@@ -708,6 +708,11 @@ describe("mapped skyline geography", () => {
       expect(front(westBay, 122), "the west bay is open through the middle band").toBeUndefined();
       expect(front(westBay, 110)).toBeDefined();
       expect(front(westBay, 140)).toBeDefined();
+      // Through the opening, the block's side wall keeps its skin, which the bays cover below
+      // and above it.
+      const side = hit([slabWest - 10, 122.5, (blockNorth + blockSouth) / 2], [1, 0, 0])!;
+      expect(side.point.x, "the side wall through the opening").toBeGreaterThan(slabWest + 5);
+      expect(side.object.name).toBe("Blue Cross · glass, spandrels and bands");
       // Each band's recess, dark between the block's columns, which stand proud of it; and
       // the emblems in the screen's first two bays at the south face's west end.
       const southWest = block.reduce((best, p) => (p[1] - p[0] > best[1] - best[0] ? p : best));
@@ -720,7 +725,13 @@ describe("mapped skyline geography", () => {
         near(colors.getX(recess.face!.a), new THREE.Color(0x2a2a2a).r, 0.002);
         expect(front(southWest[0] + pitch / 2, y)!.object.name, `a column in the band at ${y} m`).toBe("Blue Cross · band columns and emblems");
       }
-      expect(front(southWest[0] + pitch, 219.5)!.object.name).toBe("Blue Cross · band columns and emblems");
+      // The cross, west, and the shield: each probed at its centre, and inside and outside
+      // its outline where a square plate would differ.
+      const emblem = (dx: number, dy: number, bay: number) => front(southWest[0] + bay * pitch + dx, 219.5 + dy)!.object.name === "Blue Cross · band columns and emblems";
+      expect([emblem(0, 0, 1), emblem(1.6, 0, 1), emblem(0, -1.6, 1)], "the cross and its arms").toEqual([true, true, true]);
+      expect([emblem(1.5, 1.5, 1), emblem(-1.5, -1.5, 1)], "clear of the cross between its arms").toEqual([false, false]);
+      expect([emblem(0, 0, 2), emblem(-1.5, 1.8, 2), emblem(1.5, 1.8, 2)], "the shield and its shoulders").toEqual([true, true, true]);
+      expect([emblem(-1.5, -1.8, 2), emblem(1.5, -1.8, 2)], "the shield's point").toEqual([false, false]);
       expect(front(southWest[0] + 3 * pitch, 219.5)!.object.name, "no emblem past the second bay").toBe("Blue Cross · glass, spandrels and bands");
       // The exact mapped outline at grade.
       const shell = meshes.find((mesh) => mesh.name === "Blue Cross · shell")!.geometry.getAttribute("position");

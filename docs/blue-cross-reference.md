@@ -89,12 +89,15 @@ Every wall is a glass curtain wall on the 5 ft module:
 
 Each band is a dark recess. The block's columns stand proud of it on its long faces, eight
 across each, one to a structural bay. The same columns run up the screen, where the
-company's two emblems stand in the first two bays at the south face's west end. The end
-bays stop under the middle band and start again above it, leaving it open through.
+company's two emblems, a cross and then a shield, stand in the first two bays at the south
+face's west end. The end bays stop under the middle band and start again above it, leaving
+it open through. The block's side walls carry their curtain wall only where it shows:
+through that opening and above the bays' roof.
 
 Omitted:
 
 - the plaza, the entrances, and the north projection's detail;
+- the figures inside the emblems;
 - the lighting that turns the columns blue at night;
 - the messages the tower spells in its window shades.
 
@@ -110,8 +113,9 @@ Colours follow the original artwork's grayscale palette.
   - the screen's 226.7 m and the end bays' 212 m;
   - the block standing forward of the bays;
   - the west bay, open at the middle band and standing below and above it;
+  - the block's side wall, skinned through the opening;
   - each band's recess and a column in it;
-  - an emblem, and none past the second bay;
+  - the cross and the shield by their outlines, and no emblem past the second bay;
   - the exact mapped outline at grade.
 
   Every mesh is closed.

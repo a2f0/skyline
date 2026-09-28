@@ -1,8 +1,7 @@
 import * as THREE from "../vendor/three-r186.js";
 import { createBuilder, inside, polygonOf } from "./building-kit.js";
-import type { BuildingModel, Plan, Vec2 } from "./building-kit.js";
+import type { BuildingModel, Plan, Run, Vec2, Vec3 } from "./building-kit.js";
 import { chainSkin, chainsOf, orient, paintedSlab, planOf } from "./facade-grid.js";
-import type { Chain } from "./facade-grid.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
 
 // The Blue Cross and Blue Shield Tower, 300 East Randolph Street (Lohan Associates, 1997;
@@ -123,50 +122,89 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
     solid(bay, middle[1], h.wings, spandrel);
   }
 
-  // A wall's skin: cells two modules wide on every row, and mullions one module apart on
-  // the office floors. Chains lying on the block's walls are skipped on the bays: the
-  // block's own skin covers them.
-  const onBlock = (plan: Plan, chain: Chain) => chain.runs.every((index) => {
-    const run = plan[index]!;
-    return [0, run.length / 2, run.length].every((s) => { const p = run.at(s); return block.some((q, i) => { const r = block[(i + 1) % block.length]!; const [dx, dz] = [r[0] - q[0], r[1] - q[1]], l = Math.hypot(dx, dz); const t = Math.max(0, Math.min(1, ((p[0] - q[0]) * dx + (p[1] - q[1]) * dz) / (l * l))); return Math.hypot(q[0] + dx * t - p[0], q[1] + dz * t - p[1]) < 0.05; }); });
-  });
-  // `lift` raises a skin's foot off the lobby's roof: the block's side walls run on inside
-  // the end bays, whose floors would otherwise share that plane with it.
-  const skin = (corners: Vec2[], lo: number, hi: number, seed: number, skip: boolean, lift = 0) => {
+  // A wall's skin between two heights, on the runs `keep` accepts: cells two modules wide on
+  // every row, and mullions one module apart on the office floors. Each unbroken stretch of
+  // kept runs along a chain is one box, held 2 cm clear of its ends.
+  const skin = (corners: Vec2[], lo: number, hi: number, seed: number, keep: (run: Run) => boolean, lift = 0) => {
     const plan = planOf(corners), cuts = rowsBetween(lo, hi);
     const heights = [cuts[0]!.lo + lift, ...cuts.map((row) => row.hi)];
+    const top = Math.min(hi, h.roof) - 0.05;
     chainsOf(plan).forEach((chain, index) => {
-      if (skip && onBlock(plan, chain)) return;
       const count = Math.max(1, Math.round(chain.length / h.module));
       const stations = Array.from({ length: count + 1 }, (_, i) => chain.length * i / count);
-      chainSkin(kit, wall, plan, chain, 0, chain.runs.length - 1, 0.02, chain.length - 0.02, stations.filter((_, i) => i % 2 === 0), heights, 0.02, 0.07, (cell, r) => {
-        const row = cuts[r]!;
-        if (row.kind === "glass") return paneColor(row.floor, cell, seed * 8 + index);
-        if (row.kind === "band") return recess;
-        if (row.kind === "screen") return screen;
-        return spandrel;
-      }, spandrel);
-      // Mullions on each office run, whole on one run and held clear of its ends. Their
-      // backs stand a centimetre off the wall: the block's side walls run on inside the end
-      // bays, whose closing walls lie in that plane and face the way the backs do.
-      const top = Math.min(hi, h.roof) - 0.05;
-      for (const s of stations) {
-        const k = chain.starts.findIndex((from, i) => s < from + plan[chain.runs[i]!]!.length + 1e-9);
-        if (k < 0) continue;
-        const run = plan[chain.runs[k]!]!, along = Math.min(Math.max(s - chain.starts[k]!, 0.3), run.length - 0.3);
-        if (run.length > 0.6 && top - lo > 1) kit.box(mullions, run.at(along), run.normal(0), 0.05, 0.01, 0.16, heights[0]! + 0.05, top);
+      const kept = chain.runs.map((run) => keep(plan[run]!));
+      for (let k0 = kept.indexOf(true); k0 >= 0;) {
+        let k1 = k0;
+        while (kept[k1 + 1]) k1 += 1;
+        const s0 = chain.starts[k0]! + 0.02, s1 = chain.starts[k1]! + plan[chain.runs[k1]!]!.length - 0.02;
+        chainSkin(kit, wall, plan, chain, k0, k1, s0, s1, stations.filter((_, i) => i % 2 === 0), heights, 0.02, 0.07, (cell, r) => {
+          const row = cuts[r]!;
+          if (row.kind === "glass") return paneColor(row.floor, cell, seed * 8 + index);
+          if (row.kind === "band") return recess;
+          if (row.kind === "screen") return screen;
+          return spandrel;
+        }, spandrel);
+        // Mullions on each office run, whole on one run and held clear of its ends. Their
+        // backs stand a centimetre off the wall: on the block's side walls the middle band's
+        // mullions start just inside the end bays, whose closing walls lie in that plane and
+        // face the way the backs do.
+        for (const s of stations) {
+          const k = chain.starts.findIndex((from, i) => s < from + plan[chain.runs[i]!]!.length + 1e-9);
+          if (k < k0 || k > k1) continue;
+          const run = plan[chain.runs[k]!]!, along = Math.min(Math.max(s - chain.starts[k]!, 0.3), run.length - 0.3);
+          if (run.length > 0.6 && top - lo > 1) kit.box(mullions, run.at(along), run.normal(0), 0.05, 0.01, 0.16, heights[0]! + 0.05, top);
+        }
+        k0 = kept.indexOf(true, k1 + 1);
       }
     });
   };
-  skin(block, h.lobbyTop, h.top, 0, false, 0.05);
-  bays.forEach((bay, i) => {
-    skin(bay, h.lobbyTop, middle[0], i + 1, true);
-    skin(bay, middle[1], h.wings, i + 1, true);
+  // Whether a run lies along an outline's edges, and whether an end bay stands against it.
+  const lies = (run: Run, on: Vec2[]) => [0, run.length / 2, run.length].every((s) => {
+    const p = run.at(s);
+    return on.some((q, i) => {
+      const r = on[(i + 1) % on.length]!, [dx, dz] = [r[0] - q[0], r[1] - q[1]], l = Math.hypot(dx, dz);
+      const t = Math.max(0, Math.min(1, ((p[0] - q[0]) * dx + (p[1] - q[1]) * dz) / (l * l)));
+      return Math.hypot(q[0] + dx * t - p[0], q[1] + dz * t - p[1]) < 0.05;
+    });
   });
+  const covered = (run: Run) => bays.some((bay) => inside(bay, run.at(run.length / 2, 0.5)));
+  // The end bays cover the block's side walls except through the middle band and above
+  // their roof, so its skin there keeps to those heights. The bays' own skins leave off the
+  // runs they share with the block. `lift` raises the block's foot off the lobby's roof:
+  // where the block meets a bay their skins cross, and their feet would share that plane.
+  skin(block, h.lobbyTop, h.top, 0, (run) => !covered(run), 0.05);
+  skin(block, middle[0] - spandrelBelow, middle[1], 0, covered);
+  skin(block, h.wings, h.top, 0, covered);
+  bays.forEach((bay, i) => {
+    skin(bay, h.lobbyTop, middle[0], i + 1, (run) => !lies(run, block));
+    skin(bay, middle[1], h.wings, i + 1, (run) => !lies(run, block));
+  });
+
+  // An emblem: a plate standing 7 to 30 cm off the screen, cut to an outline given across and
+  // up from its centre. Its faces fan from the centre, which sees the whole outline, and its
+  // sides follow the outline's edges.
+  const emblem = (centre: Vec2, t: Vec2, n: Vec2, y: number, shape: Vec2[]) => {
+    const point = ([u, v]: Vec2, depth: number): Vec3 => [centre[0] + t[0] * u + n[0] * depth, y + v, centre[1] + t[1] * u + n[1] * depth];
+    const out: Vec3 = [n[0], 0, n[1]], back: Vec3 = [-n[0], 0, -n[1]];
+    shape.forEach((p, i) => {
+      const q = shape[(i + 1) % shape.length]!;
+      kit.triangle(bars, [point([0, 0], 0.3), point(p, 0.3), point(q, 0.3)], [out, out, out]);
+      kit.triangle(bars, [point([0, 0], 0.07), point(q, 0.07), point(p, 0.07)], [back, back, back]);
+      // The edge's side faces away from the centre.
+      const sign = Math.sign((q[1] - p[1]) * (p[0] + q[0]) - (q[0] - p[0]) * (p[1] + q[1])), length = Math.hypot(q[0] - p[0], q[1] - p[1]);
+      const [across, up] = [sign * (q[1] - p[1]) / length, -sign * (q[0] - p[0]) / length];
+      kit.quad(bars, [point(p, 0.07), point(q, 0.07), point(q, 0.3), point(p, 0.3)], [[t[0] * across, up, t[1] * across]]);
+    });
+  };
+  // The company's emblems, 4.2 m tall: a cross, its arms a third of its span, and a shield,
+  // square-shouldered and drawn to a point.
+  const cross: Vec2[] = [[0.7, 2.1], [0.7, 0.7], [2.1, 0.7], [2.1, -0.7], [0.7, -0.7], [0.7, -2.1],
+    [-0.7, -2.1], [-0.7, -0.7], [-2.1, -0.7], [-2.1, 0.7], [-0.7, 0.7], [-0.7, 2.1]];
+  const shield: Vec2[] = [[-1.8, 2.1], [1.8, 2.1], [1.8, 0.3], [1.6, -0.7], [1.0, -1.5], [0, -2.1], [-1.0, -1.5], [-1.6, -0.7], [-1.8, 0.3]];
 
   // The block's columns, exposed in each band and in the screen on its long faces: eight
   // across each, one to a structural bay. The emblems stand in the screen's first two
-  // bays at the south face's west end.
+  // bays at the south face's west end, the cross west of the shield.
   const faces = chainsOf(planOf(block)).filter(({ length }) => length > 50);
   faces.forEach((chain) => {
     const plan = planOf(block), run = plan[chain.runs[0]!]!, last = plan[chain.runs.at(-1)!]!;
@@ -178,7 +216,7 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
       for (const [lo, hi] of [...h.bands, [h.roof + 0.4, h.top - 0.3]] as [number, number][]) kit.box(bars, at((i + 0.5) * pitch), n, 0.45, 0.07, 0.4, lo + 0.1, hi - 0.1);
     }
     // The south face runs west to east; the emblems stand in its first two bays.
-    if (n[1] > 0.9) for (const i of [0.5, 1.5]) kit.box(bars, at((i + 0.5) * pitch), n, 2.1, 0.07, 0.3, h.roof + 4.6, h.roof + 8.8);
+    if (n[1] > 0.9) [cross, shield].forEach((shape, i) => emblem(at((i + 1) * pitch), t, n, h.roof + 6.7, shape));
   });
 
   const model = kit.finish({ height: h.top, outlines: [shell, mullions], opacity: 0.16 });

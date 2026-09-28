@@ -100,9 +100,12 @@ new perspective fit measurably moved an existing feature.
 
 The page's own layout does the same. Stacking the scene over the drawing gave the desktop and
 laptop canvases a wider aspect than the frame, so the frame fits their height rather than their
-width. Vertical errors grew by up to 21% in canvas units, and horizontal ones shrank, with no
-building moving in layer space. The tolerances that failed were raised just above their new
-worst, and every quoted worst error was measured again.
+width. That rescales the canvas unit: vertical errors grew by up to 21%, and horizontal ones
+shrank. In the original layout it also moves the eye, since the viewer sets the camera's
+distance from whichever of the frame's height and width binds, and the nearer eye shifts the
+perspective, so the fitted copies' points move slightly in layer space as well. The tolerances
+that failed were raised just above their new worst, and every quoted worst error was measured
+again.
 
 The geographic layout has its own frame, `models/skyline-panorama.svg`, which already takes in
 every building the drawing shows. A building added to that layout needs no reframe.
