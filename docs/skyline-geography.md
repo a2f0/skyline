@@ -8,7 +8,11 @@ browser suites and the dev scripts do. Every geographic building carries a detai
 reconstruction on its mapped outlines. The original factories,
 placement and camera remain intact.
 
-Ground plan and height comparison use an orthographic camera. Switching layouts
+Ground plan and height comparison use an orthographic camera. Their shared frame, 1,050 m
+square, holds the original layout's platform and every mapped footprint, with about 50 m
+either side where a portrait phone's width binds it; the geography suite checks that each
+footprint and its label stay inside the plan at desktop and phone sizes. A building added
+farther out needs the frame moved or widened. Switching layouts
 in those views preserves the camera position, target and zoom, including after an
 orbit. The geographic scene is translated to align Crain's mapped footprint
 bounding-box center with the original Crain model's center. This is a comparison

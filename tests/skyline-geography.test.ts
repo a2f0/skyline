@@ -17,6 +17,23 @@ const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
 const settle = (page: Page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 const near = (a: number, b: number, tolerance: number) => expect(Math.abs(a - b), `${a} vs ${b}`).toBeLessThan(tolerance);
 
+// In the ground plan, every mapped footprint projects inside the canvas, and its centre
+// inside the band where the viewer shows a building's label.
+async function expectPlanHolds(page: Page) {
+  const footprints = geographicBuildings.map((record) => {
+    const { center } = footprintMetrics(record.footprint.coordinates);
+    const points = record.footprint.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, 0, -north]; });
+    return { id: record.id, points, centre: [center[0], 0, -center[1]] };
+  });
+  const projected = await page.evaluate((all) => all.map(({ id, points, centre }) => ({
+    id, points: points.map((p) => window.__buildingStudy!.projectPoint(id, p)), centre: window.__buildingStudy!.projectPoint(id, centre),
+  })), footprints);
+  for (const { id, points, centre } of projected) {
+    expect(points.every(([u, v]) => u > 0 && u < 1 && v > 0 && v < 1), `${id} inside the plan`).toBe(true);
+    expect(Math.abs(centre[0] * 2 - 1) < 0.95 && Math.abs(centre[1] * 2 - 1) < 0.95, `${id}'s label inside the plan`).toBe(true);
+  }
+}
+
 describe("mapped skyline geography", () => {
   const models: Record<string, BuildingModel> = {};
   beforeAll(() => {
@@ -1103,6 +1120,7 @@ describe("geographic layout in the study", () => {
     expect(plan[3]![1] < plan[0]![1], "north points up").toBe(true);
     const geographicBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     for (const record of geographicBuildings) near(geographicBounds.find((b) => b.id === record.id)!.max[1]!, record.tipHeight, 0.001);
+    await expectPlanHolds(page);
   }, { timeout: 180_000 });
 
   test("pans and zooms to inspect streets, preserving the comparison pose across toggles", async () => {
@@ -1179,6 +1197,10 @@ describe("geographic layout in the study", () => {
     // The eight drawn buildings, and 330 North Wabash, the Blue Cross and Blue Shield Tower,
     // 340 on the Park and The Buckingham, which only the geographic layout models.
     expect(projected.length).toBe(12);
+    // A portrait phone's width binds the plan's frame; it still holds every footprint.
+    await page.locator('[data-view="top"]').click();
+    await settle(page);
+    await expectPlanHolds(page);
     await page.screenshot({ path: "/tmp/skyline-geographic-mobile.png" });
     const frame = await page.evaluate(() => window.__buildingStudy!.renderCount);
     await page.waitForTimeout(180);

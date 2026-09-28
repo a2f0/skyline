@@ -22,7 +22,10 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
   const offset: [number, number] = [anchor.x, anchor.z];
   const geographicModels = geographicBuildings.map((record) => createGeographicBuilding(record, offset));
   const ground = createGeographicGround(offset);
-  const commonTarget: Vec3 = [anchor.x + 60, 0, anchor.z - 180];
+  // The comparison views frame both layouts: the original's platform, and every mapped
+  // footprint from 330 North Wabash's west side to The Buckingham's east, with about 50 m
+  // either side even where a portrait phone's width binds the frame.
+  const commonTarget: Vec3 = [anchor.x + 128, 0, anchor.z - 180];
   const commonFit = { width: 1050, height: 1050 };
   const views: Record<string, StudyView> = {
     top: { azimuth: 0, polar: 0, projection: "orthographic", label: "ground plan · north up", fit: commonFit, target: commonTarget },
