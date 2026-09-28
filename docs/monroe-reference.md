@@ -14,6 +14,10 @@ history, the drawing and photographs, not a survey or construction drawings.
   [map API](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920),
   with Willoughby Tower's. It shares its south wall's nodes with the MacLean Center, way
   145498712, tagged 18 levels.
+- [The Skyscraper Center](https://www.skyscrapercenter.com/building/monroe-building/22557):
+  69 m (226 ft) architectural and to the tip, 16 floors, completed 1912.
+- The City of Chicago's [guide to the Historic Michigan Boulevard District](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf),
+  2016: the Monroe Building, 1910–1912, 211 ft.
 - [Chicagology](https://chicagology.com/skyscrapers/skyscrapers048/):
   - Holabird & Roche, 1912, sixteen stories;
   - 89 feet on Michigan Avenue and 172 feet on Monroe Street;
@@ -29,9 +33,9 @@ history, the drawing and photographs, not a survey or construction drawings.
   - the terracotta front's bays of paired windows between pilasters;
   - a belt course two floors below the cornice.
 
-No published height was found. The model's is read on the drawing and corrected by the
-University Club's reading across Monroe: that club's drawn gable reads 0.6 m above its
-mapped 67.7 m, so the Monroe Building's readings are lowered by the same.
+The model's ridge is the Skyscraper Center's 69 m. The City's guide gives 211 ft (64.3 m);
+its heights run below the other sources' along this street. Where published heights
+disagree, the layout takes the one nearest the drawing, whose ridge here reads 67.7 m.
 
 ## Plan
 
@@ -51,24 +55,24 @@ three pairs of small arched windows about 5.6 m apart, and its upper row one pai
 
 ## Heights
 
-Heights are read on the drawn Michigan front through the geographic camera, lowered 0.6 m
-as described above.
+Heights are read on the drawn Michigan front through the geographic camera and scaled by
+69/67.7, so that the drawn ridge meets the published one. The scale adds 1.9%.
 
 | Feature | Height | Basis |
 | --- | ---: | --- |
-| Granite storeys | 0–13.9 m | Estimate: what fourteen storeys leave under the drawn floors |
-| Typical floor | 3.55 m | Drawing: the window rows |
-| Belt course | 49.3–50.5 m | Drawing: over the twelfth floor |
-| Fourteenth floor's windows | 54–56.1 m | Drawing |
-| Cornice | 56.3–57.6 m | Drawing |
-| Gable's foot and eaves | 57.6 m | Drawing |
-| Attic's lower windows | 57.7–59.5 m | Drawing |
-| Attic's upper windows | 61.15–62.8 m | Drawing |
-| Ridge | 67.1 m | Drawing: the verge's top |
+| Granite storeys | 0–14.8 m | Estimate: what fourteen storeys leave under the drawn floors |
+| Typical floor | 3.62 m | Drawing: the window rows, 3.55 m apart as drawn |
+| Belt course | 50.9–52.1 m | Drawing: over the twelfth floor |
+| Fourteenth floor's windows | 55.6–57.8 m | Drawing |
+| Cornice | 58–59.3 m | Drawing |
+| Gable's foot and eaves | 59.3 m | Drawing |
+| Attic's lower windows | 59.4–61.3 m | Drawing |
+| Attic's upper windows | 62.9–64.6 m | Drawing |
+| Ridge | 69 m | Drawing: the verge's top, the published height |
 
 The hill in the drawing hides the building below 31 m. The published sixteen storeys, two of
 them in the roof, leave fourteen under it: twelve of terracotta on the drawn pitch and two
-of granite, 13.9 m together, which is an estimate.
+of granite, 14.8 m together, which is an estimate.
 
 ## Model
 
@@ -99,7 +103,8 @@ Omitted:
 - `tests/building-kit.test.ts` checks counted triangles, winding, same-facing coplanar
   overlaps, and covered omissions.
 - `tests/skyline-geography.test.ts` raycasts:
-  - the ridge, the south slope, and the walls' top in front of the gable;
+  - the published ridge, the record's one part from grade to it, the south slope, and the
+    walls' top in front of the gable;
   - the Michigan front's paired windows, mullions and piers;
   - the granite storeys, the fourteenth floor, the belt and the cornice;
   - the gable's six lower and two upper windows, their stepped heads, and the gable between

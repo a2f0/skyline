@@ -149,11 +149,11 @@ Michigan, crossed at OpenStreetMap's 67.7 m; see its
 [reference audit](docs/university-club-reference.md). The ground plan's frame reaches south
 to Jackson for the buildings that follow.
 Across Monroe, the Monroe Building's terracotta rises to a steep gable roof holding two
-floors, its gable on Michigan; its 67.1 m ridge is read on the drawing, since none is
-published; see its [reference audit](docs/monroe-reference.md).
+floors, its gable on Michigan, to the Skyscraper Center's 69 m ridge; see its
+[reference audit](docs/monroe-reference.md).
 Beside it the MacLean Center, the old Illinois Athletic Club, carries six floors added in
-1985 over its cornice and frieze of round windows to a pierced parapet, its 73.2 m read on
-the drawing; see its [reference audit](docs/maclean-center-reference.md).
+1985 over its cornice and frieze of round windows to a pierced parapet at the Skyscraper
+Center's 77.4 m; see its [reference audit](docs/maclean-center-reference.md).
 Next south, the Lake View Building's narrow front of three windows to a floor rises
 seventeen storeys to an arched floor and an attic under the Skyscraper Center's 73.2 m;
 see its [reference audit](docs/lake-view-reference.md).

@@ -10,16 +10,18 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 //
 // Twelve storeys of terracotta over two of granite, in bays of paired windows, with a belt
 // course over the twelfth floor and a cornice under a steep gable roof that holds two more
-// floors, sixteen in all, its gable facing Michigan with small arched windows. No height is
-// published: the ridge is read on the drawing, corrected by the University Club's reading
-// across Monroe; see docs/monroe-reference.md. Units are meters; +x is east, +z is south.
+// floors, sixteen in all, its gable facing Michigan with small arched windows. The ridge is
+// the Skyscraper Center's 69 m. The drawn ridge reads 67.7 m, so heights read on the drawing
+// are scaled to meet it; see docs/monroe-reference.md. Units are meters; +x is east, +z is
+// south.
+const drawn = (height: number) => height * 69 / 67.7;
 export const monroeLevels = Object.freeze({
-  granite: 13.9, // the two granite storeys, under the third floor
-  belt: 49.3, // the belt course over the twelfth floor
-  beltTop: 50.5,
-  cornice: 56.3, // the cornice under the roof
-  eaves: 57.6, // the roof's foot and the gable's
-  ridge: 67.1, // the ridge, read on the drawing
+  granite: drawn(14.5), // the two granite storeys, under the third floor
+  belt: drawn(49.9), // the belt course over the twelfth floor
+  beltTop: drawn(51.1),
+  cornice: drawn(56.9), // the cornice under the roof
+  eaves: drawn(58.2), // the roof's foot and the gable's
+  ridge: 69, // the ridge, the published height
 });
 const h = monroeLevels;
 
@@ -40,27 +42,27 @@ function paneColor(row: number, bay: number, wall: number): THREE.Color {
   return glassTones[value % glassTones.length]!;
 }
 
-// The rows of every wall, from 25 cm above grade, where the mapped outline ends: the two
-// granite storeys' tall windows; each terracotta floor's spandrel and window, 3.55 m apart
-// to the twelfth, the belt course in the spandrel over it, then the thirteenth and
-// fourteenth; and the cornice.
+// The rows of every wall, from 25 cm above grade, where the mapped outline ends, read on the
+// drawing and scaled: the two granite storeys' tall windows; each terracotta floor's
+// spandrel and window, 3.55 m apart as drawn to the twelfth, the belt course in the spandrel
+// over it, then the thirteenth and fourteenth; and the cornice.
 type Row = { lo: number; hi: number; kind: "granite" | "wall" | "glass" | "band"; floor: number };
 const rows: Row[] = [
-  { lo: 0.25, hi: 1, kind: "granite", floor: 1 },
-  { lo: 1, hi: 6.4, kind: "glass", floor: 1 },
-  { lo: 6.4, hi: 7.9, kind: "granite", floor: 2 },
-  { lo: 7.9, hi: 12.9, kind: "glass", floor: 2 },
-  { lo: 12.9, hi: h.granite, kind: "granite", floor: 2 },
+  { lo: 0.25, hi: drawn(1), kind: "granite", floor: 1 },
+  { lo: drawn(1), hi: drawn(7), kind: "glass", floor: 1 },
+  { lo: drawn(7), hi: drawn(8.5), kind: "granite", floor: 2 },
+  { lo: drawn(8.5), hi: drawn(13.5), kind: "glass", floor: 2 },
+  { lo: drawn(13.5), hi: h.granite, kind: "granite", floor: 2 },
 ];
-const bases = [...Array.from({ length: 10 }, (_, k) => h.granite + k * 3.55), 49.7, 53.1];
+const bases = [...Array.from({ length: 10 }, (_, k) => 14.5 + k * 3.55), 50.3, 53.7];
 bases.forEach((base, k) => {
   const floor = k + 3, below = rows.at(-1)!.hi;
   if (floor === 13) {
     rows.push({ lo: below, hi: h.belt, kind: "wall", floor });
     rows.push({ lo: h.belt, hi: h.beltTop, kind: "band", floor });
-    rows.push({ lo: h.beltTop, hi: base + 0.9, kind: "wall", floor });
-  } else rows.push({ lo: below, hi: base + 0.9, kind: "wall", floor });
-  rows.push({ lo: base + 0.9, hi: base + 3, kind: "glass", floor });
+    rows.push({ lo: h.beltTop, hi: drawn(base + 0.9), kind: "wall", floor });
+  } else rows.push({ lo: below, hi: drawn(base + 0.9), kind: "wall", floor });
+  rows.push({ lo: drawn(base + 0.9), hi: drawn(base + 3), kind: "glass", floor });
 });
 rows.push({ lo: rows.at(-1)!.hi, hi: h.cornice, kind: "wall", floor: 14 });
 rows.push({ lo: h.cornice, hi: h.eaves, kind: "band", floor: 14 });
@@ -170,8 +172,8 @@ export function createMonroeGeographicBuilding(record: GeoBuilding, projectPlan:
     kit.prism(attic, planOf(rect(0.02, 0.045, b - 0.5, b + 0.5)), [lo, hi - 0.3]);
     kit.prism(attic, planOf(rect(0.025, 0.045, b - 0.25, b + 0.25)), [hi - 0.3, hi]);
   };
-  for (const c of [middle - 5.6, middle, middle + 5.6]) for (const d of [-1.15, 1.15]) window(c + d, 57.7, 59.5);
-  for (const d of [-1.15, 1.15]) window(middle + d, 61.15, 62.8);
+  for (const c of [middle - 5.6, middle, middle + 5.6]) for (const d of [-1.15, 1.15]) window(c + d, drawn(58.3), drawn(60.1));
+  for (const d of [-1.15, 1.15]) window(middle + d, drawn(61.75), drawn(63.4));
 
   const model = kit.finish({ height: h.ridge, outlines: [shell, attic], opacity: 0.16 });
   model.building.position.set(offset[0], 0, offset[1]);

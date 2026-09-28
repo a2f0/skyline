@@ -12,17 +12,18 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // A narrow Michigan front, a narrow window and three wide ones to a floor and another
 // narrow one, each section at its drawn widths, rises twelve storeys to the old club's
 // projecting cornice and a frieze of round windows; the addition carries six more floors,
-// arched on the top one, to a pierced parapet. No height is published: the parapet's top
-// is read on the drawing, lowered by the University Club's reading nearby; see
-// docs/maclean-center-reference.md. Units are meters; +x is east, +z is south.
+// arched on the top one, to a pierced parapet. The parapet's top is the Skyscraper Center's
+// 77.4 m. The drawn parapet reads 73.8 m, so heights read on the drawing are scaled to meet
+// it; see docs/maclean-center-reference.md. Units are meters; +x is east, +z is south.
+const drawn = (height: number) => height * 77.4 / 73.8;
 export const macleanLevels = Object.freeze({
-  band: 40.3, // the old club's bands under its cornice
-  cornice: 43.2, // the projecting cornice
-  frieze: 45, // the frieze of round windows
-  addition: 47.9, // the 1985 floors, over the frieze
-  openings: 70.3, // the parapet's openings
-  parapet: 72, // its top band
-  top: 73.2, // the parapet's top, read on the drawing
+  band: drawn(40.9), // the old club's bands under its cornice
+  cornice: drawn(43.8), // the projecting cornice
+  frieze: drawn(45.6), // the frieze of round windows
+  addition: drawn(48.5), // the 1985 floors, over the frieze
+  openings: drawn(70.9), // the parapet's openings
+  parapet: drawn(72.6), // its top band
+  top: 77.4, // the parapet's top, the published height
 });
 const h = macleanLevels;
 
@@ -43,33 +44,35 @@ function paneColor(row: number, bay: number, wall: number): THREE.Color {
   return glassTones[value % glassTones.length]!;
 }
 
-// The rows of the walls, from 25 cm above grade, where the mapped outline ends: the ground
-// floor's shopfronts; the old club's floors, 3.2 m apart, to its bands and cornice; the
-// frieze and its round windows; the addition's six floors, the last with arched heads
-// narrowing to the middle for their last 60 cm; and the parapet's openings under its top.
+// The rows of the walls, from 25 cm above grade, where the mapped outline ends, read on the
+// drawing and scaled: the ground floor's shopfronts; the old club's floors, 3.2 m apart as
+// drawn, to its bands and cornice; the frieze and its round windows; the addition's six
+// floors, the last with arched heads narrowing to the middle for their last 60 cm as drawn;
+// and the parapet's openings under its top.
 type Row = { lo: number; hi: number; kind: "wall" | "glass" | "band" | "oculus" | "head" | "opening"; floor: number; dy?: number };
 const rows: Row[] = [
-  { lo: 0.25, hi: 1, kind: "wall", floor: 1 },
-  { lo: 1, hi: 3.9, kind: "glass", floor: 1 },
+  { lo: 0.25, hi: drawn(1), kind: "wall", floor: 1 },
+  { lo: drawn(1), hi: drawn(4.5), kind: "glass", floor: 1 },
 ];
+const push = (hi: number, kind: Row["kind"], floor: number, dy?: number) => rows.push({ lo: rows.at(-1)!.hi, hi, kind, floor, ...(dy === undefined ? {} : { dy }) });
 for (let n = 2; n <= 12; n += 1) {
-  const base = 4.5 + (n - 2) * 3.2;
-  rows.push({ lo: rows.at(-1)!.hi, hi: base + 0.6, kind: "wall", floor: n });
-  rows.push({ lo: base + 0.6, hi: base + 3.1, kind: "glass", floor: n });
+  const base = 5.1 + (n - 2) * 3.2;
+  push(drawn(base + 0.6), "wall", n);
+  push(drawn(base + 3.1), "glass", n);
 }
-rows.push({ lo: rows.at(-1)!.hi, hi: h.band, kind: "wall", floor: 12 });
-rows.push({ lo: h.band, hi: h.frieze, kind: "band", floor: 12 });
-rows.push({ lo: h.frieze, hi: 45.9, kind: "wall", floor: 12 });
-// The round windows, 90 cm across and centred at 46.35 m, in five slices, each carrying its
-// middle's height from the centre.
-for (const [lo, hi] of [[45.9, 46.05], [46.05, 46.25], [46.25, 46.45], [46.45, 46.65], [46.65, 46.8]] as const) rows.push({ lo, hi, kind: "oculus", floor: 12, dy: Math.abs((lo + hi) / 2 - 46.35) });
-rows.push({ lo: 46.8, hi: h.addition, kind: "wall", floor: 12 });
-for (const [floor, lo, hi] of [[13, 48.46, 50.88], [14, 51.57, 54.12], [15, 55.38, 57.94], [16, 59.07, 61.61], [17, 62.77, 65.32], [18, 66.1, 67.63]] as const) {
-  rows.push({ lo: rows.at(-1)!.hi, hi: lo, kind: "wall", floor });
-  rows.push({ lo, hi, kind: "glass", floor });
+push(h.band, "wall", 12);
+push(h.frieze, "band", 12);
+push(drawn(46.5), "wall", 12);
+// The round windows, 90 cm across and centred at 46.95 m as drawn, in five slices, each
+// carrying its middle's drawn height from the centre.
+for (const [lo, hi] of [[46.5, 46.65], [46.65, 46.85], [46.85, 47.05], [47.05, 47.25], [47.25, 47.4]] as const) push(drawn(hi), "oculus", 12, Math.abs((lo + hi) / 2 - 46.95));
+push(h.addition, "wall", 12);
+for (const [floor, lo, hi] of [[13, 49.06, 51.48], [14, 52.17, 54.72], [15, 55.98, 58.54], [16, 59.67, 62.21], [17, 63.37, 65.92], [18, 66.7, 68.23]] as const) {
+  push(drawn(lo), "wall", floor);
+  push(drawn(hi), "glass", floor);
 }
-rows.push({ lo: 67.63, hi: 68.23, kind: "head", floor: 18 });
-rows.push({ lo: 68.23, hi: h.openings, kind: "wall", floor: 18 });
+push(drawn(68.83), "head", 18);
+push(h.openings, "wall", 18);
 rows.push({ lo: h.openings, hi: h.parapet, kind: "opening", floor: 18 });
 rows.push({ lo: h.parapet, hi: h.top, kind: "wall", floor: 18 });
 

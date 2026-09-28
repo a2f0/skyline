@@ -21,6 +21,10 @@ published history, the drawing and photographs, not a survey or construction dra
     Weiskopf";
   - "An elaborate ornamental frieze adorns the top of the original building at the 11th
     floor level."
+- [The Skyscraper Center](https://www.skyscrapercenter.com/building/maclean-center/26975):
+  77.4 m (254 ft) architectural and to the tip, 18 floors.
+- The City of Chicago's [guide to the Historic Michigan Boulevard District](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf),
+  2016: the Illinois Athletic Club, 1908 with its 1985 addition, 220 ft.
 - [The School of the Art Institute of Chicago](https://www.saic.edu/news/hidden-saic): the
   building was built in 1908 as the Illinois Athletic Club, and the school acquired it in
   1993.
@@ -33,8 +37,10 @@ published history, the drawing and photographs, not a survey or construction dra
   - the addition's floors over it, arched on the top one;
   - the parapet with its openings.
 
-No published height was found. The model's is read on the drawing and lowered 0.6 m, as the
-University Club's drawn gable, two lots north, reads 0.6 m above its mapped 67.7 m.
+The model's parapet is the Skyscraper Center's 77.4 m. The City's guide gives 220 ft
+(67.1 m); its heights run below the other sources' along this street. Where published
+heights disagree, the layout takes the one nearest the drawing, whose parapet here reads
+73.8 m.
 
 ## Plan
 
@@ -61,21 +67,21 @@ about 90 cm across, stand over them.
 
 ## Heights
 
-Heights are read on the drawn front through the geographic camera, lowered 0.6 m as
-described above.
+Heights are read on the drawn front through the geographic camera and scaled by 77.4/73.8,
+so that the drawn parapet meets the published one. The scale adds 4.9%.
 
 | Feature | Height | Basis |
 | --- | ---: | --- |
-| Ground floor | 0–4.5 m | Estimate: under the drawn floors |
-| Old club's floors | 3.2 m | Drawing: the window rows to the twelfth floor |
-| Bands | 40.3–43.2 m | Drawing |
-| Cornice | 43.2–45 m | Drawing: 60 cm proud |
-| Frieze | 45–47.9 m | Drawing: round windows at 45.9–46.8 m |
-| Addition's windows | 48.46–68.23 m | Drawing: six floors, the top one arched from 67.63 m |
-| Parapet's openings | 70.3–72 m | Drawing |
-| Parapet's top | 73.2 m | Drawing |
+| Ground floor | 0–4.7 m | Estimate: under the drawn floors |
+| Old club's floors | 3.36 m | Drawing: the window rows to the twelfth floor, 3.2 m apart as drawn |
+| Bands | 42.9–45.9 m | Drawing |
+| Cornice | 45.9–47.8 m | Drawing: 60 cm proud |
+| Frieze | 47.8–50.9 m | Drawing: round windows at 48.8–49.7 m |
+| Addition's windows | 51.45–72.19 m | Drawing: six floors, the top one arched from 71.56 m |
+| Parapet's openings | 74.4–76.1 m | Drawing |
+| Parapet's top | 77.4 m | Drawing: the published height |
 
-The drawn rows put twelve floors under the old club's bands, with a 4.5 m ground floor,
+The drawn rows put twelve floors under the old club's bands, with a 4.7 m ground floor,
 and six in the addition: eighteen, as Emporis gives. The hill in the drawing hides the
 building below 30 m, so the lower floors are estimates.
 
@@ -106,7 +112,8 @@ Omitted:
 - `tests/building-kit.test.ts` checks counted triangles, winding, same-facing coplanar
   overlaps, and covered omissions.
 - `tests/skyline-geography.test.ts` raycasts:
-  - the parapet's top and the cornice's ledge;
+  - the published parapet's top, the record's one part from grade to it, and the cornice's
+    ledge;
   - the five columns' windows on an old floor and an added one, their edges at each
     section's widths, and the piers between;
   - the parapet's openings and their edges;
