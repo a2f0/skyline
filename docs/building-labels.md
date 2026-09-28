@@ -8,8 +8,8 @@ SVG now has **31 building identities in 38 paint layers**, shared by WebGL.
 These are visual identifications of illustrated silhouettes, not surveyed
 locations. The references below establish names, addresses, or architectural
 features; mapping them to this drawing is an inference. Eleven small silhouettes
-were left explicitly **Unidentified** rather than receiving guessed landmark names; four
-of them have since been named through the geographic camera (see below), and seven
+were left explicitly **Unidentified** rather than receiving guessed landmark names; five
+of them have since been named through the geographic camera (see below), and six
 remain.
 
 | Previous group/label | Current identification and treatment | Reference |
@@ -18,7 +18,7 @@ remain.
 | Blue Cross and Blue Shield Tower | Retained | Source photograph |
 | Aqua and 340 on the Park | 340 on the Park; the inset facade paths belong to this tower, with no separate Aqua silhouette | [Developer](https://www.relatedmidwest.com/our-company/properties/340-park) |
 | Leo Burnett Building | Corrected to The Heritage at Millennium Park | [Skyscraper Center](https://www.skyscrapercenter.com/building/the-heritage-at-millennium-park/1897) |
-| Michigan Avenue buildings | Six North Michigan (Montgomery Ward Building); two neighboring facades separated, the farther now named the Michigan Boulevard Building | [Renovation contractor](https://leopardo.com/projects/six-north-michigan/) |
+| Michigan Avenue buildings | Six North Michigan (Montgomery Ward Building); two neighboring facades separated, since named the Michigan Boulevard Building's Michigan front and south wall | [Renovation contractor](https://leopardo.com/projects/six-north-michigan/) |
 | Historic Michigan Avenue tower | Willoughby Tower | [Building manager](https://marcrealty.com/8-south-michigan-office-space/) |
 | Michigan Avenue building | Two unidentified facades and a separate foreground building | Source photograph; insufficient detail for exact names |
 | Kemper Building | Retained; rooftop sign visible in the photo | Source photograph |
@@ -79,12 +79,12 @@ A group is renamed only where the projection and the source photograph agree.
 | `michigan-plaza-front-middle` | 180 North Michigan Avenue | OSM way 210671714, 23 levels: projected top 3 units from the drawn one; the photograph shows brown masonry under arched top windows. |
 | `michigan-plaza-front-small` | 168 North Michigan Avenue | OSM way 210671685, 12 levels: the one building between 150 and 180 North Michigan tall enough to show; the photograph shows an ornate cream low-rise. |
 | `six-north-far-east` | Michigan Boulevard Building, 30 North Michigan Avenue | OSM way 126982630, 20 levels: the corner building at Washington Street, projected across the drawn span in the second pass; Jarvis Hunt, 1914 ([photograph archive](https://chistockimages.com/downloads/michigan-boulevard-building-30-north-michigan-avenue-2/)). The photograph shows its cream facade. |
+| `six-north-east` | Michigan Boulevard Building (south wall) | Its south wall rises above 20 North Michigan's eight storeys, and projected through the camera it spans the drawn facade. The drawing's right edge meets the drawn Michigan front at the corner, through a narrow ornamented bay where the terracotta turns onto the side; that bay's pair of windows repeats the front's rhythm. Read on the wall's plane, the drawn top is level at the front's height, 86–87 m before the published-height correction. The photograph shows common brick, windowed on its top floors, joining the cream return. The Garland Building, 111 North Wabash Avenue, first proposed here, would need about 90 m on the same reading to reach the drawn top. |
 
 These stay **Unidentified**, with their candidates:
 
 | Group | Candidates | Why unresolved |
 | --- | --- | --- |
-| `six-north-east` | The Garland Building, 111 North Wabash Avenue | The drawn facade stands about 84 m tall with its base on the street front. 20 North Michigan, the street-front building there, has only eight storeys; the Garland Building, behind it, projects onto the span but would not reach the street. |
 | `michigan-west-left`, `-right`, `-front` | The Gage Group, 18–30 South Michigan Avenue, and the Chicago Athletic Association, 12 South Michigan Avenue | All four buildings project into the stretch between the University Club and Willoughby Tower. The drawing's three facades cannot be assigned to them one to one. |
 | `office-west-of-aon` | Two Illinois Center, 233 North Michigan Avenue; River Plaza, 405 North Wabash Avenue | Both project onto the drawn span, with tops within about 10 m of the drawn one. |
 | `buckingham-west` | Optima Center, 200 East Illinois Street; Three Illinois Center, 303 East Wacker Drive | Both project behind the gap between 340 on the Park and The Buckingham. |
