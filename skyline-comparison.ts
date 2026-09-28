@@ -24,12 +24,13 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
   const ground = createGeographicGround(offset);
   // The comparison views share a frame set in ground plan, which holds both layouts: the
   // original's platform, and every mapped footprint, from 330 North Wabash's west side to
-  // The Buckingham's east and from Willoughby Tower's south side to Trump's north, with
-  // about 50 m east and west even where a portrait phone's width binds the frame, and
-  // 100 m north and south. Height comparison sees it at an angle, and on a portrait phone
-  // can clip the platform's south-west corner.
-  const commonTarget: Vec3 = [anchor.x + 128, 0, anchor.z - 80];
-  const commonFit = { width: 1050, height: 1050 };
+  // The Buckingham's east, with about 50 m east and west even where a portrait phone's
+  // width binds the frame. North and south it runs from about 110 m past Trump's north side
+  // to 127 m past the Railway Exchange's mapped south side at Jackson, so that the
+  // drawing's Michigan Avenue buildings south of Madison fit as they are added. Height comparison sees it at an angle, and on a
+  // portrait phone can clip the platform's south-west corner.
+  const commonTarget: Vec3 = [anchor.x + 128, 0, anchor.z + 120];
+  const commonFit = { width: 1050, height: 1450 };
   const views: Record<string, StudyView> = {
     top: { azimuth: 0, polar: 0, projection: "orthographic", label: "ground plan · north up", fit: commonFit, target: commonTarget },
     heights: { azimuth: 0.65, polar: 1.18, projection: "orthographic", label: "height comparison", fit: commonFit, target: [commonTarget[0], 155, commonTarget[2]] },
@@ -65,10 +66,11 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
       defaultView: "skyline",
       target: [commonTarget[0], 155, commonTarget[2]],
       fit: { width: 1100, height: 950 },
-      platform: { width: 1200, depth: 1400, x: commonTarget[0], z: commonTarget[2] },
+      platform: { width: 1200, depth: 1600, x: commonTarget[0], z: commonTarget[2] },
       clippingMargin: 1800,
       lightPosition: [-700, 1100, 500],
-      shadowCamera: { left: -1100, right: 1100, top: 1100, bottom: -1100, near: 1, far: 2600 },
+      // Wide enough for the platform's far corners, which the geography suite checks.
+      shadowCamera: { left: -1300, right: 1300, top: 1300, bottom: -1300, near: 1, far: 2600 },
       views: { skyline: photoView },
     },
   };
@@ -113,7 +115,7 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     const source = document.createElement("td");
     const height = document.createElement("a");
     height.href = record.heightSource;
-    height.textContent = record.heightFromDrawing ? `${record.height} m, measured on the drawing` : `${record.height} m architectural${record.id === "building-kemper" ? " (OSM)" : ""}`;
+    height.textContent = record.heightFromDrawing ? `${record.height} m, measured on the drawing` : `${record.height} m architectural${record.heightSource.startsWith("https://www.openstreetmap.org/way/") ? " (OSM)" : ""}`;
     source.append(height, document.createElement("br"), record.note);
     row.append(source);
     tbody.append(row);
@@ -125,7 +127,7 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     const geographic = name === "geographic";
     streetButton.disabled = !geographic;
     document.querySelector<HTMLElement>("#layout-status")!.textContent = geographic
-      ? "Geographic layout · mapped footprints and published heights, one read on the drawing where none is published, with detailed facades on all seventeen buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
+      ? "Geographic layout · mapped footprints and published heights, one read on the drawing where none is published, with detailed facades on all eighteen buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
       : "Original layout · proportions and spacing fitted to the drawing. Use ground plan or height comparison, then toggle layouts to compare at the same camera scale.";
     document.querySelector<HTMLElement>("#model-caption")!.textContent = geographic ? "01 / geographic study" : "01 / original 3D study";
     // The drawing under the scene frames what the scene does: the whole skyline for the
