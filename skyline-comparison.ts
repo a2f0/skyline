@@ -23,9 +23,10 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
   const geographicModels = geographicBuildings.map((record) => createGeographicBuilding(record, offset));
   const ground = createGeographicGround(offset);
   // The comparison views frame both layouts: the original's platform, and every mapped
-  // footprint from 330 North Wabash's west side to The Buckingham's east, with about 50 m
-  // either side even where a portrait phone's width binds the frame.
-  const commonTarget: Vec3 = [anchor.x + 128, 0, anchor.z - 180];
+  // footprint, from 330 North Wabash's west side to The Buckingham's east and from
+  // Willoughby Tower's south side to Trump's north, with about 50 m east and west even
+  // where a portrait phone's width binds the frame, and 100 m north and south.
+  const commonTarget: Vec3 = [anchor.x + 128, 0, anchor.z - 80];
   const commonFit = { width: 1050, height: 1050 };
   const views: Record<string, StudyView> = {
     top: { azimuth: 0, polar: 0, projection: "orthographic", label: "ground plan · north up", fit: commonFit, target: commonTarget },
@@ -122,7 +123,7 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     const geographic = name === "geographic";
     streetButton.disabled = !geographic;
     document.querySelector<HTMLElement>("#layout-status")!.textContent = geographic
-      ? "Geographic layout · mapped footprints and published heights, with detailed facades on all thirteen buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
+      ? "Geographic layout · mapped footprints and published heights, with detailed facades on all fourteen buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
       : "Original layout · proportions and spacing fitted to the drawing. Use ground plan or height comparison, then toggle layouts to compare at the same camera scale.";
     document.querySelector<HTMLElement>("#model-caption")!.textContent = geographic ? "01 / geographic study" : "01 / original 3D study";
     // The drawing under the scene frames what the scene does: the whole skyline for the
