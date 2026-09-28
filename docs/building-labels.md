@@ -88,7 +88,7 @@ These stay **Unidentified**, with their candidates:
 | `michigan-west-left`, `-right`, `-front` | The Gage Group, 18–30 South Michigan Avenue, and the Chicago Athletic Association, 12 South Michigan Avenue | All four buildings project into the stretch between the University Club and Willoughby Tower. The drawing's three facades cannot be assigned to them one to one. |
 | `office-west-of-aon` | Two Illinois Center, 233 North Michigan Avenue; River Plaza, 405 North Wabash Avenue | Both project onto the drawn span, with tops within about 10 m of the drawn one. |
 | `buckingham-west` | Optima Center, 200 East Illinois Street; Three Illinois Center, 303 East Wacker Drive | Both project behind the gap between 340 on the Park and The Buckingham. |
-| `buckingham-east` | None settled | The photograph shows a tower with a lit crown. Several buildings north of the river project there, among them the Sheraton Grand Chicago, 301 East North Water Street, but none has a mapped height to test against the drawn top. |
+| `buckingham-east` | None settled | The photograph shows a tower with a lit crown. Of the buildings north of the river that project there, those with mapped heights, such as NBC Tower at 151.5 m, put their tops far from the drawn one; others, such as the Sheraton Grand Chicago, 301 East North Water Street, have no mapped height to test. |
 
 ## Geometry corrections
 
