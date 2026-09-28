@@ -66,7 +66,7 @@ cancels the camera's own vertical error. Read on their own, the drawn top stands
 | Feature | Height | Basis |
 | --- | ---: | --- |
 | Lobby | 0–6.2 m | Estimate: under floor 7 at the drawn pitch |
-| Typical floor | 2.55 m | Drawing: 36 floor lines from 18.9 m to 110.6 m |
+| Typical floor | 2.55 m | Drawing: 37 floor lines, 36 floors apart, from 18.9 m to 110.6 m |
 | Floor 7 | 18.9 m | Drawing: its lowest floor line |
 | Top floor, the 44th | 113.1 m, its openings 114.5–117.4 m | Drawing: the deeper band and tall row under the cap |
 | Cap | 117.4–119 m | Drawing; 119 m mapped |
@@ -109,8 +109,8 @@ Omitted:
   - along the south face:
     - an end bay standing forward of the middle;
     - a pier between the middle bays;
-    - a floor's band, its window, the top floor's opening, and the cap;
-  - a balcony in the south-east notch, and the 43rd floor's as the highest;
+    - a floor's band and its window, and the top floor's opening between its band and the cap;
+  - a balcony and its railing in each notched corner, and the 43rd floor's as the highest;
   - the exact mapped outline at grade.
 
   Every mesh is closed.

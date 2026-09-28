@@ -17,7 +17,7 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // Units are meters; +x is east, +z is south.
 export const buckinghamLevels = Object.freeze({
   lowestFloor: 18.94, // floor 7, the drawing's lowest floor line
-  pitch: 2.5456, // the drawn floor lines, 36 of them up to floor 43
+  pitch: 2.5456, // the drawn floor lines, 36 floors apart from floor 7's to floor 43's
   capFoot: 117.4, // the top floor's openings' head, under the cap
   roof: 119, // the cap's top, mapped
   top: 121.9, // the rooftop enclosure's top, the published architectural height

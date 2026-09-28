@@ -854,16 +854,30 @@ describe("mapped skyline geography", () => {
       expect(pier.object.name).toBe("Buckingham · piers");
       near(pier.point.z, at(21)[1] + (at(20)[1] - at(21)[1]) / 3 + 0.25, 0.02);
       // A concrete band at every floor over the ribbon windows, and on the top floor tall
-      // openings under the cap.
+      // openings from its deeper band's head at 114.5 m to the cap's foot at 117.4 m.
       const concrete = new THREE.Color(0x4c4c4c).r;
-      const band = (y: number) => { const found = front(middle, y); return Math.abs((found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a) - concrete) < 0.002; };
-      expect([band(floor(20) + 0.1), band(floor(20) + 1.3), band(116), band(118)], "band, window, top floor's opening, cap").toEqual([true, false, false, true]);
-      // A balcony in the south-east notch on every floor to the 43rd.
-      const notch: Vec2 = [(at(16)[0] + at(18)[0]) / 2, (at(16)[1] + at(18)[1]) / 2];
-      const balcony = hit([notch[0], floor(30) + 0.5, notch[1]], [0, -1, 0])!;
-      expect(balcony.object.name).toBe("Buckingham · corner balconies");
-      near(balcony.point.y, floor(30) + 0.12, 1e-3);
-      near(hit([notch[0], 200, notch[1]], [0, -1, 0])!.point.y, floor(43) + 0.12, 1e-3);
+      const band = (y: number) => {
+        const found = front(middle, y);
+        expect(found.object.name).toBe("Buckingham · frame and glass");
+        return Math.abs((found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a) - concrete) < 0.002;
+      };
+      expect([band(floor(20) + 0.1), band(floor(20) + 1.3)], "a floor's band and window").toEqual([true, false]);
+      expect([band(114.3), band(114.7), band(117.2), band(117.6)], "the top floor's opening between its band and the cap").toEqual([true, false, false, true]);
+      // A balcony in each notched corner, south-east and north-east, on every floor to the
+      // 43rd, under a railing along its open sides.
+      for (const [first, inner, last] of [[18, 17, 16], [9, 10, 11]] as const) {
+        const [p0, p1, p2] = [at(first), at(inner), at(last)];
+        const notch: Vec2 = [(p0[0] + p2[0]) / 2, (p0[1] + p2[1]) / 2];
+        const balcony = hit([notch[0], floor(30) + 0.5, notch[1]], [0, -1, 0])!;
+        expect(balcony.object.name).toBe("Buckingham · corner balconies");
+        near(balcony.point.y, floor(30) + 0.12, 1e-3);
+        near(hit([notch[0], 200, notch[1]], [0, -1, 0])!.point.y, floor(43) + 0.12, 1e-3);
+        // Just inside the notch's outer corner, the railing's top.
+        const q: Vec2 = [p0[0] + p2[0] - p1[0], p0[1] + p2[1] - p1[1]], d = Math.hypot(p1[0] - q[0], p1[1] - q[1]);
+        const rail = hit([q[0] + (p1[0] - q[0]) * 0.03 / d, 200, q[1] + (p1[1] - q[1]) * 0.03 / d], [0, -1, 0])!;
+        expect(rail.object.name).toBe("Buckingham · corner balconies");
+        near(rail.point.y, floor(43) + 1.0, 1e-3);
+      }
       // The exact mapped outline at grade.
       const shell = meshes.find((mesh) => mesh.name === "Buckingham · shell")!.geometry.getAttribute("position");
       const grade = new Set<string>();
