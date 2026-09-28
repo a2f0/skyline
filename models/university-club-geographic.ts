@@ -12,7 +12,7 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // parapet, with the tall arched windows of its top hall in four bays to each street front.
 // Behind the parapet an upper floor carries a steep roof whose gable faces Michigan, with
 // pinnacles at its foot and a cross on its peak at OpenStreetMap's 67.7 m, and a small
-// gable on the Monroe side. Heights are measured on the drawing down from that peak; see
+// gable with its own cross on the Monroe side. Heights are measured on the drawing down from that peak; see
 // docs/university-club-reference.md. Units are meters; +x is east, +z is south.
 export const universityClubLevels = Object.freeze({
   band: 46.2, // the band under the parapet
@@ -23,7 +23,8 @@ export const universityClubLevels = Object.freeze({
   pinnacles: 62.5,
   ridge: 67.7, // the gable's peak, OpenStreetMap's height
   cross: 69.75,
-  dormer: 60.4, // the Monroe side's small gable
+  dormer: 59.3, // the Monroe side's small gable
+  dormerCross: 60.4,
   back: 3.3, // the upper floor's setback from Michigan
   sides: 1.3, // and from Monroe and the north wall
 });
@@ -76,7 +77,7 @@ const upperRows: Row[] = [
 const dormerRows: Row[] = [
   { lo: h.walls, hi: 53.7, kind: "wall", floor: 13 },
   { lo: 53.7, hi: 55.9, kind: "full", floor: 13 },
-  { lo: 55.9, hi: 57.5, kind: "wall", floor: 13 },
+  { lo: 55.9, hi: h.eaves, kind: "wall", floor: 13 },
 ];
 
 export function createUniversityClubGeographicBuilding(record: GeoBuilding, projectPlan: (coordinates: [number, number][]) => Plan, offset: [number, number]): BuildingModel {
@@ -148,7 +149,7 @@ export function createUniversityClubGeographicBuilding(record: GeoBuilding, proj
   const upper = gabled(h.back, length - h.sides, h.sides, depth - h.sides, h.walls, h.eaves, h.ridge, "a");
   // The Monroe side's small gable stands 15 cm proud of the upper floor, clear of its skin,
   // its foot sunk 10 cm into the main block.
-  const dormer = gabled(13.7, 18.7, h.sides - 0.15, 5, h.walls - 0.1, 57.5, h.dormer, "b");
+  const dormer = gabled(13.7, 18.7, h.sides - 0.15, 5, h.walls - 0.1, h.eaves, h.dormer, "b");
 
   // A wall's skin, one box to a chain the `keep` test accepts, held 2 cm clear of its ends
   // or 9 cm where the outline turns in. `openings` lays a wall's columns out across it and
@@ -203,8 +204,9 @@ export function createUniversityClubGeographicBuilding(record: GeoBuilding, proj
   skin(dormer, dormerRows, 3, facing(0, 1), spaced(2.4, 5));
 
   // Merlons along the street fronts' parapet, 1.2 m wide every 2.1 m, 3 cm inside the walls;
-  // pinnacles at the gable's foot, rising from 10 cm inside the main block; and the cross on
-  // its peak, its foot inside the roof.
+  // pinnacles at the gable's foot, rising from 10 cm inside the main block; and a cross on
+  // each gable's peak, its foot inside the roof: the Michigan gable's facing Michigan, the
+  // small gable's facing Monroe.
   const block = (a0: number, a1: number, b0: number, b1: number, lo: number, hi: number) => kit.prism(ornament, planOf(rect(a0, a1, b0, b1)), [lo, hi]);
   for (let s = 1.05; s + 0.6 < depth; s += 2.1) block(0.03, 0.53, s - 0.6, s + 0.6, h.walls, h.merlons);
   for (let s = 1.05; s + 0.6 < length; s += 2.1) block(Math.max(s - 0.6, 0.56), s + 0.6, 0.03, 0.53, h.walls, h.merlons);
@@ -212,6 +214,8 @@ export function createUniversityClubGeographicBuilding(record: GeoBuilding, proj
   const peak = depth / 2;
   block(h.back + 0.15, h.back + 0.45, peak - 0.15, peak + 0.15, h.ridge - 0.7, h.cross);
   block(h.back + 0.2, h.back + 0.4, peak - 0.6, peak + 0.6, 68.9, 69.25);
+  block(16.075, 16.325, h.sides + 0.2, h.sides + 0.45, h.dormer - 0.5, h.dormerCross);
+  block(15.7, 16.7, h.sides + 0.25, h.sides + 0.4, 59.65, 60);
 
   const model = kit.finish({ height: h.cross, outlines: [shell, ornament], opacity: 0.16 });
   model.building.position.set(offset[0], 0, offset[1]);

@@ -69,7 +69,8 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
       platform: { width: 1200, depth: 1600, x: commonTarget[0], z: commonTarget[2] },
       clippingMargin: 1800,
       lightPosition: [-700, 1100, 500],
-      shadowCamera: { left: -1100, right: 1100, top: 1100, bottom: -1100, near: 1, far: 2600 },
+      // Wide enough for the platform's far corners, which the geography suite checks.
+      shadowCamera: { left: -1300, right: 1300, top: 1300, bottom: -1300, near: 1, far: 2600 },
       views: { skyline: photoView },
     },
   };

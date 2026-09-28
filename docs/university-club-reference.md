@@ -69,7 +69,8 @@ measured down from OpenStreetMap's 67.7 m, taken at the drawn gable's peak, whic
 | Upper floor's windows | 52–55.9 m | Drawing |
 | Eaves | 56.4 m | Drawing |
 | Pinnacles | 62.5 m | Drawing |
-| Small gable | 60.4 m | Drawing |
+| Small gable | 59.3 m | Drawing: its eaves at the upper floor's |
+| Small gable's cross | 60.4 m | Drawing |
 | Gable's peak and ridge | 67.7 m | OpenStreetMap |
 | Cross | 69.75 m | Drawing |
 
@@ -89,7 +90,7 @@ that makes thirteen floors against the fourteen published.
 - **Upper floor:** set back behind the parapet, with windows 3.6 m wide about 5.5 m apart.
   Its gable roof rises from 56.4 m eaves to the ridge.
   - The Michigan gable, in stone, has pinnacles at its foot and a cross on its peak.
-  - The small Monroe gable has one window.
+  - The small Monroe gable has one window, and a cross of its own facing Monroe.
 
 Colours follow the drawing's greys, not the limestone's buff.
 
@@ -106,7 +107,8 @@ Omitted:
 - `tests/building-kit.test.ts` checks counted triangles, winding, same-facing coplanar
   overlaps, and covered omissions.
 - `tests/skyline-geography.test.ts` raycasts:
-  - the ridge, the cross, a pinnacle, the south slope and the small gable;
+  - the ridge, a pinnacle, the south slope and the small gable;
+  - both crosses, their stems and their arms;
   - the parapet, a merlon and a crenel;
   - on both street fronts, the hall's windows and piers, their heads, the wide windows,
     a floor's paired windows, the band and the parapet wall;

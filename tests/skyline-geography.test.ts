@@ -1295,14 +1295,17 @@ describe("mapped skyline geography", () => {
       const lot = (a: number, b: number): Vec2 => [corner[0] + west[0] * a + north[0] * b, corner[1] + west[1] * a + north[1] * b];
       const roof = (a: number, b: number) => { const p = lot(a, b); return hit([p[0], 300, p[1]], [0, -1, 0]).point.y; };
       // Measured on the drawing down from OpenStreetMap's 67.7 m at the gable's peak: the
-      // ridge and its cross, a pinnacle at the gable's foot, the south slope, the Monroe
-      // side's small gable, and the parapet with its merlons.
+      // ridge and its cross, stem and arm, a pinnacle at the gable's foot, the south slope,
+      // the Monroe side's small gable and its cross, and the parapet with its merlons.
       const ridge = Math.hypot(...[0, 1].map((k) => at(0)[k]! - corner[k]!)) / 2;
       near(roof(10, ridge), 67.7, 1e-3);
       near(roof(3.6, ridge), 69.75, 1e-3);
+      near(roof(3.6, ridge + 0.45), 69.25, 1e-3);
       near(roof(3.3, 1.3), 62.5, 1e-3);
       near(roof(10, 5), 56.4 + (5 - 1.3) / (ridge - 1.3) * 11.3, 0.05);
-      near(roof(16.2, 2.5), 60.4, 1e-3);
+      near(roof(16.2, 2.5), 59.3, 1e-3);
+      near(roof(16.2, 1.6), 60.4, 1e-3);
+      near(roof(16.55, 1.62), 60, 1e-3);
       expect([roof(1.5, 10), roof(0.3, 3.15), roof(0.3, 2.1)].map((y) => Math.round(y * 100) / 100), "the parapet, a merlon and a crenel").toEqual([51, 51.75, 51]);
       const tone = (a: number, b: number, y: number, from: "east" | "south" | "north") => {
         const p = lot(a, b), d = ({ east: [-west[0], -west[1]], south: [-north[0], -north[1]], north: [north[0], north[1]] } as const)[from];
@@ -1610,6 +1613,10 @@ describe("geographic layout in the study", () => {
       await page.locator(`[data-layout="${layout}"]`).click();
       expect(await page.evaluate(() => window.__buildingStudy!.groundShadows), "toggle preserves ground shadows in an elevated custom view").toBe(true);
     }
+    // The geographic platform and every building stay inside the light's shadow camera.
+    const shadowBounds = await page.evaluate(() => window.__buildingStudy!.shadowBounds);
+    expect(shadowBounds.min.every((v: number) => v > -1) && shadowBounds.max.every((v: number) => v < 1),
+      `the geographic platform and buildings should stay within the light's shadow camera: ${JSON.stringify(shadowBounds)}`).toBe(true);
     await settle(page);
     await page.screenshot({ path: "/tmp/skyline-geographic-heights-tested.png" });
   }, { timeout: 180_000 });
