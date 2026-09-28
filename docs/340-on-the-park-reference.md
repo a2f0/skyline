@@ -100,7 +100,8 @@ The south face carries a white concrete frame, laid out from the photograph over
 
 - a 1.92 m pier;
 - a column of windows punched in white wall;
-- a ladder of cantilevered balconies, each a slab and a glass railing, to the 60th floor;
+- a ladder of cantilevered balconies, each a slab and a glass railing, to the 60th floor,
+  with recessed balconies across it and the windows' column on the penthouse floors;
 - a 2.24 m pier;
 - the 24 m glass field;
 - a column of recessed balconies, a slab edge and railing on each floor;
@@ -140,7 +141,8 @@ Colours follow the original artwork's grayscale palette.
   - along the south face:
     - the west pier, the glass field and a beam, each at its depth;
     - the winter garden's deeper beam, where a regular beam does not reach;
-    - a cantilevered balcony and a recessed balcony's railing;
+    - a cantilevered balcony, a recessed balcony's railing, and a penthouse balcony's railing
+      over the ladder;
     - a penthouse post and the parapet band;
   - the winter garden's tall glazing where a regular bay shows a slab, and a column in it;
   - a jamb beside a punched window;

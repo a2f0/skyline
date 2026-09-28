@@ -759,8 +759,9 @@ describe("mapped skyline geography", () => {
       const local = (way: number) => record.parts.find((part) => part.way === way)!.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
       const tower = local(284789056), block = local(284789058);
       const centre = (ring: Vec2[]) => [0, 1].map((axis) => ring.reduce((sum, p) => sum + p[axis]!, 0) / ring.length) as Vec2;
-      // The drawing's beams, floor 6's at 21.35 m and floor 61's at 184.2 m, a fifth floor apart.
-      const floor = (n: number) => 21.35 + (n - 6) * (184.2 - 21.35) / 55;
+      // The drawing's beams, floor 6's at 21.35 m and floor 61's at 184.2 m, a fifth floor
+      // apart, and over them four penthouse floors to the band's foot at 198.6 m.
+      const floor = (n: number) => (n <= 61 ? 21.35 + (n - 6) * (184.2 - 21.35) / 55 : 184.2 + (n - 61) * (198.6 - 184.2) / 4);
       // The roof deck under the glass guard, and the corner block's roof level with the top
       // of floor 16's beam, not the map's 40 m; the tower stands behind it above.
       const [[tx, tz], [bx, bz]] = [centre(tower), centre(block)];
@@ -788,6 +789,7 @@ describe("mapped skyline geography", () => {
       expectAt(22, floor(31) - 0.9, "curtain wall", 0.07, "a regular beam's reach");
       expectAt(6.4, floor(40), "concrete frame", 1.5, "a cantilevered balcony");
       expectAt(37.6, floor(40) + 0.6, "railings and guards", 0.28, "a recessed balcony's railing");
+      expectAt(6.4, floor(63) + 0.6, "railings and guards", 0.28, "a penthouse balcony's railing over the ladder");
       expectAt(25.6, 190, "concrete frame", 0.6, "a penthouse post");
       expectAt(22, 201, "concrete frame", 0.65, "the parapet band");
       // The winter garden runs floors 26 to 28 into one tall row, where a regular bay shows
