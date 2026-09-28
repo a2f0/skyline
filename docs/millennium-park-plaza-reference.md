@@ -39,7 +39,7 @@ The mapped outline is a slab 21 m wide and 90 m long along Michigan Avenue, its 
 17.1 m across between chamfers of about 2.4 and 2.9 m. Projected through the geographic
 camera, the south end and its western chamfer span 114 layer units where the drawing
 has 127. The corner where the south-east chamfer begins lands within a unit of the
-drawn one. The drawn east face stops where One Prudential Plaza, nearer the camera,
+drawn one across; the drawn top stands about 12 units, a metre, lower. The drawn east face stops where One Prudential Plaza, nearer the camera,
 covers the rest of it.
 
 ## Heights

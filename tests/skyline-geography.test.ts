@@ -940,6 +940,8 @@ describe("mapped skyline geography", () => {
       };
       const is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
       const [concrete, strip] = [is(0x666666), is(0x3e3e3e)];
+      // A window's glass: one of the four tones, or a lit or dimmed pane.
+      const glass = (r: number) => [0x2e2e2e, 0x323232, 0x363636, 0x3a3a3a, 0x727272, 0x484848].some((hex) => is(hex)(r));
       // The published top over the slab.
       const [cx, cz] = [(at(0)[0] + at(4)[0]) / 2, (at(0)[1] + at(4)[1]) / 2];
       ray.set(new THREE.Vector3(cx, 200, cz), new THREE.Vector3(0, -1, 0));
@@ -948,15 +950,17 @@ describe("mapped skyline geography", () => {
       // top floor, solid wall between them, and the offices' windows across it below.
       const floor = (n: number) => (n <= 8 ? 4.4 + (n - 2) * 3.7 : 26.6 + (n - 8) * 2.8);
       const [west, east] = [at(3), at(2)], middle = Math.hypot(east[0] - west[0], east[1] - west[1]) / 2;
-      expect(concrete(tone(west, east, middle + 1.6, floor(20) + 1.2)), "a strip's window").toBe(false);
-      expect(strip(tone(west, east, middle + 1.6, floor(20) + 0.1)), "the strip between windows").toBe(true);
+      for (const d of [-4.1, -1.6, 1.6, 4.1]) {
+        expect(glass(tone(west, east, middle + d, floor(20) + 1.2)), `the strip ${d} m from the middle`).toBe(true);
+        expect(strip(tone(west, east, middle + d, floor(20) + 0.1)), `between its windows`).toBe(true);
+        expect(concrete(tone(west, east, middle + d, floor(40) + 0.1)), `the wall under its top window`).toBe(true);
+        expect(glass(tone(west, east, middle + d, floor(40) + 1.2)), `its top window`).toBe(true);
+      }
       expect(concrete(tone(west, east, middle, floor(20) + 1.2)), "wall between strips").toBe(true);
-      expect(concrete(tone(west, east, middle + 1.6, floor(40) + 0.1)), "the wall under the top window").toBe(true);
-      expect(concrete(tone(west, east, middle + 1.6, floor(40) + 1.2)), "the top window").toBe(false);
-      expect(concrete(tone(west, east, middle, floor(4) + 1.2)), "an office floor's window").toBe(false);
+      expect(glass(tone(west, east, middle, floor(4) + 1.2)), "an office floor's window").toBe(true);
       // The east face: a punched window every 3 m between piers; the south-east chamfer solid.
       const [south, north] = [at(1), at(0)], bay = Math.hypot(north[0] - south[0], north[1] - south[1]) / 30;
-      expect(concrete(tone(south, north, 15.5 * bay, floor(20) + 1.2)), "a window").toBe(false);
+      expect(glass(tone(south, north, 15.5 * bay, floor(20) + 1.2)), "a window").toBe(true);
       expect(concrete(tone(south, north, 15 * bay, floor(20) + 1.2)), "a pier").toBe(true);
       expect(concrete(tone(at(2), at(1), 1.2, floor(20) + 1.2)), "the chamfer").toBe(true);
       // The exact mapped outline at grade.
