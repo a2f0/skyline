@@ -8,7 +8,9 @@ SVG now has **31 building identities in 38 paint layers**, shared by WebGL.
 These are visual identifications of illustrated silhouettes, not surveyed
 locations. The references below establish names, addresses, or architectural
 features; mapping them to this drawing is an inference. Eleven small silhouettes
-remain explicitly **Unidentified** rather than receiving guessed landmark names.
+were left explicitly **Unidentified** rather than receiving guessed landmark names; four
+of them have since been named through the geographic camera (see below), and seven
+remain.
 
 | Previous group/label | Current identification and treatment | Reference |
 | --- | --- | --- |
@@ -16,11 +18,11 @@ remain explicitly **Unidentified** rather than receiving guessed landmark names.
 | Blue Cross and Blue Shield Tower | Retained | Source photograph |
 | Aqua and 340 on the Park | 340 on the Park; the inset facade paths belong to this tower, with no separate Aqua silhouette | [Developer](https://www.relatedmidwest.com/our-company/properties/340-park) |
 | Leo Burnett Building | Corrected to The Heritage at Millennium Park | [Skyscraper Center](https://www.skyscrapercenter.com/building/the-heritage-at-millennium-park/1897) |
-| Michigan Avenue buildings | Six North Michigan (Montgomery Ward Building); two neighboring facades separated and unidentified | [Renovation contractor](https://leopardo.com/projects/six-north-michigan/) |
+| Michigan Avenue buildings | Six North Michigan (Montgomery Ward Building); two neighboring facades separated, the farther now named the Michigan Boulevard Building | [Renovation contractor](https://leopardo.com/projects/six-north-michigan/) |
 | Historic Michigan Avenue tower | Willoughby Tower | [Building manager](https://marcrealty.com/8-south-michigan-office-space/) |
 | Michigan Avenue building | Two unidentified facades and a separate foreground building | Source photograph; insufficient detail for exact names |
 | Kemper Building | Retained; rooftop sign visible in the photo | Source photograph |
-| Michigan Plaza South | Rear tower retained; three unidentified foreground buildings separated | [Annotated skyline](https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Chicago) |
+| Michigan Plaza South | Rear tower retained; three foreground buildings separated, since named Millennium Park Plaza, 180 North Michigan Avenue, and 168 North Michigan Avenue | [Annotated skyline](https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Chicago) |
 | Crain Communications Building | Retained | [Skyscraper Center](https://www.skyscrapercenter.com/building/150-north-michigan-avenue/2441) |
 | Trump International Hotel and Tower | Split into Trump, One Prudential Plaza, and an unidentified office building west of Aon | [Annotated skyline](https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Chicago) |
 | Two Prudential Plaza | Retained | Source photograph |
@@ -39,6 +41,54 @@ tower labelled Michigan Plaza South is 330 North Wabash. Its mapped roof corners
 the drawn ones, and the mapped Michigan Plaza South stands behind One Prudential from the
 photograph's viewpoint. The label is unchanged here; the geographic layout adds 330 North
 Wabash beside it. See the [330 North Wabash audit](north-wabash-reference.md).
+
+## Names from the geographic camera
+
+Checked on 2026-09-28. The geographic layout's camera, fitted to the mapped buildings'
+roofs and tips, projects any mapped building into the drawing's layer space.
+`scripts/fit-geographic-camera.ts` describes the fit.
+
+The comparison used an OpenStreetMap extract of the drawn area:
+[the Loop's east side](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920)
+and [Harbor Drive](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6175,41.8820,-87.6100,41.8900).
+It went in two passes:
+
+1. It projected every mapped building outline that carries a height, or a level count
+   taken at 3.8 m a level. Each drawn group was ranked against the buildings whose
+   projected span covers much of it, whose width is comparable, and whose projected top
+   lands near the drawn one. This pass leaves out outlines with neither tag, buildings
+   mapped only as multipolygon relations, and buildings far wider than the drawn facade
+   they show.
+2. For the groups that pass left open, the outlines along Michigan Avenue and near The
+   Buckingham were listed by address and projected by hand, those without heights at a
+   nominal height. This pass found 30 North Michigan: its projected span, which includes
+   its deep side, is three times its drawn facade.
+
+The known groups check the method:
+
+- Willoughby Tower's projected top lands 13 layer units from the drawn one.
+- Six North Michigan's lands 24 units away, and the University Club's 23.
+- The drawing sits slightly right of the projection on the left of the panorama, and
+  left of it on the right, by up to a few hundred units at the ends.
+
+A group is renamed only where the projection and the source photograph agree.
+
+| Group | Name | Evidence |
+| --- | --- | --- |
+| `michigan-plaza-front-tall` | Millennium Park Plaza, 151–155 North Michigan Avenue | OSM way 127107026, 122 m: projected across the drawn span, its top 12 units from the drawn one; the photograph shows a pale tower of continuous piers. Opened in 1982 as Doral Plaza, at Michigan and Randolph's north-east corner ([building](https://millenniumparkplaza.com/)). |
+| `michigan-plaza-front-middle` | 180 North Michigan Avenue | OSM way 210671714, 23 levels: projected top 3 units from the drawn one; the photograph shows brown masonry under arched top windows. |
+| `michigan-plaza-front-small` | 168 North Michigan Avenue | OSM way 210671685, 12 levels: the one building between 150 and 180 North Michigan tall enough to show; the photograph shows an ornate cream low-rise. |
+| `six-north-far-east` | Michigan Boulevard Building, 30 North Michigan Avenue | OSM way 126982630, 20 levels: the corner building at Washington Street, projected across the drawn span in the second pass; Jarvis Hunt, 1914 ([photograph archive](https://chistockimages.com/downloads/michigan-boulevard-building-30-north-michigan-avenue-2/)). The photograph shows its cream facade. |
+
+These stay **Unidentified**, with their candidates:
+
+| Group | Candidates | Why unresolved |
+| --- | --- | --- |
+| `six-north-east` | The Garland Building, 111 North Wabash Avenue | The drawn facade stands about 84 m tall with its base on the street front. 20 North Michigan, the street-front building there, has only eight storeys; the Garland Building, behind it, projects onto the span but would not reach the street. |
+| `michigan-west-left`, `-right`, `-front` | The Gage Group, 18–30 South Michigan Avenue, and the Chicago Athletic Association, 12 South Michigan Avenue | All four buildings project into the stretch between the University Club and Willoughby Tower. The drawing's three facades cannot be assigned to them one to one. |
+| `office-west-of-aon` | Two Illinois Center, 233 North Michigan Avenue; River Plaza, 405 North Wabash Avenue | Both project onto the drawn span, with tops within about 10 m of the drawn one. |
+| `buckingham-west` | Optima Center, 200 East Illinois Street; Three Illinois Center, 303 East Wacker Drive | Both project behind the gap between 340 on the Park and The Buckingham. |
+| `buckingham-east` | None settled | The photograph shows a tower with a lit crown. Of the buildings north of the river that project there, those with mapped heights, such as NBC Tower at 151.5 m, put their tops far from the drawn one; others, such as the Sheraton Grand Chicago, 301 East North Water Street, have no mapped height to test. |
 
 ## Geometry corrections
 

@@ -1215,7 +1215,7 @@
       </g>
       <g
          id="building-michigan-avenue-east">
-      <g id="building-six-north-far-east" class="interactive-building" data-building-id="six-north-far-east" aria-label="Unidentified facade farther east of Six North Michigan">
+      <g id="building-six-north-far-east" class="interactive-building" data-building-id="six-north-far-east" aria-label="Michigan Boulevard Building">
       <path
          data-name="Front Panel"
          fill="#383838"
@@ -1258,7 +1258,7 @@
          id="path318-0"
          style="stroke-width:1.33526" />
       </g>
-      <g id="building-six-north-far-east-path318" class="interactive-building" data-building-id="six-north-far-east" aria-label="Unidentified facade farther east of Six North Michigan">
+      <g id="building-six-north-far-east-path318" class="interactive-building" data-building-id="six-north-far-east" aria-label="Michigan Boulevard Building">
       <path
          fill="#282828"
          stroke="#282828"
@@ -1276,7 +1276,7 @@
          id="path320-0"
          style="stroke-width:1.33526" />
       </g>
-      <g id="building-six-north-far-east-path320" class="interactive-building" data-building-id="six-north-far-east" aria-label="Unidentified facade farther east of Six North Michigan">
+      <g id="building-six-north-far-east-path320" class="interactive-building" data-building-id="six-north-far-east" aria-label="Michigan Boulevard Building">
       <path
          d="M2034.5899 2250.0846V2262.9912M2040.3622 2249.9724V2262.8803M2066.1367 2250.194V2263.102M2070.5177 2249.0111V2261.9176M2074.1896 2250.5439V2263.4519M2089.9898 2252.0407V2264.9487M2093.6297 2250.1447V2263.0526M2097.1668 2249.2808V2262.1887M2108.6006 2252.6069V2265.5148M2104.9286 2251.0566V2263.9646M2101.1165 2249.4717V2262.3796M2117.1395 2253.7218V2266.6297M2120.4778 2251.4813V2264.3892M2123.5942 2251.2917V2264.1996M2135.1656 2254.7579V2267.6646M2131.3828 2251.9419V2264.8499M2127.6 2251.2917V2264.1996M2146.8491 2255.8529V2268.7596M2150.5211 2254.2306V2267.1385M2154.0822 2253.5843V2266.4922M2164.6535 2255.9424V2268.8503M2161.4261 2254.1157V2267.0237M2157.7542 2253.5656V2266.4722"
          fill="none"
@@ -1765,7 +1765,7 @@
            id="path444" />
       </g>
       </g>
-      <g id="building-michigan-plaza-front-tall" class="interactive-building" data-building-id="michigan-plaza-front-tall" aria-label="Unidentified tower in front of Michigan Plaza">
+      <g id="building-michigan-plaza-front-tall" class="interactive-building" data-building-id="michigan-plaza-front-tall" aria-label="Millennium Park Plaza">
       <path
          data-name="Front Left"
          fill="#5b5b5b"
@@ -1789,7 +1789,7 @@
          id="path452"
          style="stroke-width:1.33526" />
       </g>
-      <g id="building-michigan-plaza-front-middle" class="interactive-building" data-building-id="michigan-plaza-front-middle" aria-label="Unidentified gabled building in front of Michigan Plaza">
+      <g id="building-michigan-plaza-front-middle" class="interactive-building" data-building-id="michigan-plaza-front-middle" aria-label="180 North Michigan Avenue">
       <path
          d="m 3353.5893,2308.374 c -52.9643,-14.2419 -109.9358,-1.8173 -109.9358,0.8906 0,1.7799 -3.2046,413.9303 -3.2046,413.9303 h 114.9258 z"
          fill="#686868"
@@ -1812,7 +1812,7 @@
          id="path458"
          style="stroke-width:1.33526" />
       </g>
-      <g id="building-michigan-plaza-front-small" class="interactive-building" data-building-id="michigan-plaza-front-small" aria-label="Unidentified low-rise in front of Michigan Plaza">
+      <g id="building-michigan-plaza-front-small" class="interactive-building" data-building-id="michigan-plaza-front-small" aria-label="168 North Michigan Avenue">
       <path
          data-name="Left"
          fill="#565656"
