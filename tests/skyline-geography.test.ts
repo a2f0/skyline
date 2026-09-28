@@ -1511,6 +1511,7 @@ describe("mapped skyline geography", () => {
       const roof = (a: number, b: number) => { const p = lot(a, b); return hit([p[0], 300, p[1]], [0, -1, 0])?.point.y; };
       // The published top, and the south wall's light court open to the sky.
       expect(record.heightFromDrawing).toBeUndefined();
+      expect(record.parts?.map((part) => [part.bottom, part.top]), "its one part").toEqual([[0, record.height]]);
       near(roof(20, 5)!, 73.2, 1e-3);
       expect(roof(25, 1.4), "the light court").toBeUndefined();
       const paint = (found: THREE.Intersection | undefined) => {
