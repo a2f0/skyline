@@ -102,13 +102,14 @@ export function createOnTheParkGeographicBuilding(record: GeoBuilding, projectPl
   });
   const covered = (run: Run) => inside(podium, run.at(run.length / 2, 0.5));
 
-  // A cell is painted by its row and by where its middle stands along the wall.
-  const paint = (cuts: Row[], face: number, recessed = (_s: number) => false, white = (_s: number) => false) => (s: number, r: number) => {
+  // A cell is painted by its row and by where its middle stands along the wall: `white`
+  // marks white wall, in a slab row or a glass one.
+  const paint = (cuts: Row[], face: number, recessed = (_s: number) => false, white = (_s: number, _glass: boolean) => false) => (s: number, r: number) => {
     const row = cuts[r]!;
     if (row.kind === "lobby") return lobby;
     if (row.kind === "plant") return plant;
-    if (row.kind === "slab") return white(s) ? concrete : slab;
-    return recessed(s) ? recess : paneColor(row.floor, Math.round(s / 3), face);
+    if (row.kind === "slab") return white(s, false) ? concrete : slab;
+    return recessed(s) ? recess : white(s, true) ? concrete : paneColor(row.floor, Math.round(s / 3), face);
   };
   // A wall's skin, on the runs `keep` accepts: cells about two 5 ft modules wide on every
   // row. Each unbroken stretch of kept runs along a chain is one box, held 2 cm clear of its
@@ -150,13 +151,14 @@ export function createOnTheParkGeographicBuilding(record: GeoBuilding, projectPl
   // The south face's skin in three boxes that meet under the inner and east piers, running
   // on behind the band to the roof so the piers' tops never share its top's plane. The
   // middle one carries the winter garden's tall row; the column of windows is punched in
-  // white wall, and the balconies' glass stands in shadow.
+  // white wall, with 25 cm jambs either side, and the balconies' glass stands in shadow.
   const southRows = rowsTo(h.roof), gardenRows = rowsTo(h.roof, { gardenRow: true });
-  const southColumns = [0, 1.92, 3.36, 4.8, 6.4, 8.0, 9.12, 10.24, ...Array.from({ length: 8 }, (_, i) => 13.24 + 3 * i), 35.92, 37.6, 39.28, 40.96, 42.08, 43.2].map(along).sort((a, b) => a - b);
+  const southColumns = [0, 1.92, 2.17, 4.55, 4.8, 6.4, 8.0, 9.12, 10.24, ...Array.from({ length: 8 }, (_, i) => 13.24 + 3 * i), 35.92, 37.6, 39.28, 40.96, 42.08, 43.2].map(along).sort((a, b) => a - b);
   const sections: [number, number, Row[]][] = [[0, 9.12, southRows], [9.12, 42.08, gardenRows], [42.08, 43.2, southRows]];
   sections.forEach(([a, b, cuts], i) => {
     const [s0, s1] = [Math.min(along(a), along(b)), Math.max(along(a), along(b))];
-    const colour = paint(cuts, i, (s) => between(s, ...ladder) || between(s, ...balconies), (s) => between(s, 1.92, 4.8));
+    const colour = paint(cuts, i, (s) => between(s, ...ladder) || between(s, ...balconies),
+      (s, glass) => (glass ? between(s, 1.92, 2.17) || between(s, 4.55, 4.8) : between(s, 1.92, 4.8)));
     const inset = (s: number, end: boolean) => (s < 0.01 || s > L - 0.01 ? (end ? -0.02 : 0.02) : end ? -0.01 : 0.01);
     chainSkin(kit, wall, plan, southChain, 0, 0, s0 + inset(s0, false), s1 + inset(s1, true), southColumns, [cuts[0]!.lo, ...cuts.map((row) => row.hi)], 0.02, 0.07,
       (bay, r) => colour(((southColumns[bay - 1] ?? s0) + (southColumns[bay] ?? s1)) / 2, r), slab);

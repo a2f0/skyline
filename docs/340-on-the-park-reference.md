@@ -73,8 +73,8 @@ bias the Blue Cross and Blue Shield Tower shows too.
 | Beams | Floor 6 at 21.35 m to floor 61 at 184.2 m | Drawing: the lowest and highest drawn beams |
 | Winter garden's deeper beam | Floor 26, 79.5–81.7 m | Drawing: the one beam 2.2 m deep |
 | Corner block's roof | 51.7 m | Photograph: its terrace railing level with floor 16's beam |
-| Penthouse floors | 3.6 m each, floor 63 at 191.4 m | Drawing: four rows between the top beam and the band |
-| Highest occupied floor | 192.4 m | Published |
+| Penthouse floors | 3.6 m each, floor 64 at 195.0 m | Drawing: four rows between the top beam and the band |
+| Highest occupied floor | 192.4 m | Published; the model's floor 64 stands 2.6 m higher |
 | Parapet band | 198.6–203.8 m | Drawing |
 | Glass guard's top | 204.9 m | Published |
 
@@ -82,9 +82,13 @@ The map gives the corner block 40 m. The May 2016 photograph shows its terrace r
 level with a frame beam, the tenth from the top, as the drawing's tenth is floor 16's.
 The block's floors run on the tower's pitch, and at least fourteen show above the trees.
 So the model takes 51.7 m. A uniform pitch lands the beams within 2.7 m of the drawn
-ones, which the drawing bunches in the middle of the tower. The third penthouse floor
-stands a metre under the published highest occupied floor. The base is hidden in the
-drawing and every photograph, so the lobby is an estimate.
+ones, which the drawing bunches in the middle of the tower.
+
+The top penthouse floor stands at 195.0 m, 2.6 m over the published 192.4 m highest
+occupied floor. The drawing and the May 2016 photograph both show four balconied rows
+between the top beam and the parapet band. The published figure would leave room for only
+three, or a band shorter than both show, so the model keeps the drawing. The base is
+hidden in the drawing and every photograph, so the lobby is an estimate.
 
 ## Model
 
@@ -139,6 +143,8 @@ Colours follow the original artwork's grayscale palette.
     - a cantilevered balcony and a recessed balcony's railing;
     - a penthouse post and the parapet band;
   - the winter garden's tall glazing where a regular bay shows a slab, and a column in it;
+  - a jamb beside a punched window;
+  - the glass guards over the roof and round the corner block's terrace;
   - a fin near the east tip, glass between the fins, and none 12 m back;
   - the exact mapped outline at grade.
 

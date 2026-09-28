@@ -797,6 +797,12 @@ describe("mapped skyline geography", () => {
       expect([tone(22, floor(27)), tone(22, floor(28))].map((r) => Math.abs(r - new THREE.Color(0x2a2a2a).r) > 0.002), "the garden's tall glazing").toEqual([true, true]);
       expect(south(17.3, floor(27)).name, "a garden column").toBe("concrete frame");
       expect(south(17.3, floor(27)).proud).toBeGreaterThan(0.9);
+      // The column of windows is punched in white wall: a jamb beside each window.
+      const concrete = new THREE.Color(0xb4b4b4).r;
+      expect([tone(2.0, floor(40) + 1.5), tone(3.3, floor(40) + 1.5)].map((r) => Math.abs(r - concrete) < 0.002), "a jamb, then the window").toEqual([true, false]);
+      // The glass guards over the roof deck and round the corner block's terrace.
+      expectAt(22, 204.5, "railings and guards", 0.06, "the roof's guard");
+      expect(hit([bx!, floor(16) + 1.2, 80], [0, 0, -1])!.object.name, "the terrace's guard").toBe("340 on the Park · railings and guards");
       // Fins at the beam floors cross the diagonal face near the east tip, and not 12 m back.
       const tip = tower.reduce((best, p) => (p[0] > best[0] ? p : best));
       const toward = (d: number, y: number) => { const p: Vec3 = [tip[0] - d * Math.SQRT1_2 + 20 * Math.SQRT1_2, y, tip[1] + d * Math.SQRT1_2 + 20 * Math.SQRT1_2]; return hit(p, [-1, 0, -1])!.object.name; };
