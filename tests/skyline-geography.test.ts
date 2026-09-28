@@ -1010,9 +1010,17 @@ describe("mapped skyline geography", () => {
       };
       const is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
       const [stone, strip] = [is(0x585858), is(0x2d2d2d)];
-      expect([strip(tone(5.5, floor(30) + 0.2)), strip(tone(5.5, floor(30) + 1.5)), stone(tone(4.95, floor(30) + 1.5))], "a strip's spandrel and window, and the pier beside it").toEqual([true, true, true]);
+      // The strips stand symmetrically about the face's middle, a pier between each pair.
+      const strips = [4.235, 5.5, 6.765].flatMap((b) => [strip(tone(b, floor(30) + 0.2)), strip(tone(b, floor(30) + 1.5))]);
+      expect(strips, "each strip's spandrel and window").toEqual([true, true, true, true, true, true]);
+      expect([stone(tone(4.87, floor(30) + 1.5)), stone(tone(6.13, floor(30) + 1.5))], "the piers between the strips").toEqual([true, true]);
+      // A crown window, 1.2 m wide, its head narrowing to its middle for the last metre under
+      // the parapet.
       const glass = (r: number) => [0x2a2a2a, 0x2e2e2e, 0x323232, 0x363636, 0x6e6e6e, 0x444444].some((hex) => is(hex)(r));
-      expect([glass(tone(3.65, 127.5, 1.8)), stone(tone(3.65, 131, 1.8))], "a crown window under its parapet").toEqual([true, true]);
+      const crown = (b: number, y: number) => tone(b, y, 1.8);
+      expect([glass(crown(3.65, 127)), glass(crown(3.2, 127)), glass(crown(4.1, 127))], "a crown window across its width").toEqual([true, true, true]);
+      expect([glass(crown(3.65, 129.5)), stone(crown(3.2, 129.5)), stone(crown(4.1, 129.5))], "its narrowed head").toEqual([true, true, true]);
+      expect(stone(crown(3.65, 131)), "the crown's parapet over it").toBe(true);
       // The exact mapped outline at grade.
       const shell = meshes.find((mesh) => mesh.name === "Willoughby Tower · shell")!.geometry.getAttribute("position");
       const grade = new Set<string>();

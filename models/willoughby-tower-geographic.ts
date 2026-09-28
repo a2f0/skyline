@@ -41,16 +41,18 @@ function paneColor(row: number, bay: number, wall: number): THREE.Color {
 
 // The rows of every wall, from 25 cm above grade, where the mapped outline ends, to the
 // crown's parapet: the granite base, each floor's stone spandrel and window, the base's
-// parapet at the setback, and the crown's tall arched windows under its parapet. A solid
-// takes the rows between its foot and top, cut there.
-type Row = { lo: number; hi: number; kind: "granite" | "glass" | "stone" | "arch"; floor: number };
+// parapet at the setback, and the crown's tall arched windows, their heads narrowing for
+// the last metre, under its parapet. A solid takes the rows between its foot and top, cut
+// there.
+type Row = { lo: number; hi: number; kind: "granite" | "glass" | "stone" | "arch" | "head"; floor: number };
 const allRows: Row[] = [{ lo: 0.25, hi: floor(3) - 0.3, kind: "granite", floor: 1 }];
 for (let n = 3; n <= 36; n += 1) {
   allRows.push({ lo: floor(n) - 0.3, hi: floor(n) + 0.9, kind: "stone", floor: n });
   allRows.push({ lo: floor(n) + 0.9, hi: floor(n + 1) - 0.3, kind: "glass", floor: n });
 }
 allRows.push({ lo: floor(37) - 0.3, hi: 125, kind: "stone", floor: 37 });
-allRows.push({ lo: 125, hi: 130, kind: "arch", floor: 37 });
+allRows.push({ lo: 125, hi: 129, kind: "arch", floor: 37 });
+allRows.push({ lo: 129, hi: 130, kind: "head", floor: 37 });
 allRows.push({ lo: 130, hi: h.crown, kind: "stone", floor: 38 });
 const rowsBetween = (lo: number, hi: number): Row[] => allRows
   .map((row) => ({ ...row, lo: Math.max(row.lo, lo), hi: Math.min(row.hi, hi) }))
@@ -100,8 +102,9 @@ export function createWilloughbyTowerGeographicBuilding(record: GeoBuilding, pro
 
   // A wall's skin, one box to a chain the `keep` test accepts, held 2 cm clear of its ends
   // or 9 cm where the outline turns in. `openings` lays a wall's columns out across it and
-  // says which hold windows, which the shaft's dark strips, and which stay stone.
-  type Opening = "window" | "strip" | "stone";
+  // says which hold windows, which the shaft's dark strips, which an arched window's sides
+  // or middle, and which stay stone.
+  type Opening = "window" | "strip" | "stone" | "archSide" | "archMiddle";
   const skin = (corners: Vec2[], lo: number, hi: number, seed: number, keep: (run: Run) => boolean, openings: (length: number) => [number[], (bay: number) => Opening]) => {
     const plan = planOf(corners), rows = rowsBetween(lo, hi), heights = [rows[0]!.lo, ...rows.map((row) => row.hi)];
     chainsOf(plan).forEach((chain, index) => {
@@ -113,7 +116,8 @@ export function createWilloughbyTowerGeographicBuilding(record: GeoBuilding, pro
         const row = rows[r]!, opening = kind(bay);
         if (row.kind === "granite") return granite;
         if (opening === "strip" && row.kind !== "arch") return row.floor >= 37 ? stone : strip;
-        if (row.kind === "arch") return opening === "stone" ? stone : paneColor(row.floor, bay, seed * 8 + index);
+        if (row.kind === "arch") return opening === "archSide" || opening === "archMiddle" ? paneColor(row.floor, bay, seed * 8 + index) : stone;
+        if (row.kind === "head") return opening === "archMiddle" ? paneColor(row.floor, bay, seed * 8 + index) : stone;
         if (row.kind === "stone" || opening === "stone") return stone;
         return paneColor(row.floor, bay, seed * 8 + index);
       }, stone);
@@ -126,16 +130,20 @@ export function createWilloughbyTowerGeographicBuilding(record: GeoBuilding, pro
     const columns = [0, ...Array.from({ length: bays }, (_, i) => [length * (i + 0.5) / bays - 0.8, length * (i + 0.5) / bays + 0.8]).flat(), length];
     return [columns, (bay) => (bay % 2 === 0 && bay >= 2 && bay <= 2 * bays ? "window" : "stone")];
   };
-  // The shaft's Michigan face: three dark strips in the middle, a window near each edge.
+  // The shaft's Michigan face: three dark strips in the middle, a window near each edge,
+  // symmetrical about its middle.
   const stripped = (length: number): [number[], (bay: number) => Opening] => {
     const at = (f: number) => length * f;
-    const columns = [0, at(0.15), at(0.25), at(0.36), at(0.43), at(0.47), at(0.54), at(0.58), at(0.65), at(0.75), at(0.85), length];
+    const columns = [0, at(0.15), at(0.25), at(0.35), at(0.42), at(0.465), at(0.535), at(0.58), at(0.65), at(0.75), at(0.85), length];
     return [columns, (bay) => (bay === 2 || bay === 10 ? "window" : bay === 4 || bay === 6 || bay === 8 ? "strip" : "stone")];
   };
-  // The crown: a tall arched window in each of its bays.
+  // The crown: a tall arched window in each of its bays, 1.2 m wide, its head narrowing to
+  // its middle 0.6 m.
   const arched = (length: number): [number[], (bay: number) => Opening] => {
-    const bays = length > 10 ? 3 : 2, columns = [0, ...Array.from({ length: bays }, (_, i) => [length * (i + 0.5) / bays - 0.6, length * (i + 0.5) / bays + 0.6]).flat(), length];
-    return [columns, (bay) => (bay % 2 === 0 && bay >= 2 && bay <= 2 * bays ? "window" : "stone")];
+    const bays = length > 10 ? 3 : 2;
+    const columns = [0, ...Array.from({ length: bays }, (_, i) => { const c = length * (i + 0.5) / bays; return [c - 0.6, c - 0.3, c + 0.3, c + 0.6]; }).flat(), length];
+    // Bays run pier, side, middle, side for each window, then the last pier.
+    return [columns, (bay) => { const k = (bay - 1) % 4; return bay > 4 * bays || k === 0 ? "stone" : k === 2 ? "archMiddle" : "archSide"; }];
   };
   const michigan = (run: Run) => run.normal(0)[0] > 0.9;
   skin(lot, 0.25, h.setback, 0, () => true, punched);

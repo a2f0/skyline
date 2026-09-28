@@ -43,9 +43,10 @@ The mapped outline is an L on the corner of Michigan and Madison:
 Projected through the geographic camera, the Michigan front spans 1,340 to 1,487 layer
 units, where the drawing has 1,362 to 1,499. The drawn shaft's Michigan face starts at the
 drawn front's south end and spans 66 units, about 11 m; its south face spans 118 units,
-about 17.4 m. So the shaft stands at the lot's south-east corner, flush with both streets,
-and the model takes those dimensions. Its crown is inset by 1.8 m, as the drawn crown is
-narrower than the shaft by about 3 m a side.
+about 17.4 m. So the shaft stands at the lot's south-east corner, flush with Michigan and
+with the lot's south wall, and the model takes those dimensions; the base alone reaches
+Madison. Its crown is inset by 1.8 m, as the drawn crown is narrower than the shaft by
+about 3 m a side.
 
 The drawn group also paints, below and left of the tower, the Chicago Athletic
 Association's Michigan front, which projects there from its lot just south. The model leaves
@@ -79,8 +80,9 @@ Limestone walls over a granite base, with a stone spandrel and window on every f
 - The shoulder stands west of the shaft for four floors.
 - The shaft's Michigan face carries three dark strips, spandrels and all, between stone
   piers, with a window near each edge. Its other faces carry windows every 3 m.
-- The crown holds tall arched windows, three to a long face and two to a short one, under
-  its parapet and corner pinnacles.
+- The crown holds tall arched windows, three to a long face and two to a short one, their
+  heads narrowing to the middle half for the last metre, under its parapet and corner
+  pinnacles.
 
 Colours follow the drawing's greys rather than the limestone's buff.
 
@@ -100,8 +102,9 @@ Omitted:
 - `tests/skyline-geography.test.ts` raycasts:
   - the crown's parapet, the shaft's roof, the shoulder's, the base's setback, and a parapet
     pinnacle;
-  - on the shaft's Michigan face, a strip's spandrel and window and the pier beside them;
-  - a crown window under its parapet;
+  - on the shaft's Michigan face, each strip's spandrel and window and the piers between
+    them;
+  - a crown window across its width, its narrowed head, and the parapet over it;
   - the exact mapped outline at grade.
 
   Every mesh is closed.
