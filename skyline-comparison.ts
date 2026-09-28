@@ -113,7 +113,7 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     const source = document.createElement("td");
     const height = document.createElement("a");
     height.href = record.heightSource;
-    height.textContent = `${record.height} m architectural${record.id === "building-kemper" ? " (OSM)" : ""}`;
+    height.textContent = record.heightFromDrawing ? `${record.height} m, measured on the drawing` : `${record.height} m architectural${record.id === "building-kemper" ? " (OSM)" : ""}`;
     source.append(height, document.createElement("br"), record.note);
     row.append(source);
     tbody.append(row);
@@ -125,7 +125,7 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     const geographic = name === "geographic";
     streetButton.disabled = !geographic;
     document.querySelector<HTMLElement>("#layout-status")!.textContent = geographic
-      ? "Geographic layout · mapped footprints and published heights, with detailed facades on all sixteen buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
+      ? "Geographic layout · mapped footprints and published heights, one read on the drawing where none is published, with detailed facades on all seventeen buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
       : "Original layout · proportions and spacing fitted to the drawing. Use ground plan or height comparison, then toggle layouts to compare at the same camera scale.";
     document.querySelector<HTMLElement>("#model-caption")!.textContent = geographic ? "01 / geographic study" : "01 / original 3D study";
     // The drawing under the scene frames what the scene does: the whole skyline for the

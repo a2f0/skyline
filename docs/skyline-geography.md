@@ -3,8 +3,8 @@
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings, plus 330 North Wabash, the Blue Cross and Blue
 Shield Tower, 340 on the Park, The Buckingham, Millennium Park Plaza, Willoughby Tower,
-Six North Michigan, and the Michigan Boulevard Building, which only the geographic layout
-maps. The page
+Six North Michigan, the Michigan Boulevard Building, and 180 North Michigan Avenue, which
+only the geographic layout maps. The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
@@ -105,7 +105,7 @@ a wider sixth, 1600×700, whose canvas fits the frame to its height.
 and the Blue Cross and Blue Shield Tower's outline and parts on September 28, 2026,
 from [another](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6212,41.8845,-87.6180,41.8862),
 as were 340 on the Park's and The Buckingham's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862),
-and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's and the Michigan Boulevard Building's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
+and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's and 180 North Michigan Avenue's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -147,6 +147,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Willoughby Tower | [124873939](https://www.openstreetmap.org/way/124873939) | Outline, with the shaft, shoulder and crown from the drawing and photographs; not in the original layout |
 | Six North Michigan | [126982631](https://www.openstreetmap.org/way/126982631) | Outline, with the tower and levels from the drawing; not in the original layout |
 | Michigan Boulevard Building | [126982630](https://www.openstreetmap.org/way/126982630) | Outline, with the levels from the drawing; not in the original layout |
+| 180 North Michigan Avenue | [210671714](https://www.openstreetmap.org/way/210671714) | Outline, with the height and levels from the drawing; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -176,8 +177,11 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Willoughby Tower | 133.5 m | 133.5 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/willoughby-tower/9854) |
 | Six North Michigan | 86 m | 86 m | [Chicagology](https://chicagology.com/goldenage/goldenage015/) |
 | Michigan Boulevard Building | 82 m | 83.3 m | [Emporis, archived](https://web.archive.org/web/20070216134331/http://www.emporis.com/en/wm/bu/?id=michiganboulevardbuilding-chicago-il-usa) |
+| 180 North Michigan Avenue | 86.3 m, drawing | 86.3 m | None published; storeys from [Marc Realty](https://marcrealty.com/180-north-michigan-office-space-chicago/) |
 
-Architectural heights include architectural spires and exclude antennas. The
+Architectural heights include architectural spires and exclude antennas. 180 North
+Michigan Avenue has none published, so its height is read on the drawing, and the page's
+dimension table says so. The
 table's before/after comparison uses the highest actual rendered vertex, so One
 Prudential's antenna is not compared to its roof. Aon's original copy is the real
 tower from the drawing's 30.6 m datum up at 1.329 times its size, so its antenna
@@ -291,6 +295,11 @@ Intermediate parts have less certainty than the overall height:
   south bay to 83.3 m. Its brick south wall, which the drawing shows above 20 North
   Michigan, is windowed only on its top floors. The levels are read from the drawing; see
   the [Michigan Boulevard Building reference audit](michigan-boulevard-reference.md).
+- 180 North Michigan Avenue, the Harvester Building, stands on the south-west corner of
+  Michigan and Lake, its Michigan front hidden behind Millennium Park Plaza. It fills the
+  mapped lot with twenty-four storeys of masonry, string courses and a top floor of arched
+  windows. No height is published: its 86.3 m parapet is read on the drawing, within a few
+  metres; see the [180 North Michigan Avenue reference audit](north-michigan-180-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -307,7 +316,7 @@ fits. Checking curb clearances or Chicago's stacked streets requires additional
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all sixteen rendered ground
+coordinate anchors, meter scale and north direction, all seventeen rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
