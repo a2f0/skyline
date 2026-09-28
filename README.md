@@ -68,8 +68,8 @@ In `skyline-study.html`, the **geographic layout**, the page's default, moves th
 to local OpenStreetMap footprints and parts, with published overall heights
 (Kemper uses OSM's height), and adds 330 North Wabash, the Blue Cross and Blue
 Shield Tower, 340 on the Park, The Buckingham, Millennium Park Plaza, Willoughby Tower,
-and Six North Michigan. It opens on the skyline view from the drawing's
-own camera: the source photograph's vantage on the lakefront by the Adler
+Six North Michigan, and the Michigan Boulevard Building. It opens on the skyline view from
+the drawing's own camera: the source photograph's vantage on the lakefront by the Adler
 Planetarium, fitted to the mapped roofs and tips while the buildings stay where
 they are mapped. That view frames the whole drawn skyline, and the drawing under
 the scene becomes `models/skyline-panorama.svg`, every building the drawing shows;
@@ -135,6 +135,9 @@ Across Madison, Six North Michigan, the Montgomery Ward Building, keeps its sixt
 block under a projecting cornice and the stub of its tower in the middle of the Michigan
 front: an arched stage and a panelled top stage under a cap at 86 m; see its
 [reference audit](docs/six-north-michigan-reference.md).
+Beyond it the Michigan Boulevard Building's terracotta front, five bays to a floor, rises
+twenty-one storeys to an attic under the published 82 m, its brick south wall standing over
+20 North Michigan; see its [reference audit](docs/michigan-boulevard-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the
@@ -156,7 +159,7 @@ corners, the 346.3 m enclosure, and the inferred antenna at the published
 Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
-for the coordinate system, fifteen footprint records, height definitions, OSM
+for the coordinate system, sixteen footprint records, height definitions, OSM
 attribution, and limitations. All runtime data is checked in locally.
 
 ## Adding a building to the skyline study
