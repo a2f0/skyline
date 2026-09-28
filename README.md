@@ -66,8 +66,8 @@ The Heritage plan, heights, and placement were fitted numerically through the sk
 
 In `skyline-study.html`, **geographic layout** switches the same eight buildings
 to local OpenStreetMap footprints and parts, with published overall heights
-(Kemper uses OSM's height), and adds 330 North Wabash and the Blue Cross and Blue
-Shield Tower. It opens on the skyline view from the drawing's
+(Kemper uses OSM's height), and adds 330 North Wabash, the Blue Cross and Blue
+Shield Tower, and 340 on the Park. It opens on the skyline view from the drawing's
 own camera: the source photograph's vantage on the lakefront by the Adler
 Planetarium, fitted to the mapped roofs and tips while the buildings stay where
 they are mapped. That view frames the whole drawn skyline, and the drawing under
@@ -112,6 +112,12 @@ original layout's frame, it adds the Blue Cross and Blue Shield Tower on its
 mapped outline and parts: the glass block forward of end bays that open through
 at the middle of its three mechanical bands, and the emblem screen to the
 published 226.7 m; see its [reference audit](docs/blue-cross-reference.md).
+Beside it stands 340 on the Park, glass on a straight south face, a diagonal
+south-east face, and a north face curved for The Buckingham's views. The south
+face carries its white concrete frame: a beam every fifth floor, balcony ladders,
+the winter garden's tall bay, and the parapet band under a glass guard at the
+published 204.9 m. The corner block stands to its photographed 51.7 m; see its
+[reference audit](docs/340-on-the-park-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the
@@ -133,7 +139,7 @@ corners, the 346.3 m enclosure, and the inferred antenna at the published
 Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
-for the coordinate system, ten footprint records, height definitions, OSM
+for the coordinate system, eleven footprint records, height definitions, OSM
 attribution, and limitations. All runtime data is checked in locally.
 
 ## Adding a building to the skyline study
