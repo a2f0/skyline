@@ -23,10 +23,14 @@ const h = northMichigan180Levels;
 // the last.
 const floor = (n: number) => (n < 2 ? 0 : h.base + (n - 2) * 3.25);
 
+// The skins' colours: the window tones, and the masonry and its courses, which no window
+// shares.
+export const northMichigan180Palette = Object.freeze({ glass: [0x585858, 0x5c5c5c, 0x606060, 0x646464], lit: 0x9a9a9a, dim: 0x525252, masonry: 0x7a7a7a, course: 0x888888 });
+const palette = northMichigan180Palette;
 const color = (hex: number) => new THREE.Color(hex);
-const glassTones = [0x585858, 0x5c5c5c, 0x606060, 0x646464].map(color);
-const litGlass = color(0x9a9a9a), dimGlass = color(0x525252);
-const masonry = color(0x7a7a7a), course = color(0x888888), core = color(0x303030), roofing = color(0x505050);
+const glassTones = palette.glass.map(color);
+const litGlass = color(palette.lit), dimGlass = color(palette.dim);
+const masonry = color(palette.masonry), course = color(palette.course), core = color(0x303030), roofing = color(0x505050);
 function paneColor(row: number, bay: number, wall: number): THREE.Color {
   const hash = (Math.imul(row + 41, 0x9e3779b1) ^ Math.imul(bay + 67, 0x85ebca77) ^ Math.imul(wall + 53, 0xc2b2ae3d)) >>> 0;
   const value = hash % 101;

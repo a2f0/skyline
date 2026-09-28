@@ -8,6 +8,7 @@ import { projectGround, footprintMetrics, createGeographicBuilding } from "../mo
 import { floorLevel, onePrudentialLevels, wallStations } from "../models/one-prudential-tower.js";
 import { trumpSpire } from "../models/trump-geographic.js";
 import { trumpLevels } from "../models/trump-tower.js";
+import { northMichigan180Palette } from "../models/north-michigan-180-geographic.js";
 import { northWabashFloors } from "../models/north-wabash-geographic.js";
 import { crain, geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
@@ -1244,10 +1245,12 @@ describe("mapped skyline geography", () => {
         expect(found.object.name).toBe("180 North Michigan · masonry and windows");
         return (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
       };
+      // The model's own palette, whose window tones no wall shares.
       const is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
-      const [masonry, course] = [is(0x7a7a7a), is(0x888888)];
-      const glass = (r: number) => [0x585858, 0x5c5c5c, 0x606060, 0x646464, 0x9a9a9a, 0x525252].some((hex) => is(hex)(r));
-      expect([0x7a7a7a, 0x888888].map((hex) => glass(new THREE.Color(hex).r))).toEqual([false, false]);
+      const palette = northMichigan180Palette, panes = [...palette.glass, palette.lit, palette.dim];
+      const [masonry, course] = [is(palette.masonry), is(palette.course)];
+      const glass = (r: number) => panes.some((hex) => is(hex)(r));
+      expect([palette.masonry, palette.course].map((hex) => glass(new THREE.Color(hex).r)), "no wall colour passes for glass").toEqual([false, false]);
       // The south wall's windows 2.7 m apart from 2.8 m west of Michigan, as drawn, with the
       // ground floor's tall windows under them; string courses over the seventeenth and twentieth
       // floors and under the top floor.
