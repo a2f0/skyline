@@ -168,8 +168,8 @@ Omitted:
   - eighteen windows up a corner pier, one to each floor from the third;
   - the cornice 90 cm proud;
   - Adams's 20 windows to a floor and the alley's 19;
-  - the court's east wall's seven windows, and the notch open to the Lake View Building's
-    light court;
+  - the court's white brick, between floors and over the inner wings, its east wall's
+    seven windows, and the notch open to the Lake View Building's light court;
   - the model's exported palette, whose window tones no wall shares;
   - the exact mapped outline at grade.
 

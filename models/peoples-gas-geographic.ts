@@ -183,9 +183,10 @@ export function createPeoplesGasGeographicBuilding(record: GeoBuilding, projectP
   paintedSlab(kit, shell, innerWings, h.inner, true, roofing);
   for (const floor of [court, notch]) paintedSlab(kit, shell, floor, h.court, true, roofing);
 
-  // The cornice projects 90 cm along both fronts, from 8 cm inside their walls, which bow up
-  // to 5 cm out between the corners, to 2 cm over the roof, stopping 3 cm short of the north
-  // and alley walls. Its cresting: blocks 50 cm wide and 1 m apart near its edge.
+  // The cornice projects 90 cm along both fronts, to 2 cm over the roof, stopping 3 cm
+  // short of the north and alley walls. It starts 8 cm inside the lines between the fronts'
+  // corners, which the mapped walls stand at most 2 cm inside and 12.4 cm outside, so it
+  // always meets them. Its cresting: blocks 50 cm wide and 1 m apart near its edge.
   const [out, lip] = [0.9, 0.02];
   kit.prism(cornice, planOf(orient([at(-out, michigan - 0.03), at(-out, -out), at(adams - 0.03, -out), at(adams - 0.03, 0.08), at(0.08, 0.08), at(0.08, michigan - 0.03)])), [h.cornice, h.roof + lip]);
   const [east, south]: [Vec2, Vec2] = [[-north[1], north[0]], [west[1], -west[0]]];

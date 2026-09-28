@@ -1633,8 +1633,8 @@ describe("mapped skyline geography", () => {
       expect([count(0.3, adams - 0.3, (a) => tone(a, 0, floor, "south")), count(0.3, michigan - 0.3, (b) => tone(adams, b, floor, "west"))], "Adams's pairs and the alley's windows").toEqual([20, 19]);
       // The court's walls, white brick with windows, and the notch open to the Lake View
       // Building's light court: a ray from the north passes the lot's wall there.
-      const inCourt = lot(28.8, 29.6), courtWall = paint(hit([inCourt[0], floor, inCourt[1]], [-west[0], 0, -west[1]]));
-      expect(brick(courtWall) || glass(courtWall), "the court's east wall").toBe(true);
+      const inCourt = lot(28.8, 29.6), courtWall = (y: number) => paint(hit([inCourt[0], y, inCourt[1]], [-west[0], 0, -west[1]]));
+      expect([brick(courtWall(drawn(39.8))), brick(courtWall(drawn(66.9)))], "the court's brick, between floors and over the inner wings").toEqual([true, true]);
       // Along the court's east wall, 21.3 m long, from inside the court.
       expect(count(20.3, 39.7, (b) => paint(hit([lot(25, b)[0], floor, lot(25, b)[1]], [-west[0], 0, -west[1]]))), "the court's east wall's seven windows").toBe(7);
       const notch = hit([lot(27.3, 70)[0], floor, lot(27.3, 70)[1]], [-north[0], 0, -north[1]]);
