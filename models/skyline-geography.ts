@@ -14,6 +14,7 @@ import { createMillenniumParkPlazaGeographicBuilding } from "./millennium-park-p
 import { createNorthWabashGeographicBuilding } from "./north-wabash-geographic.js";
 import { createOnTheParkGeographicBuilding } from "./on-the-park-geographic.js";
 import { createOnePrudentialGeographicBuilding } from "./one-prudential-geographic.js";
+import { createSixNorthMichiganGeographicBuilding } from "./six-north-michigan-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
 import { createTwoPrudentialGeographicBuilding } from "./two-prudential-geographic.js";
 import { createWilloughbyTowerGeographicBuilding } from "./willoughby-tower-geographic.js";
@@ -73,6 +74,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-willoughby-tower") {
     return createWilloughbyTowerGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-six-north-michigan") {
+    return createSixNorthMichiganGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);

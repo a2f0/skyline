@@ -90,9 +90,9 @@ describe("mapped skyline geography", () => {
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
       "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9], Buckingham: [582.28, -1.52, 121.9],
-      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5],
+      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86],
     };
-    expect(geographicBuildings.length).toBe(14);
+    expect(geographicBuildings.length).toBe(15);
     for (const record of geographicBuildings) {
       const metrics = footprintMetrics(record.footprint.coordinates);
       const [east, north, height] = expected[record.shortName]!;
@@ -1052,6 +1052,103 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("Six North Michigan", () => {
+    test("keeps the mapped block under its cornice and the tower in the middle of its Michigan front", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Six North")!;
+      const model = models["Six North"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const hit = (from: Vec3, direction: Vec3) => {
+        ray.set(new THREE.Vector3(...from), new THREE.Vector3(...direction));
+        return ray.intersectObjects(meshes, false)[0];
+      };
+      const at = (i: number): Vec2 => { const [east, north] = projectGround(record.footprint.coordinates[i]!); return [east, -north]; };
+      // The lot's south-east corner, with its Madison front running west and its Michigan
+      // front north; the tower stands 7.5 to 20 m north of Madison and 12 m deep.
+      const corner = at(6), unit = (p: Vec2): Vec2 => { const d = Math.hypot(p[0] - corner[0], p[1] - corner[1]); return [(p[0] - corner[0]) / d, (p[1] - corner[1]) / d]; };
+      const [west, north] = [unit(at(7)), unit(at(5))];
+      const lot = (a: number, b: number): Vec2 => [corner[0] + west[0] * a + north[0] * b, corner[1] + west[1] * a + north[1] * b];
+      const roof = (a: number, b: number) => { const p = lot(a, b); return hit([p[0], 300, p[1]], [0, -1, 0])!.point.y; };
+      // Where a level ray from 30 m out meets the building, in metres west of Michigan or
+      // north of Madison.
+      const fromEast = (b: number, y: number) => { const p = lot(-30, b); return -30 + hit([p[0], y, p[1]], [west[0], 0, west[1]])!.distance; };
+      const fromWest = (b: number, y: number) => { const p = lot(80, b); return 80 - hit([p[0], y, p[1]], [-west[0], 0, -west[1]])!.distance; };
+      const fromSouth = (a: number, y: number) => { const p = lot(a, -30); return -30 + hit([p[0], y, p[1]], [north[0], 0, north[1]])!.distance; };
+      const fromNorth = (a: number, y: number) => { const p = lot(a, 60); return 60 - hit([p[0], y, p[1]], [-north[0], 0, -north[1]])!.distance; };
+      // Measured on the drawing down from the published 86 m: the cap, the tower's cornice
+      // ledge, and the block's roof and cornice.
+      near(roof(6, 13.75), 86, 1e-3);
+      near(roof(-0.6, 13.75), 78, 1e-3);
+      near(roof(30, 14), 63.6, 1e-3);
+      near(roof(-0.5, 3), 63.6, 1e-3);
+      // The tower's walls on all four sides, its skins a few centimetres proud; its band,
+      // cornice, top stage and cap; and the block's cornice either side of it, open in front.
+      near(fromEast(13.75, 70), -0.05, 0.03);
+      near(fromSouth(6, 70), 7.45, 0.03);
+      near(fromWest(13.75, 70), 12.05, 0.03);
+      near(fromNorth(6, 70), 20.05, 0.03);
+      near(fromEast(13.75, 66), -0.5, 1e-3);
+      near(fromEast(13.75, 77), -1.2, 1e-3);
+      near(fromEast(13.75, 81), 0.75, 0.03);
+      near(fromEast(13.75, 85), 0.3, 1e-3);
+      near(fromEast(3, 63), -1, 1e-3);
+      near(fromEast(24, 63), -1, 1e-3);
+      near(fromEast(13.75, 63), -0.05, 0.03);
+      near(fromEast(3, 30), -0.05, 0.03);
+      // Brick and windows, from each side.
+      const floor = (n: number) => 6 + (n - 2) * 3.74;
+      const tone = (a: number, b: number, y: number, from: "east" | "south" | "west" | "north") => {
+        const p = lot(a, b), d = ({ east: [-west[0], -west[1]], west: [west[0], west[1]], south: [-north[0], -north[1]], north: [north[0], north[1]] } as const)[from];
+        const found = hit([p[0] + d[0] * 30, y, p[1] + d[1] * 30], [-d[0], 0, -d[1]])!;
+        expect(found.object.name).toBe("Six North Michigan · brick and windows");
+        return (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
+      };
+      const is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
+      const [brick, panel] = [is(0x6e6e6e), is(0x9c9c9c)];
+      const glass = (r: number) => [0x4c4c4c, 0x505050, 0x545454, 0x585858, 0x8a8a8a, 0x5e5e5e].some((hex) => is(hex)(r));
+      // The Michigan front: three windows to each wing and three to the tower between them;
+      // Madison: eighteen windows to a floor.
+      const window10 = floor(10) + 2.3;
+      expect([1.6, 3.75, 5.9, 10.75, 13.75, 16.75, 21.6, 23.75, 25.9].every((b) => glass(tone(0, b, window10, "east"))), "the Michigan front's windows").toBe(true);
+      expect([2.675, 4.825, 12.075, 15.425, 22.675].every((b) => brick(tone(0, b, window10, "east"))) && brick(tone(0, 13.75, floor(10) + 0.5, "east")), "its piers and spandrels").toBe(true);
+      let runs = 0, inside = false;
+      for (let a = 0.3; a < 49.3; a += 0.1) { const now = glass(tone(a, 0, window10, "south")); if (now && !inside) runs += 1; inside = now; }
+      expect(runs, "Madison's windows").toBe(18);
+      // The north wall, shared with the eight-storey 20 North Michigan, is blank below its
+      // ninth floor and windowed above.
+      const northWindows = (n: number) => { let count = 0, open = false; for (let a = 0.3; a < 49.3; a += 0.1) { const now = glass(tone(a, 27.5, floor(n) + 2.3, "north")); if (now && !open) count += 1; open = now; } return count; };
+      expect([northWindows(8), northWindows(9)], "the north wall's windows").toEqual([0, 18]);
+      // The tower's faces: three windows centred 3 m apart. The tall ones are 2 m wide, their
+      // heads the middle metre; the seventeenth floor's are 1.3 m and the small ones 1.1 m.
+      const faces = {
+        east: [13.75, (s: number, y: number) => tone(0, s, y, "east")],
+        west: [13.75, (s: number, y: number) => tone(12, s, y, "west")],
+        south: [6, (s: number, y: number) => tone(s, 7.5, y, "south")],
+        north: [6, (s: number, y: number) => tone(s, 20, y, "north")],
+      } as const;
+      for (const [name, [middle, face]] of Object.entries(faces)) {
+        const across = (y: number, offsets: number[]) => [-3, 0, 3].flatMap((d) => offsets.map((o) => face(middle + d + o, y)));
+        expect(across(72, [-0.9, 0, 0.9]).every(glass) && across(72, [-1.5, 1.5]).every(brick), `${name}: the tall windows and their piers`).toBe(true);
+        expect(across(73.95, [0]).every(glass) && across(73.95, [-0.75, 0.75]).every(brick), `${name}: their heads`).toBe(true);
+        expect(across(67.5, [-0.5, 0.5]).every(glass) && across(67.5, [-0.7, 0.7]).every(brick), `${name}: the small windows`).toBe(true);
+        expect(across(64, [-0.6, 0.6]).every(glass) && across(64, [-0.8, 0.8]).every(brick), `${name}: the seventeenth floor's`).toBe(true);
+        expect(across(69.5, [0]).every(brick) && across(75, [0]).every(brick), `${name}: the brick between and above`).toBe(true);
+      }
+      // The top stage's panels, 7.2 m wide in the middle of each face under brick.
+      expect([panel(tone(0.8, 13.75, 80, "east")), brick(tone(0.8, 9.2, 80, "east")), brick(tone(0.8, 13.75, 84, "east")), panel(tone(6, 8.3, 80, "south")), brick(tone(1.5, 8.3, 80, "south"))], "the top stage's panels").toEqual([true, true, true, true, true]);
+      // The exact mapped outline at grade.
+      const shell = meshes.find((mesh) => mesh.name === "Six North Michigan · shell")!.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [x, n] = projectGround(p);
+        return [Math.fround(x), Math.fround(-n)].map((v) => v.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   describe("Aon", () => {
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
@@ -1187,7 +1284,7 @@ describe("geographic layout in the study", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    expect(await page.locator("#dimensions-body tr").count()).toBe(14);
+    expect(await page.locator("#dimensions-body tr").count()).toBe(15);
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
@@ -1342,7 +1439,7 @@ describe("geographic layout in the study", () => {
     // The eight drawn buildings, and 330 North Wabash, the Blue Cross and Blue Shield Tower,
     // 340 on the Park, The Buckingham, Millennium Park Plaza and Willoughby Tower, which only
     // the geographic layout models.
-    expect(projected.length).toBe(14);
+    expect(projected.length).toBe(15);
     // A portrait phone's width binds the plan's frame; it still holds every footprint.
     await page.locator('[data-view="top"]').click();
     await settle(page);
