@@ -1534,6 +1534,10 @@ describe("mapped skyline geography", () => {
       expect(columns.every((c) => glass(michigan(c, 49.9)) && glass(michigan(c + 1.1, 49.9)) && glass(michigan(c - 1.1, 49.9)) && stone(michigan(c + 1.5, 49.9))) && stone(michigan(front / 2 + 1.75, 49.9)), "a floor's three windows and their piers").toBe(true);
       expect(columns.every((c) => glass(michigan(c, 65.6)) && glass(michigan(c + 0.5, 65.6)) && stone(michigan(c + 0.9, 65.6)) && glass(michigan(c, 68.5)) && stone(michigan(c, 69.6))), "the arched heads and the attic's windows").toBe(true);
       expect(band(michigan(front / 2, 70.8)), "the cornice band").toBe(true);
+      // One window to each of the seventeen floors up the middle column.
+      let floors = 0, lit = false;
+      for (let y = 0.3; y < 71; y += 0.05) { const now = glass(michigan(front / 2, y)); if (now && !lit) floors += 1; lit = now; }
+      expect(floors, "a window to each floor").toBe(17);
       // The north wall, shared with the MacLean Center, and the light court's walls stay
       // plain; the alley has four windows to a floor.
       let glazed = 0;

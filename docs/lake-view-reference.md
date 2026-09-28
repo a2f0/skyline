@@ -60,7 +60,8 @@ so the lower floors are estimates.
   - Three windows 2.5 m wide to each floor, with tall shopfronts on the ground floor.
   - The sixteenth floor's windows arched, their heads stepped to the middle half.
   - The attic's small windows and the cornice band.
-- **Alley:** windows 1.6 m wide every 3.2 m, without the band or arches.
+- **Alley:** four windows 1.6 m wide to a floor, spread evenly about 2.9 m apart, without
+  the band or arches. The drawing does not show this wall, so its windows are an estimate.
 - **Side walls:** the north wall, shared with the taller MacLean Center, the south wall,
   shared with the taller Peoples Gas, and the light court's walls stay plain.
 
@@ -81,6 +82,7 @@ Omitted:
 - `tests/skyline-geography.test.ts` raycasts:
   - the top, and the light court open to the sky;
   - a floor's three windows, their edges and the piers between;
+  - seventeen windows up the front's middle column, one to each floor;
   - the arched heads, the attic's windows and the cornice band;
   - the party wall, windowless along a floor, and the light court's plain walls;
   - the alley's four windows to a floor;

@@ -115,7 +115,8 @@ export function createLakeViewGeographicBuilding(record: GeoBuilding, projectPla
     return [columns, (bay) => { const k = (bay - 1) % 4; return bay > 4 * inside.length || k === 0 ? 0 : k === 2 ? 2 : 1; }];
   };
   // The Michigan front's three windows, 2.5 m wide and 3.5 m apart about its middle, as
-  // drawn; the alley's, 1.6 m wide every 3.2 m.
+  // drawn; the alley's, which the drawing does not show, 1.6 m wide and spread evenly about
+  // 3 m apart.
   const michigan = (length: number, start: Vec2, end: Vec2) => {
     const [b0, b1] = [inLot(start)[1], inLot(end)[1]], along = (b: number) => length * (b - b0) / (b1 - b0);
     return windows(length, [-3.5, 0, 3.5].map((d) => along(front / 2 + d)), 2.5);
