@@ -31,6 +31,9 @@ const pitch = (h.topBeam - h.lowestBeam) / 55, penthouse = (h.band - h.topBeam) 
 // Each floor's level, from the second, over the lobby, to a 65th at the band's foot.
 const floor = (n: number) => (n <= 61 ? h.lowestBeam + (n - 6) * pitch : h.topBeam + (n - 61) * penthouse);
 const beamFloors = Array.from({ length: 12 }, (_, k) => 6 + 5 * k), garden = 26;
+// Floors whose west bay, the windows' column and the ladder, holds recessed balconies: the
+// two over the winter garden's tall row and the penthouses.
+const westRecessed = (n: number) => n === garden + 3 || n === garden + 4 || n >= 61;
 const beamSpan = (n: number): [number, number] => { const half = (n === garden ? 2.2 : h.beam) / 2; return [floor(n) - half, floor(n) + half]; };
 // The corner block's roof, level with the top of floor 16's beam.
 const podiumTop = beamSpan(16)[1];
@@ -151,15 +154,15 @@ export function createOnTheParkGeographicBuilding(record: GeoBuilding, projectPl
   // The south face's skin in three boxes that meet under the inner and east piers, running
   // on behind the band to the roof so the piers' tops never share its top's plane. The
   // middle one carries the winter garden's tall row; the column of windows is punched in
-  // white wall, with 25 cm jambs either side, and the balconies' glass stands in shadow. On
-  // the penthouse floors the windows give way to balconies too.
+  // white wall, with 25 cm jambs either side, and the balconies' glass stands in shadow. Over
+  // the winter garden and on the penthouse floors the windows give way to balconies too.
   const southRows = rowsTo(h.roof), gardenRows = rowsTo(h.roof, { gardenRow: true });
   const southColumns = [0, 1.92, 2.17, 4.55, 4.8, 6.4, 8.0, 9.12, 10.24, ...Array.from({ length: 8 }, (_, i) => 13.24 + 3 * i), 35.92, 37.6, 39.28, 40.96, 42.08, 43.2].map(along).sort((a, b) => a - b);
   const sections: [number, number, Row[]][] = [[0, 9.12, southRows], [9.12, 42.08, gardenRows], [42.08, 43.2, southRows]];
   sections.forEach(([a, b, cuts], i) => {
     const [s0, s1] = [Math.min(along(a), along(b)), Math.max(along(a), along(b))];
-    const colour = paint(cuts, i, (s, row) => between(s, ...ladder) || between(s, ...balconies) || (row.floor >= 61 && between(s, 1.92, 4.8)),
-      (s, row) => (row.kind === "slab" ? between(s, 1.92, 4.8) : row.floor < 61 && (between(s, 1.92, 2.17) || between(s, 4.55, 4.8))));
+    const colour = paint(cuts, i, (s, row) => between(s, ...ladder) || between(s, ...balconies) || (westRecessed(row.floor) && between(s, 1.92, 4.8)),
+      (s, row) => (row.kind === "slab" ? between(s, 1.92, 4.8) : !westRecessed(row.floor) && (between(s, 1.92, 2.17) || between(s, 4.55, 4.8))));
     const inset = (s: number, end: boolean) => (s < 0.01 || s > L - 0.01 ? (end ? -0.02 : 0.02) : end ? -0.01 : 0.01);
     chainSkin(kit, wall, plan, southChain, 0, 0, s0 + inset(s0, false), s1 + inset(s1, true), southColumns, [cuts[0]!.lo, ...cuts.map((row) => row.hi)], 0.02, 0.07,
       (bay, r) => colour(((southColumns[bay - 1] ?? s0) + (southColumns[bay] ?? s1)) / 2, r), slab);
@@ -171,13 +174,14 @@ export function createOnTheParkGeographicBuilding(record: GeoBuilding, projectPl
   for (const f of beamFloors) { const [lo, hi] = beamSpan(f); kit.box(frame, at(8.3, 42.9), n, half(8.3, 42.9), 0.07, 0.45, lo, hi); }
   kit.box(frame, at(0, 43.2), n, half(0, 43.2) - 0.001, 0.07, 0.65, h.band, h.roof);
   // The ladder's cantilevered balconies, a slab and a glass railing on each floor to the
-  // 60th. Over them, the penthouses' balconies are recessed behind the frame's plane, across
-  // the windows' column and the ladder's.
-  for (let f = 2; f <= 60; f += 1) {
-    kit.box(frame, at(...ladder), n, half(...ladder), 0.07, 1.5, floor(f) - 0.15, floor(f) + 0.15);
-    kit.box(rails, at(...ladder), n, half(...ladder) - 0.05, 1.37, 1.45, floor(f) + 0.15, floor(f) + 1.05);
-  }
-  for (let f = 61; f <= 64; f += 1) {
+  // 60th. Over the winter garden and on the penthouse floors, balconies recessed behind the
+  // frame's plane cross the windows' column and the ladder instead.
+  for (let f = 2; f <= 64; f += 1) {
+    if (!westRecessed(f)) {
+      kit.box(frame, at(...ladder), n, half(...ladder), 0.07, 1.5, floor(f) - 0.15, floor(f) + 0.15);
+      kit.box(rails, at(...ladder), n, half(...ladder) - 0.05, 1.37, 1.45, floor(f) + 0.15, floor(f) + 1.05);
+      continue;
+    }
     kit.box(frame, at(1.92, ladder[1]), n, half(1.92, ladder[1]), 0.07, 0.3, floor(f) - 0.15, floor(f) + 0.15);
     kit.box(rails, at(1.92, ladder[1]), n, half(1.92, ladder[1]), 0.22, 0.28, floor(f) + 0.15, floor(f) + 1.05);
   }

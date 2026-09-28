@@ -790,6 +790,8 @@ describe("mapped skyline geography", () => {
       expectAt(6.4, floor(40), "concrete frame", 1.5, "a cantilevered balcony");
       expectAt(37.6, floor(40) + 0.6, "railings and guards", 0.28, "a recessed balcony's railing");
       expectAt(6.4, floor(63) + 0.6, "railings and guards", 0.28, "a penthouse balcony's railing over the ladder");
+      expectAt(6.4, floor(29) + 0.6, "railings and guards", 0.28, "a recessed balcony over the ladder beside the garden");
+      expectAt(6.4, floor(33) + 0.6, "railings and guards", 1.45, "the ladder's cantilevered balcony below it");
       expectAt(25.6, 190, "concrete frame", 0.6, "a penthouse post");
       expectAt(22, 201, "concrete frame", 0.65, "the parapet band");
       // The winter garden runs floors 26 to 28 into one tall row, where a regular bay shows
