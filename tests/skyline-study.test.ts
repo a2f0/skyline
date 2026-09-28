@@ -106,7 +106,7 @@ async function checkReferenceMatch(page: Page) {
     `Heritage's trimmed lower tier and its cap and band overhangs should stay inside the drawn left silhouette: ${JSON.stringify({ lowerSouthWest, silhouette })}`).toBe(true);
   // One Prudential's wing ends the drawn silhouette on the right, so the model is held to it.
   // Through this camera the real wing's 60.4 m east wall runs a little past the drawn podium,
-  // its coping's outer north-east corner furthest, near 0.0029 at the desktop layout, so it
+  // its coping's outer north-east corner furthest, near 0.0029 at the tablet layout, so it
   // is held within the building's landmark tolerance rather than the bare drawn edge.
   const wing = buildings.find((building) => building.id === prudential)!;
   const wingEdge = [wing.projected["wingCorner"] as [number, number], wing.projected["wingEastEnd"] as [number, number], ...(wing.projected["wingRibEdge"] as [number, number][])].map(([u]) => u);

@@ -98,6 +98,15 @@ same factor** and re-verify. Trump International Hotel and Tower then widened th
 limits were tightened after each expansion, with small allowances only where the
 new perspective fit measurably moved an existing feature.
 
+The page's own layout does the same. Stacking the scene over the drawing gave the desktop and
+laptop canvases a wider aspect than the frame, so the frame fits their height rather than their
+width. Vertical errors grew by up to 21% in canvas units, and horizontal ones shrank, with no
+building moving in layer space. The tolerances that failed were raised just above their new
+worst, and every quoted worst error was measured again.
+
+The geographic layout has its own frame, `models/skyline-panorama.svg`, which already takes in
+every building the drawing shows. A building added to that layout needs no reframe.
+
 Measured that way, reframing is a trade rather than a free win. Adding One Prudential improved the
 hand-placed trio — Crain's near valley went from 0.02012 to 0.01355 — while 56 of 115 landmark and
 layout pairs moved *further* from the drawing. Check both directions before claiming an improvement.

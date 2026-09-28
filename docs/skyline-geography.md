@@ -1,8 +1,8 @@
 # Geographic skyline comparison
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
-study of the same eight buildings, plus 330 North Wabash, which only the
-geographic layout maps. Every geographic building carries a detailed facade
+study of the same eight buildings, plus 330 North Wabash and the Blue Cross and
+Blue Shield Tower, which only the geographic layout maps. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
 placement and camera remain intact.
 
@@ -66,13 +66,24 @@ spire, and Two Prudential's outline at its inferred eave and 277 m peak, and wit
 Wabash's roof added, the RMS fell from 67 units to 30. The eye moved about 150 m
 north-west, from 45 m off the planetarium's centre to the walk.
 
+The view frames the panorama, `models/skyline-panorama.svg`: every building the
+drawing shows, from the Railway Exchange Building on the left to the towers
+around The Buckingham on the right. Its frame is the reference excerpt's,
+widened about the same centre to x −1400 to 7978.5 in layer units, 2.65 times
+as wide as it is tall. The camera's eye, aim and lens are the excerpt's, so
+every landmark lands where it did; only the frame's width changes. The page
+stacks the scene over the drawing, each the page's full width and the viewport's
+height, so both contain their frame at the same scale. The drawing switches to
+the panorama with the geographic layout and back to the excerpt with the
+original one.
+
 The view keeps its eye fixed at every viewport. Its field of view, not its
 distance, changes to contain the frame, so each mapped point lands on the same
 drawn spot at every layout. Other perspective views keep the study's 6° lens.
 `tests/skyline-geography.test.ts` checks that each landmark lies on its mapped
 model, and the eye's position. It also checks each landmark's error, the RMS,
 and that the placement is identical across the skyline test's five layouts and
-a height-limited sixth, 1440×800.
+a wider sixth, 1600×700, whose canvas fits the frame to its height.
 
 ## Coordinates and footprints
 
@@ -80,7 +91,9 @@ a height-limited sixth, 1440×800.
 [OpenStreetMap](https://www.openstreetmap.org/copyright), retrieved September 17,
 2026 through the [map API](https://api.openstreetmap.org/api/0.6/map?bbox=-87.628,41.882,-87.620,41.891).
 330 North Wabash's outline was added on September 27, 2026, from a
-[wider request](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6300,41.8820,-87.6180,41.8920).
+[wider request](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6300,41.8820,-87.6180,41.8920),
+and the Blue Cross and Blue Shield Tower's outline and parts on September 28, 2026,
+from [another](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6212,41.8845,-87.6180,41.8862).
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -115,6 +128,7 @@ of its tower. The cyan ground outlines show that distinction.
 | One Prudential | [127107034](https://www.openstreetmap.org/way/127107034) | 685493609, 685493610, 685493612, 685493614 |
 | Two Prudential | [64388666](https://www.openstreetmap.org/way/64388666) | Outline, with the core, tiers and crown from the photograph |
 | Aon | [64388609](https://www.openstreetmap.org/way/64388609) | Shaft plus rooftop part 284775635 and inferred antenna |
+| Blue Cross | [95486960](https://www.openstreetmap.org/way/95486960) | 284779637, 284779635; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -137,6 +151,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | One Prudential | 183.2 m | 278 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/one-prudential-plaza/2190) |
 | Two Prudential | 303.3 m | 303.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/two-prudential-plaza/489) |
 | Aon | 346.3 m | 362.5 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/aon-center/339) |
+| Blue Cross | 226.7 m | 226.7 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/blue-cross-blue-shield-tower/1160) |
 
 Architectural heights include architectural spires and exclude antennas. The
 table's before/after comparison uses the highest actual rendered vertex, so One
@@ -209,6 +224,12 @@ Intermediate parts have less certainty than the overall height:
   granite cap. Its notched corners are solid stone, and the inferred antenna
   reaches the published 362.5 m tip; see the
   [Aon reference audit](aon-reference.md).
+- The Blue Cross and Blue Shield Tower stands right of Aon, outside the original
+  layout's frame, so that layout has no model of it and the comparison table
+  reports its original extents as not modeled. Its mapped block stands forward
+  of end bays that open through at the middle of three mechanical bands, where
+  the 1997 tower ended, and its emblem screen rises to the published 226.7 m;
+  see the [Blue Cross reference audit](blue-cross-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -225,7 +246,7 @@ fits. Checking curb clearances or Chicago's stacked streets requires additional
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all nine rendered ground
+coordinate anchors, meter scale and north direction, all ten rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,

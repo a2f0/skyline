@@ -117,7 +117,7 @@ keeps the earlier placement, since the drawing cannot fix it.
 A uniform scale fits within 7% of one that stretches height and plan separately, so the
 copy keeps the building's real proportions. The 1.276 matches the exaggeration the
 drawing gives the other fitted towers. The worst landmarks are the foot and the step,
-0.00342 of the canvas at the laptop layout; the sills stay within 0.00201. The drawing
+0.00375 of the canvas at the desktop and laptop layouts; the sills stay within 0.00217. The drawing
 simplifies the slot: it draws the gap between the peaks 45% wider than the photograph
 shows, and flattens its foot where the two roofs actually meet 6 m apart. The slot
 corners are therefore held to the geometry, not to the drawing.
