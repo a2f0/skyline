@@ -7,8 +7,8 @@ import { chainsOf, gridBox, mitredBox, orient, paintedSlab, planOf, turnAt } fro
 // shared by the drawing-fitted model and the geographic one. A framed tube of V-shaped
 // steel columns, clad in white granite, stands on a square plan with notched corners.
 // On each face the columns stand one 10 ft module apart, and dark glass fills the slots
-// between them floor by floor. Above the offices a band of louvers hides the mechanical
-// floors, and a granite cap finishes the shaft. The notched corners are solid stone.
+// between them floor by floor, over the mechanical floors too, up to the granite cap that
+// finishes the shaft. The notched corners are solid stone.
 // A rooftop enclosure and an antenna stand on the flat roof.
 //
 // A form gives the outline and heights above the street; `base` is the height the model's
@@ -26,13 +26,14 @@ export interface AonForm {
   base: number;
 }
 
-// Heights above the street. The floor pitch, the louver band, and the cap are measured on
-// the photograph the drawing was traced from; the lobby takes what is left below eighty
-// floors, which with the crown's two mechanical floors and the lobby make the published 83.
+// Heights above the street. The floor pitch and the cap are measured on the photograph the
+// drawing was traced from. The lobby takes what is left below eighty office floors and the
+// two mechanical floors over them, which with the lobby make the published 83; daylight
+// photographs show the slots unchanged over the mechanical floors, so the glass keeps the
+// office floors' pitch up to the cap.
 export const aonLevels = Object.freeze({
   roof: 340,
   capBottom: 338.5,
-  louverBottom: 321.5,
   lobbyTop: 11.9,
   pitch: 3.87,
   sill: 0.8,
@@ -62,7 +63,6 @@ export function buildAonTower(form: AonForm): BuildingModel {
   const shell = kit.batch("Aon · tube shell", kit.material(0xffffff, { vertexColors: true }));
   const glazing = kit.batch("Aon · window ribbons", kit.material(0xffffff, { vertexColors: true }));
   const piers = kit.batch("Aon · granite piers", kit.material(0xbababa));
-  const louvers = kit.batch("Aon · crown louvers", kit.material(0xffffff, { vertexColors: true }));
   const cap = kit.batch("Aon · granite cap", kit.material(0xc4c4c4));
   const enclosure = kit.batch("Aon · rooftop enclosure", kit.material(0xffffff, { vertexColors: true }));
   const mast = kit.batch("Aon · antenna mast", kit.material(0x6a6a6a));
@@ -95,10 +95,10 @@ export function buildAonTower(form: AonForm): BuildingModel {
   };
   const pierHalf = 0.65, pierPoint = 0.7;
   const floors: number[] = [];
-  for (let level = h.lobbyTop; level + h.pitch <= h.louverBottom + 1e-6; level += h.pitch) floors.push(level);
+  for (let level = h.lobbyTop; level + h.pitch <= h.capBottom + 1e-6; level += h.pitch) floors.push(level);
 
   faces.forEach(({ chord: run }, face) => {
-    const stations = faceBays(run), from = stations[0]!, to = stations.at(-1)!;
+    const stations = faceBays(run);
     // The glass: one ribbon per floor across the face, cut into panes at the columns, which
     // stand in front of the joints. The lobby is a single tall storey of glass.
     const visible = (low: number) => low >= base;
@@ -107,11 +107,6 @@ export function buildAonTower(form: AonForm): BuildingModel {
       if (!visible(level + h.sill)) return;
       grid(glazing, run, stations, [level + h.sill, level + h.head], 0.02, 0.07, (bay) => paneColor(row + 1, bay, face), spandrel);
     });
-    // The crown's louvers: horizontal blades across the face between the columns.
-    const blades: number[] = [];
-    for (let v = h.louverBottom + 0.2; v < h.capBottom - 0.2 - 1e-6; v += 0.45) blades.push(v);
-    blades.push(h.capBottom - 0.2);
-    if (visible(blades[0]!)) grid(louvers, run, [from, to], blades, 0.02, 0.1, (_, r) => (r % 2 === 0 ? slat : slatGap), slatGap);
     // The V-shaped columns: granite prisms from just above grade to the cap, their points
     // outward. They start 0.3 m up so their relief leaves the street outline unchanged.
     for (const station of stations) {

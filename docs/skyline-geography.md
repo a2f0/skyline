@@ -205,8 +205,8 @@ Intermediate parts have less certainty than the overall height:
 - Aon's mapped shaft keeps its 340 m top and its rooftop enclosure the
   346.3 m part top. The tube carries granite V-shaped columns on the 10 ft
   module, fourteen bays to each mapped face, with glass floor by floor on the
-  photograph's 3.87 m pitch. Its louvered crown runs from 321.5 to 338.5 m under
-  a granite cap, its notched corners are solid stone, and the inferred antenna
+  photograph's 3.87 m pitch, which runs on over the mechanical floors to a
+  granite cap. Its notched corners are solid stone, and the inferred antenna
   reaches the published 362.5 m tip; see the
   [Aon reference audit](aon-reference.md).
 

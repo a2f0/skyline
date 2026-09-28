@@ -29,7 +29,7 @@ const enclosure: Vec2[] = [[-16, -16], [16, -16], [16, 16], [-16, 16]];
 // The skyline drawing shows the tower from the photograph's treeline up, so its platform
 // datum crosses the tower above the street: 30.6 m, fitted with the placement in
 // skyline-study.ts, which scales, turns, and places this copy. Its y = 0 is that datum,
-// and the drawing's top floor band is the eightieth office floor, under the louvers.
+// and the drawing's top floor band is the eightieth office floor, under the mechanical ones.
 export const aonSkylineBase = 30.6;
 export function createAonCenterBuilding(): BuildingModel {
   return buildAonTower({ name: "Aon Center", id: "layer3", outline, enclosure, mast: [0, 0], base: aonSkylineBase });
