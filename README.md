@@ -69,8 +69,8 @@ to local OpenStreetMap footprints and parts, with published overall heights
 (Kemper uses OSM's height), and adds 330 North Wabash, the Blue Cross and Blue
 Shield Tower, 340 on the Park, The Buckingham, Millennium Park Plaza, Willoughby Tower,
 Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, the
-University Club of Chicago, and the Monroe Building. It opens on the skyline view from the
-drawing's own camera: the source photograph's vantage on the lakefront by the Adler
+University Club of Chicago, the Monroe Building, and the MacLean Center. It opens on the
+skyline view from the drawing's own camera: the source photograph's vantage on the lakefront by the Adler
 Planetarium, fitted to the mapped roofs and tips while the buildings stay where
 they are mapped. That view frames the whole drawn skyline, and the drawing under
 the scene becomes `models/skyline-panorama.svg`, every building the drawing shows;
@@ -151,6 +151,9 @@ to Jackson for the buildings that follow.
 Across Monroe, the Monroe Building's terracotta rises to a steep gable roof holding two
 floors, its gable on Michigan; its 67.1 m ridge is read on the drawing, since none is
 published; see its [reference audit](docs/monroe-reference.md).
+Beside it the MacLean Center, the old Illinois Athletic Club, carries six floors added in
+1985 over its cornice and frieze of round windows to a pierced parapet, its 73.2 m read on
+the drawing; see its [reference audit](docs/maclean-center-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the
@@ -172,7 +175,7 @@ corners, the 346.3 m enclosure, and the inferred antenna at the published
 Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
-for the coordinate system, nineteen footprint records, height definitions, OSM
+for the coordinate system, twenty footprint records, height definitions, OSM
 attribution, and limitations. All runtime data is checked in locally.
 
 ## Adding a building to the skyline study
