@@ -130,9 +130,9 @@ Omitted:
     gable;
   - on the shaft's Michigan face, each strip's spandrel and window and the piers between
     them;
-  - on the crown's Michigan and south faces, all three windows across their width, their
-    narrowed heads, the piers between them, the parapet over them, and where their feet
-    stand, lower on the Michigan face;
+  - on all four of the crown's faces, all three windows across their width, their narrowed
+    heads, the piers between them, the parapet over them, and where their feet stand, lower
+    on the short faces;
   - the exact mapped outline at grade.
 
   Every mesh is closed.

@@ -1011,8 +1011,9 @@ describe("mapped skyline geography", () => {
       // The shaft's Michigan face: three dark strips, spandrels and all, between stone piers;
       // and the crown's arched windows, from the east and from the south.
       const floor = (n: number) => 6 + (n - 2) * 3.35;
-      const tone = (b: number, y: number, a = 0, fromSouth = false) => {
-        const p = lot(a, b), found = fromSouth ? hit([p[0], y, p[1] + 30], [0, 0, -1]) : hit([p[0] + 30, y, p[1]], [-1, 0, 0]);
+      const tone = (b: number, y: number, a = 0, from: "east" | "south" | "west" | "north" = "east") => {
+        const p = lot(a, b), [dx, dz] = ({ east: [1, 0], south: [0, 1], west: [-1, 0], north: [0, -1] } as const)[from];
+        const found = hit([p[0] + dx * 30, y, p[1] + dz * 30], [-dx, 0, -dz]);
         expect(found.object.name).toBe("Willoughby Tower · stone and windows");
         return (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
       };
@@ -1024,15 +1025,20 @@ describe("mapped skyline geography", () => {
       expect([stone(tone(4.675, floor(30) + 1.5)), stone(tone(6.325, floor(30) + 1.5))], "the piers between the strips").toEqual([true, true]);
       // Three crown windows to a face, 0.9 m wide and 1.7 m apart, their heads narrowing to
       // the middle 0.45 m: tall and centred on the Michigan face, short and centred 10.2 m
-      // west of Michigan on the south face.
+      // west of Michigan on the south face; the undrawn west and north faces repeat them.
       const glass = (r: number) => [0x2a2a2a, 0x2e2e2e, 0x323232, 0x363636, 0x6e6e6e, 0x444444].some((hex) => is(hex)(r));
-      const faces = { michigan: [5.5, (s: number, y: number) => tone(s, y, 2.1)], south: [10.2, (s: number, y: number) => tone(1.2, y, s, true)] } as const;
-      for (const [name, [middle, crown]] of Object.entries(faces)) {
+      const faces = {
+        michigan: [5.5, true, (s: number, y: number) => tone(s, y, 2.1)],
+        west: [5.5, true, (s: number, y: number) => tone(s, y, 15.3, "west")],
+        south: [10.2, false, (s: number, y: number) => tone(1.2, y, s, "south")],
+        north: [10.2, false, (s: number, y: number) => tone(9.8, y, s, "north")],
+      } as const;
+      for (const [name, [middle, tall, crown]] of Object.entries(faces)) {
         const at = (y: number, offsets: number[]) => [-1.7, 0, 1.7].flatMap((d) => offsets.map((o) => crown(middle + d + o, y)));
         expect(at(127.9, [-0.34, 0, 0.34]).every(glass), `${name}: three windows across their width`).toBe(true);
         expect(at(128.85, [0]).every(glass) && at(128.85, [-0.34, 0.34]).every(stone), `${name}: their narrowed heads`).toBe(true);
         expect(at(127.9, [-0.85, 0.85]).every(stone) && at(129.6, [0]).every(stone), `${name}: the piers between them and the parapet over them`).toBe(true);
-        expect(at(125.5, [0]).every(name === "michigan" ? glass : stone), `${name}: the windows' feet`).toBe(true);
+        expect(at(125.5, [0]).every(tall ? glass : stone), `${name}: the windows' feet`).toBe(true);
       }
       // The exact mapped outline at grade.
       const shell = meshes.find((mesh) => mesh.name === "Willoughby Tower · shell")!.geometry.getAttribute("position");

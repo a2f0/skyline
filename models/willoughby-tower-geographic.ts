@@ -145,8 +145,13 @@ export function createWilloughbyTowerGeographicBuilding(record: GeoBuilding, pro
     const columns = [0, at(0.15), at(0.25), at(0.315), at(0.385), at(0.465), at(0.535), at(0.615), at(0.685), at(0.75), at(0.85), length];
     return [columns, (bay) => (bay === 2 || bay === 10 ? "window" : bay === 4 || bay === 6 || bay === 8 ? "strip" : "stone")];
   };
-  // A point's distance west of the lot's Michigan front and north of its south wall.
-  const inLot = (p: Vec2): Vec2 => [(p[0] - corner[0]) * west[0] + (p[1] - corner[1]) * west[1], (p[0] - corner[0]) * north[0] + (p[1] - corner[1]) * north[1]];
+  // The inverse of `at`: a point's distances along the south wall and the Michigan front,
+  // which meet a degree off square.
+  const skew = west[0] * north[1] - west[1] * north[0];
+  const inLot = (p: Vec2): Vec2 => {
+    const [x, z] = [p[0] - corner[0], p[1] - corner[1]];
+    return [(x * north[1] - z * north[0]) / skew, (west[0] * z - west[1] * x) / skew];
+  };
   // The crown: three arched windows to a face, 0.9 m wide and 1.7 m apart, their heads
   // narrowing to the middle 0.45 m. A short face's are tall and centred on it; a long
   // face's are short, centred crownWindows west of Michigan, as the drawing has them.
