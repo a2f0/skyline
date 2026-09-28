@@ -2,7 +2,8 @@
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings, plus 330 North Wabash, the Blue Cross and Blue
-Shield Tower, 340 on the Park, and The Buckingham, which only the geographic layout maps. The page
+Shield Tower, 340 on the Park, The Buckingham, and Millennium Park Plaza, which only the
+geographic layout maps. The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
@@ -100,7 +101,8 @@ a wider sixth, 1600×700, whose canvas fits the frame to its height.
 [wider request](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6300,41.8820,-87.6180,41.8920),
 and the Blue Cross and Blue Shield Tower's outline and parts on September 28, 2026,
 from [another](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6212,41.8845,-87.6180,41.8862),
-as were 340 on the Park's and The Buckingham's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862).
+as were 340 on the Park's and The Buckingham's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862),
+and Millennium Park Plaza's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -138,6 +140,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Blue Cross | [95486960](https://www.openstreetmap.org/way/95486960) | 284779637, 284779635; not in the original layout |
 | 340 on the Park | [95486949](https://www.openstreetmap.org/way/95486949) | 284789056, 284789058; not in the original layout |
 | The Buckingham | [95486940](https://www.openstreetmap.org/way/95486940) | Outline plus rooftop part 284790189; not in the original layout |
+| Millennium Park Plaza | [127107026](https://www.openstreetmap.org/way/127107026) | Outline with detailed walls; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -163,6 +166,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Blue Cross | 226.7 m | 226.7 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/blue-cross-blue-shield-tower/1160) |
 | 340 on the Park | 204.9 m | 204.9 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/340-on-the-park/1583) |
 | The Buckingham | 121.9 m | 121.9 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/buckingham-plaza/10315) |
+| Millennium Park Plaza | 121.9 m | 121.9 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/millennium-park-plaza/10316) |
 
 Architectural heights include architectural spires and exclude antennas. The
 table's before/after comparison uses the highest actual rendered vertex, so One
@@ -254,6 +258,12 @@ Intermediate parts have less certainty than the overall height:
   The south, east and north faces' end bays stand forward of the middle, balconies stack
   in the two notched corners, and the rooftop enclosure on its mapped part rises to the
   published 121.9 m; see the [Buckingham reference audit](buckingham-reference.md).
+- Millennium Park Plaza is the drawing's tower in front of Michigan Plaza, which the
+  geographic camera names; see the
+  [building audit](building-labels.md#names-from-the-geographic-camera). A 90 m concrete
+  slab stands to the published 121.9 m, with window strips in its narrow ends and punched
+  windows in its long faces. Its floor levels are estimates; see the
+  [Millennium Park Plaza reference audit](millennium-park-plaza-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -270,7 +280,7 @@ fits. Checking curb clearances or Chicago's stacked streets requires additional
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all twelve rendered ground
+coordinate anchors, meter scale and north direction, all thirteen rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,

@@ -90,8 +90,9 @@ describe("mapped skyline geography", () => {
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
       "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9], Buckingham: [582.28, -1.52, 121.9],
+      "Millennium Park Plaza": [68.57, 46.33, 121.9],
     };
-    expect(geographicBuildings.length).toBe(12);
+    expect(geographicBuildings.length).toBe(13);
     for (const record of geographicBuildings) {
       const metrics = footprintMetrics(record.footprint.coordinates);
       const [east, north, height] = expected[record.shortName]!;
@@ -917,6 +918,59 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("Millennium Park Plaza", () => {
+    test("keeps the mapped slab, its narrow ends' window strips, its punched long faces and solid chamfers", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Millennium Park Plaza")!;
+      const model = models["Millennium Park Plaza"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const at = (i: number): Vec2 => { const [east, north] = projectGround(record.footprint.coordinates[i]!); return [east, -north]; };
+      // A wall's colour where a ray from outside meets it, s metres from `from` toward `to`.
+      const tone = (from: Vec2, to: Vec2, s: number, y: number) => {
+        const length = Math.hypot(to[0] - from[0], to[1] - from[1]), t: Vec2 = [(to[0] - from[0]) / length, (to[1] - from[1]) / length];
+        const centre = [0, 1, 2, 3, 4, 5].map(at).reduce((sum, p) => [sum[0] + p[0] / 6, sum[1] + p[1] / 6], [0, 0]);
+        let n: Vec2 = [t[1], -t[0]];
+        if ((from[0] - centre[0]) * n[0] + (from[1] - centre[1]) * n[1] < 0) n = [-n[0], -n[1]];
+        const p = [from[0] + t[0] * s, from[1] + t[1] * s];
+        ray.set(new THREE.Vector3(p[0]! + n[0] * 20, y, p[1]! + n[1] * 20), new THREE.Vector3(-n[0], 0, -n[1]));
+        const found = ray.intersectObjects(meshes, false)[0]!;
+        expect(found.object.name).toBe("Millennium Park Plaza · walls and windows");
+        return (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
+      };
+      const is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
+      const [concrete, strip] = [is(0x666666), is(0x3e3e3e)];
+      // The published top over the slab.
+      const [cx, cz] = [(at(0)[0] + at(4)[0]) / 2, (at(0)[1] + at(4)[1]) / 2];
+      ray.set(new THREE.Vector3(cx, 200, cz), new THREE.Vector3(0, -1, 0));
+      expect(ray.intersectObjects(meshes, false)[0]!.point.y).toBeCloseTo(121.9, 3);
+      // The south end: four window strips from the eighth floor, a window over each on the
+      // top floor, solid wall between them, and the offices' windows across it below.
+      const floor = (n: number) => (n <= 8 ? 4.4 + (n - 2) * 3.7 : 26.6 + (n - 8) * 2.8);
+      const [west, east] = [at(3), at(2)], middle = Math.hypot(east[0] - west[0], east[1] - west[1]) / 2;
+      expect(concrete(tone(west, east, middle + 1.6, floor(20) + 1.2)), "a strip's window").toBe(false);
+      expect(strip(tone(west, east, middle + 1.6, floor(20) + 0.1)), "the strip between windows").toBe(true);
+      expect(concrete(tone(west, east, middle, floor(20) + 1.2)), "wall between strips").toBe(true);
+      expect(concrete(tone(west, east, middle + 1.6, floor(40) + 0.1)), "the wall under the top window").toBe(true);
+      expect(concrete(tone(west, east, middle + 1.6, floor(40) + 1.2)), "the top window").toBe(false);
+      expect(concrete(tone(west, east, middle, floor(4) + 1.2)), "an office floor's window").toBe(false);
+      // The east face: a punched window every 3 m between piers; the south-east chamfer solid.
+      const [south, north] = [at(1), at(0)], bay = Math.hypot(north[0] - south[0], north[1] - south[1]) / 30;
+      expect(concrete(tone(south, north, 15.5 * bay, floor(20) + 1.2)), "a window").toBe(false);
+      expect(concrete(tone(south, north, 15 * bay, floor(20) + 1.2)), "a pier").toBe(true);
+      expect(concrete(tone(at(2), at(1), 1.2, floor(20) + 1.2)), "the chamfer").toBe(true);
+      // The exact mapped outline at grade.
+      const shell = meshes.find((mesh) => mesh.name === "Millennium Park Plaza · shell")!.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [x, north] = projectGround(p);
+        return [Math.fround(x), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   describe("Aon", () => {
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
@@ -1052,7 +1106,7 @@ describe("geographic layout in the study", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    expect(await page.locator("#dimensions-body tr").count()).toBe(12);
+    expect(await page.locator("#dimensions-body tr").count()).toBe(13);
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
@@ -1205,8 +1259,9 @@ describe("geographic layout in the study", () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "table scrolls without widening mobile page").toBe(true);
     const projected = await page.evaluate(() => window.__buildingStudy!.modelBounds.map(({ id, min, max }) => ({ id, min, max })));
     // The eight drawn buildings, and 330 North Wabash, the Blue Cross and Blue Shield Tower,
-    // 340 on the Park and The Buckingham, which only the geographic layout models.
-    expect(projected.length).toBe(12);
+    // 340 on the Park, The Buckingham and Millennium Park Plaza, which only the geographic
+    // layout models.
+    expect(projected.length).toBe(13);
     // A portrait phone's width binds the plan's frame; it still holds every footprint.
     await page.locator('[data-view="top"]').click();
     await settle(page);
