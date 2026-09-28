@@ -16,6 +16,7 @@ import { createOnTheParkGeographicBuilding } from "./on-the-park-geographic.js";
 import { createOnePrudentialGeographicBuilding } from "./one-prudential-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
 import { createTwoPrudentialGeographicBuilding } from "./two-prudential-geographic.js";
+import { createWilloughbyTowerGeographicBuilding } from "./willoughby-tower-geographic.js";
 
 // Local WGS84 tangent plane, centered on the bounding-box center of Crain's
 // mapped footprint. Ground coordinates are east/north meters; Three uses x/-z.
@@ -69,6 +70,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-michigan-plaza-front-tall") {
     return createMillenniumParkPlazaGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-willoughby-tower") {
+    return createWilloughbyTowerGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);

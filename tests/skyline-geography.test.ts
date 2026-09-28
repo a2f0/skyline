@@ -90,9 +90,9 @@ describe("mapped skyline geography", () => {
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
       "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9], Buckingham: [582.28, -1.52, 121.9],
-      "Millennium Park Plaza": [68.57, 46.33, 121.9],
+      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5],
     };
-    expect(geographicBuildings.length).toBe(13);
+    expect(geographicBuildings.length).toBe(14);
     for (const record of geographicBuildings) {
       const metrics = footprintMetrics(record.footprint.coordinates);
       const [east, north, height] = expected[record.shortName]!;
@@ -975,6 +975,83 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("Willoughby Tower", () => {
+    test("keeps the mapped lot's base, the corner shaft and its shoulder, the crown and the pinnacles", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Willoughby")!;
+      const model = models["Willoughby"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const hit = (from: Vec3, direction: Vec3) => {
+        ray.set(new THREE.Vector3(...from), new THREE.Vector3(...direction));
+        return ray.intersectObjects(meshes, false)[0]!;
+      };
+      const at = (i: number): Vec2 => { const [east, north] = projectGround(record.footprint.coordinates[i]!); return [east, -north]; };
+      // The lot's south-east corner, with its south wall running west and its Michigan front
+      // north; the shaft stands 17.4 m along the one and 11 m along the other.
+      const corner = at(7), unit = (p: Vec2): Vec2 => { const d = Math.hypot(p[0] - corner[0], p[1] - corner[1]); return [(p[0] - corner[0]) / d, (p[1] - corner[1]) / d]; };
+      const [west, north] = [unit(at(9)), unit(at(4))];
+      const lot = (a: number, b: number): Vec2 => [corner[0] + west[0] * a + north[0] * b, corner[1] + west[1] * a + north[1] * b];
+      const roof = (a: number, b: number) => { const p = lot(a, b); return hit([p[0], 300, p[1]], [0, -1, 0]).point.y; };
+      // Measured on the drawing down from the published 133.5 m: the crown's parapet, the
+      // shaft's roof around it, the shoulder's, the base's setback, and a parapet pinnacle.
+      near(roof(8.7, 5.5), 131.7, 1e-3);
+      near(roof(0.9, 5.5), 123.5, 1e-3);
+      near(roof(20, 5.5), 92, 1e-3);
+      near(roof(10, 18), 80.5, 1e-3);
+      near(roof(0, 24.4), 83.5, 0.05);
+      // The crown, inset 2.1 m from the shaft's Michigan face and 1.2 m from its south face,
+      // probed either side of each; the central pinnacles over each face's windows at the
+      // published top, a short face's flanking pinnacles, and a long face's gable.
+      expect([roof(1.95, 3.6), roof(2.25, 3.6), roof(8.7, 1.05), roof(8.7, 1.25)].map((y) => Math.round(y * 10) / 10)).toEqual([123.5, 131.7, 123.5, 131.7]);
+      near(roof(2.1, 5.5), 133.5, 1e-3);
+      near(roof(10.2, 1.2), 133.5, 1e-3);
+      near(roof(2.1, 2.6), 132.5, 1e-3);
+      near(roof(7.5, 1.55), 132.2, 1e-3);
+      // The shaft's Michigan face: three dark strips, spandrels and all, between stone piers;
+      // and the crown's arched windows, from the east and from the south.
+      const floor = (n: number) => 6 + (n - 2) * 3.35;
+      const tone = (b: number, y: number, a = 0, from: "east" | "south" | "west" | "north" = "east") => {
+        const p = lot(a, b), [dx, dz] = ({ east: [1, 0], south: [0, 1], west: [-1, 0], north: [0, -1] } as const)[from];
+        const found = hit([p[0] + dx * 30, y, p[1] + dz * 30], [-dx, 0, -dz]);
+        expect(found.object.name).toBe("Willoughby Tower · stone and windows");
+        return (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
+      };
+      const is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
+      const [stone, strip] = [is(0x585858), is(0x2d2d2d)];
+      // The strips stand symmetrically about the face's middle, a pier between each pair.
+      const strips = [3.85, 5.5, 7.15].flatMap((b) => [strip(tone(b, floor(30) + 0.2)), strip(tone(b, floor(30) + 1.5))]);
+      expect(strips, "each strip's spandrel and window").toEqual([true, true, true, true, true, true]);
+      expect([stone(tone(4.675, floor(30) + 1.5)), stone(tone(6.325, floor(30) + 1.5))], "the piers between the strips").toEqual([true, true]);
+      // Three crown windows to a face, 0.9 m wide and 1.7 m apart, their heads narrowing to
+      // the middle 0.45 m: tall and centred on the Michigan face, short and centred 10.2 m
+      // west of Michigan on the south face; the undrawn west and north faces repeat them.
+      const glass = (r: number) => [0x2a2a2a, 0x2e2e2e, 0x323232, 0x363636, 0x6e6e6e, 0x444444].some((hex) => is(hex)(r));
+      const faces = {
+        michigan: [5.5, true, (s: number, y: number) => tone(s, y, 2.1)],
+        west: [5.5, true, (s: number, y: number) => tone(s, y, 15.3, "west")],
+        south: [10.2, false, (s: number, y: number) => tone(1.2, y, s, "south")],
+        north: [10.2, false, (s: number, y: number) => tone(9.8, y, s, "north")],
+      } as const;
+      for (const [name, [middle, tall, crown]] of Object.entries(faces)) {
+        const at = (y: number, offsets: number[]) => [-1.7, 0, 1.7].flatMap((d) => offsets.map((o) => crown(middle + d + o, y)));
+        expect(at(127.9, [-0.34, 0, 0.34]).every(glass), `${name}: three windows across their width`).toBe(true);
+        expect(at(128.85, [0]).every(glass) && at(128.85, [-0.34, 0.34]).every(stone), `${name}: their narrowed heads`).toBe(true);
+        expect(at(127.9, [-0.85, 0.85]).every(stone) && at(129.6, [0]).every(stone), `${name}: the piers between them and the parapet over them`).toBe(true);
+        expect(at(125.5, [0]).every(tall ? glass : stone), `${name}: the windows' feet`).toBe(true);
+      }
+      // The exact mapped outline at grade.
+      const shell = meshes.find((mesh) => mesh.name === "Willoughby Tower · shell")!.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [x, n] = projectGround(p);
+        return [Math.fround(x), Math.fround(-n)].map((v) => v.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   describe("Aon", () => {
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
@@ -1110,7 +1187,7 @@ describe("geographic layout in the study", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    expect(await page.locator("#dimensions-body tr").count()).toBe(13);
+    expect(await page.locator("#dimensions-body tr").count()).toBe(14);
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
@@ -1263,9 +1340,9 @@ describe("geographic layout in the study", () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "table scrolls without widening mobile page").toBe(true);
     const projected = await page.evaluate(() => window.__buildingStudy!.modelBounds.map(({ id, min, max }) => ({ id, min, max })));
     // The eight drawn buildings, and 330 North Wabash, the Blue Cross and Blue Shield Tower,
-    // 340 on the Park, The Buckingham and Millennium Park Plaza, which only the geographic
-    // layout models.
-    expect(projected.length).toBe(13);
+    // 340 on the Park, The Buckingham, Millennium Park Plaza and Willoughby Tower, which only
+    // the geographic layout models.
+    expect(projected.length).toBe(14);
     // A portrait phone's width binds the plan's frame; it still holds every footprint.
     await page.locator('[data-view="top"]').click();
     await settle(page);
