@@ -17,6 +17,33 @@ const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
 const settle = (page: Page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 const near = (a: number, b: number, tolerance: number) => expect(Math.abs(a - b), `${a} vs ${b}`).toBeLessThan(tolerance);
 
+// In the ground plan, every mapped footprint projects inside the canvas, and its centre
+// inside the band where the viewer shows a building's label.
+async function expectPlanHolds(page: Page) {
+  const footprints = geographicBuildings.map((record) => {
+    const { center } = footprintMetrics(record.footprint.coordinates);
+    const points = record.footprint.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, 0, -north]; });
+    return { id: record.id, points, centre: [center[0], 0, -center[1]] };
+  });
+  const projected = await page.evaluate((all) => all.map(({ id, points, centre }) => ({
+    id, points: points.map((p) => window.__buildingStudy!.projectPoint(id, p)), centre: window.__buildingStudy!.projectPoint(id, centre),
+  })), footprints);
+  for (const { id, points, centre } of projected) {
+    expect(points.every(([u, v]) => u > 0 && u < 1 && v > 0 && v < 1), `${id} inside the plan`).toBe(true);
+    expect(Math.abs(centre[0] * 2 - 1) < 0.95 && Math.abs(centre[1] * 2 - 1) < 0.95, `${id}'s label inside the plan`).toBe(true);
+  }
+  // Every building's label shows, whole, inside the layer that would otherwise cut it.
+  const labels = await page.evaluate(() => {
+    const layer = document.querySelector(".study-annotations")!.getBoundingClientRect();
+    return [...document.querySelectorAll<HTMLElement>(".study-annotations span")].filter((label) => !label.hidden).map((label) => {
+      const box = label.getBoundingClientRect();
+      return { text: label.textContent, whole: box.left >= layer.left - 0.5 && box.right <= layer.right + 0.5 && box.top >= layer.top - 0.5 && box.bottom <= layer.bottom + 0.5 };
+    });
+  });
+  expect(labels.length).toBe(geographicBuildings.length);
+  expect(labels.filter((label) => !label.whole).map((label) => label.text), "labels cut by the plan's edge").toEqual([]);
+}
+
 describe("mapped skyline geography", () => {
   const models: Record<string, BuildingModel> = {};
   beforeAll(() => {
@@ -62,9 +89,9 @@ describe("mapped skyline geography", () => {
       Heritage: [-65.7, -91.7, 192.4], Kemper: [-204, 188.9, 159], Crain: [0, 0, 177.4],
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
-      "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9],
+      "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9], Buckingham: [582.28, -1.52, 121.9],
     };
-    expect(geographicBuildings.length).toBe(11);
+    expect(geographicBuildings.length).toBe(12);
     for (const record of geographicBuildings) {
       const metrics = footprintMetrics(record.footprint.coordinates);
       const [east, north, height] = expected[record.shortName]!;
@@ -823,6 +850,73 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("Buckingham", () => {
+    test("keeps the mapped bays and notched corners, the floor bands, the top floor and the rooftop enclosure", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Buckingham")!;
+      const model = models["Buckingham"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const hit = (from: Vec3, direction: Vec3) => {
+        ray.set(new THREE.Vector3(...from), new THREE.Vector3(...direction));
+        return ray.intersectObjects(meshes, false)[0];
+      };
+      const local = (p: [number, number]): Vec2 => { const [east, north] = projectGround(p); return [east, -north]; };
+      const at = (i: number) => local(record.footprint.coordinates[i]!);
+      // The drawing's floor lines, floor 7's at 18.94 m and a floor every 2.5456 m.
+      const floor = (n: number) => 18.94 + (n - 7) * 2.5456;
+      // The rooftop enclosure at the published top over its mapped part, and the cap at the
+      // mapped 119 m beside it.
+      const room = record.parts.find((part) => part.way === 284790189)!.coordinates.map(local);
+      const [rx, rz] = [0, 1].map((axis) => room.reduce((sum, p) => sum + p[axis]!, 0) / room.length);
+      near(hit([rx!, 200, rz!], [0, -1, 0])!.point.y, 121.9, 1e-3);
+      near(hit([at(0)[0] + 3, 200, at(0)[1] - 3], [0, -1, 0])!.point.y, 119, 1e-3);
+      // The south face, probed from the south: its end bays stand forward of the middle
+      // three, which piers divide.
+      const front = (x: number, y: number) => hit([x, y, 80], [0, 0, -1])!;
+      const [endBay, middle] = [(at(22)[0] + at(0)[0]) / 2, (at(20)[0] + at(21)[0]) / 2];
+      near(front(endBay, 60).point.z, (at(22)[1] + at(0)[1]) / 2 + 0.07, 0.02);
+      near(front(middle, 60).point.z, (at(20)[1] + at(21)[1]) / 2 + 0.07, 0.02);
+      const pier = front(at(21)[0] + (at(20)[0] - at(21)[0]) / 3, 60);
+      expect(pier.object.name).toBe("Buckingham · piers");
+      near(pier.point.z, at(21)[1] + (at(20)[1] - at(21)[1]) / 3 + 0.25, 0.02);
+      // A concrete band at every floor over the ribbon windows, and on the top floor tall
+      // openings from its deeper band's head at 114.5 m to the cap's foot at 117.4 m.
+      const concrete = new THREE.Color(0x4c4c4c).r;
+      const band = (y: number) => {
+        const found = front(middle, y);
+        expect(found.object.name).toBe("Buckingham · frame and glass");
+        return Math.abs((found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a) - concrete) < 0.002;
+      };
+      expect([band(floor(20) + 0.1), band(floor(20) + 1.3)], "a floor's band and window").toEqual([true, false]);
+      expect([band(114.3), band(114.7), band(117.2), band(117.6)], "the top floor's opening between its band and the cap").toEqual([true, false, false, true]);
+      // A balcony in each notched corner, south-east and north-east, on every floor to the
+      // 43rd, under a railing along its open sides.
+      for (const [first, inner, last] of [[18, 17, 16], [9, 10, 11]] as const) {
+        const [p0, p1, p2] = [at(first), at(inner), at(last)];
+        const notch: Vec2 = [(p0[0] + p2[0]) / 2, (p0[1] + p2[1]) / 2];
+        const balcony = hit([notch[0], floor(30) + 0.5, notch[1]], [0, -1, 0])!;
+        expect(balcony.object.name).toBe("Buckingham · corner balconies");
+        near(balcony.point.y, floor(30) + 0.12, 1e-3);
+        near(hit([notch[0], 200, notch[1]], [0, -1, 0])!.point.y, floor(43) + 0.12, 1e-3);
+        // Just inside the notch's outer corner, the railing's top.
+        const q: Vec2 = [p0[0] + p2[0] - p1[0], p0[1] + p2[1] - p1[1]], d = Math.hypot(p1[0] - q[0], p1[1] - q[1]);
+        const rail = hit([q[0] + (p1[0] - q[0]) * 0.03 / d, 200, q[1] + (p1[1] - q[1]) * 0.03 / d], [0, -1, 0])!;
+        expect(rail.object.name).toBe("Buckingham · corner balconies");
+        near(rail.point.y, floor(43) + 1.0, 1e-3);
+      }
+      // The exact mapped outline at grade.
+      const shell = meshes.find((mesh) => mesh.name === "Buckingham · shell")!.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [x, north] = projectGround(p);
+        return [Math.fround(x), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   describe("Aon", () => {
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
@@ -958,7 +1052,7 @@ describe("geographic layout in the study", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    expect(await page.locator("#dimensions-body tr").count()).toBe(11);
+    expect(await page.locator("#dimensions-body tr").count()).toBe(12);
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
@@ -1036,6 +1130,7 @@ describe("geographic layout in the study", () => {
     expect(plan[3]![1] < plan[0]![1], "north points up").toBe(true);
     const geographicBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     for (const record of geographicBuildings) near(geographicBounds.find((b) => b.id === record.id)!.max[1]!, record.tipHeight, 0.001);
+    await expectPlanHolds(page);
   }, { timeout: 180_000 });
 
   test("pans and zooms to inspect streets, preserving the comparison pose across toggles", async () => {
@@ -1109,9 +1204,13 @@ describe("geographic layout in the study", () => {
     await settle(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "table scrolls without widening mobile page").toBe(true);
     const projected = await page.evaluate(() => window.__buildingStudy!.modelBounds.map(({ id, min, max }) => ({ id, min, max })));
-    // The eight drawn buildings, and 330 North Wabash, the Blue Cross and Blue Shield Tower
-    // and 340 on the Park, which only the geographic layout models.
-    expect(projected.length).toBe(11);
+    // The eight drawn buildings, and 330 North Wabash, the Blue Cross and Blue Shield Tower,
+    // 340 on the Park and The Buckingham, which only the geographic layout models.
+    expect(projected.length).toBe(12);
+    // A portrait phone's width binds the plan's frame; it still holds every footprint.
+    await page.locator('[data-view="top"]').click();
+    await settle(page);
+    await expectPlanHolds(page);
     await page.screenshot({ path: "/tmp/skyline-geographic-mobile.png" });
     const frame = await page.evaluate(() => window.__buildingStudy!.renderCount);
     await page.waitForTimeout(180);
