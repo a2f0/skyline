@@ -9,8 +9,8 @@ import { floorLevel, onePrudentialLevels, wallStations } from "../models/one-pru
 import { trumpSpire } from "../models/trump-geographic.js";
 import { trumpLevels } from "../models/trump-tower.js";
 import { lakeViewPalette } from "../models/lake-view-geographic.js";
-import { macleanLevels, macleanPalette } from "../models/maclean-center-geographic.js";
-import { monroeLevels, monroePalette } from "../models/monroe-geographic.js";
+import { macleanPalette } from "../models/maclean-center-geographic.js";
+import { monroePalette } from "../models/monroe-geographic.js";
 import { northMichigan180Palette } from "../models/north-michigan-180-geographic.js";
 import { universityClubPalette } from "../models/university-club-geographic.js";
 import { northWabashFloors } from "../models/north-wabash-geographic.js";
@@ -1378,8 +1378,8 @@ describe("mapped skyline geography", () => {
       const drawn = (height: number) => height * 69 / 67.7;
       const middle = Math.hypot(...[0, 1].map((k) => at(0)[k]! - corner[k]!)) / 2;
       near(roof(1, middle), 69, 0.03);
-      near(roof(20, 5), monroeLevels.eaves + 5 / 13.64 * (69 - monroeLevels.eaves), 0.15);
-      near(roof(0.02, middle), monroeLevels.eaves, 1e-3);
+      near(roof(20, 5), drawn(58.2) + 5 / 13.64 * (69 - drawn(58.2)), 0.15);
+      near(roof(0.02, middle), drawn(58.2), 1e-3);
       const tone = (a: number, b: number, y: number, from: "east" | "south" | "north") => {
         const p = lot(a, b), d = ({ east: [-west[0], -west[1]], south: [-north[0], -north[1]], north: [north[0], north[1]] } as const)[from];
         const found = hit([p[0] + d[0] * 30, y, p[1] + d[1] * 30], [-d[0], 0, -d[1]]);
@@ -1447,7 +1447,7 @@ describe("mapped skyline geography", () => {
       expect(record.parts.map((part) => [part.bottom, part.top]), "its one part").toEqual([[0, record.height]]);
       const drawn = (height: number) => height * 77.4 / 73.8;
       near(roof(10, 11), 77.4, 1e-3);
-      near(roof(-0.3, 11), macleanLevels.frieze, 1e-3);
+      near(roof(-0.3, 11), drawn(45.6), 1e-3);
       const tone = (a: number, b: number, y: number, from: "east" | "south" | "west") => {
         const p = lot(a, b), d = ({ east: [-west[0], -west[1]], south: [-north[0], -north[1]], west: [west[0], west[1]] } as const)[from];
         const found = hit([p[0] + d[0] * 30, y, p[1] + d[1] * 30], [-d[0], 0, -d[1]]);

@@ -72,7 +72,7 @@ so that the drawn parapet meets the published one. The scale adds 4.9%.
 
 | Feature | Height | Basis |
 | --- | ---: | --- |
-| Ground floor | 0–4.7 m | Estimate: under the drawn floors |
+| Ground floor | 0–5.3 m | Estimate: under the drawn floors, its shopfronts to 4.7 m |
 | Old club's floors | 3.36 m | Drawing: the window rows to the twelfth floor, 3.2 m apart as drawn |
 | Bands | 42.9–45.9 m | Drawing |
 | Cornice | 45.9–47.8 m | Drawing: 60 cm proud |
@@ -81,7 +81,7 @@ so that the drawn parapet meets the published one. The scale adds 4.9%.
 | Parapet's openings | 74.4–76.1 m | Drawing |
 | Parapet's top | 77.4 m | Drawing: the published height |
 
-The drawn rows put twelve floors under the old club's bands, with a 4.7 m ground floor,
+The drawn rows put twelve floors under the old club's bands, with a 5.3 m ground floor,
 and six in the addition: eighteen, as Emporis gives. The hill in the drawing hides the
 building below 30 m, so the lower floors are estimates.
 

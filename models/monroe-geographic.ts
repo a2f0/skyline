@@ -165,12 +165,12 @@ export function createMonroeGeographicBuilding(record: GeoBuilding, projectPlan:
   skin(1, facing(0, 1), () => [], true);
 
   // The gable's small arched windows, dark panels 1 m wide standing 3 cm proud of it, 5 mm
-  // clear, their heads stepped to the middle half for the arch's last 30 cm and set 5 mm
-  // back so that no face lies in the panel's: three pairs 2.3 m apart in the lower row, one
-  // pair in the middle above.
+  // clear, their heads stepped to the middle half for the arch's last 30 cm as drawn and set
+  // 5 mm back so that no face lies in the panel's: three pairs 2.3 m apart in the lower row,
+  // one pair in the middle above.
   const window = (b: number, lo: number, hi: number) => {
-    kit.prism(attic, planOf(rect(0.02, 0.045, b - 0.5, b + 0.5)), [lo, hi - 0.3]);
-    kit.prism(attic, planOf(rect(0.025, 0.045, b - 0.25, b + 0.25)), [hi - 0.3, hi]);
+    kit.prism(attic, planOf(rect(0.02, 0.045, b - 0.5, b + 0.5)), [lo, hi - drawn(0.3)]);
+    kit.prism(attic, planOf(rect(0.025, 0.045, b - 0.25, b + 0.25)), [hi - drawn(0.3), hi]);
   };
   for (const c of [middle - 5.6, middle, middle + 5.6]) for (const d of [-1.15, 1.15]) window(c + d, drawn(58.3), drawn(60.1));
   for (const d of [-1.15, 1.15]) window(middle + d, drawn(61.75), drawn(63.4));
