@@ -131,9 +131,9 @@ Measured at all five layouts:
 
 | Feature | Worst error | Tolerance |
 | --- | ---: | ---: |
-| Landmarks (the drawn roof's east end at the bevel, at the laptop layout) | 0.00232 | 0.0025 |
-| Mullion lines (a crown line, at the tall layout) | 0.00175 | 0.0019 |
-| Floor rows | 0.0020 | 0.0022 |
+| Landmarks (the drawn roof's east end at the bevel, at the desktop and laptop layouts) | 0.00269 | 0.0029 |
+| Mullion lines (a crown line, at the tablet layout) | 0.00133 | 0.0019 |
+| Floor rows | 0.00228 | 0.0025 |
 
 The drawing keeps the photograph's upward-looking perspective. Through the skyline camera
 that spaces the rows about 1.5% tighter than the landmarks above them allow.

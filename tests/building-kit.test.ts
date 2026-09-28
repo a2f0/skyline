@@ -380,7 +380,7 @@ describe("omission coverage", () => {
 });
 
 describe("fitted and geographic models", () => {
-  const geographic: Record<string, string> = { "aon-geographic": "Aon", "crain-geographic": "Crain", "heritage-geographic": "Heritage", "kemper-geographic": "Kemper", "michigan-plaza-south-geographic": "Michigan Plaza S", "north-wabash-geographic": "330 N Wabash", "one-prudential-geographic": "One Prudential", "trump-geographic": "Trump", "two-prudential-geographic": "Two Prudential" };
+  const geographic: Record<string, string> = { "aon-geographic": "Aon", "blue-cross-geographic": "Blue Cross", "crain-geographic": "Crain", "heritage-geographic": "Heritage", "kemper-geographic": "Kemper", "michigan-plaza-south-geographic": "Michigan Plaza S", "north-wabash-geographic": "330 N Wabash", "one-prudential-geographic": "One Prudential", "trump-geographic": "Trump", "two-prudential-geographic": "Two Prudential" };
   const ids = [...fitted.map((entry) => entry.id), ...Object.keys(geographic)];
   const built: Record<string, BuildingModel> = {};
   beforeAll(async () => {

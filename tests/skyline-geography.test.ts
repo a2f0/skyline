@@ -62,8 +62,9 @@ describe("mapped skyline geography", () => {
       Heritage: [-65.7, -91.7, 192.4], Kemper: [-204, 188.9, 159], Crain: [0, 0, 177.4],
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
+      "Blue Cross": [420.1, 5.7, 226.7],
     };
-    expect(geographicBuildings.length).toBe(9);
+    expect(geographicBuildings.length).toBe(10);
     for (const record of geographicBuildings) {
       const metrics = footprintMetrics(record.footprint.coordinates);
       const [east, north, height] = expected[record.shortName]!;
@@ -679,6 +680,71 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("Blue Cross", () => {
+    test("keeps the mapped block and end bays, the open middle band, the bands' columns and the emblem screen", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Blue Cross")!;
+      const model = models["Blue Cross"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const hit = (from: Vec3, direction: Vec3) => {
+        ray.set(new THREE.Vector3(...from), new THREE.Vector3(...direction));
+        return ray.intersectObjects(meshes, false)[0];
+      };
+      const local = (way: number) => record.parts.find((part) => part.way === way)!.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
+      const block = local(284779637), slab = local(284779635);
+      const bounds = (ring: Vec2[]) => [0, 1].map((axis) => [Math.min(...ring.map((p) => p[axis]!)), Math.max(...ring.map((p) => p[axis]!))]) as [[number, number], [number, number]];
+      const [[blockWest, blockEast], [blockNorth, blockSouth]] = bounds(block), [[slabWest], [, slabSouth]] = bounds(slab);
+      // The published 226.7 m at the screen over the block, and the mapped 212 m over the
+      // end bays, which the block stands forward of.
+      near(hit([(blockWest + blockEast) / 2, 400, (blockNorth + blockSouth) / 2], [0, -1, 0])!.point.y, 226.7, 1e-3);
+      const westBay = slabWest + 3;
+      near(hit([westBay, 400, 0], [0, -1, 0])!.point.y, 212, 1e-3);
+      const front = (x: number, y: number) => hit([x, y, 80], [0, 0, -1]);
+      expect(front((blockWest + blockEast) / 2, 100)!.point.z - front(westBay, 100)!.point.z).toBeGreaterThan(4);
+      expect(front(westBay, 100)!.point.z).toBeGreaterThan(slabSouth - 1);
+      // At the middle band, the top of the 1997 tower, the end bays are open through; below
+      // it and above it they stand.
+      expect(front(westBay, 122), "the west bay is open through the middle band").toBeUndefined();
+      expect(front(westBay, 110)).toBeDefined();
+      expect(front(westBay, 140)).toBeDefined();
+      // Through the opening, the block's side wall keeps its skin, which the bays cover below
+      // and above it.
+      const side = hit([slabWest - 10, 122.5, (blockNorth + blockSouth) / 2], [1, 0, 0])!;
+      expect(side.point.x, "the side wall through the opening").toBeGreaterThan(slabWest + 5);
+      expect(side.object.name).toBe("Blue Cross · glass, spandrels and bands");
+      // Each band's recess, dark between the block's columns, which stand proud of it; and
+      // the emblems in the screen's first two bays at the south face's west end.
+      const southWest = block.reduce((best, p) => (p[1] - p[0] > best[1] - best[0] ? p : best));
+      const southEast = block.reduce((best, p) => (p[1] + p[0] > best[1] + best[0] ? p : best));
+      const pitch = (southEast[0] - southWest[0]) / 8;
+      for (const y of [69, 122.5, 173.3]) {
+        const recess = front(southWest[0] + pitch, y)!;
+        expect(recess.object.name, `the band's recess at ${y} m`).toBe("Blue Cross · glass, spandrels and bands");
+        const colors = (recess.object as THREE.Mesh).geometry.getAttribute("color");
+        near(colors.getX(recess.face!.a), new THREE.Color(0x2a2a2a).r, 0.002);
+        expect(front(southWest[0] + pitch / 2, y)!.object.name, `a column in the band at ${y} m`).toBe("Blue Cross · band columns and emblems");
+      }
+      // The cross, west, and the shield: each probed at its centre, and inside and outside
+      // its outline where a square plate would differ.
+      const emblem = (dx: number, dy: number, bay: number) => front(southWest[0] + bay * pitch + dx, 219.5 + dy)!.object.name === "Blue Cross · band columns and emblems";
+      expect([emblem(0, 0, 1), emblem(1.6, 0, 1), emblem(0, -1.6, 1)], "the cross and its arms").toEqual([true, true, true]);
+      expect([emblem(1.5, 1.5, 1), emblem(-1.5, -1.5, 1)], "clear of the cross between its arms").toEqual([false, false]);
+      expect([emblem(0, 0, 2), emblem(-1.5, 1.8, 2), emblem(1.5, 1.8, 2)], "the shield and its shoulders").toEqual([true, true, true]);
+      expect([emblem(-1.5, -1.8, 2), emblem(1.5, -1.8, 2)], "the shield's point").toEqual([false, false]);
+      expect(front(southWest[0] + 3 * pitch, 219.5)!.object.name, "no emblem past the second bay").toBe("Blue Cross · glass, spandrels and bands");
+      // The exact mapped outline at grade.
+      const shell = meshes.find((mesh) => mesh.name === "Blue Cross · shell")!.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [east, north] = projectGround(p);
+        return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   describe("Aon", () => {
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
@@ -791,7 +857,7 @@ describe("geographic layout in the study", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    expect(await page.locator("#dimensions-body tr").count()).toBe(9);
+    expect(await page.locator("#dimensions-body tr").count()).toBe(10);
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
@@ -807,10 +873,12 @@ describe("geographic layout in the study", () => {
     // Mapped roofs and tips land on their drawn positions in the reference frame's
     // layer units. The worst, Kemper's west roof corner, lies 62 units off, 49 of them
     // across the frame; the fit's RMS is 29.9. The same eye and frame hold at every
-    // layout, so each point lands on the same spot. The skyline test's layouts all have canvases narrower than
-    // the frame; 1440x800's is wider, so the field of view fits the frame's height.
+    // layout, so each point lands on the same spot. The geographic layout frames the
+    // panorama, about 2.65 times as wide as it is tall: the skyline test's layouts all have
+    // canvases narrower than that, and 1600x700's is wider, so the field of view fits the
+    // frame's height there.
     const placed: Record<string, [number, number][]> = {};
-    for (const size of [...viewports.map(({ options }) => options.viewport!), { width: 1440, height: 800 }]) {
+    for (const size of [...viewports.map(({ options }) => options.viewport!), { width: 1600, height: 700 }]) {
       await page.setViewportSize(size);
       await settle(page);
       const measured = await page.evaluate(async (landmarks) => {
@@ -940,8 +1008,9 @@ describe("geographic layout in the study", () => {
     await settle(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "table scrolls without widening mobile page").toBe(true);
     const projected = await page.evaluate(() => window.__buildingStudy!.modelBounds.map(({ id, min, max }) => ({ id, min, max })));
-    // The eight drawn buildings and 330 North Wabash, which only the geographic layout maps.
-    expect(projected.length).toBe(9);
+    // The eight drawn buildings, and 330 North Wabash and the Blue Cross and Blue Shield
+    // Tower, which only the geographic layout models.
+    expect(projected.length).toBe(10);
     await page.screenshot({ path: "/tmp/skyline-geographic-mobile.png" });
     const frame = await page.evaluate(() => window.__buildingStudy!.renderCount);
     await page.waitForTimeout(180);

@@ -60,16 +60,20 @@ Aon Center is the tower as built, on its published 59.15 m square with a notch c
 
 The Heritage plan, heights, and placement were fitted numerically through the skyline camera to the drawn corners, mullions, fins, and lower cap. The camera-facing flat face and bow radius are about 1.3 times the OpenStreetMap trace, and the whole tower plan about 1.1–1.2 times, because the drawing is wider relative to its heights than the real building; the hidden north and west faces are simplified closures rather than that outline, and the lower tier keeps roughly its traced size; the 3.79 m floor pitch likewise follows the drawing rather than the building's 3.37 m average. The drawing also exaggerates how far the curved bands sag toward the right, roughly twice what any camera consistent with the other towers produces, so the model matches horizontal positions and corners and leaves that sag as a residual: the crown cap's north end sits about 14 layer units above its drawn corner in the desktop layout, and up to about 21 in the tall one. Framing the earlier five-building scene moved those from about 9 and 19: the sag is unchanged, but the wider frame places the camera differently. The real lower tier extends farther south, unlit and hidden in the photo; the model trims it along the skyline view's line of sight so nothing appears left of the drawn silhouette.
 
-`models/skyline-reference.svg` contains the unmodified `building-heritage-at-millennium-park`, `building-kemper`, `building-michigan-plaza-south-tower`, `building-crain-communications`, `building-trump-tower-only`, `building-one-prudential-plaza`, `building-two-prudential-plaza`, `building-prudential-plaza-podium`, and Aon's `layer3` groups from `skyline-animated.svg`, preserving their positions, nested transforms, and draw order. It also carries the source definitions used by Aon's in-group tonal overlays. Its padded viewBox matches the study's framing. The unidentified historic facade in front of the Heritage and the three unidentified buildings in front of Michigan Plaza are omitted; the drawing's blank lower façade and uneven base extend into those obscured areas. The 3D study infers continuous windows and a shared ground plane there. No photo texture, external model, or runtime service is used.
+`models/skyline-reference.svg` contains the unmodified `building-heritage-at-millennium-park`, `building-kemper`, `building-michigan-plaza-south-tower`, `building-crain-communications`, `building-trump-tower-only`, `building-one-prudential-plaza`, `building-two-prudential-plaza`, `building-prudential-plaza-podium`, and Aon's `layer3` groups from `skyline-animated.svg`, preserving their positions, nested transforms, and draw order. It also carries the source definitions used by Aon's in-group tonal overlays. Its padded viewBox matches the study's framing. `models/skyline-panorama.svg` carries all 38 of the drawing's building groups, identified and not, in the geographic layout's wider frame; `bun scripts/reference-svg.ts` regenerates both. The unidentified historic facade in front of the Heritage and the three unidentified buildings in front of Michigan Plaza are omitted; the drawing's blank lower façade and uneven base extend into those obscured areas. The 3D study infers continuous windows and a shared ground plane there. No photo texture, external model, or runtime service is used.
 
 ## Geographic skyline comparison
 
 In `skyline-study.html`, **geographic layout** switches the same eight buildings
 to local OpenStreetMap footprints and parts, with published overall heights
-(Kemper uses OSM's height), and adds 330 North Wabash. It opens on the skyline view from the drawing's
+(Kemper uses OSM's height), and adds 330 North Wabash and the Blue Cross and Blue
+Shield Tower. It opens on the skyline view from the drawing's
 own camera: the source photograph's vantage on the lakefront by the Adler
 Planetarium, fitted to the mapped roofs and tips while the buildings stay where
-they are mapped. **Ground plan** gives a north-up orthographic plan with street
+they are mapped. That view frames the whole drawn skyline, and the drawing under
+the scene becomes `models/skyline-panorama.svg`, every building the drawing shows;
+the original layout keeps its excerpt. The page stacks the scene over the drawing,
+each the page's full width, so both contain their frame at the same scale. **Ground plan** gives a north-up orthographic plan with street
 centerlines and a 100 m grid, and **height comparison** an elevated
 orthographic view. Both comparison views preserve camera and zoom when toggling
 back to **original drawing**, aligned at Crain so changes in position and scale
@@ -103,7 +107,11 @@ labels Michigan Plaza South is 330 North Wabash, whose mapped roof corners land
 on the drawn ones. The geographic layout adds it, Mies van der Rohe's bronze
 curtain wall on the 5 ft module to the mapped 211.84 m, with its lobby on the
 25 ft plaza and louvered plant floors; see its
-[reference audit](docs/north-wabash-reference.md).
+[reference audit](docs/north-wabash-reference.md). Right of Aon, outside the
+original layout's frame, it adds the Blue Cross and Blue Shield Tower on its
+mapped outline and parts: the glass block forward of end bays that open through
+at the middle of its three mechanical bands, and the emblem screen to the
+published 226.7 m; see its [reference audit](docs/blue-cross-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the
@@ -125,7 +133,7 @@ corners, the 346.3 m enclosure, and the inferred antenna at the published
 Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
-for the coordinate system, nine footprint records, height definitions, OSM
+for the coordinate system, ten footprint records, height definitions, OSM
 attribution, and limitations. All runtime data is checked in locally.
 
 ## Adding a building to the skyline study

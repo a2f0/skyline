@@ -111,9 +111,9 @@ Measured at all five layouts:
 
 | Feature | Worst error | Tolerance |
 | --- | ---: | ---: |
-| Roof landmarks (the east end, at the laptop layout) | 0.0075 | 0.008 |
-| Piers | 0.0030 | 0.0034 |
-| Floor rows (the drawing spaces its bands about 2.5% wider) | 0.00644 | 0.0068 |
+| Roof landmarks (the east end, at the desktop layout) | 0.00823 | 0.0088 |
+| Piers | 0.0025 | 0.0034 |
+| Floor rows (the drawing spaces its bands about 2.5% wider) | 0.00692 | 0.0075 |
 
 The drawing leaves its top 160 layer units without bands, over the mechanical floors the
 night photograph shows lit, and draws no enclosure or antenna. The copy carries its glass

@@ -4,6 +4,7 @@ import type { BuildingModel, Plan, Vec2, Vec3 } from "./building-kit.js";
 import { geographicBuildings, geographicStreets } from "./skyline-geography-data.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
 import { createAonGeographicBuilding } from "./aon-geographic.js";
+import { createBlueCrossGeographicBuilding } from "./blue-cross-geographic.js";
 import { createCrainGeographicBuilding } from "./crain-geographic.js";
 import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
 import { createKemperGeographicBuilding } from "./kemper-geographic.js";
@@ -53,6 +54,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-crain-communications") {
     return createCrainGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-blue-cross-blue-shield") {
+    return createBlueCrossGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);

@@ -32,7 +32,10 @@ button:disabled { cursor: default; opacity: 0.35; }
 .notes p { max-width: 65ch; }
 .tooltip { position: fixed; z-index: 3; border: 1px solid #3a3a3a; border-radius: 3px; padding: 4px 7px; background: #000; color: #fff; font: 600 12px/1.15 ui-monospace, monospace; pointer-events: none; }
 [hidden] { display: none !important; }
-.skyline-study .comparison { grid-template-columns: 1fr 1fr; }
+/* The skyline study stacks the scene over the drawing, each the page's full width and the
+   viewport's height, so both contain the same frame at the same scale. */
+.skyline-study .comparison { grid-template-columns: 1fr; }
+.skyline-study .reference { height: clamp(440px, 67vh, 850px); border-right: 0; border-top: 1px solid #292929; }
 .skyline-study .reference img { left: 0; transform: none; width: 100%; height: calc(100% - 44px); padding: 0; }
 .layout-controls { display: flex; gap: 24px; align-items: center; padding: 0 0 18px; }
 .layout-controls p { color: #a2b5b8; font-size: 11px; line-height: 1.7; max-width: 85ch; margin: 0; }
@@ -66,7 +69,6 @@ button:disabled { cursor: default; opacity: 0.35; }
   .notes { display: block; }
   button { padding: 12px 11px; }
   .study-links { align-items: start; flex-direction: row; flex-wrap: wrap; gap: 18px; }
-  .skyline-study .comparison { grid-template-columns: 1fr; }
-  .skyline-study .reference { height: 360px; border-right: 0; border-bottom: 1px solid #292929; }
+  .skyline-study .reference { height: 360px; }
   .skyline-study .viewport { height: 480px; }
 }

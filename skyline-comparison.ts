@@ -25,8 +25,10 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
   // are meters east, up, and south of Crain's mapped centre.
   const photoEye: Vec3 = [1471.76, 2, 1948.8];
   const photoAzimuth = 36.1247 * Math.PI / 180, photoPolar = 94.0182 * Math.PI / 180;
-  // The reference excerpt's frame: its vertical field of view and its viewBox aspect.
-  const frameFov = 10.5279 * Math.PI / 180, frameAspect = 4430 / 3535.05;
+  // The panorama's frame, models/skyline-panorama.svg: its vertical field of view and its
+  // viewBox aspect. It is the reference excerpt's frame widened about the same centre to
+  // every building the drawing shows, so the camera aims where it always has.
+  const frameFov = 10.5279 * Math.PI / 180, frameAspect = 9378.476 / 3535.05;
   const back: Vec3 = [Math.sin(photoPolar) * Math.sin(photoAzimuth), Math.cos(photoPolar), Math.sin(photoPolar) * Math.cos(photoAzimuth)];
   // Orbit and zoom pivot on the sightline at Crain's depth.
   const photoDistance = photoEye[0] * back[0] + photoEye[1] * back[1] + photoEye[2] * back[2];
@@ -105,9 +107,15 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     const geographic = name === "geographic";
     streetButton.disabled = !geographic;
     document.querySelector<HTMLElement>("#layout-status")!.textContent = geographic
-      ? "Geographic layout · mapped footprints and published heights, with detailed facades on all nine buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
+      ? "Geographic layout · mapped footprints and published heights, with detailed facades on all ten buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Cyan outlines: mapped ground coverage. Gold lines: street centerlines. Grid: 100 m."
       : "Original layout · proportions and spacing fitted to the drawing. Use ground plan or height comparison, then toggle layouts to compare at the same camera scale.";
-    document.querySelector<HTMLElement>("#model-caption")!.textContent = geographic ? "02 / geographic study" : "02 / original 3D study";
+    document.querySelector<HTMLElement>("#model-caption")!.textContent = geographic ? "01 / geographic study" : "01 / original 3D study";
+    // The drawing under the scene frames what the scene does: the whole skyline for the
+    // geographic layout, the excerpt the original layout is fitted to otherwise.
+    const drawing = document.querySelector<HTMLImageElement>(".reference img")!;
+    if (!drawing.dataset["excerpt"]) Object.assign(drawing.dataset, { excerpt: drawing.getAttribute("src"), excerptAlt: drawing.alt });
+    drawing.src = geographic ? "models/skyline-panorama.svg" : drawing.dataset["excerpt"]!;
+    drawing.alt = geographic ? "The whole drawn skyline, every building the drawing shows, from the Railway Exchange Building on the left to the towers around The Buckingham on the right" : drawing.dataset["excerptAlt"]!;
   }
   function connect(viewer: { requestRender(): void }) {
     streetButton.addEventListener("click", () => {

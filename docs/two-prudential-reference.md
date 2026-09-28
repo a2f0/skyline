@@ -170,8 +170,8 @@ Measured at all five layouts:
 
 | Feature | Worst error | Tolerance |
 | --- | ---: | ---: |
-| Landmarks (the south gable's point, at the laptop layout) | 0.00285 | 0.003 |
-| Piers (an east pier, at the tall layout) | 0.00157 | 0.0018 |
+| Landmarks (the south gable's point, at the desktop layout) | 0.00322 | 0.0035 |
+| Piers (a south pier, at the tablet layout) | 0.00112 | 0.0018 |
 
 The earlier copy, on the drawing's own 59 m face, reached about 0.0026 and 0.0025. The
 drawing puts the south gable's point about a metre higher than the east one's, which

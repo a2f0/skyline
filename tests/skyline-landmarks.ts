@@ -12,7 +12,7 @@ const twoPrudential = "building-two-prudential-plaza";
 const northWabash = "building-330-north-wabash";
 const aon = "layer3";
 
-// The excerpt the study shows beside the scene; scripts/reference-svg.js regenerates it.
+// The excerpts the study shows under the scene; scripts/reference-svg.js regenerates them.
 interface Reference {
   path: string;
   source: string;
@@ -34,6 +34,28 @@ const reference: Reference = {
   // Aon's in-group tonal overlays refer to these source definitions.
   defs: ["facade-depth", "facade-height", "clip-aon-center"],
   groups: [heritage, kemper, michigan, crain, trump, prudential, twoPrudential, prudentialPodium, aon],
+};
+
+// The geographic layout's frame: every building the drawing shows, in a frame as tall as
+// the reference's and about the same centre, widened to the drawing's leftmost and
+// rightmost buildings. Its camera is the reference's, so every landmark lands where it did.
+const panorama: Reference = {
+  path: "models/skyline-panorama.svg",
+  source: "skyline-animated.svg",
+  viewBox: "-1400 -154.834 9378.476 3535.05",
+  title: "Chicago's skyline from the Adler Planetarium's lakefront: every building the drawing shows",
+  description: "Unmodified building groups from skyline-animated.svg, preserving their positions, transforms, and draw order, including those the geographic layout does not model yet.",
+  defs: ["facade-depth", "facade-height", "clip-aon-center", "hover-roof-0", "hover-roof-1"],
+  groups: [
+    "building-buckingham-west", "building-buckingham-east", "building-the-buckingham", "building-blue-cross-blue-shield", "building-340-on-the-park",
+    heritage, "building-six-north-far-east", "building-six-north-east", "building-six-north-east-path318", "building-six-north-far-east-path318",
+    "building-six-north-east-path320", "building-six-north-far-east-path320", "building-six-north-michigan", "building-willoughby-tower",
+    "building-michigan-west-right", "building-michigan-west-left-roof", "building-michigan-west-right-roof", "building-michigan-west-left",
+    "building-michigan-west-front", kemper, michigan, "building-michigan-plaza-front-tall", "building-michigan-plaza-front-middle",
+    "building-michigan-plaza-front-small", crain, trump, "building-office-west-of-aon", prudential, twoPrudential, prudentialPodium,
+    "building-university-club", "building-monroe", "building-maclean-center", "building-lakeview", "building-peoples-gas",
+    "building-200-south-michigan", "building-railway-exchange", aon,
+  ],
 };
 
 // Every model in the scene, in the study's order.
@@ -177,8 +199,9 @@ const fitted: FittedSpec[] = [
     // Heritage was fitted numerically, so it holds a tighter bound than the hand-placed trio.
     // Both descend from the four-building frame's 0.008 and 0.006 limits after
     // successive 1.375x, 1.20835x, and 1.19979x viewBox expansions. The landmark
-    // limit includes the measured perspective shift at the laptop layout.
-    tolerance: 0.00435,
+    // limit includes the measured perspective shift and the stacked page, whose desktop
+    // canvas fits the frame to its height: the cap's north end reaches 0.00439 there.
+    tolerance: 0.0046,
     columnTolerance: 0.00305,
     // The left silhouette is the stub's drawn edge.
     silhouette: 2062.84,
@@ -206,13 +229,14 @@ const fitted: FittedSpec[] = [
     columns: {},
     // The twenty-nine sills the left face shows below its shoulder, where each light band
     // gives way to the glass above it on the drawing's left edge. The lowest few sit highest
-    // against the drawing; the worst, 0.00201, is at the laptop layout.
+    // against the drawing; the worst, 0.00217, is at the desktop layout.
     rows: {
-      crainSills: { drawn: [2644.3, 2617.2, 2591.3, 2564.2, 2536.6, 2508.2, 2480.5, 2454.3, 2428.4, 2400, 2372.9, 2345.6, 2319.5, 2289.2, 2263.8, 2234, 2208.7, 2180.6, 2153.9, 2127.2, 2100.9, 2072.5, 2045.2, 2016.8, 1991.4, 1963.8, 1936.7, 1910, 1881.9], tolerance: 0.0022 },
+      crainSills: { drawn: [2644.3, 2617.2, 2591.3, 2564.2, 2536.6, 2508.2, 2480.5, 2454.3, 2428.4, 2400, 2372.9, 2345.6, 2319.5, 2289.2, 2263.8, 2234, 2208.7, 2180.6, 2153.9, 2127.2, 2100.9, 2072.5, 2045.2, 2016.8, 1991.4, 1963.8, 1936.7, 1910, 1881.9], tolerance: 0.0024 },
     },
     sightGap: [0.05, 1],
     // Fitted numerically with the placement in skyline-study.ts. The foot and the step are the
-    // worst landmarks, 0.00342 at the laptop layout; the peaks and shoulders stay inside 0.0026.
+    // worst landmarks, 0.00375 at the desktop and laptop layouts; the peaks and shoulders stay
+    // inside 0.0028.
     tolerance: 0.004,
     columnTolerance: 0.001,
   },
@@ -252,13 +276,13 @@ const fitted: FittedSpec[] = [
     // photograph's upward-looking perspective, which spaces these rows about 1.5% tighter
     // through this camera than the landmarks above them allow; the ends stray furthest.
     rows: {
-      trumpFloorBands: { drawn: [1723.07, 1573.522, 1423.974, 1274.426, 1124.877, 975.329, 868.509], tolerance: 0.0022 },
+      trumpFloorBands: { drawn: [1723.07, 1573.522, 1423.974, 1274.426, 1124.877, 975.329, 868.509], tolerance: 0.0025 },
     },
     sightGap: [0.05, 1],
     // Fitted numerically at all five layouts. The worst landmark is the drawn roof's east end
-    // at the bevel, 0.00232 at the laptop layout; the worst column is a crown mullion,
-    // 0.00175 at the tall layout; the rows reach 0.0020.
-    tolerance: 0.0025,
+    // at the bevel, 0.00269 at the desktop and laptop layouts; the worst column is a crown
+    // mullion, 0.00133 at the tablet layout; the rows reach 0.00228 at the desktop layout.
+    tolerance: 0.0029,
     columnTolerance: 0.0019,
   },
   {
@@ -298,15 +322,15 @@ const fitted: FittedSpec[] = [
     rows: {
       // Centres of six drawn window rows in the south face's fourth bay: the top row, the
       // fortieth floor, and every sixth below it.
-      floorRows: { drawn: [1681.648, 1871.923, 2062.197, 2252.471, 2442.746, 2633.02], tolerance: 0.0014 },
+      floorRows: { drawn: [1681.648, 1871.923, 2062.197, 2252.471, 2442.746, 2633.02], tolerance: 0.0016 },
     },
     // Each column point sits at half its pier's depth, so a present pier is met a little
     // before the point and a missing one leaves the wall behind it.
     sightGap: [0.05, 1],
     // Fitted numerically at all five layouts. The worst landmark is the drawn screen's
     // west end, which the drawing slopes a little more steeply than the penthouse under it,
-    // near 0.00325 at the laptop layout.
-    tolerance: 0.0036,
+    // near 0.00353 at the desktop layout; the rows reach 0.00145 there.
+    tolerance: 0.0039,
     columnTolerance: 0.0011,
     // The right silhouette is the wing's drawn east end.
     silhouette: 4507.699,
@@ -341,9 +365,9 @@ const fitted: FittedSpec[] = [
       twoLowerPiers: { batch: "Two Prudential · piers", drawn: [4263.919, 4284.925, 4305.622, 4326.418, 4391.515, 4412.221, 4432.928, 4453.634] },
     },
     // Fitted numerically at all five layouts. The worst landmark is the south gable's
-    // point, which the drawing puts a little higher than the east one's, near 0.00285 at
-    // the laptop layout; the worst column is an east pier, near 0.00157 at the tall one.
-    tolerance: 0.003,
+    // point, which the drawing puts a little higher than the east one's, near 0.00322 at
+    // the desktop layout; the worst column is a south pier, near 0.00112 at the tablet one.
+    tolerance: 0.0035,
     columnTolerance: 0.0018,
     sightGap: [0.05, 1],
   },
@@ -366,18 +390,18 @@ const fitted: FittedSpec[] = [
     rows: {
       // Centres of six drawn front-face bands, spanning the offices. The drawing spaces its
       // bands about 2.5% wider than the real floors under the scale its roof and piers fit,
-      // so the top and bottom samples stray furthest; the worst, 0.00644, is at the laptop
+      // so the top and bottom samples stray furthest; the worst, 0.00692, is at the desktop
       // layout.
-      aonFloorRows: { drawn: [589.229, 981.795, 1374.361, 1766.927, 2159.494, 2552.06], tolerance: 0.0068 },
+      aonFloorRows: { drawn: [589.229, 981.795, 1374.361, 1766.927, 2159.494, 2552.06], tolerance: 0.0075 },
     },
     // Fitted numerically at all five layouts. The drawn east end of the roof drops 67 layer
     // units below the near corner, more than a level roof drops through this long lens;
-    // it is the worst landmark, 0.0075 at the laptop layout.
-    tolerance: 0.008,
+    // it is the worst landmark, 0.00823 at the desktop layout.
+    tolerance: 0.0088,
     columnTolerance: 0.0034,
     sightGap: [0.05, 0.7],
   },
 ];
 
-export { heritage, kemper, crain, michigan, trump, prudential, prudentialPodium, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, geographicLandmarks, fitted };
+export { heritage, kemper, crain, michigan, trump, prudential, prudentialPodium, twoPrudential, aon, reference, panorama, models, landmarks, landmarkTolerance, geographicLandmarks, fitted };
 export type { ModelsEntry, FittedSpec };

@@ -135,17 +135,17 @@ drawing's occlusion of Michigan Plaza South.
 
 The drawn podium is the real east wing. Through this camera its 60.4 m east wall runs about
 a bay past the drawn podium's end. The drawing shows twenty-four of its twenty-five ribs,
-and its coping's outer corner lands 0.0029 past the drawn edge at the desktop layout, held
+and its coping's outer corner lands 0.0029 past the drawn edge at the tablet layout, held
 within the landmark tolerance.
 
 Measured at all five layouts:
 
 | Feature | Worst error | Tolerance |
 | --- | ---: | ---: |
-| Landmarks (the drawn screen's west end, at the laptop layout) | 0.00325 | 0.0036 |
-| Tower piers and screen fins | 0.0010 | 0.0011 |
-| Wing ribs | 0.0019 | 0.0021 |
-| Window rows | 0.0013 | 0.0014 |
+| Landmarks (the drawn screen's west end, at the desktop layout) | 0.00353 | 0.0039 |
+| Tower piers and screen fins | 0.0007 | 0.0011 |
+| Wing ribs | 0.0015 | 0.0021 |
+| Window rows | 0.00145 | 0.0016 |
 
 The drawing slopes the screen's top a little more steeply than the penthouse under it,
 which makes the screen's west end the worst landmark.
