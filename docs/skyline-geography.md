@@ -153,8 +153,8 @@ of its tower. The cyan ground outlines show that distinction.
 | Michigan Boulevard Building | [126982630](https://www.openstreetmap.org/way/126982630) | Outline, with the levels from the drawing; not in the original layout |
 | 180 North Michigan Avenue | [210671714](https://www.openstreetmap.org/way/210671714) | Outline, with the height and levels from the drawing; not in the original layout |
 | University Club of Chicago | [126982632](https://www.openstreetmap.org/way/126982632) | Outline, with the upper floor, roof and levels from the drawing; not in the original layout |
-| Monroe Building | [145498713](https://www.openstreetmap.org/way/145498713) | Outline, with the height, roof and levels from the drawing; not in the original layout |
-| MacLean Center | [145498712](https://www.openstreetmap.org/way/145498712) | Outline, with the height and levels from the drawing; not in the original layout |
+| Monroe Building | [145498713](https://www.openstreetmap.org/way/145498713) | Outline, with the roof and levels from the drawing; not in the original layout |
+| MacLean Center | [145498712](https://www.openstreetmap.org/way/145498712) | Outline, with the levels from the drawing; not in the original layout |
 | Lake View Building | [145498711](https://www.openstreetmap.org/way/145498711) | Outline, with the levels from the drawing; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
@@ -187,13 +187,17 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Michigan Boulevard Building | 82 m | 83.3 m | [Emporis, archived](https://web.archive.org/web/20070216134331/http://www.emporis.com/en/wm/bu/?id=michiganboulevardbuilding-chicago-il-usa) |
 | 180 North Michigan Avenue | 86.3 m, drawing | 86.3 m | None published; storeys from [Marc Realty](https://marcrealty.com/180-north-michigan-office-space-chicago/) |
 | University Club of Chicago | 67.7 m | 69.75 m | [OSM height tag](https://www.openstreetmap.org/way/126982632) |
-| Monroe Building | 67.1 m, drawing | 67.1 m | None published; storeys from [Chicagology](https://chicagology.com/skyscrapers/skyscrapers048/) |
-| MacLean Center | 73.2 m, drawing | 73.2 m | None published; floors from [Emporis, archived](https://web.archive.org/web/20070218055845/http://www.emporis.com/en/wm/bu/?id=wolberghall-chicago-il-usa) |
+| Monroe Building | 69 m | 69 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/monroe-building/22557) |
+| MacLean Center | 77.4 m | 77.4 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/maclean-center/26975) |
 | Lake View Building | 73.2 m | 73.2 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/lake-view-building/26976) |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
-Michigan Avenue, the Monroe Building and the MacLean Center have none published, so their
-heights are read on the drawing, and the page's dimension table says so. The
+Michigan Avenue has none published, so its height is read on the drawing, and the page's
+dimension table says so. Where published heights disagree, the layout takes the one
+nearest the drawing's reading. So the Monroe Building, the MacLean Center and the Lake View
+Building take the Skyscraper Center's heights over the lower ones in the City's
+[guide to the Historic Michigan Boulevard District](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf),
+and their drawn fronts are scaled to meet them. The
 table's before/after comparison uses the highest actual rendered vertex, so One
 Prudential's antenna is not compared to its roof. Aon's original copy is the real
 tower from the drawing's 30.6 m datum up at 1.329 times its size, so its antenna
@@ -322,14 +326,13 @@ Intermediate parts have less certainty than the overall height:
 - The Monroe Building stands across Monroe from the University Club. Twelve storeys of
   terracotta over two of granite rise in bays of paired windows to a cornice under a steep
   gable roof holding two more floors, sixteen in all, its gable facing Michigan with small
-  arched windows.
-  No height is published: its 67.1 m ridge is read on the drawing, lowered by the
-  University Club's reading next door; see the [Monroe Building reference audit](monroe-reference.md).
+  arched windows, to the Skyscraper Center's 69 m ridge, the drawn front scaled to meet it;
+  see the [Monroe Building reference audit](monroe-reference.md).
 - The MacLean Center, built as the Illinois Athletic Club, stands south of the Monroe
   Building. Its narrow front's five columns of windows rise twelve storeys to the old
   club's projecting cornice and a frieze of round windows, then six more floors from 1985,
-  arched on the top one, to a pierced parapet. No height is published: its 73.2 m parapet
-  is read on the drawing; see the [MacLean Center reference audit](maclean-center-reference.md).
+  arched on the top one, to a pierced parapet at the Skyscraper Center's 77.4 m, the drawn
+  front scaled to meet it; see the [MacLean Center reference audit](maclean-center-reference.md).
 - The Lake View Building stands south of the MacLean Center. Its narrow front of three
   windows to a floor rises seventeen storeys, arched on the sixteenth, with small attic
   windows under a cornice band, to the Skyscraper Center's 73.2 m, the drawn front scaled
