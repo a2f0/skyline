@@ -32,6 +32,16 @@ async function expectPlanHolds(page: Page) {
     expect(points.every(([u, v]) => u > 0 && u < 1 && v > 0 && v < 1), `${id} inside the plan`).toBe(true);
     expect(Math.abs(centre[0] * 2 - 1) < 0.95 && Math.abs(centre[1] * 2 - 1) < 0.95, `${id}'s label inside the plan`).toBe(true);
   }
+  // Every building's label shows, whole, inside the layer that would otherwise cut it.
+  const labels = await page.evaluate(() => {
+    const layer = document.querySelector(".study-annotations")!.getBoundingClientRect();
+    return [...document.querySelectorAll<HTMLElement>(".study-annotations span")].filter((label) => !label.hidden).map((label) => {
+      const box = label.getBoundingClientRect();
+      return { text: label.textContent, whole: box.left >= layer.left - 0.5 && box.right <= layer.right + 0.5 && box.top >= layer.top - 0.5 && box.bottom <= layer.bottom + 0.5 };
+    });
+  });
+  expect(labels.length).toBe(geographicBuildings.length);
+  expect(labels.filter((label) => !label.whole).map((label) => label.text), "labels cut by the plan's edge").toEqual([]);
 }
 
 describe("mapped skyline geography", () => {
