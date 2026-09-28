@@ -716,8 +716,9 @@ describe("mapped skyline geography", () => {
       }
       // The mapped south face between its notches holds fourteen 10 ft bays. From the
       // lake, a mid-bay probe meets the glass on an office floor and the dark spandrel
-      // between floors, one on a bay line meets a column, and higher up the louvered crown
-      // and the granite cap.
+      // between floors, and one on a bay line meets a column. The glass runs on at the same
+      // pitch over the mechanical floors to the granite cap, with no band of louvers
+      // between: daylight photographs show the slots unchanged to the top.
       const west = world(-87.6217961, 41.8850104), east = world(-87.6212842, 41.885017);
       const bay = Math.hypot(east[0] - west[0], east[2] - west[2]) / 14;
       const along = (s: number): Vec3 => { const t = s / (bay * 14); return [west[0] + (east[0] - west[0]) * t, 0, west[2] + (east[2] - west[2]) * t]; };
@@ -728,8 +729,11 @@ describe("mapped skyline geography", () => {
       const column = fromLake(7 * bay, level + 2);
       expect(column.object.name).toBe("Aon · granite piers");
       expect(column.point.z).toBeGreaterThan(along(7 * bay)[2] + 0.6);
-      expect(fromLake(7.5 * bay, 330).object.name).toBe("Aon · crown louvers");
+      const top = 11.9 + 83 * 3.87;
+      expect(fromLake(7.5 * bay, top + 2).object.name).toBe("Aon · window ribbons");
+      expect(fromLake(7.5 * bay, top + 4.5).object.name).toBe("Aon · tube shell");
       expect(fromLake(7.5 * bay, 339.2).object.name).toBe("Aon · granite cap");
+      expect(meshes.some((mesh) => /louver/.test(mesh.name))).toBe(false);
       // Every notched corner is solid stone: a probe meets each notch's square step, set
       // back from the faces beside it, on the shell painted granite rather than the faces'
       // dark spandrel. [a step corner, the way the step faces, how far along it to probe]

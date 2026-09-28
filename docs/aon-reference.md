@@ -8,7 +8,7 @@ heights below; the rest supply those:
 | Skyline copy | `createAonCenterBuilding` in `models/aon-center.ts` | Clean 59.15 m square, from the drawing's datum up | Original layout of `skyline-study.html` |
 | Geographic | `createAonGeographicBuilding` in `models/aon-geographic.ts` | The mapped outline and rooftop part, exactly | Geographic layout |
 
-Both are reconstructions from published data and one photograph, not a survey or
+Both are reconstructions from published data and photographs, not a survey or
 construction drawings.
 
 ## References checked September 27, 2026
@@ -28,6 +28,9 @@ construction drawings.
 - The [Aon Center tenant portal](https://www.aoncenter.info/main.cfm?pid=aboutaon&sid=about),
   the [Chicago Architecture Center](https://www.architecture.org/online-resources/buildings-of-chicago/aon-center),
   and the [recladding engineer's project profile](https://www.wje.com/assets/pdfs/projects/Amoco_Building.pdf).
+- [A May 2016 photograph](https://commons.wikimedia.org/wiki/File:Aon_Center_in_Chicago_May_2016.jpg),
+  checked September 28, 2026: in daylight the dark slots between the columns run unchanged
+  up to the cap, with no band over the mechanical floors.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront.
   The drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its
   camera; see [the geographic audit](skyline-geography.md#skyline-camera). Across the
@@ -38,7 +41,7 @@ construction drawings.
 The tower is a 59.15 m square with a notch cut into each corner. Each main face holds
 fifteen 10 ft (3.048 m) bays between V-shaped columns, the fifteen bands of windows
 that the descriptions, the drawing's fifteen strips per face, and the photograph all
-count. In the photograph, the south face's lit crown spans 246 pixels at a 3.03 m bay
+count. In the photograph, the south face's lit top spans 246 pixels at a 3.03 m bay
 pitch, and the dark notch beside it about 52. Fifteen bays predict 243 pixels, and a
 6.7 m notch predicts 57. The mapped outline's notches run about 1.5 m deeper, leaving
 its faces 42.5 m, room for fourteen bays.
@@ -59,25 +62,27 @@ the counted bays.
 
 | Feature | Height | Basis |
 | --- | ---: | --- |
-| Lobby | 0–11.9 m | What eighty office floors leave below the crown; estimate |
+| Lobby | 0–11.9 m | What eighty office floors leave below the mechanical floors; estimate |
 | Office floors | 80 at 3.87 m | Photograph 3.87 m (24.0 px), WikiArquitectura 3.86 m |
-| Louvered crown | 321.5–338.5 m | Photograph: the lit band's top and bottom |
+| Mechanical floors | 321.5–338.5 m | The night photograph's lit band's top and bottom |
 | Granite cap | 338.5–340 m | Photograph; OSM shaft top 340 m |
 | Rooftop enclosure | 340–346.3 m | OSM part top, the published architectural height |
 | Antenna | to 362.5 m | Published tip; at the enclosure's centre, since the map gives no antenna |
 
-The lobby, eighty office floors, and the crown's two mechanical floors make the published
-83.
+The lobby, eighty office floors, and the two mechanical floors make the published 83. The
+night photograph shows the mechanical floors as a bright band. In daylight their slots look
+like the office floors' below, so the glass keeps the office floors' 3.87 m pitch up to the
+cap.
 
 ## Tube
 
 The V-shaped columns are granite prisms 1.3 m wide on the wall, pointing 0.7 m out,
 from just above grade to the cap. Their size is an estimate from the photograph's
-double-edged column shadows. Between them, each office floor has a ribbon of dark glass
-0.8–3.1 m above the floor, cut into panes at the columns, with a few lit or dimmed. The
-spandrels between floors stay dark. The lobby is a single tall storey of glass. The
-crown's louvers are horizontal blades across each face behind the columns. The granite
-cap stands clear of the columns' points and follows the notches, mitred at every corner.
+double-edged column shadows. Between them, each floor has a ribbon of dark glass 0.8–3.1 m
+above the floor, cut into panes at the columns, with a few lit or dimmed; the ribbons run on
+over the mechanical floors to the cap. The spandrels between floors stay dark, so each slot
+reads as one dark strip from the lobby to the cap. The lobby is a single tall storey of
+glass. The granite cap stands clear of the columns' points and follows the notches, mitred at every corner.
 The notches themselves are solid stone, as the photograph's lit corner strips and the
 drawing's broad corner strips show. The rooftop enclosure has louvered walls, and a
 slim mast rises from its centre.
@@ -110,9 +115,9 @@ Measured at all five layouts:
 | Piers | 0.0030 | 0.0034 |
 | Floor rows (the drawing spaces its bands about 2.5% wider) | 0.00644 | 0.0068 |
 
-The drawing leaves its top 160 layer units without bands, where the louvered crown
-stands, and draws no enclosure or antenna. The copy includes both, as the photograph
-shows them.
+The drawing leaves its top 160 layer units without bands, over the mechanical floors the
+night photograph shows lit, and draws no enclosure or antenna. The copy carries its glass
+there, and includes the enclosure and antenna, as photographs show them.
 
 ## Verification
 
@@ -133,7 +138,8 @@ shows them.
 - `tests/skyline-geography.test.ts` raycasts the geographic model:
   - the roof, the enclosure, and the antenna tip;
   - the antenna at the enclosure's area centroid;
-  - on the mapped south face, glass, spandrel, column, louvers and cap in turn;
+  - on the mapped south face, glass, spandrel and column, then the top floor's glass under
+    the cap, and the cap, with no band of louvers;
   - all four notches, solid and painted stone;
   - the exact mapped outline at grade.
 
