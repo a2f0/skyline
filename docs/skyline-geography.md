@@ -10,10 +10,12 @@ reconstruction on its mapped outlines. The original factories,
 placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Their shared frame, 1,050 m
-square, holds the original layout's platform and every mapped footprint, with about 50 m
-east and west where a portrait phone's width binds it and about 100 m north and south; the geography suite checks that each
-footprint and its label stay inside the plan at desktop and phone sizes. A building added
-farther out needs the frame moved or widened. Switching layouts
+square, is set in ground plan. There it holds the original layout's platform and every
+mapped footprint, with about 50 m east and west where a portrait phone's width binds it
+and about 100 m north and south; the geography suite checks that each footprint and its
+label stay inside the plan at desktop and phone sizes. Height comparison sees the same
+frame at an angle, and on a portrait phone it can clip the platform's south-west corner.
+A building added farther out needs the frame moved or widened. Switching layouts
 in those views preserves the camera position, target and zoom, including after an
 orbit. The geographic scene is translated to align Crain's mapped footprint
 bounding-box center with the original Crain model's center. This is a comparison
