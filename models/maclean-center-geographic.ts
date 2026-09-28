@@ -10,11 +10,11 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // model of it; the drawing shows it between the Lake View and Monroe Buildings.
 //
 // A narrow Michigan front, a narrow window and three wide ones to a floor and another
-// narrow one, rises twelve storeys to the old club's projecting cornice and a frieze of round
-// windows; the addition carries six more floors, arched on the top one, to a pierced
-// parapet. No height is published: the parapet's top is read on the drawing, lowered by the
-// University Club's reading nearby; see docs/maclean-center-reference.md. Units are
-// meters; +x is east, +z is south.
+// narrow one, each section at its drawn widths, rises twelve storeys to the old club's
+// projecting cornice and a frieze of round windows; the addition carries six more floors,
+// arched on the top one, to a pierced parapet. No height is published: the parapet's top
+// is read on the drawing, lowered by the University Club's reading nearby; see
+// docs/maclean-center-reference.md. Units are meters; +x is east, +z is south.
 export const macleanLevels = Object.freeze({
   band: 40.3, // the old club's bands under its cornice
   cornice: 43.2, // the projecting cornice
@@ -47,7 +47,7 @@ function paneColor(row: number, bay: number, wall: number): THREE.Color {
 // floor's shopfronts; the old club's floors, 3.2 m apart, to its bands and cornice; the
 // frieze and its round windows; the addition's six floors, the last with arched heads
 // narrowing to the middle for their last 60 cm; and the parapet's openings under its top.
-type Row = { lo: number; hi: number; kind: "wall" | "glass" | "band" | "oculus" | "head" | "opening"; floor: number };
+type Row = { lo: number; hi: number; kind: "wall" | "glass" | "band" | "oculus" | "head" | "opening"; floor: number; dy?: number };
 const rows: Row[] = [
   { lo: 0.25, hi: 1, kind: "wall", floor: 1 },
   { lo: 1, hi: 3.9, kind: "glass", floor: 1 },
@@ -60,7 +60,9 @@ for (let n = 2; n <= 12; n += 1) {
 rows.push({ lo: rows.at(-1)!.hi, hi: h.band, kind: "wall", floor: 12 });
 rows.push({ lo: h.band, hi: h.frieze, kind: "band", floor: 12 });
 rows.push({ lo: h.frieze, hi: 45.9, kind: "wall", floor: 12 });
-rows.push({ lo: 45.9, hi: 46.8, kind: "oculus", floor: 12 });
+// The round windows, 90 cm across and centred at 46.35 m, in five slices, each carrying its
+// middle's height from the centre.
+for (const [lo, hi] of [[45.9, 46.05], [46.05, 46.25], [46.25, 46.45], [46.45, 46.65], [46.65, 46.8]] as const) rows.push({ lo, hi, kind: "oculus", floor: 12, dy: Math.abs((lo + hi) / 2 - 46.35) });
 rows.push({ lo: 46.8, hi: h.addition, kind: "wall", floor: 12 });
 for (const [floor, lo, hi] of [[13, 48.46, 50.88], [14, 51.57, 54.12], [15, 55.38, 57.94], [16, 59.07, 61.61], [17, 62.77, 65.32], [18, 66.1, 67.63]] as const) {
   rows.push({ lo: rows.at(-1)!.hi, hi: lo, kind: "wall", floor });
@@ -108,51 +110,56 @@ export function createMacleanCenterGeographicBuilding(record: GeoBuilding, proje
 
   // A wall's skin, one box to a chain the `keep` test accepts, held 2 cm clear of its ends
   // or 9 cm where the outline turns in. `openings` lays a wall's columns out across it and
-  // says what each crosses: 0 the wall, 1 a window, 2 a window and its arched head, 3 a
-  // window, its head and the round window over it. A `plain` wall carries no bands.
-  const skin = (seed: number, keep: (run: Run) => boolean, openings: (length: number, start: Vec2, end: Vec2) => [number[], (bay: number) => number], plain = false) => {
+  // says what each cell of a column and row shows. A `plain` wall carries no bands.
+  type Cell = "wall" | "glass" | "shadow";
+  const skin = (seed: number, keep: (run: Run) => boolean, openings: (length: number, start: Vec2, end: Vec2) => [number[], (bay: number, row: Row) => Cell], plain = false) => {
     const plan = planOf(lot), heights = [rows[0]!.lo, ...rows.map((row) => row.hi)];
     chainsOf(plan).forEach((chain, index) => {
       if (!chain.runs.every((run) => keep(plan[run]!))) return;
       const first = chain.runs[0]!, last = chain.runs.at(-1)!;
       const s0 = turnsAt(plan, first)[0] > 0 ? 0.09 : 0.02, s1 = chain.length - (turnsAt(plan, last)[1] > 0 ? 0.09 : 0.02);
-      const [columns, crossing] = openings(chain.length, plan[first]!.at(0), plan[last]!.at(plan[last]!.length));
+      const [columns, cell] = openings(chain.length, plan[first]!.at(0), plan[last]!.at(plan[last]!.length));
       chainSkin(kit, wall, plan, chain, 0, chain.runs.length - 1, s0, s1, columns, heights, 0.02, 0.07, (bay, r) => {
-        const row = rows[r]!, into = crossing(bay);
+        const row = rows[r]!;
         if (row.kind === "band") return plain ? stone : band;
-        if (row.kind === "opening") return into >= 1 ? shadow : stone;
-        const glazed = row.kind === "glass" ? into >= 1 : row.kind === "head" ? into >= 2 : row.kind === "oculus" ? into >= 3 : false;
-        return glazed ? paneColor(row.floor, bay, seed * 8 + index) : stone;
+        const shows = cell(bay, row);
+        return shows === "glass" ? paneColor(row.floor, bay, seed * 8 + index) : shows === "shadow" ? shadow : stone;
       }, stone);
     });
   };
-  // The Michigan front: narrow windows 1.8 m wide 8.4 m either side of the middle, and wide
-  // ones 3.2 m wide at the middle and 4.35 m either side, as drawn. Only the wide ones have
-  // arched heads on the top floor, narrowing to their middle half, and round windows 90 cm
-  // wide over them in the frieze.
-  const michigan = (length: number, start: Vec2, end: Vec2): [number[], (bay: number) => number] => {
+  // The Michigan front's five columns, narrow windows 8.4 m either side of the middle and
+  // wide ones at the middle and 4.35 m either side, with each section's widths as drawn: the
+  // old club's windows 1.4 and 2.36 m wide, the addition's 2 and 3.15 m, and the parapet's
+  // openings 2.9 m. Only the wide columns have arched heads, their middle half, and round
+  // windows over them.
+  const michigan = (length: number, start: Vec2, end: Vec2): [number[], (bay: number, row: Row) => Cell] => {
     const [b0, b1] = [inLot(start)[1], inLot(end)[1]], along = (b: number) => length * (b - b0) / (b1 - b0), middle = front / 2;
-    const windows = ([[-8.4, 0.9], [-4.35, 1.6], [0, 1.6], [4.35, 1.6], [8.4, 0.9]] as const).map(([d, half]) => ({ c: along(middle + d), half, wide: half > 1 }));
-    const cuts = windows.flatMap(({ c, half, wide }) => (wide ? [c - half, c - half / 2, c - 0.45, c + 0.45, c + half / 2, c + half] : [c - half, c + half]));
+    const windows = ([[-8.4, false], [-4.35, true], [0, true], [4.35, true], [8.4, false]] as const).map(([d, wide]) => ({ c: along(middle + d), wide }));
+    const halves = (wide: boolean) => (wide ? [0.25, 0.42, 0.45, 0.79, 1.18, 1.45, 1.575] : [0.7, 1, 1.45]);
+    const cuts = windows.flatMap(({ c, wide }) => halves(wide).flatMap((half) => [c - half, c + half]));
     const columns = [0, ...[...new Set(cuts)].sort((p, q) => p - q), length];
-    return [columns, (bay) => {
-      const middleOf = (columns[bay - 1]! + columns[bay]!) / 2, window = windows.find(({ c, half }) => Math.abs(middleOf - c) < half);
-      if (!window) return 0;
-      const off = Math.abs(middleOf - window.c);
-      return !window.wide ? 1 : off < 0.45 ? 3 : off < window.half / 2 ? 2 : 1;
+    return [columns, (bay, row) => {
+      const middleOf = (columns[bay - 1]! + columns[bay]!) / 2, window = windows.find(({ c, wide }) => Math.abs(middleOf - c) < (wide ? 1.575 : 1.45));
+      if (!window) return "wall";
+      const dx = Math.abs(middleOf - window.c), wide = window.wide, old = row.floor <= 12;
+      if (row.kind === "glass") return dx < (wide ? (old ? 1.18 : 1.575) : (old ? 0.7 : 1)) ? "glass" : "wall";
+      if (row.kind === "head") return wide && dx < 0.79 ? "glass" : "wall";
+      if (row.kind === "oculus") return wide && dx * dx + row.dy! * row.dy! <= 0.45 * 0.45 ? "glass" : "wall";
+      if (row.kind === "opening") return dx < 1.45 ? "shadow" : "wall";
+      return "wall";
     }];
   };
   // The alley's windows, 1.6 m wide every 3.2 m.
-  const alley = (length: number): [number[], (bay: number) => number] => {
+  const alley = (length: number): [number[], (bay: number, row: Row) => Cell] => {
     const count = Math.max(1, Math.round(length / 3.2)), centres = Array.from({ length: count }, (_, k) => length * (k + 0.5) / count);
-    return [[0, ...centres.flatMap((c) => [c - 0.8, c + 0.8]), length], (bay) => (bay % 2 === 0 && bay <= 2 * count ? 1 : 0)];
+    return [[0, ...centres.flatMap((c) => [c - 0.8, c + 0.8]), length], (bay, row) => (row.kind === "glass" && bay % 2 === 0 && bay <= 2 * count ? "glass" : "wall")];
   };
   const facing = (x: number, z: number) => (run: Run) => run.normal(0)[0] * x + run.normal(0)[1] * z > 0.9;
   // The bands run only along Michigan; the side walls are shared with the Lake View and
   // Monroe Buildings and stay plain.
   skin(0, facing(1, 0), michigan);
   skin(1, facing(-1, 0), alley, true);
-  skin(2, (run) => !facing(1, 0)(run) && !facing(-1, 0)(run), (length) => [[0, length], () => 0], true);
+  skin(2, (run) => !facing(1, 0)(run) && !facing(-1, 0)(run), (length) => [[0, length], () => "wall"], true);
 
   const model = kit.finish({ height: h.top, outlines: [shell, cornice], opacity: 0.16 });
   model.building.position.set(offset[0], 0, offset[1]);

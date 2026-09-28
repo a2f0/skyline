@@ -47,14 +47,17 @@ drift grows toward the left of the panorama, from 30 to 45 units at the Monroe B
 drawn front's right edge meets the Monroe Building's drawn left edge.
 
 Measured as fractions of the drawn front, its windows stand in five columns, symmetrical
-about the middle:
+about the middle: narrow windows 8.4 m either side of the middle, and wide ones at the
+middle and 4.35 m either side. Their widths differ by section:
 
-- narrow windows about 1.8 m wide, 8.4 m either side of the middle;
-- wide windows about 3.2 m wide, at the middle and 4.35 m either side.
+| Section | Narrow | Wide |
+| --- | ---: | ---: |
+| Old club's floors | 1.4 m | 2.36 m |
+| Addition's floors | 2 m | 3.15 m |
+| Parapet's openings | 2.9 m | 2.9 m |
 
 The addition's top floor arches the wide windows only. The frieze's three round windows,
-about 90 cm across, stand over them, and the parapet's five openings over all five
-columns.
+about 90 cm across, stand over them.
 
 ## Heights
 
@@ -79,9 +82,10 @@ building below 30 m, so the lower floors are estimates.
 ## Model
 
 - **Michigan front:** stone.
-  - Five columns of windows on every floor, with shopfronts on the ground floor.
+  - Five columns of windows on every floor, at each section's widths, with shopfronts on
+    the ground floor.
   - The old club's bands and projecting cornice, and the frieze's round windows over the
-    wide columns.
+    wide columns, each cell of the wall tested against the circle.
   - The addition's floors, the top one's wide windows arched with heads stepped to the
     middle half, and the parapet's dark openings.
 - **Alley:** windows 1.6 m wide every 3.2 m.
@@ -103,10 +107,12 @@ Omitted:
   overlaps, and covered omissions.
 - `tests/skyline-geography.test.ts` raycasts:
   - the parapet's top and the cornice's ledge;
-  - the five columns' windows on an old floor and an added one, and the piers between;
+  - the five columns' windows on an old floor and an added one, their edges at each
+    section's widths, and the piers between;
+  - the parapet's openings and their edges;
   - the wide windows' arched heads, and none over the narrow ones;
-  - the round windows over the wide columns only;
-  - the bands and the parapet's openings;
+  - the round windows over the wide columns only, round rather than square;
+  - the bands and a pier of the parapet;
   - the party wall, windowless along a floor and without bands, and the alley's seven
     windows to a floor;
   - the model's exported palette, whose window tones no wall shares;

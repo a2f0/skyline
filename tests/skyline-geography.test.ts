@@ -1462,9 +1462,15 @@ describe("mapped skyline geography", () => {
       const narrow = [middle - 8.4, middle + 8.4], wide = [middle - 4.35, middle, middle + 4.35];
       expect([...narrow, ...wide].every((b) => glass(michigan(b, 25.5)) && glass(michigan(b, 56.7))), "the five columns' windows").toBe(true);
       expect([middle - 6.4, middle - 2.2, middle + 2.2, middle + 6.4].every((b) => stone(michigan(b, 25.5))), "the piers between them").toBe(true);
+      // Each section's widths: the old club's windows 1.4 and 2.36 m wide, the addition's 2
+      // and 3.15 m, the parapet's openings 2.9 m.
+      const edges = (b: number, y: number, inside: number, outside: number) => glass(michigan(b + inside, y)) && glass(michigan(b - inside, y)) && stone(michigan(b + outside, y)) && stone(michigan(b - outside, y));
+      expect([wide.every((b) => edges(b, 25.5, 1.05, 1.3)), narrow.every((b) => edges(b, 25.5, 0.6, 0.85)), wide.every((b) => edges(b, 56.7, 1.45, 1.7)), narrow.every((b) => edges(b, 56.7, 0.9, 1.1))], "the old and added windows' widths").toEqual([true, true, true, true]);
+      expect([...narrow, ...wide].every((b) => shadow(michigan(b + 1.3, 71)) && shadow(michigan(b - 1.3, 71)) && stone(michigan(b + 1.7, 71))), "the parapet's openings").toBe(true);
       expect(wide.every((b) => glass(michigan(b, 67.9)) && glass(michigan(b + 0.6, 67.9)) && stone(michigan(b + 1.2, 67.9))) && narrow.every((b) => stone(michigan(b, 67.9))), "the wide windows' arched heads").toBe(true);
-      expect(wide.every((b) => glass(michigan(b, 46.3)) && stone(michigan(b + 0.7, 46.3))) && narrow.every((b) => stone(michigan(b, 46.3))), "the round windows").toBe(true);
-      expect([band(michigan(middle, 42)), ...[...narrow, ...wide].map((b) => shadow(michigan(b, 71))), stone(michigan(middle + 2.2, 71))], "the bands and the parapet's openings").toEqual([true, true, true, true, true, true, true]);
+      // The round windows: a circle 90 cm across, not its square.
+      expect(wide.every((b) => glass(michigan(b, 46.35)) && glass(michigan(b + 0.44, 46.35)) && glass(michigan(b + 0.3, 46.55)) && stone(michigan(b + 0.4, 46.72)) && stone(michigan(b - 0.4, 45.98)) && stone(michigan(b + 0.7, 46.35))) && narrow.every((b) => stone(michigan(b, 46.35))), "the round windows").toBe(true);
+      expect([band(michigan(middle, 42)), stone(michigan(middle + 2.2, 71))], "the bands and a pier of the parapet").toEqual([true, true]);
       // The party wall, plain along a floor and at the bands; the alley's seven windows.
       let glazed = 0;
       for (let a = 0.3; a < 51; a += 0.1) if (glass(tone(a, 0, 25.5, "south"))) glazed += 1;
