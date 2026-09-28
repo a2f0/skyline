@@ -155,7 +155,7 @@ of its tower. The cyan ground outlines show that distinction.
 | University Club of Chicago | [126982632](https://www.openstreetmap.org/way/126982632) | Outline, with the upper floor, roof and levels from the drawing; not in the original layout |
 | Monroe Building | [145498713](https://www.openstreetmap.org/way/145498713) | Outline, with the height, roof and levels from the drawing; not in the original layout |
 | MacLean Center | [145498712](https://www.openstreetmap.org/way/145498712) | Outline, with the height and levels from the drawing; not in the original layout |
-| Lake View Building | [145498711](https://www.openstreetmap.org/way/145498711) | Outline, with the height and levels from the drawing; not in the original layout |
+| Lake View Building | [145498711](https://www.openstreetmap.org/way/145498711) | Outline, with the levels from the drawing; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -189,12 +189,11 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | University Club of Chicago | 67.7 m | 69.75 m | [OSM height tag](https://www.openstreetmap.org/way/126982632) |
 | Monroe Building | 67.1 m, drawing | 67.1 m | None published; storeys from [Chicagology](https://chicagology.com/skyscrapers/skyscrapers048/) |
 | MacLean Center | 73.2 m, drawing | 73.2 m | None published; floors from [Emporis, archived](https://web.archive.org/web/20070218055845/http://www.emporis.com/en/wm/bu/?id=wolberghall-chicago-il-usa) |
-| Lake View Building | 71.3 m, drawing | 71.3 m | None published; floors from [Emporis, archived](https://web.archive.org/web/20070218073330/http://www.emporis.com/en/wm/bu/?id=lakeviewbuilding-chicago-il-usa) |
+| Lake View Building | 73.2 m | 73.2 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/lake-view-building/26976) |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
-Michigan Avenue, the Monroe Building, the MacLean Center and the Lake View Building have
-none published, so their heights are read on the drawing, and the page's dimension table
-says so. The
+Michigan Avenue, the Monroe Building and the MacLean Center have none published, so their
+heights are read on the drawing, and the page's dimension table says so. The
 table's before/after comparison uses the highest actual rendered vertex, so One
 Prudential's antenna is not compared to its roof. Aon's original copy is the real
 tower from the drawing's 30.6 m datum up at 1.329 times its size, so its antenna
@@ -333,8 +332,8 @@ Intermediate parts have less certainty than the overall height:
   is read on the drawing; see the [MacLean Center reference audit](maclean-center-reference.md).
 - The Lake View Building stands south of the MacLean Center. Its narrow front of three
   windows to a floor rises seventeen storeys, arched on the sixteenth, with small attic
-  windows under a cornice band. No height is published: its 71.3 m top is read on the
-  drawing; see the [Lake View Building reference audit](lake-view-reference.md).
+  windows under a cornice band, to the Skyscraper Center's 73.2 m, the drawn front scaled
+  to meet it; see the [Lake View Building reference audit](lake-view-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common

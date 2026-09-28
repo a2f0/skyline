@@ -11,13 +11,14 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 //
 // A narrow stone front, three windows to a floor, rises seventeen storeys: arched windows
 // on the sixteenth, small attic windows on the seventeenth, and a cornice band at the top.
-// No height is published: the top is read on the drawing, lowered by the University Club's
-// reading to the north; see docs/lake-view-reference.md. Units are meters; +x is east, +z
-// is south.
+// The top is the Skyscraper Center's 73.2 m. The drawn front's top reads 71.9 m, so heights
+// read on the drawing are scaled to meet it; see docs/lake-view-reference.md. Units are
+// meters; +x is east, +z is south.
+const drawn = (height: number) => height * 73.2 / 71.9;
 export const lakeViewLevels = Object.freeze({
-  attic: 67.3, // the seventeenth floor's small windows
-  cornice: 70.2, // the cornice band
-  top: 71.3, // its top, read on the drawing
+  attic: drawn(67.9), // the seventeenth floor, with its small windows
+  cornice: drawn(70.8), // the cornice band
+  top: 73.2, // the published top
 });
 const h = lakeViewLevels;
 
@@ -37,27 +38,28 @@ function paneColor(row: number, bay: number, wall: number): THREE.Color {
   return glassTones[value % glassTones.length]!;
 }
 
-// The rows of the walls, from 25 cm above grade, where the mapped outline ends: the tall
-// ground floor's shopfronts; floors 3.85 m apart, as drawn, each with a 2.5 m window; the
-// sixteenth floor's arched windows, their heads narrowing to the middle half for the last
-// 60 cm; the attic's small windows; and the cornice band.
+// The rows of the walls, from 25 cm above grade, where the mapped outline ends, read on the
+// drawing and scaled: the tall ground floor's shopfronts; floors 3.85 m apart as drawn,
+// each with a 2.5 m window; the sixteenth floor's arched windows, their heads narrowing to
+// the middle half for the last 60 cm; the attic's small windows; and the cornice band.
 type Row = { lo: number; hi: number; kind: "wall" | "glass" | "head" | "band"; floor: number };
-const base = (n: number) => 36.5 + (n - 9) * 3.85;
+const base = (n: number) => 37.1 + (n - 9) * 3.85;
 const rows: Row[] = [
-  { lo: 0.25, hi: 1, kind: "wall", floor: 1 },
-  { lo: 1, hi: 8.4, kind: "glass", floor: 1 },
+  { lo: 0.25, hi: drawn(1), kind: "wall", floor: 1 },
+  { lo: drawn(1), hi: drawn(9), kind: "glass", floor: 1 },
 ];
+const push = (hi: number, kind: Row["kind"], floor: number) => rows.push({ lo: rows.at(-1)!.hi, hi, kind, floor });
 for (let n = 2; n <= 15; n += 1) {
-  rows.push({ lo: rows.at(-1)!.hi, hi: base(n) + 0.6, kind: "wall", floor: n });
-  rows.push({ lo: base(n) + 0.6, hi: base(n) + 3.1, kind: "glass", floor: n });
+  push(drawn(base(n) + 0.6), "wall", n);
+  push(drawn(base(n) + 3.1), "glass", n);
 }
-rows.push({ lo: rows.at(-1)!.hi, hi: 63.9, kind: "wall", floor: 16 });
-rows.push({ lo: 63.9, hi: 65.3, kind: "glass", floor: 16 });
-rows.push({ lo: 65.3, hi: 65.9, kind: "head", floor: 16 });
-rows.push({ lo: 65.9, hi: 68, kind: "wall", floor: 17 });
-rows.push({ lo: 68, hi: 69, kind: "glass", floor: 17 });
-rows.push({ lo: 69, hi: h.cornice, kind: "wall", floor: 17 });
-rows.push({ lo: h.cornice, hi: h.top, kind: "band", floor: 17 });
+push(drawn(64.5), "wall", 16);
+push(drawn(65.9), "glass", 16);
+push(drawn(66.5), "head", 16);
+push(drawn(68.6), "wall", 17);
+push(drawn(69.6), "glass", 17);
+push(h.cornice, "wall", 17);
+push(h.top, "band", 17);
 
 export function createLakeViewGeographicBuilding(record: GeoBuilding, projectPlan: (coordinates: [number, number][]) => Plan, offset: [number, number]): BuildingModel {
   const kit = createBuilder(record.name, record.id);

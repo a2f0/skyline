@@ -95,7 +95,7 @@ describe("mapped skyline geography", () => {
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
       "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9], Buckingham: [582.28, -1.52, 121.9],
-      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 67.1], MacLean: [0.85, -492.94, 73.2], "Lake View": [1.26, -509.77, 71.3],
+      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 67.1], MacLean: [0.85, -492.94, 73.2], "Lake View": [1.26, -509.77, 73.2],
     };
     expect(geographicBuildings.length).toBe(21);
     for (const record of geographicBuildings) {
@@ -1509,9 +1509,9 @@ describe("mapped skyline geography", () => {
       const [west, north] = [unit(at(5)), unit(at(9))];
       const lot = (a: number, b: number): Vec2 => [corner[0] + west[0] * a + north[0] * b, corner[1] + west[1] * a + north[1] * b];
       const roof = (a: number, b: number) => { const p = lot(a, b); return hit([p[0], 300, p[1]], [0, -1, 0])?.point.y; };
-      // The top, read on the drawing, and the south wall's light court open to the sky.
-      expect(record.heightFromDrawing).toBe(true);
-      near(roof(20, 5)!, 71.3, 1e-3);
+      // The published top, and the south wall's light court open to the sky.
+      expect(record.heightFromDrawing).toBeUndefined();
+      near(roof(20, 5)!, 73.2, 1e-3);
       expect(roof(25, 1.4), "the light court").toBeUndefined();
       const paint = (found: THREE.Intersection | undefined) => {
         expect(found!.object.name).toBe("Lake View Building · stone and windows");
@@ -1531,21 +1531,21 @@ describe("mapped skyline geography", () => {
       // arched heads, the attic's small windows, and the cornice band.
       const front = Math.hypot(...[0, 1].map((k) => at(9)[k]! - corner[k]!)), columns = [-3.5, 0, 3.5].map((d) => front / 2 + d);
       const michigan = (b: number, y: number) => tone(0, b, y, "east");
-      expect(columns.every((c) => glass(michigan(c, 49.9)) && glass(michigan(c + 1.1, 49.9)) && glass(michigan(c - 1.1, 49.9)) && stone(michigan(c + 1.5, 49.9))) && stone(michigan(front / 2 + 1.75, 49.9)), "a floor's three windows and their piers").toBe(true);
-      expect(columns.every((c) => glass(michigan(c, 65.6)) && glass(michigan(c + 0.5, 65.6)) && stone(michigan(c + 0.9, 65.6)) && glass(michigan(c, 68.5)) && stone(michigan(c, 69.6))), "the arched heads and the attic's windows").toBe(true);
-      expect(band(michigan(front / 2, 70.8)), "the cornice band").toBe(true);
+      expect(columns.every((c) => glass(michigan(c, 51.4)) && glass(michigan(c + 1.1, 51.4)) && glass(michigan(c - 1.1, 51.4)) && stone(michigan(c + 1.5, 51.4))) && stone(michigan(front / 2 + 1.75, 51.4)), "a floor's three windows and their piers").toBe(true);
+      expect(columns.every((c) => glass(michigan(c, 67.4)) && glass(michigan(c + 0.5, 67.4)) && stone(michigan(c + 0.9, 67.4)) && glass(michigan(c, 70.35)) && stone(michigan(c, 71.45))), "the arched heads and the attic's windows").toBe(true);
+      expect(band(michigan(front / 2, 72.6)), "the cornice band").toBe(true);
       // One window to each of the seventeen floors up the middle column.
       let floors = 0, lit = false;
-      for (let y = 0.3; y < 71; y += 0.05) { const now = glass(michigan(front / 2, y)); if (now && !lit) floors += 1; lit = now; }
+      for (let y = 0.3; y < 73; y += 0.05) { const now = glass(michigan(front / 2, y)); if (now && !lit) floors += 1; lit = now; }
       expect(floors, "a window to each floor").toBe(17);
       // The north wall, shared with the MacLean Center, and the light court's walls stay
       // plain; the alley has four windows to a floor.
       let glazed = 0;
-      for (let a = 0.3; a < 51; a += 0.1) if (glass(tone(a, front, 49.9, "north"))) glazed += 1;
-      const court = (toward: 1 | -1) => { const p = lot(25, 1.4), d = [west[0] * toward, west[1] * toward]; return paint(hit([p[0], 49.9, p[1]], [d[0]!, 0, d[1]!])); };
+      for (let a = 0.3; a < 51; a += 0.1) if (glass(tone(a, front, 51.4, "north"))) glazed += 1;
+      const court = (toward: 1 | -1) => { const p = lot(25, 1.4), d = [west[0] * toward, west[1] * toward]; return paint(hit([p[0], 51.4, p[1]], [d[0]!, 0, d[1]!])); };
       expect([glazed, stone(court(1)), stone(court(-1))], "the plain party wall and light court").toEqual([0, true, true]);
       let runs = 0, inside = false;
-      for (let b = 0.3; b < 11.5; b += 0.05) { const now = glass(tone(51.9, b, 49.9, "west")); if (now && !inside) runs += 1; inside = now; }
+      for (let b = 0.3; b < 11.5; b += 0.05) { const now = glass(tone(51.9, b, 51.4, "west")); if (now && !inside) runs += 1; inside = now; }
       expect(runs, "the alley's windows").toBe(4);
       // The exact mapped outline at grade.
       const shell = meshes.find((mesh) => mesh.name === "Lake View Building · shell")!.geometry.getAttribute("position");

@@ -14,6 +14,10 @@ drawing and photographs, not a survey or construction drawings.
   the [map API](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920),
   with Willoughby Tower's. It shares nodes with the MacLean Center, way 145498712, and with
   an outer way of the Peoples Gas relation to the south.
+- [The Skyscraper Center](https://www.skyscrapercenter.com/building/lake-view-building/26976):
+  73.2 m (240 ft) architectural and to the tip, 17 floors, completed 1912.
+- The City of Chicago's [guide to the Historic Michigan Boulevard District](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf),
+  2016: the Municipal Courts (Lakeview Building), 1906 with its 1912 addition, 220 ft.
 - [Emporis, archived in 2007](https://web.archive.org/web/20070218073330/http://www.emporis.com/en/wm/bu/?id=lakeviewbuilding-chicago-il-usa):
   - 17 floors, by Jenney, Mundie & Jensen;
   - "The top 5 stories were a later addition (1912) by the original architects";
@@ -24,8 +28,11 @@ drawing and photographs, not a survey or construction drawings.
   9.5 of the drawing's layer units are one metre of height. The photograph shows the narrow
   front's three windows to a floor, arched on the floor under the attic.
 
-No published height was found. The model's is read on the drawing and lowered 0.6 m, as
-the University Club's drawn gable, three lots north, reads 0.6 m above its mapped 67.7 m.
+The model's top is the Skyscraper Center's 73.2 m, the source most of the layout's heights
+come from. The City's guide gives 220 ft (67.1 m). Its heights run below the other sources'
+along this street: 250 ft for the Michigan Boulevard Building, whose archived Emporis entry
+gives 82 m, and 211 ft for the Monroe Building, which the Skyscraper Center gives 69 m. The
+drawing's top reads 71.9 m, between the two.
 
 ## Plan
 
@@ -39,20 +46,20 @@ wide and 3.5 m apart about the middle.
 
 ## Heights
 
-Heights are read on the drawn front through the geographic camera, lowered 0.6 m as
-described above.
+Heights are read on the drawn front through the geographic camera and scaled by 73.2/71.9,
+so that its drawn top meets the published one. The scale adds 1.8%.
 
 | Feature | Height | Basis |
 | --- | ---: | --- |
-| Ground floor | 0–9.55 m | Estimate: what seventeen floors leave under the drawn pitch |
-| Typical floor | 3.85 m | Drawing: the window rows |
-| Sixteenth floor's arched windows | 63.9–65.9 m | Drawing: heads from 65.3 m |
-| Attic's windows | 68–69 m | Drawing |
-| Cornice band | 70.2–71.3 m | Drawing |
+| Ground floor | 0–10.3 m | Estimate: what seventeen floors leave under the drawn pitch |
+| Typical floor | 3.92 m | Drawing: the window rows, 3.85 m apart as drawn |
+| Sixteenth floor's arched windows | 65.7–67.7 m | Drawing: heads from 67.1 m |
+| Attic's windows | 69.8–70.9 m | Drawing |
+| Cornice band | 72.1–73.2 m | Drawing: its top the published height |
 
-The drawn rows stand 3.85 m apart. The published seventeen floors, carried down at that
-pitch, leave a 9.55 m ground floor. The hill in the drawing hides the building below 31 m,
-so the lower floors are estimates.
+The drawn rows stand 3.85 m apart, 3.92 m once scaled. The published seventeen floors,
+carried down at that pitch, leave a 10.3 m ground floor. The hill in the drawing hides the
+building below 31 m, so the lower floors are estimates.
 
 ## Model
 

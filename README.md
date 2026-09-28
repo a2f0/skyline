@@ -155,8 +155,8 @@ Beside it the MacLean Center, the old Illinois Athletic Club, carries six floors
 1985 over its cornice and frieze of round windows to a pierced parapet, its 73.2 m read on
 the drawing; see its [reference audit](docs/maclean-center-reference.md).
 Next south, the Lake View Building's narrow front of three windows to a floor rises
-seventeen storeys to an arched floor and an attic, its 71.3 m read on the drawing; see its
-[reference audit](docs/lake-view-reference.md).
+seventeen storeys to an arched floor and an attic under the Skyscraper Center's 73.2 m;
+see its [reference audit](docs/lake-view-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the
