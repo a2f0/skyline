@@ -30,9 +30,9 @@ const h = michiganBoulevardLevels;
 const floor = (n: number) => (n < 2 ? 0 : n <= 13 ? 4.8 + (n - 2) * 3.7 : 50.2 + (n - 14) * 3.58);
 
 const color = (hex: number) => new THREE.Color(hex);
-const glassTones = [0x2c2c2c, 0x303030, 0x343434, 0x383838].map(color);
-const litGlass = color(0x6a6a6a), dimGlass = color(0x404040);
-const terracotta = color(0x444444), returnBay = color(0x545454), brick = color(0x404040), belt = color(0x505050), panel = color(0x363636);
+const glassTones = [0x262626, 0x2a2a2a, 0x2e2e2e, 0x323232].map(color);
+const litGlass = color(0x6e6e6e), dimGlass = color(0x3a3a3a);
+const terracotta = color(0x444444), returnBay = color(0x585858), brick = color(0x404040), belt = color(0x505050), panel = color(0x363636);
 const core = color(0x262626), roofing = color(0x3a3a3a);
 function paneColor(row: number, bay: number, wall: number): THREE.Color {
   const hash = (Math.imul(row + 37, 0x9e3779b1) ^ Math.imul(bay + 61, 0x85ebca77) ^ Math.imul(wall + 47, 0xc2b2ae3d)) >>> 0;
@@ -124,14 +124,20 @@ export function createMichiganBoulevardGeographicBuilding(record: GeoBuilding, p
     const [p, q] = [inLot(start)[axis], inLot(end)[axis]];
     return [(target: number) => length * (target - p) / (q - p), (s: number) => p + (s / length) * (q - p)] as const;
   };
-  // Windows `width` wide centred at `centres`, in lot coordinates along `axis`; `column`
-  // says, in the same coordinates, what else each column carries.
-  const windows = (length: number, start: Vec2, end: Vec2, axis: 0 | 1, centres: number[], width: number, column: (at: number) => Omit<Column, "window">): [number[], (bay: number) => Column] => {
+  // Windows `width` wide centred at `centres`, in lot coordinates along `axis`, with the
+  // walls also split at `breaks`; `column` says, in the same coordinates, what else each
+  // column carries.
+  const windows = (length: number, start: Vec2, end: Vec2, axis: 0 | 1, centres: number[], width: number, column: (at: number) => Omit<Column, "window">, breaks: number[] = []): [number[], (bay: number) => Column] => {
     const [to, from] = along(length, start, end, axis);
-    const inside = centres.map(to).filter((c) => c - width / 2 > 0.1 && c + width / 2 < length - 0.1).sort((p, q) => p - q);
-    const columns = [0, ...inside.flatMap((c) => [c - width / 2, c + width / 2]), length];
-    // Bays count from one: a wall, then each window and the wall after it.
-    return [columns, (bay) => ({ ...column(from((columns[bay - 1]! + columns[bay]!) / 2)), window: bay % 2 === 0 && bay <= 2 * inside.length })];
+    const inside = centres.map(to).filter((c) => c - width / 2 > 0.1 && c + width / 2 < length - 0.1);
+    const cuts = [...inside.flatMap((c) => [c - width / 2, c + width / 2]), ...breaks.map(to).filter((s) => s > 0.1 && s < length - 0.1)];
+    const columns = [0, ...[...new Set(cuts)].sort((p, q) => p - q), length];
+    // Bays count from one, each between two columns; a bay holds a window when its middle
+    // lies inside one.
+    return [columns, (bay) => {
+      const middle = (columns[bay - 1]! + columns[bay]!) / 2;
+      return { ...column(from(middle)), window: inside.some((c) => Math.abs(middle - c) < width / 2) };
+    }];
   };
   const pairs = (centres: number[]) => centres.flatMap((c) => [c - 1, c + 1]);
   const facing = (x: number, z: number) => (run: Run) => run.normal(0)[0] * x + run.normal(0)[1] * z > 0.9;
@@ -144,7 +150,7 @@ export function createMichiganBoulevardGeographicBuilding(record: GeoBuilding, p
   // The south wall: the terracotta's return bay with a pair of windows over 20 North
   // Michigan, then brick with a pair every 5.1 m on the top four floors, as drawn.
   const southWall = (length: number, start: Vec2, end: Vec2) => windows(length, start, end, 0, pairs([2.5, 8, 13.2, 18.3, 23.4, 28.5, 33.6, 38.7, 43.8]), 1.1,
-    (a) => (a < h.returnBay ? { face: returnBay, from: 9, panel: false } : { face: brick, from: 18, panel: false }));
+    (a) => (a < h.returnBay ? { face: returnBay, from: 9, panel: false } : { face: brick, from: 18, panel: false }), [h.returnBay]);
   // Washington Street's terracotta front and the brick alley: a pair every 6.1 m.
   const rear = (face: THREE.Color) => (length: number, start: Vec2, end: Vec2) => {
     const axis = Math.abs(inLot(end)[0] - inLot(start)[0]) > Math.abs(inLot(end)[1] - inLot(start)[1]) ? 0 : 1, [, from] = along(length, start, end, axis);

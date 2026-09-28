@@ -1181,8 +1181,10 @@ describe("mapped skyline geography", () => {
         return (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
       };
       const is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
-      const [terracotta, returnBay, brick, belt, panel] = [is(0x444444), is(0x545454), is(0x404040), is(0x505050), is(0x363636)];
-      const glass = (r: number) => [0x2c2c2c, 0x303030, 0x343434, 0x383838, 0x6a6a6a, 0x404040].some((hex) => is(hex)(r));
+      const [terracotta, returnBay, brick, belt, panel] = [is(0x444444), is(0x585858), is(0x404040), is(0x505050), is(0x363636)];
+      const glass = (r: number) => [0x262626, 0x2a2a2a, 0x2e2e2e, 0x323232, 0x6e6e6e, 0x3a3a3a].some((hex) => is(hex)(r));
+      // The palettes stay apart, so no wall passes for glass.
+      expect([0x444444, 0x585858, 0x404040, 0x505050, 0x363636].map((hex) => glass(new THREE.Color(hex).r))).toEqual([false, false, false, false, false]);
       // The Michigan front: a single window in its south bay and a pair in each of the other
       // four, with shopfronts under them, a belt course over the thirteenth floor, and the
       // attic's panel across each bay's windows.
@@ -1190,10 +1192,13 @@ describe("mapped skyline geography", () => {
       expect(windows.every((b) => glass(tone(0, b, window20, "east"))), "the front's windows").toBe(true);
       expect([5.5, 9.3, 12.4, 18.5, 24.6].every((b) => terracotta(tone(0, b, window20, "east"))), "its piers").toBe(true);
       expect([glass(tone(0, 3.1, 2.5, "east")), belt(tone(0, 5.5, 49.6, "east")), panel(tone(0, 9.3, 80, "east")), terracotta(tone(0, 12.4, 80, "east")), terracotta(tone(0, 9.3, 81.5, "east"))], "a shopfront, the belt, an attic panel, a pier and the parapet").toEqual([true, true, true, true, true]);
-      // The south wall: the terracotta's return bay with a pair of windows over 20 North
-      // Michigan, and brick beyond with a pair every 5.1 m on the top four floors only.
-      expect([glass(tone(1.5, 0, floor(12) + 1.9, "south")), glass(tone(3.5, 0, floor(12) + 1.9, "south")), returnBay(tone(1.5, 0, floor(5) + 1.9, "south")), returnBay(tone(2.5, 0, floor(12) + 1.9, "south"))], "the return bay").toEqual([true, true, true, true]);
-      expect([glass(tone(7, 0, floor(19) + 1.9, "south")), glass(tone(9, 0, floor(19) + 1.9, "south")), brick(tone(7, 0, floor(17) + 1.9, "south")), brick(tone(8, 0, floor(19) + 1.9, "south"))], "the brick wall").toEqual([true, true, true, true]);
+      // The south wall: the terracotta's return bay, 5.6 m, with a pair of windows glazed from
+      // the ninth floor, over 20 North Michigan; and brick beyond, its belt-less wall with a
+      // pair every 5.1 m glazed only from the eighteenth floor.
+      const south = (a: number, n: number) => tone(a, 0, floor(n) + 1.9, "south");
+      expect([returnBay(south(1.5, 8)), glass(south(1.5, 9)), glass(south(3.5, 12)), returnBay(south(2.5, 12))], "the return bay's windows").toEqual([true, true, true, true]);
+      expect([returnBay(south(5.3, 12)), brick(south(5.9, 12)), belt(tone(5.3, 0, 49.6, "south")), brick(tone(5.9, 0, 49.6, "south"))], "the return bay's edge and the belt on it").toEqual([true, true, true, true]);
+      expect([brick(south(7, 17)), glass(south(7, 18)), glass(south(9, 18)), glass(south(9, 21)), brick(south(8, 19))], "the brick wall's windows").toEqual([true, true, true, true, true]);
       // Washington Street: a pair every 6.1 m, sixteen windows to a floor.
       let runs = 0, inside = false;
       for (let a = 0.3; a < 49.5; a += 0.1) { const now = glass(tone(a, 31, floor(15) + 1.9, "north")); if (now && !inside) runs += 1; inside = now; }

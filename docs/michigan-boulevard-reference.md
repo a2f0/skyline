@@ -108,8 +108,10 @@ Omitted:
   - the roof, the raised parapet and a pedestal;
   - the front's nine windows, its piers, a shopfront, the belt, an attic panel and the
     parapet;
-  - the south wall's return bay, windowed above the eighth floor, and the brick beyond,
-    windowed only on the top four floors;
+  - the south wall's return bay, windowed from the ninth floor and ending, with the belt
+    on it, at 5.6 m;
+  - the brick beyond, windowed from the eighteenth floor;
+  - window colours that no wall shares;
   - Washington's sixteen windows to a floor;
   - the exact mapped outline at grade.
 
