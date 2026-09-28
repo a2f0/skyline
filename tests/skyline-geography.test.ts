@@ -11,6 +11,7 @@ import { trumpLevels } from "../models/trump-tower.js";
 import { lakeViewPalette } from "../models/lake-view-geographic.js";
 import { macleanPalette } from "../models/maclean-center-geographic.js";
 import { monroePalette } from "../models/monroe-geographic.js";
+import { peoplesGasLevels, peoplesGasPalette } from "../models/peoples-gas-geographic.js";
 import { northMichigan180Palette } from "../models/north-michigan-180-geographic.js";
 import { universityClubPalette } from "../models/university-club-geographic.js";
 import { northWabashFloors } from "../models/north-wabash-geographic.js";
@@ -95,9 +96,9 @@ describe("mapped skyline geography", () => {
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
       "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9], Buckingham: [582.28, -1.52, 121.9],
-      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 69], MacLean: [0.85, -492.94, 77.4], "Lake View": [1.26, -509.77, 73.2],
+      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 69], MacLean: [0.85, -492.94, 77.4], "Lake View": [1.26, -509.77, 73.2], "Peoples Gas": [2.15, -545.88, 82.9],
     };
-    expect(geographicBuildings.length).toBe(21);
+    expect(geographicBuildings.length).toBe(22);
     for (const record of geographicBuildings) {
       const metrics = footprintMetrics(record.footprint.coordinates);
       const [east, north, height] = expected[record.shortName]!;
@@ -1564,6 +1565,92 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("Peoples Gas Building", () => {
+    test("keeps the mapped outline and court, the fronts' bays, colonnade, attic, frieze and cornice", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Peoples Gas")!;
+      const model = models["Peoples Gas"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const hit = (from: Vec3, direction: Vec3) => {
+        ray.set(new THREE.Vector3(...from), new THREE.Vector3(...direction));
+        return ray.intersectObjects(meshes, false)[0];
+      };
+      const at = (i: number): Vec2 => { const [east, north] = projectGround(record.footprint.coordinates[i]!); return [east, -north]; };
+      // The lot's south-east corner, with the Adams front running west to the alley and the
+      // Michigan front north to the Lake View Building.
+      const corner = at(2), unit = (p: Vec2): Vec2 => { const d = Math.hypot(p[0] - corner[0], p[1] - corner[1]); return [(p[0] - corner[0]) / d, (p[1] - corner[1]) / d]; };
+      const [west, north] = [unit(at(21)), unit(at(17))];
+      const lot = (a: number, b: number): Vec2 => [corner[0] + west[0] * a + north[0] * b, corner[1] + west[1] * a + north[1] * b];
+      const roof = (a: number, b: number) => { const p = lot(a, b); return hit([p[0], 300, p[1]], [0, -1, 0])?.point.y; };
+      const h = peoplesGasLevels, drawn = (height: number) => height * 82.9 / 86;
+      // The published top at the cresting and the cornice between its blocks; the roof over
+      // the ring and the north wing; the inner wings' roof, over which the court widens; and
+      // the court's and the notch's floor.
+      expect(record.heightFromDrawing).toBeUndefined();
+      near(roof(-0.7, 30.5)!, 82.9, 1e-3);
+      near(roof(-0.7, 31)!, h.roof + 0.02, 1e-3);
+      expect([roof(5, 20), roof(38.8, 50.6), roof(39.8, 25.6), roof(28.8, 14.6), roof(28.8, 29.6), roof(27.3, 57.6)].map((y) => Number(y!.toFixed(3))), "the roofs, the inner wings and the floors").toEqual([h.roof, h.roof, h.inner, h.inner, h.court, h.court].map((y) => Number(y.toFixed(3))));
+      expect(record.parts.map((part) => part.top), "the parts' tops").toEqual([h.roof, h.roof, h.inner, h.court, h.court].map((y) => Number(y.toFixed(2))));
+      const paint = (found: THREE.Intersection | undefined) => {
+        expect(found!.object.name).toBe("Peoples Gas Building · terracotta and windows");
+        return (found!.object as THREE.Mesh).geometry.getAttribute("color").getX(found!.face!.a);
+      };
+      const tone = (a: number, b: number, y: number, from: "east" | "south" | "west") => {
+        const p = lot(a, b), d = ({ east: [-west[0], -west[1]], south: [-north[0], -north[1]], west: [west[0], west[1]] } as const)[from];
+        return paint(hit([p[0] + d[0] * 30, y, p[1] + d[1] * 30], [-d[0], 0, -d[1]]));
+      };
+      // The model's own palette, whose window tones no wall shares.
+      const is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
+      const palette = peoplesGasPalette, glassTones = [...palette.glass, palette.lit, palette.dim];
+      const [stone, granite, band, shadow, brick] = [is(palette.stone), is(palette.granite), is(palette.band), is(palette.shadow), is(palette.court)];
+      const glass = (r: number) => glassTones.some((hex) => is(hex)(r));
+      expect([palette.stone, palette.granite, palette.band, palette.shadow, palette.court].map((hex) => glass(new THREE.Color(hex).r)), "no wall colour passes for glass").toEqual([false, false, false, false, false]);
+      // Windows along a wall from `from` to `to`, counted as runs of glass.
+      const count = (from: number, to: number, sample: (s: number) => number) => {
+        let runs = 0, inside = false;
+        for (let s = from; s < to; s += 0.1) { const now = glass(sample(s)); if (now && !inside) runs += 1; inside = now; }
+        return runs;
+      };
+      // The Michigan front: eleven bays between corner piers 6 m to the first column's
+      // middle, each pier with its own window.
+      const michigan = Math.hypot(...[0, 1].map((k) => at(17)[k]! - corner[k]!)), adams = Math.hypot(...[0, 1].map((k) => at(21)[k]! - corner[k]!));
+      const pitch = (michigan - 12) / 11, lines = Array.from({ length: 12 }, (_, k) => 6 + k * pitch), centres = lines.slice(1).map((line) => line - pitch / 2);
+      const east = (b: number, y: number) => tone(0, b, y, "east");
+      const floor = drawn(41.7), rail = drawn(68.5), colonnade = drawn(70.4), pierFloor = drawn(72), attic = drawn(80);
+      expect([floor, colonnade, pierFloor, attic].map((y) => count(0.3, michigan - 0.3, (b) => east(b, y))), "a floor's pairs, the colonnade's openings with and without the piers' windows, and the attic's windows").toEqual([24, 11, 13, 13]);
+      expect(centres.every((c) => stone(east(c, floor)) && glass(east(c + 0.8, floor)) && glass(east(c - 0.8, floor)) && glass(east(c, colonnade)) && band(east(c, rail)) && glass(east(c, attic)) && stone(east(c, drawn(81.8))) && glass(east(c, drawn(3))) && glass(east(c, drawn(9)))), "each bay's mullion, pair, opening, rail, attic window and shopfronts").toBe(true);
+      expect(lines.every((c) => stone(east(c, floor)) && stone(east(c, colonnade)) && shadow(east(c, drawn(81.8))) && granite(east(c, drawn(3)))), "each column, its pendant and its granite").toBe(true);
+      expect([glass(east(2.6, floor)), glass(east(2.6, rail)), granite(east(2.6, drawn(3))), band(east(30, drawn(12.8))), band(east(30, drawn(77.5))), shadow(east(30, drawn(83.5))), shadow(east(lines[5]!, drawn(81.35))), stone(east(lines[5]! + 0.6, drawn(81.35)))], "the pier's windows and granite, the belt, the entablature, the frieze and the pendants' narrowing").toEqual(Array(8).fill(true));
+      // One window to each floor from the third to the twentieth up a corner pier.
+      let floors = 0, lit = false;
+      for (let y = 0.3; y < h.cornice; y += 0.1) { const now = glass(east(2.6, y)); if (now && !lit) floors += 1; lit = now; }
+      expect(floors, "a window to each floor up the pier").toBe(18);
+      // The cornice, 90 cm proud.
+      const ledge = hit([lot(-30, 30)[0], drawn(84.55), lot(-30, 30)[1]], [west[0], 0, west[1]]);
+      expect([ledge!.object.name, Number(ledge!.distance.toFixed(2))], "the cornice").toEqual(["Peoples Gas Building · cornice", 29.1]);
+      // Adams: nine bays; the alley's nineteen windows to a floor.
+      expect([count(0.3, adams - 0.3, (a) => tone(a, 0, floor, "south")), count(0.3, michigan - 0.3, (b) => tone(adams, b, floor, "west"))], "Adams's pairs and the alley's windows").toEqual([20, 19]);
+      // The court's walls, white brick with windows, and the notch open to the Lake View
+      // Building's light court: a ray from the north passes the lot's wall there.
+      const inCourt = lot(28.8, 29.6), courtWall = paint(hit([inCourt[0], floor, inCourt[1]], [-west[0], 0, -west[1]]));
+      expect(brick(courtWall) || glass(courtWall), "the court's east wall").toBe(true);
+      // Along the court's east wall, 21.3 m long, from inside the court.
+      expect(count(20.3, 39.7, (b) => paint(hit([lot(25, b)[0], floor, lot(25, b)[1]], [-west[0], 0, -west[1]]))), "the court's east wall's seven windows").toBe(7);
+      const notch = hit([lot(27.3, 70)[0], floor, lot(27.3, 70)[1]], [-north[0], 0, -north[1]]);
+      expect(notch!.distance, "the notch's depth").toBeGreaterThan(70 - 60.5 + 4);
+      // The exact mapped outline at grade.
+      const shell = meshes.find((mesh) => mesh.name === "Peoples Gas Building · shell")!.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [x, n] = projectGround(p);
+        return [Math.fround(x), Math.fround(-n)].map((v) => v.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    }, { timeout: 30_000 });
+  });
+
   describe("Aon", () => {
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
@@ -1699,7 +1786,7 @@ describe("geographic layout in the study", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    expect(await page.locator("#dimensions-body tr").count()).toBe(21);
+    expect(await page.locator("#dimensions-body tr").count()).toBe(22);
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
@@ -1858,7 +1945,7 @@ describe("geographic layout in the study", () => {
     // The eight drawn buildings, and 330 North Wabash, the Blue Cross and Blue Shield Tower,
     // 340 on the Park, The Buckingham, Millennium Park Plaza and Willoughby Tower, which only
     // the geographic layout models.
-    expect(projected.length).toBe(21);
+    expect(projected.length).toBe(22);
     // A portrait phone's width binds the plan's frame; it still holds every footprint.
     await page.locator('[data-view="top"]').click();
     await settle(page);
