@@ -165,7 +165,8 @@ describe("eight-building skyline study", () => {
     page = await browser.newPage(desktop.options);
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("request", (request) => { if (!request.url().startsWith(origin) && !request.url().startsWith("data:")) external.push(request.url()); });
-    await page.goto(`${origin}/skyline-study.html`);
+    // The page opens on the geographic layout; these checks are the original layout's.
+    await page.goto(`${origin}/skyline-study.html?layout=original`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     await settle(page);
   }, { timeout: 180_000 });
@@ -353,7 +354,7 @@ describe("eight-building skyline study", () => {
   test("works on mobile with touch", async () => {
     const mobile = await browser.newPage(phone.options);
     mobile.on("pageerror", (error) => errors.push(error.message));
-    await mobile.goto(`${origin}/skyline-study.html`);
+    await mobile.goto(`${origin}/skyline-study.html?layout=original`);
     await mobile.waitForFunction(() => window.__buildingStudy?.ready);
     expect(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await mobile.locator("canvas").scrollIntoViewIfNeeded();

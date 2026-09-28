@@ -930,8 +930,31 @@ describe("geographic layout in the study", () => {
     await browser.close();
   }, { timeout: 60_000 });
 
+  test("opens on the geographic layout, and on the original with ?layout=original", async () => {
+    const opened = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    const requested: string[] = [];
+    opened.on("request", (request) => requested.push(new URL(request.url()).pathname));
+    await opened.goto(`${origin}/skyline-study.html`);
+    await opened.waitForFunction(() => window.__buildingStudy?.ready);
+    const state = () => opened.evaluate(() => ({
+      layout: window.__buildingStudy!.layout,
+      view: window.__buildingStudy!.activeView,
+      pressed: document.querySelector('[data-layout="geographic"]')!.getAttribute("aria-pressed"),
+      caption: document.querySelector("#model-caption")!.textContent,
+      drawing: document.querySelector<HTMLImageElement>(".reference img")!.getAttribute("src"),
+    }));
+    expect(await state()).toEqual({ layout: "geographic", view: "skyline", pressed: "true", caption: "01 / geographic study", drawing: "models/skyline-panorama.svg" });
+    expect(requested, "the excerpt waits until the original layout is chosen").not.toContain("/models/skyline-reference.svg");
+    await opened.locator('[data-layout="original"]').click();
+    expect(await state()).toEqual({ layout: "original", view: "skyline", pressed: "false", caption: "01 / original 3D study", drawing: "models/skyline-reference.svg" });
+    await opened.goto(`${origin}/skyline-study.html?layout=original`);
+    await opened.waitForFunction(() => window.__buildingStudy?.ready);
+    expect(await state()).toEqual({ layout: "original", view: "skyline", pressed: "false", caption: "01 / original 3D study", drawing: "models/skyline-reference.svg" });
+    await opened.close();
+  }, { timeout: 180_000 });
+
   test("opens on the drawing's skyline camera, fitted to the mapped buildings at every layout", async () => {
-    await page.goto(`${origin}/skyline-study.html`);
+    await page.goto(`${origin}/skyline-study.html?layout=original`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);

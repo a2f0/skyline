@@ -79,9 +79,12 @@ place(aon, 368.16, 40);
 
 const models = [heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon];
 const comparison = createSkylineComparison(models, crain.building.position);
+// The page opens on the geographic layout; `?layout=original` opens on the drawing's fit.
+const initialLayout = new URLSearchParams(location.search).get("layout") === "original" ? "original" : "geographic";
 const viewer = createBuildingStudy({
   models,
   layouts: comparison.layouts,
+  initialLayout,
   labels: comparison.labels,
   onLayoutChange: comparison.onLayoutChange,
   defaultView: "skyline",

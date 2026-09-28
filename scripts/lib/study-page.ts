@@ -11,7 +11,9 @@ export async function openStudy(browser: Browser, origin: string, options: Brows
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto(`${origin}/skyline-study.html`);
+  // The page opens on the geographic layout; the dev scripts measure and render the
+  // original layout's fit.
+  await page.goto(`${origin}/skyline-study.html?layout=original`);
   await page.waitForFunction(() => (window as unknown as { __buildingStudy?: { ready?: boolean } }).__buildingStudy?.ready);
   await page.locator("canvas").scrollIntoViewIfNeeded();
   await settle(page);
