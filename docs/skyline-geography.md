@@ -315,9 +315,10 @@ Intermediate parts have less certainty than the overall height:
   peak at OpenStreetMap's 67.7 m under a cross. The levels and the upper floor's setbacks
   are read from the drawing; see the
   [University Club reference audit](university-club-reference.md).
-- The Monroe Building stands across Monroe from the University Club. Fourteen storeys of
+- The Monroe Building stands across Monroe from the University Club. Twelve storeys of
   terracotta over two of granite rise in bays of paired windows to a cornice under a steep
-  gable roof holding two more floors, its gable facing Michigan with small arched windows.
+  gable roof holding two more floors, sixteen in all, its gable facing Michigan with small
+  arched windows.
   No height is published: its 67.1 m ridge is read on the drawing, lowered by the
   University Club's reading next door; see the [Monroe Building reference audit](monroe-reference.md).
 

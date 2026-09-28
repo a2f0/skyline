@@ -1398,8 +1398,13 @@ describe("mapped skyline geography", () => {
       const attic = (b: number, y: number) => { const p = lot(-30, b); return hit([p[0], y, p[1]], [west[0], 0, west[1]]).object.name; };
       expect([-6.75, -4.45, -1.15, 1.15, 4.45, 6.75].map((d) => attic(middle + d, 58.6)), "the lower attic windows").toEqual(Array(6).fill("Monroe Building · attic windows"));
       expect([attic(middle - 1.15, 62), attic(middle + 1.15, 62), attic(middle + 3, 58.6), attic(middle + 5.6, 62)], "the upper pair and the gable between").toEqual(["Monroe Building · attic windows", "Monroe Building · attic windows", "Monroe Building · shell", "Monroe Building · shell"]);
-      // The south wall, shared with the taller MacLean Center, plain; Monroe's ten bays.
-      expect([terracotta(tone(10, 0, 40.7, "south")), terracotta(tone(10, 0, 49.9, "south"))], "the plain party wall").toEqual([true, true]);
+      // Each window's head narrows to its middle half for the arch's last 30 cm.
+      expect([attic(middle + 1.15, 59.35), attic(middle + 1.55, 59.35), attic(middle + 1.15, 62.65), attic(middle + 1.55, 62.65)], "the stepped heads").toEqual(["Monroe Building · attic windows", "Monroe Building · shell", "Monroe Building · attic windows", "Monroe Building · shell"]);
+      // The south wall, shared with the taller MacLean Center, plain along a whole floor and
+      // at the belt; Monroe's ten bays.
+      let glazed = 0;
+      for (let a = 0.3; a < 53; a += 0.1) if (glass(tone(a, 0, 40.7, "south"))) glazed += 1;
+      expect([glazed, terracotta(tone(10, 0, 49.9, "south"))], "the plain party wall").toEqual([0, true]);
       let runs = 0, inside = false;
       for (let a = 0.3; a < 54; a += 0.05) { const now = glass(tone(a, 2 * middle, 40.7, "north")); if (now && !inside) runs += 1; inside = now; }
       expect(runs, "Monroe's windows").toBe(20);

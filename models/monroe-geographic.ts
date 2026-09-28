@@ -8,9 +8,9 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // layout's model, on the mapped outline 145498713. The original layout has no model of it;
 // the drawing shows it left of the University Club, across Monroe Street.
 //
-// Fourteen storeys of terracotta over two of granite, in bays of paired windows, with a
-// belt course over the twelfth floor and a cornice under a steep gable roof that holds two
-// more floors, its gable facing Michigan with small arched windows. No height is
+// Twelve storeys of terracotta over two of granite, in bays of paired windows, with a belt
+// course over the twelfth floor and a cornice under a steep gable roof that holds two more
+// floors, sixteen in all, its gable facing Michigan with small arched windows. No height is
 // published: the ridge is read on the drawing, corrected by the University Club's reading
 // across Monroe; see docs/monroe-reference.md. Units are meters; +x is east, +z is south.
 export const monroeLevels = Object.freeze({
@@ -162,9 +162,14 @@ export function createMonroeGeographicBuilding(record: GeoBuilding, projectPlan:
   skin(0, (run) => !facing(0, 1)(run), bays);
   skin(1, facing(0, 1), () => [], true);
 
-  // The gable's small arched windows, 1 m wide and 2 cm proud of it: three pairs 2.3 m apart
-  // in the lower row, one pair in the middle above.
-  const window = (b: number, lo: number, hi: number) => kit.prism(attic, planOf(rect(0, 0.03, b - 0.5, b + 0.5)), [lo, hi]);
+  // The gable's small arched windows, dark panels 1 m wide standing 3 cm proud of it, 5 mm
+  // clear, their heads stepped to the middle half for the arch's last 30 cm and set 5 mm
+  // back so that no face lies in the panel's: three pairs 2.3 m apart in the lower row, one
+  // pair in the middle above.
+  const window = (b: number, lo: number, hi: number) => {
+    kit.prism(attic, planOf(rect(0.02, 0.045, b - 0.5, b + 0.5)), [lo, hi - 0.3]);
+    kit.prism(attic, planOf(rect(0.025, 0.045, b - 0.25, b + 0.25)), [hi - 0.3, hi]);
+  };
   for (const c of [middle - 5.6, middle, middle + 5.6]) for (const d of [-1.15, 1.15]) window(c + d, 57.7, 59.5);
   for (const d of [-1.15, 1.15]) window(middle + d, 61.15, 62.8);
 

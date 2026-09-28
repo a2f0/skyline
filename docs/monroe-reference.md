@@ -66,8 +66,9 @@ as described above.
 | Attic's upper windows | 61.15–62.8 m | Drawing |
 | Ridge | 67.1 m | Drawing: the verge's top |
 
-The hill in the drawing hides the building below 31 m. The published fourteen storeys under
-the roof leave the two granite storeys 13.9 m together, which is an estimate.
+The hill in the drawing hides the building below 31 m. The published sixteen storeys, two of
+them in the roof, leave fourteen under it: twelve of terracotta on the drawn pitch and two
+of granite, 13.9 m together, which is an estimate.
 
 ## Model
 
@@ -79,8 +80,8 @@ the roof leave the two granite storeys 13.9 m together, which is an estimate.
 - **Roof:** a closed solid 5 cm inside the walls, on the lot's four corners, from the eaves
   to a ridge between its gables' middles. Its slopes are in two triangles each, since the
   lot is out of square.
-- **Attic windows:** dark panels 2 cm proud of the Michigan gable: three pairs low and one
-  pair high.
+- **Attic windows:** dark panels 3 cm proud of the Michigan gable, their heads stepped to
+  the middle half for the arch: three pairs low and one pair high.
 
 Colours follow the drawing's greys, not the terracotta's pink or the roof's green tile.
 
@@ -101,8 +102,10 @@ Omitted:
   - the ridge, the south slope, and the walls' top in front of the gable;
   - the Michigan front's paired windows, mullions and piers;
   - the granite storeys, the fourteenth floor, the belt and the cornice;
-  - the gable's six lower and two upper windows, and the gable between them;
-  - the plain party wall and the Monroe front's twenty windows to a floor;
+  - the gable's six lower and two upper windows, their stepped heads, and the gable between
+    them;
+  - the party wall, windowless along a floor, and the Monroe front's twenty windows to a
+    floor;
   - the model's exported palette, whose window tones no wall shares;
   - the exact mapped outline at grade.
 
