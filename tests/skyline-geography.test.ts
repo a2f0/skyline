@@ -9,6 +9,7 @@ import { floorLevel, onePrudentialLevels, wallStations } from "../models/one-pru
 import { trumpSpire } from "../models/trump-geographic.js";
 import { trumpLevels } from "../models/trump-tower.js";
 import { northMichigan180Palette } from "../models/north-michigan-180-geographic.js";
+import { universityClubPalette } from "../models/university-club-geographic.js";
 import { northWabashFloors } from "../models/north-wabash-geographic.js";
 import { crain, geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
@@ -91,9 +92,9 @@ describe("mapped skyline geography", () => {
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
       "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9], Buckingham: [582.28, -1.52, 121.9],
-      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3],
+      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75],
     };
-    expect(geographicBuildings.length).toBe(17);
+    expect(geographicBuildings.length).toBe(18);
     for (const record of geographicBuildings) {
       const metrics = footprintMetrics(record.footprint.coordinates);
       const [east, north, height] = expected[record.shortName]!;
@@ -1275,6 +1276,76 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("University Club of Chicago", () => {
+    test("keeps the mapped block, its hall windows and parapet, and the gabled upper floor", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "University Club")!;
+      const model = models["University Club"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const hit = (from: Vec3, direction: Vec3) => {
+        ray.set(new THREE.Vector3(...from), new THREE.Vector3(...direction));
+        return ray.intersectObjects(meshes, false)[0]!;
+      };
+      const at = (i: number): Vec2 => { const [east, north] = projectGround(record.footprint.coordinates[i]!); return [east, -north]; };
+      // The lot's south-east corner, with its Monroe front running west and its Michigan front
+      // north.
+      const corner = at(3), unit = (p: Vec2): Vec2 => { const d = Math.hypot(p[0] - corner[0], p[1] - corner[1]); return [(p[0] - corner[0]) / d, (p[1] - corner[1]) / d]; };
+      const [west, north] = [unit(at(4)), unit(at(0))];
+      const lot = (a: number, b: number): Vec2 => [corner[0] + west[0] * a + north[0] * b, corner[1] + west[1] * a + north[1] * b];
+      const roof = (a: number, b: number) => { const p = lot(a, b); return hit([p[0], 300, p[1]], [0, -1, 0]).point.y; };
+      // Measured on the drawing down from OpenStreetMap's 67.7 m at the gable's peak: the
+      // ridge and its cross, a pinnacle at the gable's foot, the south slope, the Monroe
+      // side's small gable, and the parapet with its merlons.
+      const ridge = Math.hypot(...[0, 1].map((k) => at(0)[k]! - corner[k]!)) / 2;
+      near(roof(10, ridge), 67.7, 1e-3);
+      near(roof(3.6, ridge), 69.75, 1e-3);
+      near(roof(3.3, 1.3), 62.5, 1e-3);
+      near(roof(10, 5), 56.4 + (5 - 1.3) / (ridge - 1.3) * 11.3, 0.05);
+      near(roof(16.2, 2.5), 60.4, 1e-3);
+      expect([roof(1.5, 10), roof(0.3, 3.15), roof(0.3, 2.1)].map((y) => Math.round(y * 100) / 100), "the parapet, a merlon and a crenel").toEqual([51, 51.75, 51]);
+      const tone = (a: number, b: number, y: number, from: "east" | "south" | "north") => {
+        const p = lot(a, b), d = ({ east: [-west[0], -west[1]], south: [-north[0], -north[1]], north: [north[0], north[1]] } as const)[from];
+        const found = hit([p[0] + d[0] * 30, y, p[1] + d[1] * 30], [-d[0], 0, -d[1]]);
+        expect(found.object.name).toBe("University Club · stone and windows");
+        return (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
+      };
+      // The model's own palette, whose window tones no wall shares.
+      const is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
+      const palette = universityClubPalette, panes = [...palette.glass, palette.lit, palette.dim];
+      const [stone, band] = [is(palette.stone), is(palette.band)];
+      const glass = (r: number) => panes.some((hex) => is(hex)(r));
+      expect([palette.stone, palette.band].map((hex) => glass(new THREE.Color(hex).r)), "no wall colour passes for glass").toEqual([false, false]);
+      // Four bays to each street front, 4.55 m apart from 3.1 m: the hall's tall windows and
+      // their narrowed heads, the wide windows under them, and paired windows below; then the
+      // band and the parapet wall.
+      const fronts = { michigan: (s: number, y: number) => tone(0, s, y, "east"), monroe: (s: number, y: number) => tone(s, 0, y, "south") };
+      for (const [name, face] of Object.entries(fronts)) {
+        const across = (y: number, offsets: number[]) => [3.1, 7.65, 12.2, 16.75].flatMap((c) => offsets.map((o) => face(c + o, y)));
+        expect(across(40, [-1.6, 0, 1.6]).every(glass) && across(40, [-2, 2]).every(stone), `${name}: the hall's windows and piers`).toBe(true);
+        expect(across(43.5, [-0.6, 0, 0.6]).every(glass) && across(43.5, [-1.2, 1.2]).every(stone), `${name}: their heads`).toBe(true);
+        expect(across(35.2, [-1.6, 0, 1.6]).every(glass), `${name}: the wide windows under them`).toBe(true);
+        expect(across(17.4, [-0.9, 0.9]).every(glass) && across(17.4, [-1.6, 0, 1.6]).every(stone), `${name}: a floor's paired windows`).toBe(true);
+        expect(across(47.5, [0]).every(band) && across(50, [0]).every(stone), `${name}: the band and the parapet wall`).toBe(true);
+      }
+      // The upper floor's three windows on its Michigan gable end, and the small gable's one.
+      expect([4.3, 10.4, 16.4].every((b) => glass(tone(3.3, b, 54, "east"))) && stone(tone(3.3, 7.35, 54, "east")), "the upper floor's windows").toBe(true);
+      expect([glass(tone(16.2, 1.15, 54.8, "south")), stone(tone(14.3, 1.15, 54.8, "south"))], "the small gable's window").toEqual([true, true]);
+      // The north wall, shared with the six-storey 30 South Michigan, blank to its eighth floor.
+      const northWindows = (y: number) => { let count = 0, open = false; for (let a = 0.3; a < 48; a += 0.1) { const now = glass(tone(a, ridge * 2, y, "north")); if (now && !open) count += 1; open = now; } return count; };
+      expect([northWindows(5 + 5 * 3.525 + 1.9), northWindows(5 + 6 * 3.525 + 1.9) > 0], "the north wall, blank below its eighth floor").toEqual([0, true]);
+      // The exact mapped outline at grade.
+      const shell = meshes.find((mesh) => mesh.name === "University Club · shell")!.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [x, n] = projectGround(p);
+        return [Math.fround(x), Math.fround(-n)].map((v) => v.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   describe("Aon", () => {
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
@@ -1410,7 +1481,7 @@ describe("geographic layout in the study", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    expect(await page.locator("#dimensions-body tr").count()).toBe(17);
+    expect(await page.locator("#dimensions-body tr").count()).toBe(18);
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
@@ -1565,7 +1636,7 @@ describe("geographic layout in the study", () => {
     // The eight drawn buildings, and 330 North Wabash, the Blue Cross and Blue Shield Tower,
     // 340 on the Park, The Buckingham, Millennium Park Plaza and Willoughby Tower, which only
     // the geographic layout models.
-    expect(projected.length).toBe(17);
+    expect(projected.length).toBe(18);
     // A portrait phone's width binds the plan's frame; it still holds every footprint.
     await page.locator('[data-view="top"]').click();
     await settle(page);

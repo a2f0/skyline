@@ -19,6 +19,7 @@ import { createOnePrudentialGeographicBuilding } from "./one-prudential-geograph
 import { createSixNorthMichiganGeographicBuilding } from "./six-north-michigan-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
 import { createTwoPrudentialGeographicBuilding } from "./two-prudential-geographic.js";
+import { createUniversityClubGeographicBuilding } from "./university-club-geographic.js";
 import { createWilloughbyTowerGeographicBuilding } from "./willoughby-tower-geographic.js";
 
 // Local WGS84 tangent plane, centered on the bounding-box center of Crain's
@@ -86,6 +87,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   if (record.id === "building-michigan-plaza-front-middle") {
     return createNorthMichigan180GeographicBuilding(record, plan, offset);
   }
+  if (record.id === "building-university-club") {
+    return createUniversityClubGeographicBuilding(record, plan, offset);
+  }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);
   }
@@ -122,9 +126,11 @@ export function createGeographicGround(offset: [number, number] = [0, 0]): { gro
   const group = new THREE.Group();
   group.name = "Geographic reference";
   group.position.set(offset[0], 0, offset[1]);
+  // The study rectangle, 100 m squares from 400 m west of Crain to 500 m east and from
+  // 850 m south, past the Railway Exchange at Jackson, to 650 m north.
   const grid: Vec3[] = [];
-  for (let x = -400; x <= 500; x += 100) grid.push([x, 0.02, -650], [x, 0.02, 250]);
-  for (let north = -250; north <= 650; north += 100) grid.push([-400, 0.02, -north], [500, 0.02, -north]);
+  for (let x = -400; x <= 500; x += 100) grid.push([x, 0.02, -650], [x, 0.02, 850]);
+  for (let north = -850; north <= 650; north += 100) grid.push([-400, 0.02, -north], [500, 0.02, -north]);
   group.add(lines(grid, 0x303b3e));
   const streets = new THREE.Group();
   streets.name = "Mapped street centerlines";
@@ -138,7 +144,7 @@ export function createGeographicGround(offset: [number, number] = [0, 0]): { gro
       // Clip every segment to the study rectangle, retaining crossing segments.
       const a = points[i - 1]!, b = points[i]!;
       let lo = 0, hi = 1;
-      for (const [axis, min, max] of [[0, -400, 500], [2, -650, 250]] as [0 | 2, number, number][]) {
+      for (const [axis, min, max] of [[0, -400, 500], [2, -650, 850]] as [0 | 2, number, number][]) {
         const delta = b[axis] - a[axis];
         if (Math.abs(delta) < 1e-10) { if (a[axis] < min || a[axis] > max) hi = -1; }
         else {

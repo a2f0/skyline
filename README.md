@@ -68,8 +68,8 @@ In `skyline-study.html`, the **geographic layout**, the page's default, moves th
 to local OpenStreetMap footprints and parts, with published overall heights
 (Kemper uses OSM's height), and adds 330 North Wabash, the Blue Cross and Blue
 Shield Tower, 340 on the Park, The Buckingham, Millennium Park Plaza, Willoughby Tower,
-Six North Michigan, the Michigan Boulevard Building, and 180 North Michigan Avenue. It
-opens on the skyline view from the drawing's own camera: the source photograph's vantage on the lakefront by the Adler
+Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, and the
+University Club of Chicago. It opens on the skyline view from the drawing's own camera: the source photograph's vantage on the lakefront by the Adler
 Planetarium, fitted to the mapped roofs and tips while the buildings stay where
 they are mapped. That view frames the whole drawn skyline, and the drawing under
 the scene becomes `models/skyline-panorama.svg`, every building the drawing shows;
@@ -142,6 +142,11 @@ North of Millennium Park Plaza, 180 North Michigan Avenue, the Harvester Buildin
 lot with twenty-four storeys of masonry under a top floor of arched windows. No height is
 published, so its 86.3 m parapet is read on the drawing; see its
 [reference audit](docs/north-michigan-180-reference.md).
+South of Willoughby Tower, the University Club of Chicago raises the tall arched windows of
+its top hall under a crenellated parapet, and behind it a steep roof with its gable on
+Michigan, crossed at OpenStreetMap's 67.7 m; see its
+[reference audit](docs/university-club-reference.md). The ground plan's frame reaches south
+to Jackson for the buildings that follow.
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the
@@ -163,7 +168,7 @@ corners, the 346.3 m enclosure, and the inferred antenna at the published
 Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
-for the coordinate system, seventeen footprint records, height definitions, OSM
+for the coordinate system, eighteen footprint records, height definitions, OSM
 attribution, and limitations. All runtime data is checked in locally.
 
 ## Adding a building to the skyline study

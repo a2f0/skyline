@@ -3,18 +3,21 @@
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings, plus 330 North Wabash, the Blue Cross and Blue
 Shield Tower, 340 on the Park, The Buckingham, Millennium Park Plaza, Willoughby Tower,
-Six North Michigan, the Michigan Boulevard Building, and 180 North Michigan Avenue, which
-only the geographic layout maps. The page
+Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, and the
+University Club of Chicago, which only the geographic layout maps. The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
 placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Their shared frame, 1,050 m
-square, is set in ground plan. There it holds the original layout's platform and every
-mapped footprint, with about 50 m east and west where a portrait phone's width binds it
-and about 100 m north and south; the geography suite checks that each footprint and its
-label stay inside the plan at desktop and phone sizes. Height comparison sees the same
+east–west by 1,450 m north–south, is set in ground plan. There it holds the original
+layout's platform and every mapped footprint, with about 50 m east and west where a
+portrait phone's width binds it. North and south it runs from about 110 m past Trump to
+127 m past the Railway Exchange at Jackson, so the drawing's Michigan Avenue buildings south
+of Madison fit as they are added; until then its southern part stands empty. The geography
+suite checks that each footprint and its label stay inside the plan at desktop and phone
+sizes. Height comparison sees the same
 frame at an angle, and on a portrait phone it can clip the platform's south-west corner.
 A building added farther out needs the frame moved or widened. Switching layouts
 in those views preserves the camera position, target and zoom, including after an
@@ -105,7 +108,7 @@ a wider sixth, 1600×700, whose canvas fits the frame to its height.
 and the Blue Cross and Blue Shield Tower's outline and parts on September 28, 2026,
 from [another](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6212,41.8845,-87.6180,41.8862),
 as were 340 on the Park's and The Buckingham's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862),
-and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's and 180 North Michigan Avenue's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
+and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's, 180 North Michigan Avenue's and the University Club's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -148,6 +151,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Six North Michigan | [126982631](https://www.openstreetmap.org/way/126982631) | Outline, with the tower and levels from the drawing; not in the original layout |
 | Michigan Boulevard Building | [126982630](https://www.openstreetmap.org/way/126982630) | Outline, with the levels from the drawing; not in the original layout |
 | 180 North Michigan Avenue | [210671714](https://www.openstreetmap.org/way/210671714) | Outline, with the height and levels from the drawing; not in the original layout |
+| University Club of Chicago | [126982632](https://www.openstreetmap.org/way/126982632) | Outline, with the upper floor, roof and levels from the drawing; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -178,6 +182,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Six North Michigan | 86 m | 86 m | [Chicagology](https://chicagology.com/goldenage/goldenage015/) |
 | Michigan Boulevard Building | 82 m | 83.3 m | [Emporis, archived](https://web.archive.org/web/20070216134331/http://www.emporis.com/en/wm/bu/?id=michiganboulevardbuilding-chicago-il-usa) |
 | 180 North Michigan Avenue | 86.3 m, drawing | 86.3 m | None published; storeys from [Marc Realty](https://marcrealty.com/180-north-michigan-office-space-chicago/) |
+| University Club of Chicago | 67.7 m | 69.75 m | [OSM height tag](https://www.openstreetmap.org/way/126982632) |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
 Michigan Avenue has none published, so its height is read on the drawing, and the page's
@@ -300,6 +305,13 @@ Intermediate parts have less certainty than the overall height:
   mapped lot with twenty-four storeys of masonry, string courses and a top floor of arched
   windows. No height is published: its 86.3 m parapet is read on the drawing, within a few
   metres; see the [180 North Michigan Avenue reference audit](north-michigan-180-reference.md).
+- The University Club of Chicago stands on the north-west corner of Michigan and Monroe,
+  partly behind the Monroe Building. Its Gothic walls carry the tall arched windows of its
+  top hall in four bays to each street front, under a band and a crenellated parapet.
+  Behind the parapet an upper floor rises to a steep roof whose gable faces Michigan, its
+  peak at OpenStreetMap's 67.7 m under a cross. The levels and the upper floor's setbacks
+  are read from the drawing; see the
+  [University Club reference audit](university-club-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -311,12 +323,13 @@ Gold lines are mapped street **centerlines**, with no implied road or sidewalk
 width. Names containing “Lower”, negative OSM layers and negative levels are
 excluded. Retained upper/surface roads are flattened to the ground; bridge
 heights, curbs, tunnels, the river and surrounding buildings are absent. The
-100 m grid and mapped footprints help inspect whether the street arrangement
-fits. Checking curb clearances or Chicago's stacked streets requires additional
+100 m grid runs from 850 m south of Crain to 650 m north, but the street extract stops
+near Madison, so the buildings south of it stand beyond the gold lines. The grid and
+mapped footprints help inspect whether the street arrangement fits. Checking curb clearances or Chicago's stacked streets requires additional
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all seventeen rendered ground
+coordinate anchors, meter scale and north direction, all eighteen rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
