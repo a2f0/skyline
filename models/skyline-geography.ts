@@ -5,6 +5,7 @@ import { geographicBuildings, geographicStreets } from "./skyline-geography-data
 import type { GeoBuilding } from "./skyline-geography-data.js";
 import { createAonGeographicBuilding } from "./aon-geographic.js";
 import { createBlueCrossGeographicBuilding } from "./blue-cross-geographic.js";
+import { createBuckinghamGeographicBuilding } from "./buckingham-geographic.js";
 import { createCrainGeographicBuilding } from "./crain-geographic.js";
 import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
 import { createKemperGeographicBuilding } from "./kemper-geographic.js";
@@ -61,6 +62,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-340-on-the-park") {
     return createOnTheParkGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-the-buckingham") {
+    return createBuckinghamGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);

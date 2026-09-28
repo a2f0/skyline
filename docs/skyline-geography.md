@@ -2,7 +2,7 @@
 
 `skyline-study.html` has two layouts: the original drawing fit and a geographic
 study of the same eight buildings, plus 330 North Wabash, the Blue Cross and Blue
-Shield Tower, and 340 on the Park, which only the geographic layout maps. The page
+Shield Tower, 340 on the Park, and The Buckingham, which only the geographic layout maps. The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
@@ -96,7 +96,7 @@ a wider sixth, 1600×700, whose canvas fits the frame to its height.
 [wider request](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6300,41.8820,-87.6180,41.8920),
 and the Blue Cross and Blue Shield Tower's outline and parts on September 28, 2026,
 from [another](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6212,41.8845,-87.6180,41.8862),
-as were 340 on the Park's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862).
+as were 340 on the Park's and The Buckingham's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862).
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -133,6 +133,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Aon | [64388609](https://www.openstreetmap.org/way/64388609) | Shaft plus rooftop part 284775635 and inferred antenna |
 | Blue Cross | [95486960](https://www.openstreetmap.org/way/95486960) | 284779637, 284779635; not in the original layout |
 | 340 on the Park | [95486949](https://www.openstreetmap.org/way/95486949) | 284789056, 284789058; not in the original layout |
+| The Buckingham | [95486940](https://www.openstreetmap.org/way/95486940) | Outline plus rooftop part 284790189; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -157,6 +158,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Aon | 346.3 m | 362.5 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/aon-center/339) |
 | Blue Cross | 226.7 m | 226.7 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/blue-cross-blue-shield-tower/1160) |
 | 340 on the Park | 204.9 m | 204.9 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/340-on-the-park/1583) |
+| The Buckingham | 121.9 m | 121.9 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/buckingham-plaza/10315) |
 
 Architectural heights include architectural spires and exclude antennas. The
 table's before/after comparison uses the highest actual rendered vertex, so One
@@ -242,6 +244,12 @@ Intermediate parts have less certainty than the overall height:
   down from the published 204.9 m top, balcony ladders, the winter garden's tall bay
   and a parapet band. The corner block's roof is measured on a photograph at 51.7 m,
   over the map's 40 m; see the [340 on the Park reference audit](340-on-the-park-reference.md).
+- The Buckingham stands right of 340 on the Park, where the mapped outline projects onto
+  the drawn tower. It is a concrete frame of five bays a face with a band at every floor
+  over bronze ribbon windows, measured on the drawing down from the mapped 119 m cap.
+  The south, east and north faces' end bays stand forward of the middle, balconies stack
+  in the two notched corners, and the rooftop enclosure on its mapped part rises to the
+  published 121.9 m; see the [Buckingham reference audit](buckingham-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -258,7 +266,7 @@ fits. Checking curb clearances or Chicago's stacked streets requires additional
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all eleven rendered ground
+coordinate anchors, meter scale and north direction, all twelve rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
