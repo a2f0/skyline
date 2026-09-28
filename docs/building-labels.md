@@ -48,12 +48,21 @@ Checked on 2026-09-28. The geographic layout's camera, fitted to the mapped buil
 roofs and tips, projects any mapped building into the drawing's layer space.
 `scripts/fit-geographic-camera.ts` describes the fit.
 
-The comparison projected every building in an OpenStreetMap extract of the drawn area:
+The comparison used an OpenStreetMap extract of the drawn area:
 [the Loop's east side](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920)
 and [Harbor Drive](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6175,41.8820,-87.6100,41.8900).
-Each building's height came from its mapped height, or from its levels at 3.8 m. Each
-drawn group was then matched against the buildings whose projected span covers it and
-whose projected top lands near the drawn one.
+It went in two passes:
+
+1. It projected every mapped building outline that carries a height, or a level count
+   taken at 3.8 m a level. Each drawn group was ranked against the buildings whose
+   projected span covers much of it, whose width is comparable, and whose projected top
+   lands near the drawn one. This pass leaves out outlines with neither tag, buildings
+   mapped only as multipolygon relations, and buildings far wider than the drawn facade
+   they show.
+2. For the groups that pass left open, the outlines along Michigan Avenue and near The
+   Buckingham were listed by address and projected by hand, those without heights at a
+   nominal height. This pass found 30 North Michigan: its projected span, which includes
+   its deep side, is three times its drawn facade.
 
 The known groups check the method:
 
@@ -69,17 +78,17 @@ A group is renamed only where the projection and the source photograph agree.
 | `michigan-plaza-front-tall` | Millennium Park Plaza, 151–155 North Michigan Avenue | OSM way 127107026, 122 m: projected across the drawn span, its top 12 units from the drawn one; the photograph shows a pale tower of continuous piers. Opened in 1982 as Doral Plaza, at Michigan and Randolph's north-east corner ([building](https://millenniumparkplaza.com/)). |
 | `michigan-plaza-front-middle` | 180 North Michigan Avenue | OSM way 210671714, 23 levels: projected top 3 units from the drawn one; the photograph shows brown masonry under arched top windows. |
 | `michigan-plaza-front-small` | 168 North Michigan Avenue | OSM way 210671685, 12 levels: the one building between 150 and 180 North Michigan tall enough to show; the photograph shows an ornate cream low-rise. |
-| `six-north-far-east` | Michigan Boulevard Building, 30 North Michigan Avenue | OSM way 126982630, 20 levels: projected across the drawn span; white terra cotta, Jarvis Hunt, 1914 ([leasing](https://marcrealty.com/30-north-michigan-avenue-office-spaces-leasing-chicago-il/)), as the photograph's cream facade shows. |
+| `six-north-far-east` | Michigan Boulevard Building, 30 North Michigan Avenue | OSM way 126982630, 20 levels: the corner building at Washington Street, projected across the drawn span in the second pass; Jarvis Hunt, 1914 ([photograph archive](https://chistockimages.com/downloads/michigan-boulevard-building-30-north-michigan-avenue-2/)). The photograph shows its cream facade. |
 
 These stay **Unidentified**, with their candidates:
 
 | Group | Candidates | Why unresolved |
 | --- | --- | --- |
-| `six-north-east` | The Garland Building, 111 North Wabash Avenue | The drawn facade stands about 84 m tall with its base on the street front. 20 North Michigan, the street-front building there, is an eight-storey building of 1885; the Garland Building, behind it, projects onto the span but would not reach the street. |
+| `six-north-east` | The Garland Building, 111 North Wabash Avenue | The drawn facade stands about 84 m tall with its base on the street front. 20 North Michigan, the street-front building there, has only eight storeys; the Garland Building, behind it, projects onto the span but would not reach the street. |
 | `michigan-west-left`, `-right`, `-front` | The Gage Group, 18–30 South Michigan Avenue, and the Chicago Athletic Association, 12 South Michigan Avenue | All four buildings project into the stretch between the University Club and Willoughby Tower. The drawing's three facades cannot be assigned to them one to one. |
 | `office-west-of-aon` | Two Illinois Center, 233 North Michigan Avenue; River Plaza, 405 North Wabash Avenue | Both project onto the drawn span, with tops within about 10 m of the drawn one. |
 | `buckingham-west` | Optima Center, 200 East Illinois Street; Three Illinois Center, 303 East Wacker Drive | Both project behind the gap between 340 on the Park and The Buckingham. |
-| `buckingham-east` | None found | The photograph shows a tower with a lit crown. No mapped building of the right height projects there. |
+| `buckingham-east` | None settled | The photograph shows a tower with a lit crown. Several buildings north of the river project there, among them the Sheraton Grand Chicago, 301 East North Water Street, but none has a mapped height to test against the drawn top. |
 
 ## Geometry corrections
 
