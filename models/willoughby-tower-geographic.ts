@@ -11,17 +11,23 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // A limestone Gothic tower on an L-shaped lot at Michigan and Madison. The base fills the
 // lot to the setback over the 23rd floor, under a parapet of pinnacles. A shaft rises at
 // the lot's south-east corner, 17.4 m along its south wall and 11 m along Michigan, with a
-// shoulder four floors high west of it, to a crown of arched windows and corner pinnacles
-// at the published 133.5 m. Heights are measured on the drawing down from that top; see
-// docs/willoughby-tower-reference.md. Units are meters; +x is east, +z is south.
+// shoulder four floors high west of it, to a crown of arched windows under pinnacles and
+// gables, its tallest pinnacles at the published 133.5 m. Heights are measured on the
+// drawing down from that top; see docs/willoughby-tower-reference.md. Units are meters; +x
+// is east, +z is south.
 export const willoughbyLevels = Object.freeze({
   setback: 80.5, // the base's parapet, over the 23rd floor
   shoulder: 92, // the shoulder's roof, west of the shaft
   shaft: 123.5, // the shaft's top, under the crown
-  crown: 131.5, // the crown's parapet
-  top: 133.5, // the crown's pinnacles, the published architectural height
+  crown: 131.7, // the crown's parapet
+  gable: 132.2, // the gables over the crown's long faces
+  sidePinnacles: 132.5, // the pinnacles flanking the crown's short faces
+  top: 133.5, // the crown's central pinnacles, the published architectural height
   shaftWidth: 17.4, // along the south wall from the south-east corner
   shaftDepth: 11, // along Michigan from the south-east corner
+  crownEnds: 2.1, // the crown's inset from the shaft's Michigan and west faces
+  crownSides: 1.2, // and from its south and north faces
+  crownWindows: 10.2, // the long faces' windows, centred this far west of Michigan
 });
 const h = willoughbyLevels;
 // Each floor's level: a two-storey granite base, then 3.35 m floors to the crown's.
@@ -41,19 +47,21 @@ function paneColor(row: number, bay: number, wall: number): THREE.Color {
 
 // The rows of every wall, from 25 cm above grade, where the mapped outline ends, to the
 // crown's parapet: the granite base, each floor's stone spandrel and window, the base's
-// parapet at the setback, and the crown's tall arched windows, their heads narrowing for
-// the last metre, under its parapet. A solid takes the rows between its foot and top, cut
-// there.
-type Row = { lo: number; hi: number; kind: "granite" | "glass" | "stone" | "arch" | "head"; floor: number };
+// parapet at the setback, and the crown's arched windows under its parapet. The short
+// faces' windows start at 124.7 m and the long faces' at 127.1 m; both narrow to their
+// heads' middle half from 128.6 to 129.1 m. A solid takes the rows between its foot and
+// top, cut there.
+type Row = { lo: number; hi: number; kind: "granite" | "glass" | "stone" | "tall" | "arch" | "head"; floor: number };
 const allRows: Row[] = [{ lo: 0.25, hi: floor(3) - 0.3, kind: "granite", floor: 1 }];
 for (let n = 3; n <= 36; n += 1) {
   allRows.push({ lo: floor(n) - 0.3, hi: floor(n) + 0.9, kind: "stone", floor: n });
   allRows.push({ lo: floor(n) + 0.9, hi: floor(n + 1) - 0.3, kind: "glass", floor: n });
 }
-allRows.push({ lo: floor(37) - 0.3, hi: 125, kind: "stone", floor: 37 });
-allRows.push({ lo: 125, hi: 129, kind: "arch", floor: 37 });
-allRows.push({ lo: 129, hi: 130, kind: "head", floor: 37 });
-allRows.push({ lo: 130, hi: h.crown, kind: "stone", floor: 38 });
+allRows.push({ lo: floor(37) - 0.3, hi: 124.7, kind: "stone", floor: 37 });
+allRows.push({ lo: 124.7, hi: 127.1, kind: "tall", floor: 37 });
+allRows.push({ lo: 127.1, hi: 128.6, kind: "arch", floor: 37 });
+allRows.push({ lo: 128.6, hi: 129.1, kind: "head", floor: 37 });
+allRows.push({ lo: 129.1, hi: h.crown, kind: "stone", floor: 38 });
 const rowsBetween = (lo: number, hi: number): Row[] => allRows
   .map((row) => ({ ...row, lo: Math.max(row.lo, lo), hi: Math.min(row.hi, hi) }))
   .filter((row) => row.hi - row.lo > 0.05);
@@ -74,7 +82,7 @@ export function createWilloughbyTowerGeographicBuilding(record: GeoBuilding, pro
   const rect = (a0: number, a1: number, b0: number, b1: number) => orient([at(a0, b0), at(a1, b0), at(a1, b1), at(a0, b1)]);
   // The south wall's length: the farthest lot corner on its line.
   const southWall = Math.max(...lot.filter((p) => Math.abs((p[0] - corner[0]) * west[1] - (p[1] - corner[1]) * west[0]) < 0.5).map((p) => (p[0] - corner[0]) * west[0] + (p[1] - corner[1]) * west[1]));
-  const shaft = rect(0, h.shaftWidth, 0, h.shaftDepth), shoulder = rect(h.shaftWidth, southWall, 0, h.shaftDepth), crown = rect(1.8, h.shaftWidth - 1.8, 1.8, h.shaftDepth - 1.8);
+  const shaft = rect(0, h.shaftWidth, 0, h.shaftDepth), shoulder = rect(h.shaftWidth, southWall, 0, h.shaftDepth), crown = rect(h.crownEnds, h.shaftWidth - h.crownEnds, h.crownSides, h.shaftDepth - h.crownSides);
 
   // A solid on an outline between two heights.
   const solid = (corners: Vec2[], lo: number, hi: number) => {
@@ -101,23 +109,23 @@ export function createWilloughbyTowerGeographicBuilding(record: GeoBuilding, pro
   });
 
   // A wall's skin, one box to a chain the `keep` test accepts, held 2 cm clear of its ends
-  // or 9 cm where the outline turns in. `openings` lays a wall's columns out across it and
-  // says which hold windows, which the shaft's dark strips, which an arched window's sides
-  // or middle, and which stay stone.
-  type Opening = "window" | "strip" | "stone" | "archSide" | "archMiddle";
-  const skin = (corners: Vec2[], lo: number, hi: number, seed: number, keep: (run: Run) => boolean, openings: (length: number) => [number[], (bay: number) => Opening]) => {
+  // or 9 cm where the outline turns in. `openings` lays a wall's columns out across it,
+  // from its start to its end, and says which hold windows, which the shaft's dark strips,
+  // which a crown window's sides or middle, tall or not, and which stay stone.
+  type Opening = "window" | "strip" | "stone" | "tallSide" | "tallMiddle" | "side" | "middle";
+  const crownGlass: Record<"tall" | "arch" | "head", Opening[]> = { tall: ["tallSide", "tallMiddle"], arch: ["tallSide", "tallMiddle", "side", "middle"], head: ["tallMiddle", "middle"] };
+  const skin = (corners: Vec2[], lo: number, hi: number, seed: number, keep: (run: Run) => boolean, openings: (length: number, start: Vec2, end: Vec2) => [number[], (bay: number) => Opening]) => {
     const plan = planOf(corners), rows = rowsBetween(lo, hi), heights = [rows[0]!.lo, ...rows.map((row) => row.hi)];
     chainsOf(plan).forEach((chain, index) => {
       if (!chain.runs.every((run) => keep(plan[run]!))) return;
       const first = chain.runs[0]!, last = chain.runs.at(-1)!;
       const s0 = turnsAt(plan, first)[0] > 0 ? 0.09 : 0.02, s1 = chain.length - (turnsAt(plan, last)[1] > 0 ? 0.09 : 0.02);
-      const [columns, kind] = openings(chain.length);
+      const [columns, kind] = openings(chain.length, plan[first]!.at(0), plan[last]!.at(plan[last]!.length));
       chainSkin(kit, wall, plan, chain, 0, chain.runs.length - 1, s0, s1, columns, heights, 0.02, 0.07, (bay, r) => {
         const row = rows[r]!, opening = kind(bay);
         if (row.kind === "granite") return granite;
-        if (opening === "strip" && row.kind !== "arch") return row.floor >= 37 ? stone : strip;
-        if (row.kind === "arch") return opening === "archSide" || opening === "archMiddle" ? paneColor(row.floor, bay, seed * 8 + index) : stone;
-        if (row.kind === "head") return opening === "archMiddle" ? paneColor(row.floor, bay, seed * 8 + index) : stone;
+        if (opening === "strip") return row.floor >= 37 ? stone : strip;
+        if (row.kind === "tall" || row.kind === "arch" || row.kind === "head") return crownGlass[row.kind].includes(opening) ? paneColor(row.floor, bay, seed * 8 + index) : stone;
         if (row.kind === "stone" || opening === "stone") return stone;
         return paneColor(row.floor, bay, seed * 8 + index);
       }, stone);
@@ -134,16 +142,20 @@ export function createWilloughbyTowerGeographicBuilding(record: GeoBuilding, pro
   // symmetrical about its middle.
   const stripped = (length: number): [number[], (bay: number) => Opening] => {
     const at = (f: number) => length * f;
-    const columns = [0, at(0.15), at(0.25), at(0.35), at(0.42), at(0.465), at(0.535), at(0.58), at(0.65), at(0.75), at(0.85), length];
+    const columns = [0, at(0.15), at(0.25), at(0.315), at(0.385), at(0.465), at(0.535), at(0.615), at(0.685), at(0.75), at(0.85), length];
     return [columns, (bay) => (bay === 2 || bay === 10 ? "window" : bay === 4 || bay === 6 || bay === 8 ? "strip" : "stone")];
   };
-  // The crown: a tall arched window in each of its bays, 1.2 m wide, its head narrowing to
-  // its middle 0.6 m.
-  const arched = (length: number): [number[], (bay: number) => Opening] => {
-    const bays = length > 10 ? 3 : 2;
-    const columns = [0, ...Array.from({ length: bays }, (_, i) => { const c = length * (i + 0.5) / bays; return [c - 0.6, c - 0.3, c + 0.3, c + 0.6]; }).flat(), length];
-    // Bays run pier, side, middle, side for each window, then the last pier.
-    return [columns, (bay) => { const k = (bay - 1) % 4; return bay > 4 * bays || k === 0 ? "stone" : k === 2 ? "archMiddle" : "archSide"; }];
+  // A point's distance west of the lot's Michigan front and north of its south wall.
+  const inLot = (p: Vec2): Vec2 => [(p[0] - corner[0]) * west[0] + (p[1] - corner[1]) * west[1], (p[0] - corner[0]) * north[0] + (p[1] - corner[1]) * north[1]];
+  // The crown: three arched windows to a face, 0.9 m wide and 1.7 m apart, their heads
+  // narrowing to the middle 0.45 m. A short face's are tall and centred on it; a long
+  // face's are short, centred crownWindows west of Michigan, as the drawing has them.
+  const arched = (length: number, start: Vec2, end: Vec2): [number[], (bay: number) => Opening] => {
+    const [a0, b0] = inLot(start), [a1, b1] = inLot(end), long = Math.abs(a1 - a0) > Math.abs(b1 - b0);
+    const middle = long ? length * (h.crownWindows - a0) / (a1 - a0) : length * (h.shaftDepth / 2 - b0) / (b1 - b0);
+    const columns = [0, ...[-1.7, 0, 1.7].flatMap((d) => [middle + d - 0.45, middle + d - 0.225, middle + d + 0.225, middle + d + 0.45]), length];
+    // Bays count from one: a pier, then side, middle, side for each window, then the last pier.
+    return [columns, (bay) => { const k = (bay - 1) % 4; return bay > 12 || k === 0 ? "stone" : k === 2 ? (long ? "middle" : "tallMiddle") : long ? "side" : "tallSide"; }];
   };
   const michigan = (run: Run) => run.normal(0)[0] > 0.9;
   skin(lot, 0.25, h.setback, 0, () => true, punched);
@@ -153,8 +165,9 @@ export function createWilloughbyTowerGeographicBuilding(record: GeoBuilding, pro
   skin(shaft, h.shoulder, h.shaft, 4, (run) => lies(run, shoulder), punched);
   skin(crown, h.shaft, h.crown, 5, () => true, arched);
 
-  // Pinnacles on the base's parapet along the two street fronts, clear of the shaft, and at
-  // the crown's corners, reaching the published top.
+  // Pinnacles on the base's parapet along the two street fronts, clear of the shaft. On the
+  // crown, a central pinnacle reaching the published top stands over each face's windows,
+  // flanked on the short faces by lower pinnacles and on the long faces by a gable.
   const pinnacle = (p: Vec2, lo: number, hi: number, size: number) => {
     const c = size / 2;
     kit.prism(pinnacles, planOf(orient([[p[0] - c, p[1] - c], [p[0] + c, p[1] - c], [p[0] + c, p[1] + c], [p[0] - c, p[1] + c]])), [lo, hi]);
@@ -171,7 +184,16 @@ export function createWilloughbyTowerGeographicBuilding(record: GeoBuilding, pro
       pinnacle(p, h.setback, h.setback + 3, 0.9);
     }
   });
-  for (const [a, b] of [[1.8, 1.8], [h.shaftWidth - 1.8, 1.8], [h.shaftWidth - 1.8, h.shaftDepth - 1.8], [1.8, h.shaftDepth - 1.8]] as const) pinnacle(at(a, b), h.crown, h.top, 1.1);
+  for (const a of [h.crownEnds, h.shaftWidth - h.crownEnds]) {
+    pinnacle(at(a, h.shaftDepth / 2), h.crown, h.top, 1.6);
+    for (const d of [-2.9, 2.9]) pinnacle(at(a, h.shaftDepth / 2 + d), h.crown, h.sidePinnacles, 1.1);
+  }
+  for (const [b, inward] of [[h.crownSides, 1], [h.shaftDepth - h.crownSides, -1]] as const) {
+    pinnacle(at(h.crownWindows, b), h.crown, h.top, 1.6);
+    // The gable stands 10 cm inside the wall, its foot sunk into the crown.
+    const gable = rect(h.crownWindows - 3.45, h.crownWindows + 3.45, b + inward * 0.1, b + inward * 0.6);
+    kit.prism(pinnacles, planOf(gable), [h.crown - 0.1, h.gable]);
+  }
 
   const model = kit.finish({ height: h.top, outlines: [shell, pinnacles], opacity: 0.16 });
   model.building.position.set(offset[0], 0, offset[1]);

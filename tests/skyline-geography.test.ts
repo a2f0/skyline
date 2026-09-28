@@ -995,32 +995,45 @@ describe("mapped skyline geography", () => {
       const roof = (a: number, b: number) => { const p = lot(a, b); return hit([p[0], 300, p[1]], [0, -1, 0]).point.y; };
       // Measured on the drawing down from the published 133.5 m: the crown's parapet, the
       // shaft's roof around it, the shoulder's, the base's setback, and a parapet pinnacle.
-      near(roof(8.7, 5.5), 131.5, 1e-3);
+      near(roof(8.7, 5.5), 131.7, 1e-3);
       near(roof(0.9, 5.5), 123.5, 1e-3);
       near(roof(20, 5.5), 92, 1e-3);
       near(roof(10, 18), 80.5, 1e-3);
       near(roof(0, 24.4), 83.5, 0.05);
+      // The crown, inset 2.1 m from the shaft's Michigan face and 1.2 m from its south face,
+      // probed either side of each; the central pinnacles over each face's windows at the
+      // published top, a short face's flanking pinnacles, and a long face's gable.
+      expect([roof(1.95, 3.6), roof(2.25, 3.6), roof(8.7, 1.05), roof(8.7, 1.25)].map((y) => Math.round(y * 10) / 10)).toEqual([123.5, 131.7, 123.5, 131.7]);
+      near(roof(2.1, 5.5), 133.5, 1e-3);
+      near(roof(10.2, 1.2), 133.5, 1e-3);
+      near(roof(2.1, 2.6), 132.5, 1e-3);
+      near(roof(7.5, 1.55), 132.2, 1e-3);
       // The shaft's Michigan face: three dark strips, spandrels and all, between stone piers;
-      // and the crown's arched windows.
+      // and the crown's arched windows, from the east and from the south.
       const floor = (n: number) => 6 + (n - 2) * 3.35;
-      const tone = (b: number, y: number, a = 0) => {
-        const p = lot(a, b), found = hit([p[0] + 30, y, p[1]], [-1, 0, 0]);
+      const tone = (b: number, y: number, a = 0, fromSouth = false) => {
+        const p = lot(a, b), found = fromSouth ? hit([p[0], y, p[1] + 30], [0, 0, -1]) : hit([p[0] + 30, y, p[1]], [-1, 0, 0]);
         expect(found.object.name).toBe("Willoughby Tower · stone and windows");
         return (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
       };
       const is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
       const [stone, strip] = [is(0x585858), is(0x2d2d2d)];
       // The strips stand symmetrically about the face's middle, a pier between each pair.
-      const strips = [4.235, 5.5, 6.765].flatMap((b) => [strip(tone(b, floor(30) + 0.2)), strip(tone(b, floor(30) + 1.5))]);
+      const strips = [3.85, 5.5, 7.15].flatMap((b) => [strip(tone(b, floor(30) + 0.2)), strip(tone(b, floor(30) + 1.5))]);
       expect(strips, "each strip's spandrel and window").toEqual([true, true, true, true, true, true]);
-      expect([stone(tone(4.87, floor(30) + 1.5)), stone(tone(6.13, floor(30) + 1.5))], "the piers between the strips").toEqual([true, true]);
-      // A crown window, 1.2 m wide, its head narrowing to its middle for the last metre under
-      // the parapet.
+      expect([stone(tone(4.675, floor(30) + 1.5)), stone(tone(6.325, floor(30) + 1.5))], "the piers between the strips").toEqual([true, true]);
+      // Three crown windows to a face, 0.9 m wide and 1.7 m apart, their heads narrowing to
+      // the middle 0.45 m: tall and centred on the Michigan face, short and centred 10.2 m
+      // west of Michigan on the south face.
       const glass = (r: number) => [0x2a2a2a, 0x2e2e2e, 0x323232, 0x363636, 0x6e6e6e, 0x444444].some((hex) => is(hex)(r));
-      const crown = (b: number, y: number) => tone(b, y, 1.8);
-      expect([glass(crown(3.65, 127)), glass(crown(3.2, 127)), glass(crown(4.1, 127))], "a crown window across its width").toEqual([true, true, true]);
-      expect([glass(crown(3.65, 129.5)), stone(crown(3.2, 129.5)), stone(crown(4.1, 129.5))], "its narrowed head").toEqual([true, true, true]);
-      expect(stone(crown(3.65, 131)), "the crown's parapet over it").toBe(true);
+      const faces = { michigan: [5.5, (s: number, y: number) => tone(s, y, 2.1)], south: [10.2, (s: number, y: number) => tone(1.2, y, s, true)] } as const;
+      for (const [name, [middle, crown]] of Object.entries(faces)) {
+        const at = (y: number, offsets: number[]) => [-1.7, 0, 1.7].flatMap((d) => offsets.map((o) => crown(middle + d + o, y)));
+        expect(at(127.9, [-0.34, 0, 0.34]).every(glass), `${name}: three windows across their width`).toBe(true);
+        expect(at(128.85, [0]).every(glass) && at(128.85, [-0.34, 0.34]).every(stone), `${name}: their narrowed heads`).toBe(true);
+        expect(at(127.9, [-0.85, 0.85]).every(stone) && at(129.6, [0]).every(stone), `${name}: the piers between them and the parapet over them`).toBe(true);
+        expect(at(125.5, [0]).every(name === "michigan" ? glass : stone), `${name}: the windows' feet`).toBe(true);
+      }
       // The exact mapped outline at grade.
       const shell = meshes.find((mesh) => mesh.name === "Willoughby Tower · shell")!.geometry.getAttribute("position");
       const grade = new Set<string>();
