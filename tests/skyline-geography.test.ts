@@ -62,9 +62,9 @@ describe("mapped skyline geography", () => {
       Heritage: [-65.7, -91.7, 192.4], Kemper: [-204, 188.9, 159], Crain: [0, 0, 177.4],
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
-      "Blue Cross": [420.1, 5.7, 226.7],
+      "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9],
     };
-    expect(geographicBuildings.length).toBe(10);
+    expect(geographicBuildings.length).toBe(11);
     for (const record of geographicBuildings) {
       const metrics = footprintMetrics(record.footprint.coordinates);
       const [east, north, height] = expected[record.shortName]!;
@@ -745,6 +745,74 @@ describe("mapped skyline geography", () => {
     });
   });
 
+  describe("340 on the Park", () => {
+    test("keeps the mapped plan, the south face's frame, the winter garden, the tip's fins and the corner block", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "340 on the Park")!;
+      const model = models["340 on the Park"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const hit = (from: Vec3, direction: Vec3) => {
+        ray.set(new THREE.Vector3(...from), new THREE.Vector3(...direction).normalize());
+        return ray.intersectObjects(meshes, false)[0];
+      };
+      const local = (way: number) => record.parts.find((part) => part.way === way)!.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
+      const tower = local(284789056), block = local(284789058);
+      const centre = (ring: Vec2[]) => [0, 1].map((axis) => ring.reduce((sum, p) => sum + p[axis]!, 0) / ring.length) as Vec2;
+      // The drawing's beams, floor 6's at 21.35 m and floor 61's at 184.2 m, a fifth floor apart.
+      const floor = (n: number) => 21.35 + (n - 6) * (184.2 - 21.35) / 55;
+      // The roof deck under the glass guard, and the corner block's roof level with the top
+      // of floor 16's beam, not the map's 40 m; the tower stands behind it above.
+      const [[tx, tz], [bx, bz]] = [centre(tower), centre(block)];
+      near(hit([tx!, 300, tz!], [0, -1, 0])!.point.y, 203.8, 1e-3);
+      near(hit([bx!, 300, bz!], [0, -1, 0])!.point.y, floor(16) + 0.725, 0.01);
+      expect(hit([bx!, 30, 80], [0, 0, -1])!.point.z, "the block's south wall").toBeGreaterThan(13.8);
+      expect(hit([bx!, 60, 80], [0, 0, -1])!.point.z, "the tower's diagonal face above it").toBeLessThan(13);
+      // The south face, probed from the south at stations along it, as the photograph lays
+      // them out on its 43.2 m: which part of the frame a ray meets, and how far proud.
+      const [west, east] = tower.filter((p) => p[1] > 16).sort((a, b) => a[0] - b[0]) as [Vec2, Vec2];
+      const south = (s: number, y: number) => {
+        const x = west[0] + (east[0] - west[0]) * s / 43.2, wall = west[1] + (east[1] - west[1]) * s / 43.2;
+        const found = hit([x, y, 80], [0, 0, -1])!;
+        return { name: found.object.name.replace("340 on the Park · ", ""), proud: found.point.z - wall, found };
+      };
+      const expectAt = (s: number, y: number, name: string, proud: number, what: string) => {
+        const { name: got, proud: depth } = south(s, y);
+        expect(got, what).toBe(name);
+        near(depth, proud, 0.02);
+      };
+      expectAt(1, 100, "concrete frame", 0.6, "the west pier");
+      expectAt(22, floor(33) + 1.5, "curtain wall", 0.07, "the glass field");
+      expectAt(22, floor(36), "concrete frame", 0.45, "a beam every fifth floor");
+      expectAt(22, floor(26) - 0.9, "concrete frame", 0.45, "the winter garden's deeper beam");
+      expectAt(22, floor(31) - 0.9, "curtain wall", 0.07, "a regular beam's reach");
+      expectAt(6.4, floor(40), "concrete frame", 1.5, "a cantilevered balcony");
+      expectAt(37.6, floor(40) + 0.6, "railings and guards", 0.28, "a recessed balcony's railing");
+      expectAt(25.6, 190, "concrete frame", 0.6, "a penthouse post");
+      expectAt(22, 201, "concrete frame", 0.65, "the parapet band");
+      // The winter garden runs floors 26 to 28 into one tall row, where a regular bay shows
+      // a slab; three round columns stand in it.
+      const tone = (s: number, y: number) => { const { found } = south(s, y); return (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a); };
+      near(tone(22, floor(33)), new THREE.Color(0x2a2a2a).r, 0.002);
+      expect([tone(22, floor(27)), tone(22, floor(28))].map((r) => Math.abs(r - new THREE.Color(0x2a2a2a).r) > 0.002), "the garden's tall glazing").toEqual([true, true]);
+      expect(south(17.3, floor(27)).name, "a garden column").toBe("concrete frame");
+      expect(south(17.3, floor(27)).proud).toBeGreaterThan(0.9);
+      // Fins at the beam floors cross the diagonal face near the east tip, and not 12 m back.
+      const tip = tower.reduce((best, p) => (p[0] > best[0] ? p : best));
+      const toward = (d: number, y: number) => { const p: Vec3 = [tip[0] - d * Math.SQRT1_2 + 20 * Math.SQRT1_2, y, tip[1] + d * Math.SQRT1_2 + 20 * Math.SQRT1_2]; return hit(p, [-1, 0, -1])!.object.name; };
+      expect([toward(2, floor(46)), toward(2, floor(46) + 1.5), toward(12, floor(46))]).toEqual(["340 on the Park · concrete frame", "340 on the Park · curtain wall", "340 on the Park · curtain wall"]);
+      // The exact mapped outline at grade.
+      const shell = meshes.find((mesh) => mesh.name === "340 on the Park · shell")!.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [x, north] = projectGround(p);
+        return [Math.fround(x), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    });
+  });
+
   describe("Aon", () => {
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
@@ -857,7 +925,7 @@ describe("geographic layout in the study", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    expect(await page.locator("#dimensions-body tr").count()).toBe(10);
+    expect(await page.locator("#dimensions-body tr").count()).toBe(11);
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
@@ -1008,9 +1076,9 @@ describe("geographic layout in the study", () => {
     await settle(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "table scrolls without widening mobile page").toBe(true);
     const projected = await page.evaluate(() => window.__buildingStudy!.modelBounds.map(({ id, min, max }) => ({ id, min, max })));
-    // The eight drawn buildings, and 330 North Wabash and the Blue Cross and Blue Shield
-    // Tower, which only the geographic layout models.
-    expect(projected.length).toBe(10);
+    // The eight drawn buildings, and 330 North Wabash, the Blue Cross and Blue Shield Tower
+    // and 340 on the Park, which only the geographic layout models.
+    expect(projected.length).toBe(11);
     await page.screenshot({ path: "/tmp/skyline-geographic-mobile.png" });
     const frame = await page.evaluate(() => window.__buildingStudy!.renderCount);
     await page.waitForTimeout(180);

@@ -10,6 +10,7 @@ import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
 import { createKemperGeographicBuilding } from "./kemper-geographic.js";
 import { createMichiganPlazaSouthGeographicBuilding } from "./michigan-plaza-south-geographic.js";
 import { createNorthWabashGeographicBuilding } from "./north-wabash-geographic.js";
+import { createOnTheParkGeographicBuilding } from "./on-the-park-geographic.js";
 import { createOnePrudentialGeographicBuilding } from "./one-prudential-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
 import { createTwoPrudentialGeographicBuilding } from "./two-prudential-geographic.js";
@@ -57,6 +58,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-blue-cross-blue-shield") {
     return createBlueCrossGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-340-on-the-park") {
+    return createOnTheParkGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);
