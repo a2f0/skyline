@@ -30,7 +30,7 @@ const reference: Reference = {
   // Its aspect stays aligned with skyline-study.js's fit dimensions.
   viewBox: "1074.238 -154.834 4430 3535.05",
   title: "The Heritage at Millennium Park, Kemper, Crain, Michigan Plaza South, Trump International Hotel and Tower, One and Two Prudential Plaza, and Aon Center: original skyline geometry",
-  description: "Unmodified tower groups from skyline-animated.svg, preserving their positions, transforms, and draw order. Unidentified foreground buildings are omitted.",
+  description: "Unmodified tower groups from skyline-animated.svg, preserving their positions, transforms, and draw order. Foreground buildings the original layout does not model are omitted.",
   // Aon's in-group tonal overlays refer to these source definitions.
   defs: ["facade-depth", "facade-height", "clip-aon-center"],
   groups: [heritage, kemper, michigan, crain, trump, prudential, twoPrudential, prudentialPodium, aon],

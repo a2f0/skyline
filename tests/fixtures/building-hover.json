@@ -44,7 +44,7 @@
   {
     "id": "building-six-north-far-east",
     "key": "six-north-far-east",
-    "label": "Unidentified facade farther east of Six North Michigan",
+    "label": "Michigan Boulevard Building",
     "x": 2029.7248,
     "y": 2244.7367
   },
@@ -65,7 +65,7 @@
   {
     "id": "building-six-north-far-east-path318",
     "key": "six-north-far-east",
-    "label": "Unidentified facade farther east of Six North Michigan",
+    "label": "Michigan Boulevard Building",
     "x": 2042.0162,
     "y": 2285.5125
   },
@@ -79,7 +79,7 @@
   {
     "id": "building-six-north-far-east-path320",
     "key": "six-north-far-east",
-    "label": "Unidentified facade farther east of Six North Michigan",
+    "label": "Michigan Boulevard Building",
     "x": 2043.0908,
     "y": 2257.5119
   },
@@ -135,21 +135,21 @@
   {
     "id": "building-michigan-plaza-front-tall",
     "key": "michigan-plaza-front-tall",
-    "label": "Unidentified tower in front of Michigan Plaza",
+    "label": "Millennium Park Plaza",
     "x": 3361.0719,
     "y": 2019.3351
   },
   {
     "id": "building-michigan-plaza-front-middle",
     "key": "michigan-plaza-front-middle",
-    "label": "Unidentified gabled building in front of Michigan Plaza",
+    "label": "180 North Michigan Avenue",
     "x": 3248.9499,
     "y": 2310.161
   },
   {
     "id": "building-michigan-plaza-front-small",
     "key": "michigan-plaza-front-small",
-    "label": "Unidentified low-rise in front of Michigan Plaza",
+    "label": "168 North Michigan Avenue",
     "x": 3211.073,
     "y": 2560.6046
   },
