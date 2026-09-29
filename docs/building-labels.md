@@ -20,7 +20,7 @@ remain.
 | Leo Burnett Building | Corrected to The Heritage at Millennium Park | [Skyscraper Center](https://www.skyscrapercenter.com/building/the-heritage-at-millennium-park/1897) |
 | Michigan Avenue buildings | Six North Michigan (Montgomery Ward Building); two neighboring facades separated, since named the Michigan Boulevard Building's Michigan front and south wall | [Renovation contractor](https://leopardo.com/projects/six-north-michigan/) |
 | Historic Michigan Avenue tower | Willoughby Tower | [Building manager](https://marcrealty.com/8-south-michigan-office-space/) |
-| Michigan Avenue building | Two unidentified facades and a separate foreground building | Source photograph; insufficient detail for exact names |
+| Michigan Avenue building | Two facades, since named the Gage Building's Michigan front and south wall, and a separate foreground building, still unidentified | Source photograph; the Gage named through the geographic camera |
 | Kemper Building | Retained; rooftop sign visible in the photo | Source photograph |
 | Michigan Plaza South | Rear tower retained; three foreground buildings separated, since named Millennium Park Plaza, 180 North Michigan Avenue, and 168 North Michigan Avenue | [Annotated skyline](https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Chicago) |
 | Crain Communications Building | Retained | [Skyscraper Center](https://www.skyscrapercenter.com/building/150-north-michigan-avenue/2441) |
@@ -103,7 +103,8 @@ The Monroe roof (`path6640`) and Lakeview sidewall (`path6658`) previously lived
 inside MacLean's group. Moving them across the adjacent group boundaries keeps
 paint order unchanged while correcting ownership. Shared compound window paths
 near Six North Michigan were split at subpath boundaries. A shallow roof triangle
-between two unidentified facades uses two clipped paint portions at the seam.
+between the Gage Building's two drawn facades, its south wall and Michigan front, uses two
+clipped paint portions at the seam.
 
 Groups with multiple paint portions share a `data-building-id`. SVG highlights
 all portions together; WebGL shares their raster bounds, parallax depth, and
