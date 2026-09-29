@@ -17,6 +17,7 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // docs/borg-warner-reference.md. Units are meters; +x is east, +z is south.
 const drawn = (height: number) => height * 73.2 / 76;
 export const borgWarnerLevels = Object.freeze({
+  neighbour: 31.1, // Symphony Center's roof, the City's 102 ft, over the south front's plain wall
   fascia: drawn(72.9), // the fascia over the top floor's windows
   roof: 73.2, // the roof, the City's 240 ft
   penthouse: 78.6, // the office penthouse's top, the City's 258 ft
@@ -57,6 +58,9 @@ for (let k = 20; k >= 0; k -= 1) {
   push(k > 0 ? drawn(spandrelTop(k - 1) - 0.98) : h.fascia, "glass", 22 - k);
 }
 push(h.roof, "fascia", 22);
+// The row that Symphony Center's roof crosses, split there.
+const crossed = rows.findIndex((row) => row.lo < h.neighbour && row.hi > h.neighbour);
+rows.splice(crossed, 1, { ...rows[crossed]!, hi: h.neighbour }, { ...rows[crossed]!, lo: h.neighbour });
 
 // The penthouse's rows: a curb, its windows, and a light cap, as drawn over the fascia.
 const penthouseRows: Row[] = [
@@ -143,7 +147,7 @@ export function createBorgWarnerGeographicBuilding(record: GeoBuilding, projectP
   // Michigan and Adams carry the curtain wall to the roof; the south front above Symphony
   // Center's 102 ft roof, plain below; the alley has windows.
   skin(planOf(lot), (run) => facing(1, 0)(run) || facing(0, -1)(run), rows, 0, curtain());
-  skin(planOf(lot), facing(0, 1), rows, 1, curtain(31.1));
+  skin(planOf(lot), facing(0, 1), rows, 1, curtain(h.neighbour));
   skin(planOf(lot), facing(-1, 0), rows, 2, alley);
   // The penthouse's glass between the same mullions, under its cap.
   skin(planOf(penthouse), () => true, penthouseRows, 3, curtain());

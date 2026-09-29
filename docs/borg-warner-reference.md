@@ -67,9 +67,11 @@ published roof:
 | Block | 73.2–83.5 m | Published |
 
 The hill in the drawing hides the building below 34 m. Carried down at the drawn pitch to a
-5.2 m lobby, the spandrels give twenty-two floors under the roof, as the Skyscraper Center
-and Emporis count. Architecture Farm's twenty storeys and 21st-floor penthouse would need
-3.4 m floors, which the drawing and photograph do not show. The lower floors are estimates.
+5.2 m lobby, the spandrels give twenty-two floors under the roof; that count is an
+extrapolation. The Skyscraper Center and Emporis give 22 floors, which may count the
+penthouse. Architecture Farm gives twenty storeys and a 21st-floor penthouse, which would
+need taller floors than the drawing and photograph show above 34 m, though the hidden
+lower floors could be spaced differently. The lower floors are estimates.
 
 ## Plan
 
@@ -100,7 +102,7 @@ The rooftop footprints are estimates, found where their drawn edges meet the pro
   - A spandrel to each floor and the lobby's glass under them, and the deep fascia at the
     top.
   - On the south front, the wall below Symphony Center's 102 ft roof, which it shares,
-    stays plain.
+    stays plain; the row the roof crosses is split there.
 - **Alley:** windows 1.6 m wide spread evenly about 3.2 m apart, one to each floor above the
   lobby. The drawing does not show this wall, so they are an estimate.
 - **Penthouse:** glass between the same mullions and corner columns, under a light cap.
@@ -125,7 +127,8 @@ Omitted:
   - the curtain wall's 22 bays on Michigan and 37 on Adams and the south front;
   - a window, its spandrel, the fascia, a mullion and a corner column;
   - twenty-two windows up a bay, one to each floor;
-  - the south front plain below Symphony Center's roof, and the alley's ten windows;
+  - the south front plain just below Symphony Center's roof and glazed just above, and the
+    alley's ten windows;
   - the penthouse's 15 bays on Michigan and its cap;
   - the block, 14 m behind the Michigan front;
   - the model's exported palette, whose window tones no wall shares;

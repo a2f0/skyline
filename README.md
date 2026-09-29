@@ -161,9 +161,9 @@ On Adams, the Peoples Gas Building's two fronts rise twenty storeys from granite
 through paired windows and a colonnade to an attic, a cornice and its cresting at the
 City's 272 ft, round a light court on its mapped parts; see its
 [reference audit](docs/peoples-gas-reference.md).
-Across Adams, the Borg-Warner Building's curtain wall rises twenty-two floors to the City's
-240 ft, with its penthouse at 258 ft and a block behind it at the Skyscraper Center's 83.5 m;
-see its [reference audit](docs/borg-warner-reference.md).
+Across Adams, the Borg-Warner Building's curtain wall rises some twenty-two floors to the
+City's 240 ft, with its penthouse at 258 ft and a block behind it at the Skyscraper Center's
+83.5 m; see its [reference audit](docs/borg-warner-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the

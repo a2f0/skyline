@@ -353,9 +353,9 @@ Intermediate parts have less certainty than the overall height:
   [Peoples Gas Building reference audit](peoples-gas-reference.md).
 - The Borg-Warner Building stands across Adams from Peoples Gas. Its curtain wall of
   mullions and a spandrel to each floor wraps the Michigan, Adams and south fronts between
-  corner columns, twenty-two floors under a deep fascia at the City's 240 ft. On the roof
-  stand an office penthouse at the City's 258 ft and a block behind it at the Skyscraper
-  Center's 83.5 m, both placed from the drawing; see the
+  corner columns, some twenty-two floors at the drawn pitch, to a deep fascia at the City's
+  240 ft. On the roof stand an office penthouse at the City's 258 ft and a block behind it
+  at the Skyscraper Center's 83.5 m, both placed from the drawing; see the
   [Borg-Warner Building reference audit](borg-warner-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height

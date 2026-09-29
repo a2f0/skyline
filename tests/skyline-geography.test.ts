@@ -1706,7 +1706,8 @@ describe("mapped skyline geography", () => {
       expect(count(0.3, 73.2, (y) => tone(0, bay, y, "east"), 0.05), "a window to each floor").toBe(22);
       // The south front plain below Symphony Center's roof, the curtain wall above; the
       // alley's ten windows to a floor.
-      expect([plain(tone(20, 0, 20, "south")), glass(tone(1.2 + (south - 2.4) / 37 / 2, 0, floor, "south"))], "the south front").toEqual([true, true]);
+      const southBay = 1.2 + (south - 2.4) / 37 / 2;
+      expect([plain(tone(southBay, 0, 20, "south")), plain(tone(southBay, 0, 31, "south")), glass(tone(southBay, 0, 31.2, "south")), glass(tone(southBay, 0, floor, "south"))], "the south front").toEqual([true, true, true, true]);
       expect(count(0.3, michigan - 0.3, (b) => tone(south, b, floor, "west"), 0.1), "the alley's windows").toBe(10);
       // The penthouse's glass between the same mullions, 15 bays on Michigan, under its cap;
       // the block behind it, 14 m from Michigan.
