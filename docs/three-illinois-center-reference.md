@@ -14,7 +14,7 @@ construction drawings.
   outline, tagged 106 m and 29 levels. It was retrieved through the
   [map API](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
 - [The Skyscraper Center](https://www.skyscrapercenter.com/building/three-illinois-center/13913):
-  106.7 m / 350 ft, 30 floors, completed 1979, all-steel.
+  106.7 m / 350 ft, 30 floors, completed 1979, all-concrete.
 - [Emporis, archived in 2015](https://web.archive.org/web/20150514052143/http://www.emporis.com/buildings/117307/three-illinois-center-chicago-il-usa):
   "Height (roof) 350.00 ft", the same to its architectural top and tip; "Floors (above
   ground) 28"; "Facade material aluminum", "Facade system curtain wall", "Facade color dark
@@ -62,8 +62,8 @@ Skyscraper Center's 30 count.
 
 ## Plan
 
-The mapped outline is 39.2 m east to west and 74.9 m north to south, its long east face on
-Columbus Drive and its short south face on Wacker Drive. The mullions are 10 cm wide on a
+The mapped outline is 39.2 m east to west and 74.9 m north to south, its short north face
+toward Wacker Drive. The mullions are 10 cm wide on a
 5 ft module, set out from each face's middle.
 
 ## Against the photograph

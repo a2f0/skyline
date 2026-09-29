@@ -73,7 +73,7 @@ University Club of Chicago, the Monroe Building, the MacLean Center, the Lake Vi
 Building, the Peoples Gas Building, the Borg-Warner Building, the Railway Exchange
 Building, the Gage Building, the Edson Keith and Theodore Ascher Buildings, the Chicago
 Athletic Association, Two Illinois Center, River Plaza, the Hyatt Regency Chicago West
-Tower, the Sheraton Grand Chicago Riverwalk, and Three Illinois Center. It opens on the skyline view from the drawing's own camera: the source photograph's vantage on the lakefront by the Adler
+Tower, the Sheraton Grand Chicago Riverwalk, Three Illinois Center, and Swissôtel Chicago. It opens on the skyline view from the drawing's own camera: the source photograph's vantage on the lakefront by the Adler
 Planetarium, fitted to the mapped roofs and tips while the buildings stay where
 they are mapped. That view frames the whole drawn skyline, and the drawing under
 the scene becomes `models/skyline-panorama.svg`, every building the drawing shows;
@@ -198,6 +198,9 @@ three drums of maroon fins, the corner's to the published 112.3 m; see its
 Between 340 on the Park and The Buckingham, Three Illinois Center's dark bronze curtain wall
 rises to the published 106.7 m, its top two floors a windowless mechanical penthouse; see its
 [reference audit](docs/three-illinois-center-reference.md).
+Behind them, the Swissôtel's triangular glass tower rises to the published 139.3 m and closes
+the seam where Three Illinois Center meets The Buckingham; see its
+[reference audit](docs/swissotel-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the
@@ -219,7 +222,7 @@ corners, the 346.3 m enclosure, and the inferred antenna at the published
 Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
-for the coordinate system, thirty-three footprint records, height definitions, OSM
+for the coordinate system, thirty-four footprint records, height definitions, OSM
 attribution, and limitations. All runtime data is checked in locally.
 
 ## Adding a building to the skyline study
