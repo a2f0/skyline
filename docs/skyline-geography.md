@@ -101,9 +101,11 @@ x −1105.59 to 7395.51 and y 87.26 to 2869.30 in layer units once its
 canvas's bottom edge, as the viewer holds the SVG on the window's, through a lens
 shift off the panorama's centre, so the mapped buildings stand on their drawn
 places in the viewer too. The canvas ends at the page's docked control bar, so
-the frame stands on the bar: the bar's height above the drawing's where the
-width binds the frame, and also a little smaller where the height binds, on a
-window more than 8501 / 2782 as wide as it is tall.
+the frame stands on the bar. While the canvas is at most 8501 / 2782 as wide as
+it is tall, its width binds the frame, as the window's then binds the drawing's,
+and the frame sits the bar's height above the drawing's. A wider canvas binds
+the frame on its height, which the bar shortens, so the frame is also a little
+smaller than the drawing's.
 `tests/skyline-3d.test.ts` checks the same landmarks there.
 
 The view keeps its eye fixed at every viewport. Its field of view, not its
