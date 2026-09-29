@@ -7,8 +7,8 @@ Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, 
 University Club of Chicago, the Monroe Building, the MacLean Center, the Lake View
 Building, the Peoples Gas Building, the Borg-Warner Building, the Railway Exchange
 Building, the Gage Building, the Edson Keith and Theodore Ascher Buildings, the Chicago
-Athletic Association, Two Illinois Center, River Plaza, and the Hyatt Regency Chicago West
-Tower, which only the geographic layout maps. The page
+Athletic Association, Two Illinois Center, River Plaza, the Hyatt Regency Chicago West
+Tower, and the Sheraton Grand Chicago Riverwalk, which only the geographic layout maps. The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
@@ -114,7 +114,9 @@ as were 340 on the Park's and The Buckingham's from [a third](https://api.openst
 and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's, 180 North Michigan Avenue's, the University Club's, the Monroe Building's, the MacLean Center's, the Lake View Building's, the Peoples Gas Building's, the Borg-Warner Building's and the Railway Exchange Building's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
 The Gage, Edson Keith and Theodore Ascher Buildings' outlines, the Chicago Athletic
 Association's, Two Illinois Center's, River Plaza's with its parts, and the Hyatt Regency West
-Tower's part were added on September 29, 2026, from the same request.
+Tower's part were added on September 29, 2026, from the same request, and the Sheraton Grand
+Chicago Riverwalk's tower and corner parts the same day, from
+[a fifth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6250,41.8860,-87.6050,41.8980).
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -171,6 +173,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Two Illinois Center | [236770799](https://www.openstreetmap.org/way/236770799) | Outline, with the floor pitch from the photograph; not in the original layout |
 | River Plaza | [285867424](https://www.openstreetmap.org/way/285867424) | 68796725, 68796733, 285867425; not in the original layout |
 | Hyatt Regency West Tower | [235920252](https://www.openstreetmap.org/way/235920252) | The tower's part of the hotel's outline, 235920251; not in the original layout |
+| Sheraton Grand | [592122464](https://www.openstreetmap.org/way/592122464) | The tower's part of the complex's outline, 188171430, and the corner's round tower, 1269924307; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -215,6 +218,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Two Illinois Center | 114.3 m | 114.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/chicago/two-illinois-center/11095) |
 | River Plaza | 159.7 m | 159.7 m | [Skyscraper Center](https://www.skyscrapercenter.com/chicago/river-plaza/3383) |
 | Hyatt Regency West Tower | 111.3 m | 111.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/hyatt-regency-chicago-west-tower/13132) |
+| Sheraton Grand | 112.3 m | 112.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/sheraton-chicago-hotel-towers/10020) |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
 Michigan Avenue has none published, so its height is read on the drawing, and the page's
@@ -421,6 +425,12 @@ Intermediate parts have less certainty than the overall height:
   carries narrow window slots on a 3.5 m module between solid corners, under a plain band, to
   the published 111.3 m, on its mapped part of the hotel's outline; see the
   [Hyatt Regency West Tower reference audit](hyatt-west-tower-reference.md).
+- The Sheraton Grand Chicago Riverwalk stands across the river, right of The Buckingham, where
+  the drawing paints a lit crown. Its levels stand on the Skyscraper Center's datum, with
+  Emporis's floor-to-floor, roof and crown heights over its top floor: the arms' roof at
+  94.76 m, the corner's two floors higher at 100.1 m, and 12.2 m drums of maroon fins on the
+  three round ends, the corner's to the published 112.3 m; see the
+  [Sheraton Grand reference audit](sheraton-grand-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -438,7 +448,7 @@ mapped footprints help inspect whether the street arrangement fits. Checking cur
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all thirty-one rendered ground
+coordinate anchors, meter scale and north direction, all thirty-two rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,

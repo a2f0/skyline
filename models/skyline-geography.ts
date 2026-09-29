@@ -27,6 +27,7 @@ import { createOnePrudentialGeographicBuilding } from "./one-prudential-geograph
 import { createPeoplesGasGeographicBuilding } from "./peoples-gas-geographic.js";
 import { createRailwayExchangeGeographicBuilding } from "./railway-exchange-geographic.js";
 import { createRiverPlazaGeographicBuilding } from "./river-plaza-geographic.js";
+import { createSheratonGrandGeographicBuilding } from "./sheraton-grand-geographic.js";
 import { createSixNorthMichiganGeographicBuilding } from "./six-north-michigan-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
 import { createTwoIllinoisCenterGeographicBuilding } from "./two-illinois-center-geographic.js";
@@ -140,6 +141,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-hyatt-regency-west-tower") {
     return createHyattWestTowerGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-buckingham-east") {
+    return createSheratonGrandGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);

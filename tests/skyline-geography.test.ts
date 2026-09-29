@@ -20,6 +20,7 @@ import { chicagoAthleticPalette } from "../models/chicago-athletic-association-g
 import { riverPlazaPalette } from "../models/river-plaza-geographic.js";
 import { twoIllinoisPalette } from "../models/two-illinois-center-geographic.js";
 import { hyattWestPalette } from "../models/hyatt-west-tower-geographic.js";
+import { sheratonPalette } from "../models/sheraton-grand-geographic.js";
 import { northMichigan180Palette } from "../models/north-michigan-180-geographic.js";
 import { universityClubPalette } from "../models/university-club-geographic.js";
 import { northWabashFloors } from "../models/north-wabash-geographic.js";
@@ -104,9 +105,9 @@ describe("mapped skyline geography", () => {
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
       "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9], Buckingham: [582.28, -1.52, 121.9],
-      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 69], MacLean: [0.85, -492.94, 77.4], "Lake View": [1.26, -509.77, 73.2], "Peoples Gas": [2.15, -545.88, 82.9], "Borg-Warner": [3.61, -612.47, 83.5], "Railway Exchange": [4.79, -690.9, 78.9], Gage: [1.46, -372.28, 47.74], Keith: [1.55, -390.86, 30.78], Ascher: [1.76, -407.26, 30.78], "Athletic Association": [-0.76, -350.62, 45.52], "Two Illinois Center": [159.19, 236.36, 114.3], "River Plaza": [-67.71, 551.99, 159.7], "Hyatt West Tower": [188.91, 319.23, 111.3],
+      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 69], MacLean: [0.85, -492.94, 77.4], "Lake View": [1.26, -509.77, 73.2], "Peoples Gas": [2.15, -545.88, 82.9], "Borg-Warner": [3.61, -612.47, 83.5], "Railway Exchange": [4.79, -690.9, 78.9], Gage: [1.46, -372.28, 47.74], Keith: [1.55, -390.86, 30.78], Ascher: [1.76, -407.26, 30.78], "Athletic Association": [-0.76, -350.62, 45.52], "Two Illinois Center": [159.19, 236.36, 114.3], "River Plaza": [-67.71, 551.99, 159.7], "Hyatt West Tower": [188.91, 319.23, 111.3], "Sheraton Grand": [423.15, 479.75, 112.3],
     };
-    expect(geographicBuildings.length).toBe(31);
+    expect(geographicBuildings.length).toBe(32);
     for (const record of geographicBuildings) {
       const metrics = footprintMetrics(record.footprint.coordinates);
       const [east, north, height] = expected[record.shortName]!;
@@ -2240,6 +2241,66 @@ describe("mapped skyline geography", () => {
     }, { timeout: 60_000 });
   });
 
+  describe("Sheraton Grand Chicago Riverwalk", () => {
+    test("keeps its mapped L, the corner's round tower, the three finned drums and the windows", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Sheraton Grand")!;
+      const model = models["Sheraton Grand"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const hit = (from: Vec3, direction: Vec3) => {
+        ray.set(new THREE.Vector3(...from), new THREE.Vector3(...direction));
+        return ray.intersectObjects(meshes, false)[0];
+      };
+      // On the Skyscraper Center's datum: the top floor at 97 m, the corner's roof 3.1 m over
+      // it, the arms two floors of 2.67 m lower, and 12.2 m drums, the corner's to 112.3 m.
+      const [corner, arms] = [100.1, 100.1 - 2 * 2.67];
+      expect(record.parts.map((part) => [part.way, part.bottom, part.top])).toEqual([[592122464, 0, 94.76], [1269924307, 94.76, 100.1]]);
+      const down = (x: number, z: number) => hit([x, 300, z], [0, -1, 0])!.point.y;
+      near(down(407.44, -465.95), corner + 12.2, 1e-3);
+      near(down(439.52, -462.06), arms + 12.2, 1e-3);
+      near(down(409.75, -498.32), arms + 12.2, 1e-3);
+      near(down(425, -462), arms, 1e-3);
+      // The corner's round tower over the arms, sampled from the south-west.
+      near(down(404, -465), corner + 12.2, 1e-3);
+      const palette = sheratonPalette, is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
+      const glass = (r: number) => [...palette.glass, palette.lit, palette.dim].some((hex) => is(hex)(r));
+      expect([palette.precast, palette.drum, palette.fin].map((hex) => glass(new THREE.Color(hex).r)), "no wall colour passes for glass").toEqual([false, false, false]);
+      const tone = (found: THREE.Intersection | undefined, name: string) => {
+        expect(found!.object.name).toBe(name);
+        return (found!.object as THREE.Mesh).geometry.getAttribute("color").getX(found!.face!.a);
+      };
+      // A drum's 24 facets, sampled toward its centre, alternate cream and maroon fins.
+      const facet = (k: number) => {
+        const angle = (k + 0.5) / 24 * Math.PI * 2, [x, z] = [439.52 + 12 * Math.cos(angle), -462.06 + 12 * Math.sin(angle)];
+        return tone(hit([x, arms + 6, z], [-Math.cos(angle), 0, -Math.sin(angle)]), "Sheraton Grand · drums");
+      };
+      expect(Array.from({ length: 6 }, (_, k) => is(k % 2 ? palette.fin : palette.drum)(facet(k))), "the fins").toEqual(Array(6).fill(true));
+      // The east arm's south face: a window 1.5 m tall 80 cm over each floor line, counted
+      // down from the top floor at 97 m, 35 of them under the arms' roof.
+      const south = (x: number, y: number) => tone(hit([x, y, -420], [0, 0, -1]), "Sheraton Grand · precast and windows");
+      let column = 420;
+      while (!glass(south(column, 50))) column += 0.02;
+      column += 0.3;
+      const line = 97 - 2 * 2.67;
+      expect([count(0.3, arms - 0.1, (y) => south(column, y)), is(palette.precast)(south(column, line + 0.75)), glass(south(column, line + 0.85)), glass(south(column, line + 2.25)), is(palette.precast)(south(column, line + 2.35))], "the floors, a sill and a head").toEqual([35, true, true, true, true]);
+      function count(from: number, to: number, sample: (s: number) => number) {
+        let runs = 0, inside = false;
+        for (let y = from; y < to; y += 0.05) { const now = glass(sample(y)); if (now && !inside) runs += 1; inside = now; }
+        return runs;
+      }
+      // The exact mapped L at grade.
+      const shell = meshes.find((mesh) => mesh.name === "Sheraton Grand · shell")!.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [x, n] = projectGround(p);
+        return [Math.fround(x), Math.fround(-n)].map((v) => v.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    }, { timeout: 60_000 });
+  });
+
   describe("Aon", () => {
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
@@ -2375,7 +2436,7 @@ describe("geographic layout in the study", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    expect(await page.locator("#dimensions-body tr").count()).toBe(31);
+    expect(await page.locator("#dimensions-body tr").count()).toBe(32);
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
@@ -2534,7 +2595,7 @@ describe("geographic layout in the study", () => {
     // The eight drawn buildings, and 330 North Wabash, the Blue Cross and Blue Shield Tower,
     // 340 on the Park, The Buckingham, Millennium Park Plaza and Willoughby Tower, which only
     // the geographic layout models.
-    expect(projected.length).toBe(31);
+    expect(projected.length).toBe(32);
     // A portrait phone's width binds the plan's frame; it still holds every footprint.
     await page.locator('[data-view="top"]').click();
     await settle(page);

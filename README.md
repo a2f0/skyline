@@ -72,8 +72,8 @@ Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, 
 University Club of Chicago, the Monroe Building, the MacLean Center, the Lake View
 Building, the Peoples Gas Building, the Borg-Warner Building, the Railway Exchange
 Building, the Gage Building, the Edson Keith and Theodore Ascher Buildings, the Chicago
-Athletic Association, Two Illinois Center, River Plaza, and the Hyatt Regency Chicago West
-Tower. It opens on the skyline view from the drawing's own camera: the source photograph's vantage on the lakefront by the Adler
+Athletic Association, Two Illinois Center, River Plaza, the Hyatt Regency Chicago West
+Tower, and the Sheraton Grand Chicago Riverwalk. It opens on the skyline view from the drawing's own camera: the source photograph's vantage on the lakefront by the Adler
 Planetarium, fitted to the mapped roofs and tips while the buildings stay where
 they are mapped. That view frames the whole drawn skyline, and the drawing under
 the scene becomes `models/skyline-panorama.svg`, every building the drawing shows;
@@ -191,6 +191,10 @@ The ground plan's frame reaches north across the river for River Plaza.
 Between Aon and the Blue Cross tower, the Hyatt Regency Chicago's West Tower raises its brick
 slab of narrow window slots to the published 111.3 m; see its
 [reference audit](docs/hyatt-west-tower-reference.md).
+Across the river, right of The Buckingham, the Sheraton Grand Chicago Riverwalk raises its
+cream precast L of punched windows, the corner's round tower two floors over the arms, and
+three drums of maroon fins, the corner's to the published 112.3 m; see its
+[reference audit](docs/sheraton-grand-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the
@@ -212,7 +216,7 @@ corners, the 346.3 m enclosure, and the inferred antenna at the published
 Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
-for the coordinate system, thirty-one footprint records, height definitions, OSM
+for the coordinate system, thirty-two footprint records, height definitions, OSM
 attribution, and limitations. All runtime data is checked in locally.
 
 ## Adding a building to the skyline study

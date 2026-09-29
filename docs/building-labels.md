@@ -8,13 +8,13 @@ SVG now has **31 building identities in 38 paint layers**, shared by WebGL.
 These are visual identifications of illustrated silhouettes, not surveyed
 locations. The references below establish names, addresses, or architectural
 features; mapping them to this drawing is an inference. Eleven small silhouettes
-were left explicitly **Unidentified** rather than receiving guessed landmark names; nine
-of them have since been named through the geographic camera (see below), and two
-remain.
+were left explicitly **Unidentified** rather than receiving guessed landmark names; ten
+of them have since been named through the geographic camera (see below), and one
+remains.
 
 | Previous group/label | Current identification and treatment | Reference |
 | --- | --- | --- |
-| Lakeshore East towers | The Buckingham; separate unidentified towers on either side | [Building context](https://en.wikipedia.org/wiki/The_Buckingham_%28Chicago%29) |
+| Lakeshore East towers | The Buckingham; separate towers on either side, the east one since named the Sheraton Grand Chicago Riverwalk | [Building context](https://en.wikipedia.org/wiki/The_Buckingham_%28Chicago%29) |
 | Blue Cross and Blue Shield Tower | Retained | Source photograph |
 | Aqua and 340 on the Park | 340 on the Park; the inset facade paths belong to this tower, with no separate Aqua silhouette | [Developer](https://www.relatedmidwest.com/our-company/properties/340-park) |
 | Leo Burnett Building | Corrected to The Heritage at Millennium Park | [Skyscraper Center](https://www.skyscrapercenter.com/building/the-heritage-at-millennium-park/1897) |
@@ -83,6 +83,7 @@ A group is renamed only where the projection and the source photograph agree.
 | `michigan-west-left` | Gage Building (south wall) | The Gage's south wall rises above its lower neighbours at 24 and 30 South Michigan and projects 753 to 1,084 units at its top, from behind the University Club to the corner, where the drawing's wall meets the drawn front at 1,104. The photograph shows common brick with a few lit windows. Checked on 2026-09-29. |
 | `michigan-west-front` | 24 and 30 South Michigan Avenue, the Edson Keith and Theodore Ascher Buildings | OSM ways 126982636 and 126982639: the Gage Group's two lower buildings, seven storeys each ([HABS IL-1065](https://tile.loc.gov/storage-services/master/pnp/habshaer/il/il0000/il0056/data/il0056data.pdf)). Their Michigan fronts project 877 to 962 and 962 to 1,083 layer units, where the drawing's two blocks run 916 to 996 and 996 to 1,112, under the Gage's south wall. The photograph shows their lit fronts' tops over the trees. One group paints both, so it names both. The Chicago Athletic Association, 12 South Michigan Avenue, the fourth building on this stretch, is drawn in Willoughby Tower's group and modelled on its own; see the [Chicago Athletic Association audit](chicago-athletic-association-reference.md). Checked on 2026-09-29. |
 | `office-west-of-aon` | Two Illinois Center and River Plaza | Two buildings fill the gap between Two Prudential Plaza and Aon Center. Two Illinois Center, 233 North Michigan Avenue, OSM way 236770799, stands in front: the photograph's lit rows there repeat every 26.3 layer units, 3.47 m at its depth, where its published 114.3 m over 32 floors averages 3.57 m. Its roof projects at about 2,110 layer units. River Plaza, 405 North Wabash Avenue, OSM way 285867424, stands behind: its roof, at OpenStreetMap's 156 m under the published 159.7 m top, projects at about 1,952, between the pale top the photograph shows at 1,917 and the drawn top at 1,976, and it is the only mapped building on the sightline tall enough to reach the drawn top. Its residential floors, 2.85 m, would repeat every 18.6 units. The drawn group spans both; see the [audit](river-plaza-two-illinois-center-reference.md). Checked on 2026-09-29. |
+| `buckingham-east` | Sheraton Grand Chicago Riverwalk, 301 East North Water Street | OSM way 592122464 and its parts, 31 to 34 levels, from the [north extract](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6250,41.8860,-87.6050,41.8980): an L whose corner's round tower carries the highest of three finned drums. At the published 112.3 m that drum projects 7,423 to 7,544 layer units, from 2,231 to 2,135. The drawn crown, 7,308 to 7,441 and 2,167 to 2,259, is as tall and stands about 115 units left of it, as the drawing sits left of the projection on this side. The photograph shows a golden lit crown over a tower of lit windows, and the drums are floodlit at night ([Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Sheraton_Grand_Chicago_(at_night).jpg)). See the [audit](sheraton-grand-reference.md). Checked on 2026-09-29. |
 | `six-north-east` | Michigan Boulevard Building (south wall) | Its south wall rises above 20 North Michigan's eight storeys, and projected through the camera it spans the drawn facade. The drawing's right edge meets the drawn Michigan front at the corner, through a narrow ornamented bay where the terracotta turns onto the side; that bay's pair of windows repeats the front's rhythm. Read on the wall's plane, the drawn top is level at the front's height, 86–87 m before the published-height correction. The photograph shows common brick, windowed on its top floors, joining the cream return. The Garland Building, 111 North Wabash Avenue, first proposed here, would need about 90 m on the same reading to reach the drawn top. |
 
 The Blue Cross group also paints, between Aon and the Blue Cross tower from 5,404 to 5,453
@@ -91,12 +92,11 @@ It projects behind that gap, and the photograph shows its brick with two narrow 
 windows under a plain band, as the Skyscraper Center's photograph does. The group keeps its
 label; see the [Hyatt Regency West Tower audit](hyatt-west-tower-reference.md).
 
-These stay **Unidentified**, with their candidates:
+This one stays **Unidentified**, with its candidates:
 
 | Group | Candidates | Why unresolved |
 | --- | --- | --- |
 | `buckingham-west` | Optima Center, 200 East Illinois Street; Three Illinois Center, 303 East Wacker Drive | Both project behind the gap between 340 on the Park and The Buckingham. |
-| `buckingham-east` | None settled | The photograph shows a tower with a lit crown. Of the buildings north of the river that project there, those with mapped heights, such as NBC Tower at 151.5 m, put their tops far from the drawn one; others, such as the Sheraton Grand Chicago, 301 East North Water Street, have no mapped height to test. |
 
 ## Geometry corrections
 
