@@ -171,10 +171,11 @@ export function createRailwayExchangeGeographicBuilding(record: GeoBuilding, pro
     }];
   };
   // The alley's windows, which the drawing does not show: 1.6 m wide, spread evenly about
-  // 3.2 m apart, one to each floor above the ground floor.
+  // 3.2 m apart, one to each floor above the ground floor, the seventeenth's as tall as the
+  // round windows' band.
   const alley = (length: number): [number[], (mid: number, row: Row) => Cell] => {
     const count = Math.max(1, Math.round(length / 3.2)), centres = Array.from({ length: count }, (_, k) => length * (k + 0.5) / count);
-    return [[0, ...centres.flatMap((c) => [c - 0.8, c + 0.8]), length], (mid, row) => (row.kind === "glass" && near(centres, mid) < 0.8 ? "glass" : "plain")];
+    return [[0, ...centres.flatMap((c) => [c - 0.8, c + 0.8]), length], (mid, row) => ((row.kind === "glass" || row.kind === "oculus") && near(centres, mid) < 0.8 ? "glass" : "plain")];
   };
   const facing = (x: number, z: number) => (run: Run) => run.normal(0)[0] * x + run.normal(0)[1] * z > 0.9;
   // Michigan and Jackson carry the fronts; the alley has windows; the north wall, shared

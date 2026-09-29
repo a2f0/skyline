@@ -45,12 +45,14 @@ Read through the geographic camera:
 
 | Feature | Drawn | Published | Model |
 | --- | ---: | --- | ---: |
-| Cornice's top | 73.7 m | The City's 235 ft | 71.6 m |
-| Roof's top | 79.4 m | The Skyscraper Center's 259 ft | 78.9 m |
+| Cornice's top | 73.7 m | The City's 235 ft, the building's height | 71.6 m |
+| Roof's top | 79.4 m | The Skyscraper Center's 259 ft, its architectural height | 78.9 m |
 
-The cornice is read on the drawn Michigan front at its corner. The roof's top is read where
-the drawn apex meets the projection of the lot's middle. The record's height is the roof's,
-and its part's top the eaves.
+Neither source says what its figure measures to. The model takes the City's building height
+as the cornice's top and the Skyscraper Center's architectural height as the roof's, the
+drawn features each is nearest. The cornice is read on the drawn Michigan front at its
+corner. The roof's top is read where the drawn apex meets the projection of the lot's
+middle. The record's height is the roof's, and its part's top the eaves.
 
 Heights read on the front are scaled by 71.6/73.7, so that the drawn cornice meets the
 published one:
@@ -63,7 +65,7 @@ published one:
 | Belt | 53–53.8 m | Drawing: under the fourteenth floor |
 | Frieze | 65.5–69.8 m | Drawing: round windows at 65.9–68.3 m |
 | Cornice | 69.8–71.6 m | Drawing: 90 cm proud, an estimate |
-| Roof | 71.6–78.9 m | Published: a flat top 10 m in from the fronts |
+| Roof | 71.6–78.9 m | As above; its flat top 10 m in from the fronts an estimate from the photograph |
 
 The hill in the drawing hides the building below 20 m. The drawn rows put fifteen floors of
 paired windows over the ground floor and the round windows' floor at the top: seventeen,
@@ -73,7 +75,8 @@ drawn.
 
 ## Plan
 
-The mapped outline is 52.1 m along Michigan and 52.7 m along Jackson. The Jackson wall stands
+The mapped outline is 52 m along both Michigan and Jackson, and 52.7 m along the alley. The
+Jackson wall stands
 up to 6.7 cm inside the line between its corners.
 
 Projected through the geographic camera, the Michigan front spans −1,254 to −847 layer units
@@ -97,7 +100,8 @@ across.
   The drawing shows the Jackson front plain, behind the Metropolitan Tower in the
   photograph. The model gives it Michigan's bays, an estimate.
 - **Alley:** windows 1.6 m wide spread evenly about 3.2 m apart, one to each floor above the
-  ground floor. The drawing does not show this wall, so they are an estimate.
+  ground floor, the seventeenth's as tall as the round windows' band. The drawing does not
+  show this wall, so they are an estimate.
 - **North wall:** shared with Symphony Center, plain.
 - **Roof:** a closed solid on the lot's four corners, from the eaves 10 cm in from the lines
   between them up to a flat top 10 m in from each side, over the light well. The
@@ -122,10 +126,12 @@ Omitted:
   overlaps, and covered omissions.
 - `tests/skyline-geography.test.ts` raycasts:
   - the roof's top, its east slope, the cornice's top, and the record's one part;
-  - eleven bays of paired windows and eleven round windows on each front;
+  - eleven bays of paired windows and eleven round windows on each front, the outer bays
+    22 m either side of the middle;
   - a mullion, a window, a pier, a round window's edge and the belt;
   - seventeen windows up a bay, one to each floor;
-  - the alley's sixteen windows, and the plain north wall;
+  - the alley's sixteen windows to a floor, the seventeenth's among them, and the plain north
+    wall;
   - the cornice, 90 cm proud;
   - the model's exported palette, whose window tones no wall shares;
   - the exact mapped outline at grade.

@@ -1780,12 +1780,14 @@ describe("mapped skyline geography", () => {
       const east = (b: number, y: number) => tone(0, b, y, "east");
       expect([count(0.3, michigan - 0.3, (b) => east(b, floor)), count(0.3, michigan - 0.3, (b) => east(b, round)), count(0.3, jackson - 0.3, (a) => tone(a, 0, floor, "south")), count(0.3, jackson - 0.3, (a) => tone(a, 0, round, "south"))], "the pairs and round windows").toEqual([22, 11, 22, 11]);
       expect([terracotta(east(centre, floor)), glass(east(centre + 0.9, floor)), terracotta(east(centre + 2.2, floor)), glass(east(centre + 1.1, round)), terracotta(east(centre + 1.1, drawn(68.05))), band(east(centre + 0.9, drawn(55)))], "a mullion, a window, a pier, the round window's edge and the belt").toEqual(Array(6).fill(true));
+      // The outer bays, 4.4 m apart, 22 m either side of the middle, and the piers beyond.
+      expect([-1, 1].flatMap((side) => [glass(east(centre + side * 22.9, floor)), glass(east(centre + side * 22, round)), terracotta(east(centre + side * 24.2, floor))]), "the outer bays").toEqual(Array(6).fill(true));
       // One window to each of the seventeen floors up a bay: the shopfront, fifteen floors
       // and the round window.
       expect(count(0.3, drawn(71.7), (y) => east(centre + 0.9, y), 0.05), "a window to each floor").toBe(17);
       // The alley's sixteen windows to a floor; the north wall, shared with Symphony Center,
       // plain.
-      expect([count(0.3, michigan - 0.3, (b) => tone(jackson, b, floor, "west"), 0.1), plain(tone(20, michigan, floor, "north")), plain(tone(20, michigan, drawn(72.5), "north"))], "the alley and the north wall").toEqual([16, true, true]);
+      expect([count(0.3, michigan - 0.3, (b) => tone(jackson, b, floor, "west"), 0.1), count(0.3, michigan - 0.3, (b) => tone(jackson, b, round, "west"), 0.1), plain(tone(20, michigan, floor, "north")), plain(tone(20, michigan, drawn(72.5), "north"))], "the alley, its seventeenth floor, and the north wall").toEqual([16, 16, true, true]);
       // The cornice, 90 cm proud.
       const ledge = hit([lot(-30, 26)[0], drawn(72.5), lot(-30, 26)[1]], [west[0], 0, west[1]]);
       expect([ledge!.object.name, Number(ledge!.distance.toFixed(2))], "the cornice").toEqual(["Railway Exchange Building · cornice", 29.1]);
