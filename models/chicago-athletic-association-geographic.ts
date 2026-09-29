@@ -159,15 +159,19 @@ export function createChicagoAthleticAssociationGeographicBuilding(record: GeoBu
     const count = Math.max(1, Math.round(chain / 3.2)), centres = Array.from({ length: count }, (_, i) => chain * (i + 0.5) / count);
     return [[0, ...centres.flatMap((c) => [c - 0.8, c + 0.8]), chain], (middle, row) => (row.kind === "window" && centres.some((c) => Math.abs(middle - c) < 0.8) ? glassTones[0]! : brick)];
   };
+  // A run's middle, in metres west of the front and north of the south corner.
+  const place = (run: Run): Vec2 => {
+    const mid = run.at(run.length / 2), [x, z] = [mid[0] - corner[0], mid[1] - corner[1]];
+    return [x * west[0] + z * west[1], x * north[0] + z * north[1]];
+  };
+  // The Michigan front, as against the light court's east wall, 39 m back.
+  const isMichigan = (run: Run) => facing(1, 0)(run) && place(run)[0] < 1;
   // The party walls keep the bare shell: the Gage to the south, Willoughby Tower and the
   // annex on Madison to the north, all taller, cover them. The light court's north wall,
   // 6.8 m in from the party line, is not one.
-  const party = (run: Run) => {
-    const mid = run.at(run.length / 2), along = (mid[0] - corner[0]) * north[0] + (mid[1] - corner[1]) * north[1];
-    return facing(0, 1)(run) ? along < 1 : facing(0, -1)(run) && along > length - 3;
-  };
-  skin(0, (run) => facing(1, 0)(run), rows, michigan);
-  skin(1, (run) => !facing(1, 0)(run) && !party(run), sides, court);
+  const party = (run: Run) => (facing(0, 1)(run) ? place(run)[1] < 1 : facing(0, -1)(run) && place(run)[1] > length - 3);
+  skin(0, isMichigan, rows, michigan);
+  skin(1, (run) => !isMichigan(run) && !party(run), sides, court);
 
   const model = kit.finish({ height: h.parapet, outlines: [shell, cornice], opacity: 0.16 });
   model.building.position.set(offset[0], 0, offset[1]);

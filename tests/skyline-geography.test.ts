@@ -2053,6 +2053,15 @@ describe("mapped skyline geography", () => {
       };
       expect(upFirst((b, y) => tone(52, b, y, "west"), 1, 24), "the alley's floors").toBe(10);
       expect(upFirst((a, y) => tone(a, 18.35 + 3, y, "north"), 24, 38), "the light court's floors").toBe(10);
+      // The light court's east wall, which faces the way the front does, 39 m back, is the
+      // court's brick, not the front's stone. It runs from 18.9 to 24.6 m north of the corner,
+      // as the lot's axes put it; the samples stay inside it.
+      const courtEast = (b: number, y: number) => {
+        const p = lot(34, b), found = hit([p[0], y, p[1]], [west[0], 0, west[1]]);
+        expect(found!.object.name).toBe("Chicago Athletic Association · stone, brick and windows");
+        return (found!.object as THREE.Mesh).geometry.getAttribute("color").getX(found!.face!.a);
+      };
+      expect([upFirst(courtEast, 19.2, 24.2), brick(courtEast(19.3, arcade)), brick(courtEast(19.3, ft(144)))], "the light court's east wall").toEqual([10, true, true]);
       const bare = (a: number, b: number, from: "south" | "north") => {
         const p = lot(a, b), d = from === "south" ? [-north[0], -north[1]] : [north[0], north[1]];
         return hit([p[0] + d[0]! * 30, 20, p[1] + d[1]! * 30], [-d[0]!, 0, -d[1]!])!.object.name;

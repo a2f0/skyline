@@ -94,7 +94,8 @@ elevation's.
 ## Model
 
 - **Michigan front:** stone and brick, three bays with openings in two, eight and two
-  lights, divided by 15 cm colonnettes.
+  lights, divided by 15 cm colonnettes. The openings are square-headed and the roundels
+  square, standing for the arches and the round roundels.
   - The ground floor's arched openings, the second floor's small arches, the great arcade
     over the third to fifth floors, the lettered band over it, and the sixth and seventh
     floors' windows. These are estimates.
@@ -103,7 +104,8 @@ elevation's.
   - The cornice, projecting 88 cm.
   - The top storey's diaper brick, pierced by nine roundels and a window at its north end.
 - **Alley and light court:** brick, windows 1.6 m wide about 3.2 m apart on each floor from
-  the second. The drawing does not show these walls, so they are an estimate.
+  the second, on the court's east wall as on its others. The drawing does not show these
+  walls, so they are an estimate.
 - **Party walls:** the bare shell. The Gage Building to the south and Willoughby Tower and the
   annex to the north are all taller and cover them.
 
@@ -111,8 +113,8 @@ Colours follow the drawing's greys, not the limestone and red and grey brick.
 
 Omitted:
 
-- the tracery, the carved sporting equipment and the diaper pattern;
-- the entrance's arch;
+- the arches' and the roundels' shapes, the tracery, the carved sporting equipment and the
+  diaper pattern;
 - the rooftop addition of 2015, which the photograph predates and whose height is not
   published;
 - the annex on Madison Street, which the drawing does not show.
@@ -130,7 +132,8 @@ Omitted:
   - the frieze, and the cornice, 88 cm proud between its profile's foot and head;
   - the nine roundels, the top storey's window and its brick;
   - a window up a bay to each storey the front shows under the cornice;
-  - the alley's and the light court's windows, one to each floor from the second;
+  - the alley's and the light court's windows, one to each floor from the second, the
+    court's east wall in brick, not the front's stone;
   - the bare party walls;
   - the model's exported palette, whose window tones no wall shares;
   - the exact mapped outline at grade.
