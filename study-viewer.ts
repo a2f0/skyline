@@ -37,6 +37,14 @@ export interface StudyView {
   // viewport, as a photograph's camera does, and the field of view frames the
   // fit box instead of the distance changing to fit it.
   distance?: number;
+  // The fit box's centre, right of and above the sightline through the target, in
+  // the fit box's units. A perspective frame off the sightline is a lens shift: the
+  // eye and its direction stay put, and the orbit still pivots on the target.
+  offset?: [number, number];
+  // "bottom" holds the fit box's bottom edge on the viewport's where the viewport is
+  // taller than the box, as an SVG's xMidYMax meet does, and the spare height goes
+  // above it. Perspective views only; the default centres the box.
+  align?: "center" | "bottom";
 }
 
 export interface StudyLayout {
@@ -148,6 +156,8 @@ interface BuildingStudyOptions {
   platform?: PlatformOptions;
   lightPosition?: Vec3;
   shadowCamera?: ShadowCameraOptions;
+  // Scene objects shown with the models that are not buildings, such as mapped streets.
+  extras?: THREE.Object3D[];
   layouts?: Record<string, StudyLayout> | null;
   // The layout the page opens on; the original drawing's fit unless a page chooses another.
   initialLayout?: string;
@@ -176,14 +186,14 @@ export function createBuildingStudy({
   platform = { width: 76, depth: 76 },
   lightPosition = [-110, 240, 170],
   shadowCamera = { left: -140, right: 140, top: 160, bottom: -160, near: 1, far: 600 },
+  extras = [],
   layouts = null,
   initialLayout = "original",
   onLayoutChange = () => {},
   labels = [],
 }: BuildingStudyOptions) {
-  const original = { models, fit, target, platform, lightPosition, shadowCamera, clippingMargin };
+  const original = { models, extras, fit, target, platform, lightPosition, shadowCamera, clippingMargin };
   let layout = "original";
-  let extras: THREE.Object3D[] = [];
   const viewport = document.querySelector<HTMLElement>("#viewport")!;
   const canvas = document.querySelector<HTMLCanvasElement>("#building")!;
   const tooltip = document.querySelector<HTMLElement>("#tooltip")!;
@@ -257,6 +267,7 @@ export function createBuildingStudy({
 
   let modelOwners = new Map<THREE.Object3D, BuildingModel>(models.map((model) => [model.building, model]));
   models.forEach((model) => scene.add(model.building));
+  extras.forEach((object) => scene.add(object));
   const base = new THREE.Mesh(new THREE.BoxGeometry(platform.width, 2, platform.depth), new THREE.MeshToonMaterial({ color: platform.color ?? 0x3a3a3a }));
   base.position.y = -1.1;
   base.receiveShadow = true;
@@ -277,6 +288,8 @@ export function createBuildingStudy({
   let activeView: string | null = defaultView;
   let frameFit = fit;
   let frameDistance: number | null = null;
+  let frameOffset: [number, number] = [0, 0];
+  let frameAlign: StudyView["align"] = "center";
 
 
   function requestRender() {
@@ -368,6 +381,8 @@ export function createBuildingStudy({
     base.receiveShadow = name !== "top";
     frameFit = view.fit || fit;
     frameDistance = view.distance ?? null;
+    frameOffset = view.offset ?? [0, 0];
+    frameAlign = view.align ?? "center";
     controls.target.fromArray(view.target || target);
     markView(name);
     updateCameraHint();
@@ -377,6 +392,9 @@ export function createBuildingStudy({
 
   function resize() {
     const { width, height } = canvas.getBoundingClientRect();
+    // A frame with no size, such as the skyline viewer's 3D scene while another mode shows,
+    // has nothing to fit, and fitting to it would move an orbited eye.
+    if (!width || !height) return;
     const previousFit = fittedDistance;
     const aspect = width / Math.max(height, 1);
     camera.aspect = aspect;
@@ -396,7 +414,7 @@ export function createBuildingStudy({
       const height = Math.max(frameFit.height, frameFit.width / aspect);
       plan.top = height / 2; plan.bottom = -height / 2;
       plan.left = -height * aspect / 2; plan.right = height * aspect / 2;
-    }
+    } else shiftLens(width, height, aspect);
     controls.minDistance = fittedDistance * minimumDistanceRatio;
     controls.maxDistance = fittedDistance * 2;
     updateClipping();
@@ -407,6 +425,26 @@ export function createBuildingStudy({
       controls.update();
     }
     requestRender();
+  }
+
+  // Frames the view's fit box off the sightline, or on the viewport's bottom edge, by
+  // rendering the viewport as a window into a wider frustum about the same axis. Sizes are
+  // in the fit box's units at the fitted distance, where the window is the visible frame.
+  function shiftLens(width: number, height: number, aspect: number) {
+    const visible = Math.max(frameFit.height, frameFit.width / aspect);
+    const [x, y] = frameOffset;
+    const centre = frameAlign === "bottom" ? y + (visible - frameFit.height) / 2 : y;
+    if (!x && !centre) {
+      perspectiveCamera.clearViewOffset();
+      return;
+    }
+    const halfWidth = Math.abs(x) + visible * aspect / 2, halfHeight = Math.abs(centre) + visible / 2, pixel = visible / height;
+    perspectiveCamera.fov = Math.atan(halfHeight / fittedDistance) * 360 / Math.PI;
+    perspectiveCamera.setViewOffset(
+      2 * halfWidth / pixel, 2 * halfHeight / pixel,
+      (halfWidth + x - visible * aspect / 2) / pixel, (halfHeight - centre - visible / 2) / pixel,
+      width, height,
+    );
   }
 
   function updateClipping() {
@@ -599,7 +637,8 @@ export function createBuildingStudy({
 
   new ResizeObserver(resize).observe(viewport);
   updateMotionPreference();
-  resize();
+  // Open on the default view with its own frame, target, and eye distance, if it sets any.
+  setView(defaultView);
   // Open on the page's layout, and bring the page's controls and text to it, whichever
   // layout its markup starts in.
   if (initialLayout !== layout) setLayout(initialLayout);

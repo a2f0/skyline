@@ -18,9 +18,19 @@ const drawings = {
   },
 };
 
-export function createSkylineComparison(models: BuildingModel[], anchor: THREE.Vector3) {
-  const offset: [number, number] = [anchor.x, anchor.z];
-  const geographicModels = geographicBuildings.map((record) => createGeographicBuilding(record, offset));
+// The panorama's viewBox, models/skyline-panorama.svg, in the drawing's layer units. Its
+// centre is the skyline camera's sightline and its height the camera's vertical field of view.
+const panorama = { x: -1400, y: -154.834, width: 9378.476, height: 3535.05 };
+// The frame index.html shows the drawing in: skyline-animated.svg's viewBox, bottom-aligned
+// and centred, in the same layer units. The file's `skyline-position` group translates the
+// layer by (1105.5923, -87.26366) inside its viewBox.
+const drawingFrame = { x: -1105.5923, y: 87.26366, width: 8501.0986, height: 2782.0373 };
+
+// The geographic skyline, registered with Crain's mapped centre at `anchor`: every mapped
+// building, their ground, the settings a study shows them with, and the drawing's camera.
+export function createGeographicSkyline(anchor: Vec3 = [0, 0, 0]) {
+  const offset: [number, number] = [anchor[0], anchor[2]];
+  const models = geographicBuildings.map((record) => createGeographicBuilding(record, offset));
   const ground = createGeographicGround(offset);
   // The comparison views share a frame set in ground plan, which holds both layouts: the
   // original's platform, and every mapped footprint, from 330 North Wabash's west side to
@@ -29,11 +39,15 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
   // side, across the river, to 127 m past the Railway Exchange's mapped south side at
   // Jackson. Height comparison sees it at an angle, and on a portrait phone can clip the
   // platform's south-west corner.
-  const commonTarget: Vec3 = [anchor.x + 128, 0, anchor.z + 85];
-  const commonFit = { width: 1050, height: 1520 };
-  const views: Record<string, StudyView> = {
-    top: { azimuth: 0, polar: 0, projection: "orthographic", label: "ground plan · north up", fit: commonFit, target: commonTarget },
-    heights: { azimuth: 0.65, polar: 1.18, projection: "orthographic", label: "height comparison", fit: commonFit, target: [commonTarget[0], 155, commonTarget[2]] },
+  const center: Vec3 = [anchor[0] + 128, 0, anchor[2] + 85];
+  const settings = {
+    target: [center[0], 155, center[2]] as Vec3,
+    fit: { width: 1100, height: 950 },
+    platform: { width: 1200, depth: 1600, x: center[0], z: center[2] },
+    clippingMargin: 1800,
+    lightPosition: [-700, 1100, 500] as Vec3,
+    // Wide enough for the platform's far corners, which the geography suite checks.
+    shadowCamera: { left: -1300, right: 1300, top: 1300, bottom: -1300, near: 1, far: 2600 },
   };
   // The drawing traces a lakefront photograph. Fitting the mapped buildings'
   // roofs and tips to their drawn positions (scripts/fit-geographic-camera.ts)
@@ -44,36 +58,47 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
   // are meters east, up, and south of Crain's mapped centre.
   const photoEye: Vec3 = [1471.76, 2, 1948.8];
   const photoAzimuth = 36.1247 * Math.PI / 180, photoPolar = 94.0182 * Math.PI / 180;
-  // The panorama's frame, models/skyline-panorama.svg: its vertical field of view and its
-  // viewBox aspect. It is the reference excerpt's frame widened about the same centre to
-  // every building the drawing shows, so the camera aims where it always has.
-  const frameFov = 10.5279 * Math.PI / 180, frameAspect = 9378.476 / 3535.05;
+  // The panorama's vertical field of view. The panorama is the reference excerpt's frame
+  // widened about the same centre to every building the drawing shows, so the camera aims
+  // where it always has.
+  const frameFov = 10.5279 * Math.PI / 180;
   const back: Vec3 = [Math.sin(photoPolar) * Math.sin(photoAzimuth), Math.cos(photoPolar), Math.sin(photoPolar) * Math.cos(photoAzimuth)];
   // Orbit and zoom pivot on the sightline at Crain's depth.
   const photoDistance = photoEye[0] * back[0] + photoEye[1] * back[1] + photoEye[2] * back[2];
   const frameHeight = 2 * photoDistance * Math.tan(frameFov / 2);
-  const photoView: Partial<StudyView> = {
+  const photoView = {
     azimuth: photoAzimuth,
     polar: photoPolar,
     distance: photoDistance,
-    target: [anchor.x + photoEye[0] - photoDistance * back[0], photoEye[1] - photoDistance * back[1], anchor.z + photoEye[2] - photoDistance * back[2]],
-    fit: { width: frameHeight * frameAspect, height: frameHeight },
+    target: [anchor[0] + photoEye[0] - photoDistance * back[0], photoEye[1] - photoDistance * back[1], anchor[2] + photoEye[2] - photoDistance * back[2]] as Vec3,
+    fit: { width: frameHeight * panorama.width / panorama.height, height: frameHeight },
   };
-  const layouts: Record<string, StudyLayout> = {
-    geographic: {
-      models: geographicModels,
-      extras: [ground.group],
-      defaultView: "skyline",
-      target: [commonTarget[0], 155, commonTarget[2]],
-      fit: { width: 1100, height: 950 },
-      platform: { width: 1200, depth: 1600, x: commonTarget[0], z: commonTarget[2] },
-      clippingMargin: 1800,
-      lightPosition: [-700, 1100, 500],
-      // Wide enough for the platform's far corners, which the geography suite checks.
-      shadowCamera: { left: -1300, right: 1300, top: 1300, bottom: -1300, near: 1, far: 2600 },
-      views: { skyline: photoView },
-    },
+  // The same camera framing what index.html frames: the drawing's viewBox, a lens shift off
+  // the panorama's centre, held to the viewport's bottom edge. The mapped buildings then
+  // stand where the drawing shows them in the skyline viewer.
+  const unit = frameHeight / panorama.height;
+  const drawingView: StudyView = {
+    ...photoView,
+    label: "skyline view",
+    fit: { width: drawingFrame.width * unit, height: drawingFrame.height * unit },
+    offset: [
+      (drawingFrame.x + drawingFrame.width / 2 - panorama.x - panorama.width / 2) * unit,
+      (panorama.y + panorama.height / 2 - drawingFrame.y - drawingFrame.height / 2) * unit,
+    ],
+    align: "bottom",
   };
+  const layout: StudyLayout = { models, extras: [ground.group], defaultView: "skyline", ...settings, views: { skyline: photoView } };
+  return { models, ground, center, settings, layout, drawingView };
+}
+
+export function createSkylineComparison(models: BuildingModel[], anchor: THREE.Vector3) {
+  const { ground, center: commonTarget, layout } = createGeographicSkyline([anchor.x, anchor.y, anchor.z]);
+  const commonFit = { width: 1050, height: 1520 };
+  const views: Record<string, StudyView> = {
+    top: { azimuth: 0, polar: 0, projection: "orthographic", label: "ground plan · north up", fit: commonFit, target: commonTarget },
+    heights: { azimuth: 0.65, polar: 1.18, projection: "orthographic", label: "height comparison", fit: commonFit, target: [commonTarget[0], 155, commonTarget[2]] },
+  };
+  const layouts: Record<string, StudyLayout> = { geographic: layout };
 
   const number = (n: number) => n.toFixed(1);
   const signed = (n: number) => `${n >= 0 ? "+" : "−"}${Math.abs(n).toFixed(1)}`;
