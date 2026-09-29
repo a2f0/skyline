@@ -100,14 +100,14 @@
   {
     "id": "building-michigan-west-right",
     "key": "michigan-west-right",
-    "label": "Unidentified Michigan Avenue facade (east)",
+    "label": "Gage Building",
     "x": 1112.625,
     "y": 2495.7248
   },
   {
     "id": "building-michigan-west-left",
     "key": "michigan-west-left",
-    "label": "Unidentified Michigan Avenue facade (west)",
+    "label": "Gage Building (south wall)",
     "x": 893.2416,
     "y": 2487.6227
   },
