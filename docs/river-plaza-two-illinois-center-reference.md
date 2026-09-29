@@ -54,8 +54,9 @@ rows of windows about 25.3 units apart.
   3.57 m. River Plaza's residential floors, 2.85 m on average, would stand 18.6 units apart.
   Two Illinois Center's roof projects at about 2,110, so it cannot reach the drawn top.
 - **River Plaza** stands behind, 2.9 km away. Of the mapped buildings on the sightline it is
-  the only one tall enough to reach the drawn top. Its published 159.7 m roof projects at
-  about 1,927, 10 units under the photograph's pale top and 49 over the drawn one.
+  the only one tall enough to reach the drawn top. Its roof, at OpenStreetMap's 156 m,
+  projects at about 1,952 there, between the drawn top and the photograph's pale one; its
+  box, to the published 159.7 m, stands just behind Aon's edge.
 
 The drawing draws them as one building. Its window rows are Two Illinois Center's, and its
 top lies between the two roofs. Both models keep their published heights, so neither is
@@ -83,20 +84,20 @@ curtain wall:
 | Feature | Height | Basis |
 | --- | ---: | --- |
 | Podium | 0–8 m | OpenStreetMap |
-| Typical floor | 2.85 m | The published 159.7 m over 56 floors |
+| Typical floor | 2.79 m | The roof's 156 m over 56 floors |
 | Windows | 1.5 m tall | Estimate: 75 cm over each floor |
-| Roof | 159.7 m | Published |
-| Box | 159.7–166 m | OpenStreetMap |
+| Roof | 156 m | OpenStreetMap: the slab's part |
+| Box | 156–159.7 m | Published: the Skyscraper Center's architectural top and tip, 524 ft |
 
 The slab is 56 m east to west and 25 m north to south, its corners notched. The model builds
 it on its mapped part, with the podium on its own part and the box on its own.
 
-- The published 159.7 m is Emporis's roof, so the model puts the slab's roof there, over
-  OpenStreetMap's 156 m. It leaves out the mapped block at 160 m, 30 cm over that roof.
-- The box rises over the published height to OpenStreetMap's 166 m. Emporis gives the roof
-  and the tip the same 524 ft and lists the box on its own, "flat roof with 1 box": the
-  published heights leave it out as rooftop plant, as the Skyscraper Center's leave out
-  "functional-technical equipment". No published height for the box was found.
+- The Skyscraper Center gives 159.7 m both to the architectural top and to the tip, which
+  counts rooftop equipment, and Emporis gives the roof, the architectural top and the tip
+  the same 524 ft over a "flat roof with 1 box". So nothing stands higher than 159.7 m: the
+  box's top is there, on the slab's roof at OpenStreetMap's 156 m. OpenStreetMap's 166 m for
+  the box and its block at 160 m stand over the published tip, and the model leaves them
+  out.
 - The frame's bays are 1.6 m wide, an estimate from photographs, set out from each face's
   middle. Each floor has a window 1.1 m wide in each bay.
 - Where the podium stands against the slab, both ends of a wall's run on the podium's
@@ -121,7 +122,8 @@ Omitted:
   - Two Illinois Center's roof at 114.3 m, and its one part;
   - the lobby and 29 office floors up a bay, a spandrel, glass and the mechanical band;
   - its mullions, ten panes from one to the one ten modules on;
-  - River Plaza's roof at 159.7 m, the box at 166 m and the podium at 8 m, its three parts;
+  - River Plaza's roof at 156 m, the box to the published 159.7 m and the podium at 8 m, its
+    three parts;
   - a window to each of its 55 floors above grade on the north face, a sill and a head;
   - six windows in six 1.6 m bays;
   - the skin over the podium's roof where the podium stands against the slab, and down to

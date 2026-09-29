@@ -184,7 +184,7 @@ drawings and their 149 ft 4 in parapet; see its
 [reference audit](docs/chicago-athletic-association-reference.md).
 Between Two Prudential and Aon, the drawing's one building is two: Two Illinois Center's dark
 curtain wall to the published 114.3 m in front, and behind it River Plaza's white concrete
-frame to the published 159.7 m, the only mapped building on that sightline tall enough to
+frame under a rooftop box to the published 159.7 m, the only mapped building on that sightline tall enough to
 reach the drawn top; see their [reference audit](docs/river-plaza-two-illinois-center-reference.md).
 The ground plan's frame reaches north across the river for River Plaza.
 One Prudential's is the same building as the original layout's copy, on the

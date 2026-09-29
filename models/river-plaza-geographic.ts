@@ -12,14 +12,14 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // to reach the drawn top.
 //
 // A white concrete slab of 56 storeys with notched corners: a grid of exposed frame and
-// punched windows over a low podium on the river side, to a flat roof at the published
-// 159.7 m, with a box on it. See docs/river-plaza-two-illinois-center-reference.md. Units are
+// punched windows over a low podium on the river side, to a flat roof at OpenStreetMap's 156 m
+// under a box to the published 159.7 m. See docs/river-plaza-two-illinois-center-reference.md. Units are
 // meters; +x is east, +z is south.
 export const riverPlazaLevels = Object.freeze({
   podium: 8, // the podium's roof, OpenStreetMap's
   floors: 56,
-  roof: 159.7, // the published height, the Skyscraper Center's 524 ft
-  box: 166, // the rooftop box, OpenStreetMap's
+  roof: 156, // the slab's roof, OpenStreetMap's
+  box: 159.7, // the rooftop box's top, the published height and tip, the Skyscraper Center's 524 ft
   bay: 1.6, // the frame's bays, an estimate from photographs
 });
 const h = riverPlazaLevels;

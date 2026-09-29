@@ -212,7 +212,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Theodore Ascher Building | 30.78 m | 30.78 m | [HABS IL-1065](https://tile.loc.gov/storage-services/master/pnp/habshaer/il/il0000/il0056/data/il0056data.pdf), the Keith's height |
 | Chicago Athletic Association | 45.52 m | 45.52 m | [HABS IL-1226](https://tile.loc.gov/storage-services/master/pnp/habshaer/il/il0900/il0935/sheet/00004a.tif), measured |
 | Two Illinois Center | 114.3 m | 114.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/chicago/two-illinois-center/11095) |
-| River Plaza | 159.7 m | 166 m | [Skyscraper Center](https://www.skyscrapercenter.com/chicago/river-plaza/3383); the box, [OSM](https://www.openstreetmap.org/way/285867425) |
+| River Plaza | 159.7 m | 159.7 m | [Skyscraper Center](https://www.skyscrapercenter.com/chicago/river-plaza/3383) |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
 Michigan Avenue has none published, so its height is read on the drawing, and the page's
@@ -409,8 +409,10 @@ Intermediate parts have less certainty than the overall height:
   Center, which the drawing paints as one building. Two Illinois Center stands in front, a
   dark curtain wall on a 5 ft module with its floors at the photograph's pitch and a
   mechanical band under its roof at the published 114.3 m. River Plaza stands behind, a white
-  concrete frame of 56 storeys over a podium to its published 159.7 m, with the mapped box on
-  its roof to 166 m; the published heights, roof and tip alike, leave that plant out. Neither is scaled to the drawing, whose top lies between their roofs; see the
+  concrete frame of 56 storeys over a podium to OpenStreetMap's 156 m roof, with the mapped
+  box on it to the published 159.7 m, the Skyscraper Center's architectural top and tip.
+  OpenStreetMap's 166 m for the box stands over that tip. Neither is scaled to the drawing,
+  whose top lies between their roofs; see the
   [Two Illinois Center and River Plaza reference audit](river-plaza-two-illinois-center-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height

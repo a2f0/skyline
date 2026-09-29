@@ -103,7 +103,7 @@ describe("mapped skyline geography", () => {
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
       "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9], Buckingham: [582.28, -1.52, 121.9],
-      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 69], MacLean: [0.85, -492.94, 77.4], "Lake View": [1.26, -509.77, 73.2], "Peoples Gas": [2.15, -545.88, 82.9], "Borg-Warner": [3.61, -612.47, 83.5], "Railway Exchange": [4.79, -690.9, 78.9], Gage: [1.46, -372.28, 47.74], Keith: [1.55, -390.86, 30.78], Ascher: [1.76, -407.26, 30.78], "Athletic Association": [-0.76, -350.62, 45.52], "Two Illinois Center": [159.19, 236.36, 114.3], "River Plaza": [-67.71, 551.99, 166],
+      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 69], MacLean: [0.85, -492.94, 77.4], "Lake View": [1.26, -509.77, 73.2], "Peoples Gas": [2.15, -545.88, 82.9], "Borg-Warner": [3.61, -612.47, 83.5], "Railway Exchange": [4.79, -690.9, 78.9], Gage: [1.46, -372.28, 47.74], Keith: [1.55, -390.86, 30.78], Ascher: [1.76, -407.26, 30.78], "Athletic Association": [-0.76, -350.62, 45.52], "Two Illinois Center": [159.19, 236.36, 114.3], "River Plaza": [-67.71, 551.99, 159.7],
     };
     expect(geographicBuildings.length).toBe(30);
     for (const record of geographicBuildings) {
@@ -2132,26 +2132,26 @@ describe("mapped skyline geography", () => {
       while (!is(ip.mullion)(south(line, floor(12) + 2))) line += 0.01;
       expect([count(line + 0.06, line + 10 * 1.524 - 0.06, iGlass, (x) => south(x, floor(12) + 2)), is(ip.mullion)(south(line + 10 * 1.524 + 0.03, floor(12) + 2))], "the 5 ft module").toEqual([10, true]);
 
-      // River Plaza: the published 159.7 m roof on its mapped slab, the box to OpenStreetMap's
-      // 166 m, and the podium's 8 m.
+      // River Plaza: OpenStreetMap's 156 m slab roof, the box on it to the published 159.7 m,
+      // the Skyscraper Center's architectural top and tip, and the podium's 8 m.
       const plaza = geographicBuildings.find((r) => r.shortName === "River Plaza")!;
       const hitPlaza = cast(models["River Plaza"]!);
-      expect(plaza.parts.map((part) => [part.way, part.bottom, part.top])).toEqual([[68796725, 0, 159.7], [68796733, 0, 8], [285867425, 159.7, 166]]);
+      expect(plaza.parts.map((part) => [part.way, part.bottom, part.top])).toEqual([[68796725, 0, 156], [68796733, 0, 8], [285867425, 156, 159.7]]);
       const middle = (coordinates: [number, number][]) => { const points = coordinates.map(ground); return [0, 1].map((k) => points.reduce((sum, p) => sum + p[k]!, 0) / points.length) as Vec2; };
       const [slab, podium, box] = plaza.parts.map((part) => middle(part.coordinates));
-      near(hitPlaza([slab![0] - 20, 300, slab![1] - 4], [0, -1, 0])!.point.y, 159.7, 1e-3);
-      near(hitPlaza([box![0], 300, box![1]], [0, -1, 0])!.point.y, 166, 1e-3);
+      near(hitPlaza([slab![0] - 20, 300, slab![1] - 4], [0, -1, 0])!.point.y, 156, 1e-3);
+      near(hitPlaza([box![0], 300, box![1]], [0, -1, 0])!.point.y, 159.7, 1e-3);
       near(hitPlaza([podium![0], 300, podium![1] + 5], [0, -1, 0])!.point.y, 8, 1e-3);
       const rp = riverPlazaPalette, rGlass = (r: number) => [...rp.glass, rp.lit, rp.dim].some((hex) => is(hex)(r));
       expect(rGlass(new THREE.Color(rp.concrete).r), "concrete does not pass for glass").toBe(false);
       // Its north face, from the north: a window 1.5 m tall 75 cm over each of its 55 floor
       // lines above grade, in 1.6 m bays of the frame.
       const north = (x: number, y: number) => tone(hitPlaza([x, y, slab![1] - 60], [0, 0, 1]), "River Plaza · concrete and windows");
-      const pitch = 159.7 / 56;
+      const pitch = 156 / 56;
       let column = slab![0] - 5;
       while (!rGlass(north(column, 20 * pitch + 1.5))) column += 0.05;
       column += 0.3;
-      expect(count(0.3, 159.5, rGlass, (y) => north(column, y), 0.05), "a window to each floor").toBe(55);
+      expect(count(0.3, 155.8, rGlass, (y) => north(column, y), 0.05), "a window to each floor").toBe(55);
       expect([is(rp.concrete)(north(column, 20 * pitch + 0.7)), rGlass(north(column, 20 * pitch + 0.8)), rGlass(north(column, 20 * pitch + 2.2)), is(rp.concrete)(north(column, 20 * pitch + 2.3))], "a sill and a head").toEqual([true, true, true, true]);
       // From a window's west edge, within the north face's recess, six windows in six 1.6 m
       // bays.
