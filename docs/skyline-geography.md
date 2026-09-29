@@ -4,8 +4,8 @@
 study of the same eight buildings, plus 330 North Wabash, the Blue Cross and Blue
 Shield Tower, 340 on the Park, The Buckingham, Millennium Park Plaza, Willoughby Tower,
 Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, the
-University Club of Chicago, the Monroe Building, the MacLean Center, and the Lake View
-Building, which only the geographic layout maps. The page
+University Club of Chicago, the Monroe Building, the MacLean Center, the Lake View
+Building, and the Peoples Gas Building, which only the geographic layout maps. The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
@@ -109,7 +109,7 @@ a wider sixth, 1600×700, whose canvas fits the frame to its height.
 and the Blue Cross and Blue Shield Tower's outline and parts on September 28, 2026,
 from [another](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6212,41.8845,-87.6180,41.8862),
 as were 340 on the Park's and The Buckingham's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862),
-and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's, 180 North Michigan Avenue's, the University Club's, the Monroe Building's, the MacLean Center's and the Lake View Building's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
+and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's, 180 North Michigan Avenue's, the University Club's, the Monroe Building's, the MacLean Center's, the Lake View Building's and the Peoples Gas Building's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -156,6 +156,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Monroe Building | [145498713](https://www.openstreetmap.org/way/145498713) | Outline, with the roof and levels from the drawing; not in the original layout |
 | MacLean Center | [145498712](https://www.openstreetmap.org/way/145498712) | Outline, with the levels from the drawing; not in the original layout |
 | Lake View Building | [145498711](https://www.openstreetmap.org/way/145498711) | Outline, with the levels from the drawing; not in the original layout |
+| Peoples Gas Building | [145498710](https://www.openstreetmap.org/way/145498710) | 1179833660, 1179833658, 1179833661, 1179833659, 1179842408, with the levels from the drawing; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -190,6 +191,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Monroe Building | 69 m | 69 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/monroe-building/22557) |
 | MacLean Center | 77.4 m | 77.4 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/maclean-center/26975) |
 | Lake View Building | 73.2 m | 73.2 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/lake-view-building/26976) |
+| Peoples Gas Building | 82.9 m | 82.9 m | [City of Chicago](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf) |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
 Michigan Avenue has none published, so its height is read on the drawing, and the page's
@@ -197,7 +199,8 @@ dimension table says so. Where published heights disagree, the layout takes the 
 nearest the drawing's reading. So the Monroe Building, the MacLean Center and the Lake View
 Building take the Skyscraper Center's heights over the lower ones in the City's
 [guide to the Historic Michigan Boulevard District](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf),
-and their drawn fronts are scaled to meet them. The
+and the Peoples Gas Building takes the City's 272 ft over the Skyscraper Center's 92 m.
+Their drawn fronts are scaled to meet them. The
 table's before/after comparison uses the highest actual rendered vertex, so One
 Prudential's antenna is not compared to its roof. Aon's original copy is the real
 tower from the drawing's 30.6 m datum up at 1.329 times its size, so its antenna
@@ -337,6 +340,12 @@ Intermediate parts have less certainty than the overall height:
   windows to a floor rises seventeen storeys, arched on the sixteenth, with small attic
   windows under a cornice band, to the Skyscraper Center's 73.2 m, the drawn front scaled
   to meet it; see the [Lake View Building reference audit](lake-view-reference.md).
+- The Peoples Gas Building stands south of the Lake View Building, on Adams. Its Michigan
+  and Adams fronts rise twenty storeys between wide corner piers: two behind granite
+  columns, fourteen of paired windows, three behind a colonnade, and an attic under a
+  frieze, a projecting cornice and its cresting, to the City's 272 ft. Its mapped parts
+  hold a light court that widens over the seventeenth floor; see the
+  [Peoples Gas Building reference audit](peoples-gas-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -354,7 +363,7 @@ mapped footprints help inspect whether the street arrangement fits. Checking cur
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all twenty-one rendered ground
+coordinate anchors, meter scale and north direction, all twenty-two rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
