@@ -10,6 +10,7 @@ import { createBuckinghamGeographicBuilding } from "./buckingham-geographic.js";
 import { createCrainGeographicBuilding } from "./crain-geographic.js";
 import { createGageGeographicBuilding } from "./gage-geographic.js";
 import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
+import { createAscherGeographicBuilding, createKeithGeographicBuilding } from "./keith-ascher-geographic.js";
 import { createKemperGeographicBuilding } from "./kemper-geographic.js";
 import { createLakeViewGeographicBuilding } from "./lake-view-geographic.js";
 import { createMacleanCenterGeographicBuilding } from "./maclean-center-geographic.js";
@@ -117,6 +118,12 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-michigan-west-right") {
     return createGageGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-michigan-west-front") {
+    return createKeithGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-30-south-michigan") {
+    return createAscherGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);
