@@ -70,7 +70,7 @@ to local OpenStreetMap footprints and parts, with published overall heights
 Shield Tower, 340 on the Park, The Buckingham, Millennium Park Plaza, Willoughby Tower,
 Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, the
 University Club of Chicago, the Monroe Building, the MacLean Center, the Lake View
-Building, and the Peoples Gas Building. It opens on the skyline view from the drawing's own camera: the source photograph's vantage on the lakefront by the Adler
+Building, the Peoples Gas Building, and the Borg-Warner Building. It opens on the skyline view from the drawing's own camera: the source photograph's vantage on the lakefront by the Adler
 Planetarium, fitted to the mapped roofs and tips while the buildings stay where
 they are mapped. That view frames the whole drawn skyline, and the drawing under
 the scene becomes `models/skyline-panorama.svg`, every building the drawing shows;
@@ -161,6 +161,9 @@ On Adams, the Peoples Gas Building's two fronts rise twenty storeys from granite
 through paired windows and a colonnade to an attic, a cornice and its cresting at the
 City's 272 ft, round a light court on its mapped parts; see its
 [reference audit](docs/peoples-gas-reference.md).
+Across Adams, the Borg-Warner Building's curtain wall rises some twenty-two floors to the
+City's 240 ft, with its penthouse at 258 ft and a block behind it at the Skyscraper Center's
+83.5 m; see its [reference audit](docs/borg-warner-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the
@@ -182,7 +185,7 @@ corners, the 346.3 m enclosure, and the inferred antenna at the published
 Intermediate
 podium heights and some crowns are estimates; street lines have no curb widths
 and road levels are flattened. See [the geographic data audit](docs/skyline-geography.md)
-for the coordinate system, twenty-two footprint records, height definitions, OSM
+for the coordinate system, twenty-three footprint records, height definitions, OSM
 attribution, and limitations. All runtime data is checked in locally.
 
 ## Adding a building to the skyline study
