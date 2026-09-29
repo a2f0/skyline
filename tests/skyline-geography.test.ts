@@ -15,7 +15,7 @@ import { monroePalette } from "../models/monroe-geographic.js";
 import { peoplesGasLevels, peoplesGasPalette } from "../models/peoples-gas-geographic.js";
 import { railwayExchangePalette } from "../models/railway-exchange-geographic.js";
 import { gagePalette } from "../models/gage-geographic.js";
-import { ascherSpec, gageGroupPalette, keithSpec } from "../models/keith-ascher-geographic.js";
+import { gageGroupPalette } from "../models/keith-ascher-geographic.js";
 import { northMichigan180Palette } from "../models/north-michigan-180-geographic.js";
 import { universityClubPalette } from "../models/university-club-geographic.js";
 import { northWabashFloors } from "../models/north-wabash-geographic.js";
@@ -100,7 +100,7 @@ describe("mapped skyline geography", () => {
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
       "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9], Buckingham: [582.28, -1.52, 121.9],
-      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 69], MacLean: [0.85, -492.94, 77.4], "Lake View": [1.26, -509.77, 73.2], "Peoples Gas": [2.15, -545.88, 82.9], "Borg-Warner": [3.61, -612.47, 83.5], "Railway Exchange": [4.79, -690.9, 78.9], Gage: [1.46, -372.28, 47.74], Keith: [1.55, -390.86, 30.78], Ascher: [1.76, -407.26, 30.48],
+      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 69], MacLean: [0.85, -492.94, 77.4], "Lake View": [1.26, -509.77, 73.2], "Peoples Gas": [2.15, -545.88, 82.9], "Borg-Warner": [3.61, -612.47, 83.5], "Railway Exchange": [4.79, -690.9, 78.9], Gage: [1.46, -372.28, 47.74], Keith: [1.55, -390.86, 30.78], Ascher: [1.76, -407.26, 30.78],
     };
     expect(geographicBuildings.length).toBe(27);
     for (const record of geographicBuildings) {
@@ -1893,7 +1893,14 @@ describe("mapped skyline geography", () => {
 
   describe("Edson Keith and Theodore Ascher Buildings", () => {
     test("keep their mapped lots, their Chicago windows, the drawn seventh floor and their parapets", () => {
-      for (const [shortName, spec, lights] of [["Keith", keithSpec, [3, 3, 3]], ["Ascher", ascherSpec, [3, 3]]] as const) {
+      // The audit's measurements: the parapet, the drawn one, the seventh floor's drawn window,
+      // and each bay's window from the front's south corner.
+      const measured = {
+        Keith: { top: 30.78, drawnTop: 35.69, drawnWindow: [30.15, 33.17], bays: [[1.67, 5.36], [7.24, 12.09], [13.44, 17.34]] },
+        Ascher: { top: 30.78, drawnTop: 35.48, drawnWindow: [29.97, 32.97], bays: [[1.85, 5.7], [7.9, 11.75]] },
+      } as const;
+      for (const [shortName, name, lights] of [["Keith", "Edson Keith Building", [3, 3, 3]], ["Ascher", "Theodore Ascher Building", [3, 3]]] as const) {
+        const spec = { name, ...measured[shortName] };
         const record = geographicBuildings.find((r) => r.shortName === shortName)!;
         const model = models[shortName]!;
         model.building.updateMatrixWorld(true);

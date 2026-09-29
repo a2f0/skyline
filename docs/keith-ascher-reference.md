@@ -56,21 +56,22 @@ Read through the geographic camera, the drawn Keith stands at 35.7 m and the dra
 | Building | Published | Model |
 | --- | --- | ---: |
 | Edson Keith | HABS: 101 ft. The City: 100 ft | 30.78 m, HABS's |
-| Theodore Ascher | The City: 100 ft. HABS: 92 ft with six storeys | 30.48 m, the City's |
+| Theodore Ascher | HABS: 92 ft with six storeys. The 2002 report: the Keith's height since its seventh. The City: 100 ft | 30.78 m, the Keith's |
 
-The City's 100 ft is the Gage Group's lower figure, and the only one published for the
-Ascher since its seventh storey, which made it the Keith's height. Neither source says what
-its figure measures to, so each model takes its height as the parapet's top. Each building's
-heights read on the drawing are scaled so that its drawn parapet meets it: by 30.78/35.69
-for the Keith and 30.48/35.48 for the Ascher. The drawing reads the Gage's 154 ft high by
-nearly the same ratio; see the [Gage Building audit](gage-reference.md#heights).
+The City's 100 ft is the Gage Group's lower figure, which it gives for both buildings. The
+2002 report makes the Ascher the Keith's height, so the HABS record's 101 ft for the Keith
+applies to both, and it is the published figure nearer each drawn parapet. Neither source
+says what its figure measures to, so both models take it as the parapet's top. Each
+building's heights read on the drawing are scaled so that its drawn parapet meets it: by
+30.78/35.69 for the Keith and 30.78/35.48 for the Ascher. The drawing reads the Gage's
+154 ft high by nearly the same ratio; see the [Gage Building audit](gage-reference.md#heights).
 
-| Feature | Keith | Ascher | Basis |
-| --- | ---: | ---: | --- |
-| Ground floor | 0–5.5 m | 0–5.5 m | Estimate: shopfronts to 4.3 m under a sign band |
-| Floors 2–7 | 3.94 m | 3.89 m | Estimate: from the second floor to the drawn seventh |
-| Seventh floor's window | 26–28.6 m | 25.75–28.3 m | Drawing, its sill 80 cm over the floor |
-| Parapet | 30.78 m | 30.48 m | Published |
+| Feature | Both | Basis |
+| --- | ---: | --- |
+| Ground floor | 0–5.5 m | Estimate: shopfronts to 4.3 m under a sign band |
+| Floors 2–7 | 3.94 m | Estimate: from the second floor to the drawn seventh |
+| Seventh floor's window | 26–28.6 m | Drawing, its sill 80 cm over the floor |
+| Parapet | 30.78 m | Published: the Keith's 101 ft |
 
 The hill in the drawing hides both buildings below the seventh floor's window. The windows of
 the floors below it take the same height and sill, an estimate.
@@ -96,7 +97,7 @@ Measured as fractions of the drawn fronts from their south corners, the drawn wi
 - **Michigan fronts:** brick.
   - The ground floor's shopfronts under a sign band.
   - A Chicago window in each bay on floors 2 to 7: a fixed pane between sashes 80 cm wide,
-    behind 12 cm mullions.
+    split by 12 cm mullions painted in the window's plane.
   - A plain parapet.
 - **Alleys:** brick, windows 1.6 m wide about 3.2 m apart on every floor above the ground
   floor. The drawing does not show them, so they are an estimate.

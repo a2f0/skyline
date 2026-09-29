@@ -13,9 +13,10 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 //
 // Red brick fronts of seven storeys, the Keith's three bays wide and the Ascher's two, each
 // bay a Chicago window, a wide fixed pane between narrow sashes, over shopfronts and a sign
-// band, under plain parapets where the cornices were. The Keith's parapet is the HABS
-// record's 101 ft and the Ascher's the City's 100 ft; each drawn front is scaled to meet its
-// height. See docs/keith-ascher-reference.md. Units are meters; +x is east, +z is south.
+// band, under plain parapets where the cornices were. Both parapets stand at the HABS
+// record's 101 ft for the Keith, which the Ascher's seventh storey matched; each drawn front
+// is scaled to meet it. See docs/keith-ascher-reference.md. Units are meters; +x is east, +z
+// is south.
 export interface GageGroupSpec {
   name: string;
   top: number; // the parapet, published
@@ -25,7 +26,7 @@ export interface GageGroupSpec {
   seed: number;
 }
 export const keithSpec: GageGroupSpec = { name: "Edson Keith Building", top: 30.78, drawnTop: 35.69, drawnWindow: [30.15, 33.17], bays: [[1.67, 5.36], [7.24, 12.09], [13.44, 17.34]], seed: 11 };
-export const ascherSpec: GageGroupSpec = { name: "Theodore Ascher Building", top: 30.48, drawnTop: 35.48, drawnWindow: [29.97, 32.97], bays: [[1.85, 5.7], [7.9, 11.75]], seed: 17 };
+export const ascherSpec: GageGroupSpec = { name: "Theodore Ascher Building", top: 30.78, drawnTop: 35.48, drawnWindow: [29.97, 32.97], bays: [[1.85, 5.7], [7.9, 11.75]], seed: 17 };
 
 // Each building's levels: the ground floor's shopfronts under a sign band, and six floors
 // from the second up to the seventh, whose drawn window, scaled, sets their pitch; its sill
@@ -105,8 +106,9 @@ function createGageGroupBuilding(spec: GageGroupSpec, record: GeoBuilding, proje
   };
   const facing = (x: number, z: number) => (run: Run) => run.normal(0)[0] * x + run.normal(0)[1] * z > 0.9;
   // The Michigan front, as drawn from its south corner: each bay's Chicago window, a sash
-  // 80 cm wide either side of its fixed pane, behind 12 cm mullions. The front's chain runs
-  // from whichever corner the outline's winding gives it.
+  // 80 cm wide either side of its fixed pane, split from it by 12 cm mullions painted in the
+  // window's plane. The front's chain runs from whichever corner the outline's winding gives
+  // it.
   const michigan = (length: number, start: Vec2): [number[], (middle: number) => boolean] => {
     const fromSouth = Math.hypot(start[0] - corner[0], start[1] - corner[1]) < Math.hypot(north[0], north[1]) / 2;
     const at = (s: number) => (fromSouth ? s : length - s);

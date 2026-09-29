@@ -205,7 +205,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Railway Exchange Building | 78.9 m | 78.9 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/santa-fe-building/9587) |
 | Gage Building | 46.94 m | 47.74 m | [City of Chicago](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf) |
 | Edson Keith Building | 30.78 m | 30.78 m | [HABS IL-1065](https://tile.loc.gov/storage-services/master/pnp/habshaer/il/il0000/il0056/data/il0056data.pdf) |
-| Theodore Ascher Building | 30.48 m | 30.48 m | [City of Chicago](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf) |
+| Theodore Ascher Building | 30.78 m | 30.78 m | [HABS IL-1065](https://tile.loc.gov/storage-services/master/pnp/habshaer/il/il0000/il0056/data/il0056data.pdf), the Keith's height |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
 Michigan Avenue has none published, so its height is read on the drawing, and the page's
@@ -217,9 +217,10 @@ and the Peoples Gas Building takes the City's 272 ft over the Skyscraper Center'
 The Borg-Warner Building's roof and penthouse take the City's 240 and 258 ft, and the block
 behind the penthouse the Skyscraper Center's 83.5 m. The Railway Exchange Building's cornice
 takes the City's 235 ft, and its roof's top the Skyscraper Center's 259 ft. The Gage
-Building's parapet takes the City's 154 ft over Emporis's estimated 139.77 ft, and the Edson
-Keith Building's the HABS record's 101 ft over the City's 100 ft, which the Theodore Ascher
-Building takes. Their drawn fronts are scaled to meet them. The
+Building's parapet takes the City's 154 ft over Emporis's estimated 139.77 ft. The Edson Keith
+and Theodore Ascher Buildings' take the HABS record's 101 ft for the Keith over the City's
+100 ft, since the Ascher's seventh storey made it the Keith's height. Their drawn fronts are
+scaled to meet them. The
 table's before/after comparison uses the highest actual rendered vertex, so One
 Prudential's antenna is not compared to its roof. Aon's original copy is the real
 tower from the drawing's 30.6 m datum up at 1.329 times its size, so its antenna
@@ -386,8 +387,8 @@ Intermediate parts have less certainty than the overall height:
 - The Edson Keith and Theodore Ascher Buildings, the Gage Group's lower two at 24 and 30 South
   Michigan, stand between the Gage and the University Club, named through the geographic
   camera. Red brick fronts, three bays and two, of Chicago windows rise seven storeys over
-  shopfronts to plain parapets at the HABS record's 101 ft and the City's 100 ft. The drawing
-  shows only their seventh floors, the drawn fronts scaled to meet the published heights; see
+  shopfronts to plain parapets at the HABS record's 101 ft for the Keith. The drawing
+  shows only their seventh floors, the drawn fronts scaled to meet that height; see
   the [Edson Keith and Theodore Ascher Buildings reference audit](keith-ascher-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height

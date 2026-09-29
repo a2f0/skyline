@@ -174,7 +174,7 @@ piers, its brick south wall standing over its lower neighbours; see its
 [reference audit](docs/gage-reference.md).
 Those neighbours, the Gage Group's Edson Keith and Theodore Ascher Buildings at 24 and 30 South
 Michigan, raise red brick fronts of Chicago windows seven storeys to plain parapets at the
-HABS record's 101 ft and the City's 100 ft; see their
+HABS record's 101 ft; see their
 [reference audit](docs/keith-ascher-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
