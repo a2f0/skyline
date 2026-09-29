@@ -77,8 +77,8 @@ This checks the City's figure against HABS's; it is not a further published heig
 The drawing reads high here by more than elsewhere on this stretch, where it stands within
 about 4 m of published heights. Its Gage parapet stands 2.3 m over the University Club's drawn
 merlons, as the photograph also shows; at 154 ft the model's stands about 5 m under them.
-The same camera reads 24 South Michigan's drawn top, 35.6 m, over the HABS record's 101 ft
-by the same ratio as the Gage's.
+The same camera reads 24 South Michigan's drawn top, 35.7 m, over the HABS record's 101 ft
+by nearly the same ratio as the Gage's.
 
 | Feature | Height | Basis |
 | --- | ---: | --- |
@@ -125,8 +125,8 @@ original casements. The windows are double-hung now; the model keeps the drawn l
   - Three bays of windows on each of floors 2 to 12, in four, five and four lights, between
     the piers.
   - The parapet, with the cartouches over the inner piers standing 0.8 m above it.
-- **South wall:** common brick, with the drawn windows only. 24 and 30 South Michigan,
-  which cover its lower floors, are not modelled.
+- **South wall:** common brick, with the drawn windows only. 24 South Michigan covers its
+  lower floors; see the [Edson Keith and Theodore Ascher Buildings audit](keith-ascher-reference.md).
 - **Alley:** brick, windows 1.6 m wide about 3.2 m apart on every floor above the ground
   floor. The drawing does not show this wall, so they are an estimate.
 - **North wall:** shared with the Chicago Athletic Association, plain.
@@ -137,7 +137,7 @@ Omitted:
 
 - Sullivan's ornament on the piers and spandrels, and the cartouches' foliage;
 - the entrances;
-- 24 and 30 South Michigan and the Chicago Athletic Association.
+- the Chicago Athletic Association.
 
 ## Verification
 

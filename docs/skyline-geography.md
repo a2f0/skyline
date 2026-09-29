@@ -6,7 +6,8 @@ Shield Tower, 340 on the Park, The Buckingham, Millennium Park Plaza, Willoughby
 Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, the
 University Club of Chicago, the Monroe Building, the MacLean Center, the Lake View
 Building, the Peoples Gas Building, the Borg-Warner Building, the Railway Exchange
-Building, and the Gage Building, which only the geographic layout maps. The page
+Building, the Gage Building, and the Edson Keith and Theodore Ascher Buildings, which only
+the geographic layout maps. The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
@@ -111,7 +112,8 @@ and the Blue Cross and Blue Shield Tower's outline and parts on September 28, 20
 from [another](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6212,41.8845,-87.6180,41.8862),
 as were 340 on the Park's and The Buckingham's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862),
 and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's, 180 North Michigan Avenue's, the University Club's, the Monroe Building's, the MacLean Center's, the Lake View Building's, the Peoples Gas Building's, the Borg-Warner Building's and the Railway Exchange Building's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
-The Gage Building's outline was added on September 29, 2026, from the same request.
+The Gage, Edson Keith and Theodore Ascher Buildings' outlines were added on September 29,
+2026, from the same request.
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -162,6 +164,8 @@ of its tower. The cyan ground outlines show that distinction.
 | Borg-Warner Building | [124873918](https://www.openstreetmap.org/way/124873918) | Outline, with the levels and rooftop from the drawing; not in the original layout |
 | Railway Exchange Building | [124873931](https://www.openstreetmap.org/way/124873931) | Outline, with the levels from the drawing and the roof from the photograph; not in the original layout |
 | Gage Building | [124865450](https://www.openstreetmap.org/way/124865450) | Outline, with the levels from the drawing; not in the original layout |
+| Edson Keith Building | [126982636](https://www.openstreetmap.org/way/126982636) | Outline, with the levels from the drawing; not in the original layout |
+| Theodore Ascher Building | [126982639](https://www.openstreetmap.org/way/126982639) | Outline, with the levels from the drawing; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -200,6 +204,8 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Borg-Warner Building | 83.5 m | 83.5 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/borg-warner-building/18617) |
 | Railway Exchange Building | 78.9 m | 78.9 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/santa-fe-building/9587) |
 | Gage Building | 46.94 m | 47.74 m | [City of Chicago](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf) |
+| Edson Keith Building | 30.78 m | 30.78 m | [HABS IL-1065](https://tile.loc.gov/storage-services/master/pnp/habshaer/il/il0000/il0056/data/il0056data.pdf) |
+| Theodore Ascher Building | 30.48 m | 30.48 m | [City of Chicago](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf) |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
 Michigan Avenue has none published, so its height is read on the drawing, and the page's
@@ -211,8 +217,9 @@ and the Peoples Gas Building takes the City's 272 ft over the Skyscraper Center'
 The Borg-Warner Building's roof and penthouse take the City's 240 and 258 ft, and the block
 behind the penthouse the Skyscraper Center's 83.5 m. The Railway Exchange Building's cornice
 takes the City's 235 ft, and its roof's top the Skyscraper Center's 259 ft. The Gage
-Building's parapet takes the City's 154 ft over Emporis's estimated 139.77 ft. Their drawn
-fronts are scaled to meet them. The
+Building's parapet takes the City's 154 ft over Emporis's estimated 139.77 ft, and the Edson
+Keith Building's the HABS record's 101 ft over the City's 100 ft, which the Theodore Ascher
+Building takes. Their drawn fronts are scaled to meet them. The
 table's before/after comparison uses the highest actual rendered vertex, so One
 Prudential's antenna is not compared to its roof. Aon's original copy is the real
 tower from the drawing's 30.6 m datum up at 1.329 times its size, so its antenna
@@ -376,6 +383,12 @@ Intermediate parts have less certainty than the overall height:
   drawing shows over 24 and 30 South Michigan, carries the drawn windows. The drawn front,
   whose parapet reads 54.2 m, is scaled to meet the published height; see the
   [Gage Building reference audit](gage-reference.md).
+- The Edson Keith and Theodore Ascher Buildings, the Gage Group's lower two at 24 and 30 South
+  Michigan, stand between the Gage and the University Club, named through the geographic
+  camera. Red brick fronts, three bays and two, of Chicago windows rise seven storeys over
+  shopfronts to plain parapets at the HABS record's 101 ft and the City's 100 ft. The drawing
+  shows only their seventh floors, the drawn fronts scaled to meet the published heights; see
+  the [Edson Keith and Theodore Ascher Buildings reference audit](keith-ascher-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -393,7 +406,7 @@ mapped footprints help inspect whether the street arrangement fits. Checking cur
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all twenty-five rendered ground
+coordinate anchors, meter scale and north direction, all twenty-seven rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
