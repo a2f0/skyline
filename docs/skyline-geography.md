@@ -218,7 +218,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Two Illinois Center | 114.3 m | 114.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/chicago/two-illinois-center/11095) |
 | River Plaza | 159.7 m | 159.7 m | [Skyscraper Center](https://www.skyscrapercenter.com/chicago/river-plaza/3383) |
 | Hyatt Regency West Tower | 111.3 m | 111.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/hyatt-regency-chicago-west-tower/13132) |
-| Sheraton Grand | 112.3 m | 112.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/sheraton-chicago-hotel-towers/10020) |
+| Sheraton Grand | 112.3 m | 112.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/sheraton-chicago-hotel-towers/10020); its 112.8 m tip is not modelled |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
 Michigan Avenue has none published, so its height is read on the drawing, and the page's
@@ -429,8 +429,9 @@ Intermediate parts have less certainty than the overall height:
   the drawing paints a lit crown. Its levels stand on the Skyscraper Center's datum, with
   Emporis's floor-to-floor, roof and crown heights over its top floor: the arms' roof at
   94.76 m, the corner's two floors higher at 100.1 m, and 12.2 m drums of maroon fins on the
-  three round ends, the corner's to the published 112.3 m; see the
-  [Sheraton Grand reference audit](sheraton-grand-reference.md).
+  three round ends, the corner's to the published 112.3 m. The Skyscraper Center's tip, 50 cm
+  higher, names no feature the photographs resolve, so the model stops at the drum's top; see
+  the [Sheraton Grand reference audit](sheraton-grand-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common

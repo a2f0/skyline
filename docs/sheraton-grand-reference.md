@@ -57,6 +57,11 @@ so the model stands on its datum and takes Emporis's differences.
 | Arms' roof | 94.76 m | Two floors lower, the mapped arms' 32 levels to the corner's 34 |
 | Drums | 12.2 m | Emporis: 40.06 ft from the main roof to the architectural top |
 | Corner drum's top | 112.3 m | The Skyscraper Center |
+| Tip | 112.8 m, not modelled | The Skyscraper Center |
+
+The Skyscraper Center's tip stands 50 cm over the drum's top, and Emporis's, 332.00 ft, about
+as far over its architectural height. Neither says what stands there, and the photographs do
+not resolve it, so the model, and its record's tip, stop at the drum's top.
 
 Each window is 1.5 m tall, 80 cm over its floor line, the floor lines counted down from the
 top floor.
@@ -96,6 +101,7 @@ Omitted:
 - the block in the inner corner between the arms, tagged 33 levels, a floor over the arms'
   roof;
 - the stepped crown under each drum, which the drums' 12.2 m takes in;
+- the published tip, 50 cm over the corner drum;
 - the low parts under the rest of the complex's outline;
 - the drums' openness, the signs and the entrances.
 
@@ -109,6 +115,8 @@ Omitted:
   - the corner drum's top at 112.3 m, the arms' drums' at 106.96 m and the arms' roof at
     94.76 m, and the record's two parts;
   - a drum's facets, cream and fin in turn;
+  - the corner's two floors over the arms' roof, a window on each with its sill and head,
+    and its own roof at 100.1 m under the drum;
   - the east arm's south face: 35 windows, one to each floor line under the arms' roof,
     with a sill and a head 5 cm either side;
   - the model's exported palette, whose window tones no wall shares;

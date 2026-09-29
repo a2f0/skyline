@@ -13,7 +13,8 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // published 2.67 m floor-to-floor. The corner's round tower rises two floors over the arms,
 // and each round end carries an open drum of maroon fins, floodlit at night. Heights stand on
 // the Skyscraper Center's datum, its top floor at 97 m and the corner drum's top at 112.3 m;
-// see docs/sheraton-grand-reference.md. Units are meters; +x is east, +z is south.
+// its 112.8 m tip, 50 cm higher, is not modelled. See docs/sheraton-grand-reference.md.
+// Units are meters; +x is east, +z is south.
 export const sheratonLevels = Object.freeze({
   pitch: 2.67, // Emporis's floor-to-floor, 8.75 ft
   topFloor: 97, // the Skyscraper Center's occupied height, the corner's top floor
@@ -50,11 +51,11 @@ function paneColor(row: number, bay: number, wall: number): THREE.Color {
 }
 
 // A wall's rows from `base` to `top`: a window 1.5 m tall 80 cm over each floor line, the
-// floors counted down from the top floor at the published pitch, over a plain base to the
-// first floor line above it.
+// floors counted down from the top floor at the published pitch, from the last floor line
+// under the base, whose window may clear it.
 function rowsFor(base: number, top: number): number[] {
   const heights = [base];
-  for (let level = h.topFloor - Math.floor((h.topFloor - base) / h.pitch) * h.pitch; level < top; level += h.pitch) {
+  for (let level = h.topFloor - Math.ceil((h.topFloor - base) / h.pitch) * h.pitch; level < top; level += h.pitch) {
     if (level + 0.8 > base + 0.2 && level + 2.3 < top - 0.2) heights.push(level + 0.8, level + 2.3);
   }
   heights.push(top);

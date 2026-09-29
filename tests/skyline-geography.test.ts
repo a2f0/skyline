@@ -2289,6 +2289,18 @@ describe("mapped skyline geography", () => {
         for (let y = from; y < to; y += 0.05) { const now = glass(sample(y)); if (now && !inside) runs += 1; inside = now; }
         return runs;
       }
+      // The corner's round tower: its two floors over the arms' roof, the 33rd and 34th, each
+      // with a window, probed toward its centre from the south-west; and its own roof under
+      // the drum, on the shell alone.
+      const toward = (angle: number, y: number) => tone(hit([407.44 + 12 * Math.cos(angle), y, -465.95 + 12 * Math.sin(angle)], [-Math.cos(angle), 0, -Math.sin(angle)]), "Sheraton Grand · precast and windows");
+      let angle = 0.75 * Math.PI;
+      while (glass(toward(angle, 98.5))) angle += 0.002;
+      while (!glass(toward(angle, 98.5))) angle += 0.002;
+      angle += 0.05;
+      const edges = (level: number) => [is(palette.precast)(toward(angle, level + 0.75)), glass(toward(angle, level + 0.85)), glass(toward(angle, level + 2.25)), is(palette.precast)(toward(angle, level + 2.35))];
+      expect([count(arms + 0.05, corner - 0.05, (y) => toward(angle, y)), ...edges(97 - 2.67), ...edges(97)], "the corner's floors").toEqual([2, ...Array(8).fill(true)]);
+      ray.set(new THREE.Vector3(407.44, 105, -465.95), new THREE.Vector3(0, -1, 0));
+      near(ray.intersectObject(meshes.find((mesh) => mesh.name === "Sheraton Grand · shell")!, false)[0]!.point.y, corner, 1e-3);
       // The exact mapped L at grade.
       const shell = meshes.find((mesh) => mesh.name === "Sheraton Grand · shell")!.geometry.getAttribute("position");
       const grade = new Set<string>();
