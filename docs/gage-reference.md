@@ -147,8 +147,9 @@ Omitted:
   overlaps, and covered omissions.
 - `tests/skyline-geography.test.ts` raycasts:
   - the parapet at 154 ft and the cartouches over both inner piers;
-  - thirteen lights to a floor across the front's three bays, the piers, a mullion, a
-    spandrel, a shopfront, the sign band and the parapet;
+  - four, five and four lights to a floor in the front's three bays, the piers, a mullion,
+    a spandrel, a shopfront, the sign band and the parapet;
+  - the top floor's window between its drawn sill and head, and the eighth floor's sill;
   - a window to each of the twelve floors up a bay;
   - the south wall's window near the front on the top four floors, and three more on the
     ninth and twelfth, with plain brick between;

@@ -161,7 +161,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Peoples Gas Building | [145498710](https://www.openstreetmap.org/way/145498710) | 1179833660, 1179833658, 1179833661, 1179833659, 1179842408, with the levels from the drawing; not in the original layout |
 | Borg-Warner Building | [124873918](https://www.openstreetmap.org/way/124873918) | Outline, with the levels and rooftop from the drawing; not in the original layout |
 | Railway Exchange Building | [124873931](https://www.openstreetmap.org/way/124873931) | Outline, with the levels from the drawing and the roof from the photograph; not in the original layout |
-| Gage Building | [124865450](https://www.openstreetmap.org/way/124865450) | Outline, with the height and levels from the drawing; not in the original layout |
+| Gage Building | [124865450](https://www.openstreetmap.org/way/124865450) | Outline, with the levels from the drawing; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;

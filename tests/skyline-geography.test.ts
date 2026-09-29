@@ -1855,7 +1855,7 @@ describe("mapped skyline geography", () => {
       // The front's three bays, their windows in four, five and four lights, between piers:
       // 2 m at the corners, 1.15 and 1.2 m between the bays.
       const front = Math.hypot(...[0, 1].map((k) => at(3)[k]! - corner[k]!));
-      expect(count(0.1, front - 0.1, (b) => tone(0, b, pane(12), "east")), "the lights of a floor").toBe(13);
+      expect([[0.1, 6.2], [6.2, 11.9], [11.9, front - 0.1]].map(([from, to]) => count(from!, to!, (b) => tone(0, b, pane(12), "east"))), "each bay's lights").toEqual([4, 5, 4]);
       expect([1, 6.2, 11.9, front - 1].map((b) => terracotta(tone(0, b, pane(10), "east"))), "the piers").toEqual([true, true, true, true]);
       expect([glass(tone(0, 3.3, pane(10), "east")), terracotta(tone(0, 2.9, pane(10), "east")), terracotta(tone(0, 3.3, floor(10) + drawn(0.4), "east")), glass(tone(0, 9, 2.5, "east")), band(tone(0, 9, 4.6, "east")), terracotta(tone(0, 9, 46.3, "east"))], "a light, a mullion, a spandrel, a shopfront, the sign band and the parapet").toEqual([true, true, true, true, true, true]);
       // The top floor's window between its drawn sill and head, the head within 4 cm of the
