@@ -1953,13 +1953,21 @@ describe("mapped skyline geography", () => {
         const bounds = [0.1, ...spec.bays.slice(1).map(([a], i) => (spec.bays[i]![1] + a) / 2), front - 0.1];
         expect(spec.bays.map((_, i) => count(bounds[i]!, bounds[i + 1]!, (b) => tone(0, b, pane(5), "east"))), `${shortName}'s lights`).toEqual([...lights]);
         expect([brick(tone(0, spec.bays[0]![0] + 0.8, pane(5), "east")), glass(tone(0, spec.bays[0]![0] + 0.4, pane(5), "east")), brick(tone(0, (spec.bays[0]![1] + spec.bays[1]![0]) / 2, pane(5), "east"))], `${shortName}'s mullion, sash and pier`).toEqual([true, true, true]);
+        // Every window's measured edges, 5 cm either side.
+        expect(spec.bays.flatMap(([a, b]) => [brick(tone(0, a - 0.05, pane(5), "east")), glass(tone(0, a + 0.05, pane(5), "east")), glass(tone(0, b - 0.05, pane(5), "east")), brick(tone(0, b + 0.05, pane(5), "east"))]), `${shortName}'s window edges`).toEqual(Array(spec.bays.length * 4).fill(true));
         // A window to each floor up a bay: the shopfront and six floors; the sign band and the
         // parapet.
         expect(count(0.3, spec.top - 0.1, (y) => tone(0, middle, y, "east"), 0.05), `${shortName}'s floors`).toBe(7);
         expect([band(tone(0, middle, 4.9, "east")), brick(tone(0, middle, spec.top - 0.5, "east"))], `${shortName}'s sign band and parapet`).toEqual([true, true]);
-        // The alley's windows, about 3.2 m apart, and the plain party walls.
+        // The alley's windows, about 3.2 m apart, above a plain ground floor and no sign band.
         expect(count(0.3, front - 0.3, (b) => tone(depth, b, pane(4), "west")), `${shortName}'s alley`).toBe(Math.round(front / 3.2));
-        expect([brick(tone(20, 0, pane(4), "south")), brick(tone(20, front, pane(4), "north"))], `${shortName}'s party walls`).toEqual([true, true]);
+        expect([count(0.3, front - 0.3, (b) => tone(depth, b, 2.5, "west")), brick(tone(depth, front / 2, 4.9, "west"))], `${shortName}'s alley at grade`).toEqual([0, true]);
+        // The party walls keep the bare shell, no skin standing into a neighbour's lot.
+        const bare = (b: number, from: "south" | "north") => {
+          const p = lot(20, b), d = from === "south" ? [-north[0], -north[1]] : [north[0], north[1]];
+          return hit([p[0] + d[0]! * 30, pane(4), p[1] + d[1]! * 30], [-d[0]!, 0, -d[1]!])!.object.name;
+        };
+        expect([bare(0, "south"), bare(front, "north")], `${shortName}'s party walls`).toEqual([`${spec.name} · shell`, `${spec.name} · shell`]);
         // The exact mapped outline at grade.
         const shell = meshes.find((mesh) => mesh.name === `${spec.name} · shell`)!.geometry.getAttribute("position");
         const grade = new Set<string>();

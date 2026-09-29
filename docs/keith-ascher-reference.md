@@ -101,7 +101,9 @@ Measured as fractions of the drawn fronts from their south corners, the drawn wi
   - A plain parapet.
 - **Alleys:** brick, windows 1.6 m wide about 3.2 m apart on every floor above the ground
   floor. The drawing does not show them, so they are an estimate.
-- **Party walls:** shared with the Gage, each other and the University Club, plain.
+- **Party walls:** the bare shell. The Gage, each other and the University Club cover them,
+  and a skin would stand into the neighbour's lot, its top level with the other building's
+  roof.
 
 Colours follow the drawing's greys, not the red brick.
 
@@ -120,8 +122,10 @@ Omitted:
   - the parapet at its published height, and the record's one part;
   - the seventh floor's window between its drawn sill and head, scaled;
   - three lights to each bay's Chicago window, a mullion, a sash and a pier;
+  - every window's measured edges, 5 cm either side;
   - a window to each of the seven floors up a bay, the sign band and the parapet;
-  - the alley's windows and the plain party walls;
+  - the alley's windows over a plain ground floor without the sign band, and the bare
+    party walls;
   - the shared palette, whose window tones no wall shares;
   - the exact mapped outline at grade.
 

@@ -89,8 +89,9 @@ function createGageGroupBuilding(spec: GageGroupSpec, record: GeoBuilding, proje
 
   // A wall's skin, one box to a chain the `keep` test accepts, held 2 cm clear of its ends
   // or 9 cm where the outline turns in. `openings` lays a wall's columns out across it, from
-  // its start, and says from a cell's middle whether it holds a window.
-  const skin = (seed: number, keep: (run: Run) => boolean, openings: (length: number, start: Vec2) => [number[], (middle: number) => boolean]) => {
+  // its start, and says from a cell's middle and floor whether it holds a window. Only the
+  // front carries the sign band.
+  const skin = (seed: number, keep: (run: Run) => boolean, openings: (length: number, start: Vec2) => [number[], (middle: number, floor: number) => boolean]) => {
     const plan = planOf(lot), heights = [rows[0]!.lo, ...rows.map((row) => row.hi)];
     chainsOf(plan).forEach((chain, index) => {
       if (!chain.runs.every((run) => keep(plan[run]!))) return;
@@ -99,8 +100,8 @@ function createGageGroupBuilding(spec: GageGroupSpec, record: GeoBuilding, proje
       const [columns, glazed] = openings(chain.length, plan[first]!.at(0));
       chainSkin(kit, wall, plan, chain, 0, chain.runs.length - 1, s0, s1, columns, heights, 0.02, 0.07, (bay, r) => {
         const row = rows[r]!;
-        if (row.kind === "band") return band;
-        return row.kind === "glass" && glazed((columns[bay - 1]! + columns[bay]!) / 2) ? paneColor(row.floor, bay, seed * 8 + index) : brick;
+        if (row.kind === "band") return seed === 0 ? band : brick;
+        return row.kind === "glass" && glazed((columns[bay - 1]! + columns[bay]!) / 2, row.floor) ? paneColor(row.floor, bay, seed * 8 + index) : brick;
       }, brick);
     });
   };
@@ -109,7 +110,7 @@ function createGageGroupBuilding(spec: GageGroupSpec, record: GeoBuilding, proje
   // 80 cm wide either side of its fixed pane, split from it by 12 cm mullions painted in the
   // window's plane. The front's chain runs from whichever corner the outline's winding gives
   // it.
-  const michigan = (length: number, start: Vec2): [number[], (middle: number) => boolean] => {
+  const michigan = (length: number, start: Vec2): [number[], (middle: number, floor: number) => boolean] => {
     const fromSouth = Math.hypot(start[0] - corner[0], start[1] - corner[1]) < Math.hypot(north[0], north[1]) / 2;
     const at = (s: number) => (fromSouth ? s : length - s);
     const spans = spec.bays.map(([a, b]) => [at(a), at(b)].sort((p, q) => p - q) as [number, number]);
@@ -118,14 +119,16 @@ function createGageGroupBuilding(spec: GageGroupSpec, record: GeoBuilding, proje
     return [[0, ...[...new Set(cuts)].sort((p, q) => p - q), length], (middle) => spans.some(([a, b]) => middle > a && middle < b) && !mullions.some((m) => Math.abs(middle - m) < 0.06)];
   };
   // The alley: windows 1.6 m wide spread evenly about 3.2 m apart on every floor above the
-  // ground floor. The party walls, shared with their neighbours, stay plain.
-  const alley = (length: number): [number[], (middle: number) => boolean] => {
+  // ground floor.
+  const alley = (length: number): [number[], (middle: number, floor: number) => boolean] => {
     const count = Math.max(1, Math.round(length / 3.2)), centres = Array.from({ length: count }, (_, i) => length * (i + 0.5) / count);
-    return [[0, ...centres.flatMap((c) => [c - 0.8, c + 0.8]), length], (middle) => centres.some((c) => Math.abs(middle - c) < 0.8)];
+    return [[0, ...centres.flatMap((c) => [c - 0.8, c + 0.8]), length], (middle, floor) => floor >= 2 && centres.some((c) => Math.abs(middle - c) < 0.8)];
   };
   skin(0, facing(1, 0), michigan);
   skin(1, facing(-1, 0), alley);
-  skin(2, (run) => facing(0, 1)(run) || facing(0, -1)(run), (length) => [[0, length], () => false]);
+  // The party walls keep the bare shell. The Gage, each other and the University Club cover
+  // them, and a skin would stand into the neighbour's lot, its top level with the other
+  // building's roof.
 
   const model = kit.finish({ height: h.top, outlines: [shell], opacity: 0.16 });
   model.building.position.set(offset[0], 0, offset[1]);
