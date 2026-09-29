@@ -185,7 +185,7 @@ function lines(points: Vec3[], color: number): THREE.LineSegments {
   return new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color }));
 }
 
-export function createGeographicGround(offset: [number, number] = [0, 0]): { group: THREE.Group; streets: THREE.Group } {
+export function createGeographicGround(offset: [number, number] = [0, 0]): { group: THREE.Group; streets: THREE.Group; footprints: THREE.LineSegments } {
   const group = new THREE.Group();
   group.name = "Geographic reference";
   group.position.set(offset[0], 0, offset[1]);
@@ -227,6 +227,7 @@ export function createGeographicGround(offset: [number, number] = [0, 0]): { gro
     const points: Vec3[] = record.footprint.coordinates.map((p) => { const [x, y] = projectGround(p); return [x, 0.1, -y]; });
     points.forEach((p, i) => outlines.push(p, points[(i + 1) % points.length]!));
   }
-  group.add(lines(outlines, 0x8ed5de));
-  return { group, streets };
+  const footprints = lines(outlines, 0x8ed5de);
+  group.add(footprints);
+  return { group, streets, footprints };
 }

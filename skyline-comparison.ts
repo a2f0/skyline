@@ -40,6 +40,7 @@ export function createGeographicSkyline(anchor: Vec3 = [0, 0, 0]) {
   // Jackson. Height comparison sees it at an angle, and on a portrait phone can clip the
   // platform's south-west corner.
   const center: Vec3 = [anchor[0] + 128, 0, anchor[2] + 85];
+  const planFit = { width: 1050, height: 1520 };
   const settings = {
     target: [center[0], 155, center[2]] as Vec3,
     fit: { width: 1100, height: 950 },
@@ -88,16 +89,20 @@ export function createGeographicSkyline(anchor: Vec3 = [0, 0, 0]) {
     align: "bottom",
   };
   const layout: StudyLayout = { models, extras: [ground.group], defaultView: "skyline", ...settings, views: { skyline: photoView } };
-  return { models, ground, center, settings, layout, drawingView };
+  const comparisonViews: Record<string, StudyView> = {
+    top: { azimuth: 0, polar: 0, projection: "orthographic", label: "ground plan · north up", fit: planFit, target: center },
+    heights: { azimuth: 0.65, polar: 1.18, projection: "orthographic", label: "height comparison", fit: planFit, target: [center[0], 155, center[2]] },
+  };
+  // The names the comparison views show over each building.
+  const labels = geographicBuildings.map(({ id, shortName }) => ({
+    id, text: shortName,
+    placement: id === "layer3" ? "right" : id === "building-one-prudential-plaza" ? "below" : "above",
+  }));
+  return { models, ground, center, settings, layout, drawingView, comparisonViews, labels };
 }
 
 export function createSkylineComparison(models: BuildingModel[], anchor: THREE.Vector3) {
-  const { ground, center: commonTarget, layout } = createGeographicSkyline([anchor.x, anchor.y, anchor.z]);
-  const commonFit = { width: 1050, height: 1520 };
-  const views: Record<string, StudyView> = {
-    top: { azimuth: 0, polar: 0, projection: "orthographic", label: "ground plan · north up", fit: commonFit, target: commonTarget },
-    heights: { azimuth: 0.65, polar: 1.18, projection: "orthographic", label: "height comparison", fit: commonFit, target: [commonTarget[0], 155, commonTarget[2]] },
-  };
+  const { ground, layout, comparisonViews: views, labels } = createGeographicSkyline([anchor.x, anchor.y, anchor.z]);
   const layouts: Record<string, StudyLayout> = { geographic: layout };
 
   const number = (n: number) => n.toFixed(1);
@@ -168,9 +173,5 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
       viewer.requestRender();
     });
   }
-  const labels = geographicBuildings.map(({ id, shortName }) => ({
-    id, text: shortName,
-    placement: id === "layer3" ? "right" : id === "building-one-prudential-plaza" ? "below" : "above",
-  }));
   return { layouts, views, labels, onLayoutChange, connect };
 }

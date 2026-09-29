@@ -6,6 +6,7 @@ import type { Browser, Frame, Page } from "playwright";
 import { geographicBuildings } from "../models/skyline-geography-data.js";
 import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
+import { expectPlanHolds } from "./geographic-plan.js";
 
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
 const settle = (page: Page | Frame) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -101,7 +102,8 @@ describe("full-screen 3D skyline", () => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await settle(page);
     const [u, v] = await page.evaluate(() => window.__buildingStudy!.projectPoint("layer3", [284, 200, -50]));
-    await page.mouse.move(u * 1440, v * 1000);
+    const canvas = (await page.locator("#building").boundingBox())!;
+    await page.mouse.move(canvas.x + u * canvas.width, canvas.y + v * canvas.height);
     expect(await page.evaluate(() => window.__buildingStudy!.selectedBuilding)).toBe("layer3");
     expect(await page.locator("#tooltip").textContent()).toBe("Aon Center · 346.3 m / tip 362.5 m");
     await page.screenshot({ path: "/tmp/skyline-3d.png" });
@@ -119,6 +121,7 @@ describe("full-screen 3D skyline", () => {
       await page.waitForFunction(() => window.__buildingStudy?.ready);
       const project = () => page.evaluate(() => window.__buildingStudy!.projectPoint("building-crain-communications", [0, 0, 0]));
       const before = await project();
+      const canvas = (await page.locator("#building").boundingBox())!;
       const start = { x: size.width / 2, y: size.height / 3 };
       await page.keyboard.down("Shift");
       await page.mouse.move(start.x, start.y);
@@ -127,8 +130,8 @@ describe("full-screen 3D skyline", () => {
       await page.mouse.up();
       await page.keyboard.up("Shift");
       const after = await project();
-      near((after[0] - before[0]) * size.width, 200, 4);
-      near((after[1] - before[1]) * size.height, 60, 4);
+      near((after[0] - before[0]) * canvas.width, 200, 4);
+      near((after[1] - before[1]) * canvas.height, 60, 4);
       expect(await page.evaluate(() => window.__buildingStudy!.activeView)).toBeNull();
       await page.close();
     }
@@ -184,19 +187,106 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
-  test("keeps its controls above the skyline on a phone, with views to tap through under reduced motion", async () => {
+  test("docks the skyline study's control bar under the skyline at every size", async () => {
+    // The bar carries the study's toolbar, in its order, and a footprints toggle.
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    watch(page);
+    await page.goto(`${origin}/skyline-study.html`);
+    await page.waitForFunction(() => window.__buildingStudy?.ready);
+    const toolbar = await page.locator(".toolbar button").allTextContents();
+    await page.goto(`${origin}/skyline-3d.html`);
+    await page.waitForFunction(() => window.__buildingStudy?.ready);
+    expect((await page.locator(".control-bar button").allTextContents()).filter((label) => label !== "footprints")).toEqual(toolbar);
+    // The bar spans the bottom of the window, and the canvas, whose bottom edge the drawing's
+    // frame stands on, fills the rest: the bar covers no tower, and every control shows.
+    for (const size of [...viewports.map(({ options }) => options.viewport!), { width: 2400, height: 700 }, { width: 844, height: 390 }]) {
+      await page.setViewportSize(size);
+      await settle(page);
+      const layout = await page.evaluate(() => {
+        const box = (element: Element) => element.getBoundingClientRect().toJSON() as DOMRect;
+        return {
+          bar: box(document.querySelector(".control-bar")!),
+          canvas: box(document.querySelector("#building")!),
+          controls: [...document.querySelectorAll(".control-bar button, .control-status")].map(box),
+          overflow: document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight,
+        };
+      });
+      const at = `at ${size.width}x${size.height}`;
+      expect([layout.bar.left, layout.bar.right, layout.bar.bottom], `the bar spans the window's bottom ${at}`).toEqual([0, size.width, size.height]);
+      expect([layout.canvas.top, layout.canvas.width], `the canvas fills the width above the bar ${at}`).toEqual([0, size.width]);
+      near(layout.canvas.bottom, layout.bar.top, 0.5);
+      expect(layout.canvas.height, `the skyline keeps most of the window ${at}`).toBeGreaterThan(size.height * 0.5);
+      for (const control of layout.controls) {
+        expect(control.left >= layout.bar.left && control.right <= layout.bar.right && control.top >= layout.bar.top && control.bottom <= layout.bar.bottom, `a control inside the bar ${at}`).toBe(true);
+      }
+      expect(layout.overflow, `the page does not scroll ${at}`).toBe(false);
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await settle(page);
+    expect(await page.locator(".control-bar").boundingBox().then((bar) => bar!.height), "one row on a wide window").toBeLessThan(80);
+    await page.screenshot({ path: "/tmp/skyline-3d-control-bar.png" });
+
+    // Ground plan and height comparison are the study's orthographic views, naming every
+    // mapped building. The plan holds every footprint and whole label above the bar, wide,
+    // on a phone, and on a landscape phone, where the bar leaves the least height.
+    expect(await page.locator('[data-view="skyline"]').getAttribute("aria-pressed")).toBe("true");
+    for (const [view, label] of [["top", "ground plan · north up"], ["heights", "height comparison"]] as const) {
+      await page.locator(`[data-view="${view}"]`).click();
+      await settle(page);
+      expect(await page.evaluate(() => [window.__buildingStudy!.projection, window.__buildingStudy!.activeView])).toEqual(["orthographic", view]);
+      expect(await page.locator("#view-label").textContent()).toBe(label);
+      expect(await page.locator(`[data-view="${view}"]`).getAttribute("aria-pressed")).toBe("true");
+      expect(await page.locator(".study-annotations").isVisible()).toBe(true);
+      expect(await page.locator(".study-annotations span:not([hidden])").count()).toBe(geographicBuildings.length);
+    }
+    await page.screenshot({ path: "/tmp/skyline-3d-heights.png" });
+    await page.locator('[data-view="top"]').click();
+    for (const size of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
+      await page.setViewportSize(size);
+      await settle(page);
+      await expectPlanHolds(page);
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.locator('[data-view="skyline"]').click();
+    await settle(page);
+    expect(await page.evaluate(() => [window.__buildingStudy!.projection, window.__buildingStudy!.activeView])).toEqual(["perspective", "skyline"]);
+    expect(await page.locator(".study-annotations").isHidden()).toBe(true);
+
+    // The ground toggles start with the streets showing and the footprints hidden. Seen in
+    // height comparison, each changes the picture, and pressing it again restores it.
+    await page.locator('[data-view="heights"]').click();
+    await settle(page);
+    const picture = () => page.locator("#building").screenshot();
+    for (const [id, pressed] of [["streets", "true"], ["footprints", "false"]] as const) {
+      const button = page.locator(`#${id}`);
+      expect(await button.getAttribute("aria-pressed")).toBe(pressed);
+      const before = await picture();
+      await button.click();
+      await settle(page);
+      expect(await button.getAttribute("aria-pressed")).toBe(String(pressed === "false"));
+      expect((await picture()).equals(before), `${id} changes the ground`).toBe(false);
+      await button.click();
+      await settle(page);
+      expect(await button.getAttribute("aria-pressed")).toBe(pressed);
+      expect((await picture()).equals(before), `${id} restores the ground`).toBe(true);
+    }
+    await page.close();
+  }, { timeout: 180_000 });
+
+  test("keeps its skyline above the control bar on a phone, with views to tap through under reduced motion", async () => {
     const phone = await browser.newPage({ ...viewports[4].options, reducedMotion: "reduce" });
     watch(phone);
     await phone.goto(`${origin}/index.html`);
     await phone.locator("#toggle-3d").tap();
     const scene = await openScene(phone);
     expect(await phone.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    // The drawing's frame is as wide as a portrait screen; the controls wait above it.
-    const { controls, frameTop } = await scene.evaluate(([width, height]) => ({
-      controls: document.querySelector(".scene-controls")!.getBoundingClientRect().bottom,
-      frameTop: innerHeight - innerWidth * height / width,
-    }), [boxWidth, boxHeight] as const);
-    expect(controls).toBeLessThanOrEqual(frameTop + 0.5);
+    // The drawing's frame is as wide as a portrait screen and stands on the bar.
+    const { bar, canvas } = await scene.evaluate(() => ({
+      bar: document.querySelector(".control-bar")!.getBoundingClientRect().toJSON() as DOMRect,
+      canvas: document.querySelector("#building")!.getBoundingClientRect().toJSON() as DOMRect,
+    }));
+    near(canvas.bottom, bar.top, 0.5);
+    expect(canvas.height).toBeGreaterThan(canvas.width * boxHeight / boxWidth);
     await phone.screenshot({ path: "/tmp/skyline-3d-mobile.png" });
     // Reduced motion stops dragging and the turntable; the view buttons still move the camera
     // at once, as the hint says.
