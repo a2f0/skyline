@@ -2052,6 +2052,12 @@ describe("mapped skyline geography", () => {
         return count(0.3, 45.3, (y) => sample(x + 0.4, y), 0.05);
       };
       expect(upFirst((b, y) => tone(52, b, y, "west"), 1, 24), "the alley's floors").toBe(10);
+      // Each of those windows' sills, 90 cm over its floor on the section, from the second
+      // floor's 17 ft 5½ in to the eleventh's 136 ft 5 in.
+      const section = [ft(17, 5.5), ft(33), ft(46, 6.5), ft(62), ft(73, 1.5), ft(83, 5), ft(94, 1), ft(114, 6), ft(127, 3), ft(136, 5)];
+      let window = 1;
+      while (window < 24 && !glass(tone(52, window, fifth, "west"))) window += 0.05;
+      expect(section.flatMap((level) => [brick(tone(52, window + 0.4, level + 0.85, "west")), glass(tone(52, window + 0.4, level + 0.95, "west"))]), "the sills on the section's floors").toEqual(Array(20).fill(true));
       expect(upFirst((a, y) => tone(a, 18.35 + 3, y, "north"), 24, 38), "the light court's floors").toBe(10);
       // The light court's east wall, which faces the way the front does, 39 m back, is the
       // court's brick, not the front's stone. It runs from 18.9 to 24.6 m north of the corner,

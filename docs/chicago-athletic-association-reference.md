@@ -132,8 +132,9 @@ Omitted:
   - the frieze, and the cornice, 88 cm proud between its profile's foot and head;
   - the nine roundels, the top storey's window and its brick;
   - a window up a bay to each storey the front shows under the cornice;
-  - the alley's and the light court's windows, one to each floor from the second, the
-    court's east wall in brick, not the front's stone;
+  - the alley's and the light court's windows, one to each floor from the second, their
+    sills 90 cm over the section's floor levels, and the court's east wall in brick, not
+    the front's stone;
   - the bare party walls;
   - the model's exported palette, whose window tones no wall shares;
   - the exact mapped outline at grade.
