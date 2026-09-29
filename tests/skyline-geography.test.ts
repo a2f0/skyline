@@ -2352,7 +2352,11 @@ describe("mapped skyline geography", () => {
       pane += 0.3;
       expect(count(0.3, 106.6, (y) => east(pane, y), 0.05), "the lobby and 27 office floors").toBe(28);
       expect([glass(east(pane, lobby - 0.41)), is(palette.spandrel)(east(pane, lobby - 0.31)), is(palette.spandrel)(east(pane, floor(2) + 0.85)), glass(east(pane, floor(2) + 0.95))], "the lobby's fascia").toEqual([true, true, true, true]);
-      expect([is(palette.spandrel)(east(pane, floor(20) + 0.45)), glass(east(pane, floor(20) + 0.95)), glass(east(pane, floor(29) - 0.05)), is(palette.spandrel)(east(pane, floor(29) + 0.05)), is(palette.spandrel)(east(pane, 106.6))], "a spandrel, glass, and the penthouse").toEqual([true, true, true, true, true]);
+      // Every office floor, second to twenty-eighth: its 90 cm spandrel from the floor, then
+      // glass to the next; and the penthouse from the 29th floor to the roof.
+      const office = Array.from({ length: 27 }, (_, k) => k + 2).map((n) => [n === 2 || is(palette.spandrel)(east(pane, floor(n) + 0.05)), is(palette.spandrel)(east(pane, floor(n) + 0.85)), glass(east(pane, floor(n) + 0.95)), glass(east(pane, floor(n + 1) - 0.05))]);
+      expect(office.flatMap((edges, k) => edges.every(Boolean) ? [] : [k + 2]), "floors whose spandrel or glass is off the 11.5 ft pitch").toEqual([]);
+      expect([is(palette.spandrel)(east(pane, floor(29) + 0.05)), is(palette.spandrel)(east(pane, 106.6))], "the penthouse").toEqual([true, true]);
       // Mullions 5 ft apart: from one, ten panes to the mullion ten modules on; and a mullion
       // carried up through the penthouse.
       let line = -278;

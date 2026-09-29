@@ -109,7 +109,8 @@ Omitted:
 - `tests/skyline-geography.test.ts` raycasts:
   - the roof at 106.7 m, and the record's one part;
   - up the east face between mullions:
-    - the lobby's glass and 27 office floors, each a spandrel and glass at 11.5 ft;
+    - the lobby's glass and 27 office floors, each floor's spandrel and glass at 11.5 ft
+      from its own floor line;
     - the lobby's fascia;
     - the penthouse's bronze from the 29th floor to the roof;
   - ten panes in ten modules of 5 ft between mullions, and a mullion carried through the

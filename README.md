@@ -196,7 +196,7 @@ cream precast L of punched windows, the corner's round tower two floors over the
 three drums of maroon fins, the corner's to the published 112.3 m; see its
 [reference audit](docs/sheraton-grand-reference.md).
 Between 340 on the Park and The Buckingham, Three Illinois Center's dark bronze curtain wall
-rises to the published 106.7 m under its louvred mechanical band; see its
+rises to the published 106.7 m, its top two floors a windowless mechanical penthouse; see its
 [reference audit](docs/three-illinois-center-reference.md).
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
