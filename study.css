@@ -55,22 +55,30 @@ button:disabled { cursor: default; opacity: 0.35; }
 .study-annotations [data-placement="below"] { transform: translate(-50%, 0); margin-top: 12px; }
 .study-annotations [data-placement="right"] { transform: translate(0, -50%); margin-top: 0; margin-left: 14px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-/* The skyline viewer's full-screen 3D mode fills its frame and stays transparent, so the
-   viewer's stars show above the towers, with its controls in a quiet row along the bottom. */
+/* The skyline viewer's full-screen 3D mode fills its frame above a control bar docked to
+   the bottom, and stays transparent, so the viewer's stars show above the towers. The
+   skyline stands on the bar, as the drawing stands on the viewer's bottom edge. */
 :root:has(.skyline-3d) { background: transparent; }
-.skyline-3d { overflow: hidden; }
-.skyline-3d main.viewport { max-width: none; height: 100vh; height: 100dvh; margin: 0; padding: 0; background: none; }
+.skyline-3d { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+.skyline-3d main.viewport { flex: 1 1 auto; min-height: 0; height: auto; max-width: none; margin: 0; padding: 0; background: none; }
 .skyline-3d canvas { height: 100%; }
-.skyline-3d .scene-controls { position: absolute; right: 0; bottom: 0; left: 0; display: flex; align-items: end; justify-content: space-between; gap: 8px 16px; padding: 12px max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); pointer-events: none; }
-.skyline-3d .scene-controls .view-label, .skyline-3d .scene-controls .hint { position: static; padding: 3px 6px; background: #000000a6; color: #999; }
-.skyline-3d .scene-controls .hint { flex: 1 1 auto; max-width: max-content; }
-.skyline-3d .scene-controls .button-group { flex-wrap: nowrap; pointer-events: auto; }
-.skyline-3d .scene-controls button { padding: 7px 10px; background: #000000b3; }
-.skyline-3d .scene-controls button:hover, .skyline-3d .scene-controls button[aria-pressed="true"] { background: #202020e6; }
-/* A portrait screen shows the skyline as a short band: the drawing's frame, as wide as the
-   screen and 2782.0373 / 8501.0986 as tall. The controls wait just above it. */
-@media (max-aspect-ratio: 1/1) {
-  .skyline-3d .scene-controls { bottom: calc(100vw * 2782.0373 / 8501.0986); }
+.skyline-3d .study-annotations { inset: 0; }
+/* The skyline study's toolbar as one row: camera views, the view and its hint, then model
+   display. Narrower windows give the hint its own row above the buttons. */
+.control-bar { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "views status display"; align-items: center; gap: 10px 24px; padding: 12px max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); border-top: 1px solid #292929; background: #080808; }
+.control-bar .camera-views { grid-area: views; }
+.control-bar .model-display { grid-area: display; justify-content: end; }
+.control-status { grid-area: status; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; text-align: center; }
+.control-bar .view-label, .control-bar .hint { position: static; }
+.control-bar .view-label { color: #858585; letter-spacing: 0.13em; text-transform: uppercase; }
+.control-bar button { padding-inline: 10px; }
+@media (max-width: 1439px) {
+  .control-bar { grid-template-columns: auto auto; grid-template-areas: "status status" "views display"; justify-content: space-between; }
+  .control-status { flex-direction: row; flex-wrap: wrap; justify-content: center; column-gap: 12px; }
+}
+@media (max-width: 1079px) {
+  .control-bar { grid-template-columns: minmax(0, 1fr); grid-template-areas: "status" "views" "display"; gap: 8px; padding-top: 10px; }
+  .control-bar .button-group { justify-content: center; }
 }
 @media (max-width: 600px) {
   .layout-controls { align-items: start; flex-direction: column; gap: 12px; }
@@ -89,8 +97,4 @@ button:disabled { cursor: default; opacity: 0.35; }
   .study-links { align-items: start; flex-direction: row; flex-wrap: wrap; gap: 18px; }
   .skyline-study .reference { height: 360px; }
   .skyline-study .viewport { height: 480px; }
-  .skyline-3d .scene-controls { flex-wrap: wrap; }
-  .skyline-3d .scene-controls .view-label { display: none; }
-  .skyline-3d .scene-controls .hint { flex-basis: 100%; max-width: none; text-align: center; }
-  .skyline-3d .scene-controls .button-group { flex-wrap: wrap; justify-content: center; margin: auto; }
 }

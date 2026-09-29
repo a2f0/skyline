@@ -98,9 +98,11 @@ The skyline viewer's full-screen 3D mode, `skyline-3d.html`, uses the same eye,
 aim and pivot with a different frame: `skyline-animated.svg`'s viewBox, which is
 x −1105.59 to 7395.51 and y 87.26 to 2869.30 in layer units once its
 `skyline-position` translate is undone. It holds that frame centred and on the
-viewport's bottom edge, as the viewer holds the SVG, through a lens shift off the
-panorama's centre, so the mapped buildings stand on their drawn places in the
-viewer too. `tests/skyline-3d.test.ts` checks the same landmarks there.
+canvas's bottom edge, as the viewer holds the SVG on the window's, through a lens
+shift off the panorama's centre, so the mapped buildings stand on their drawn
+places in the viewer too. The canvas ends at the page's docked control bar, so
+the frame stands on the bar and sits the bar's height above the drawing's.
+`tests/skyline-3d.test.ts` checks the same landmarks there.
 
 The view keeps its eye fixed at every viewport. Its field of view, not its
 distance, changes to contain the frame, so each mapped point lands on the same
