@@ -10,6 +10,7 @@
     "study-viewer.ts",
     "skyline-study.ts",
     "skyline-comparison.ts",
+    "skyline-3d.ts",
     "building-study.ts",
     "models/*.ts"
   ]

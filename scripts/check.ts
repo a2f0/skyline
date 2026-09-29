@@ -45,6 +45,7 @@ async function main() {
     await browserSuite("building-study.test.ts");
     await browserSuite("skyline-study.test.ts");
     await browserSuite("skyline-geography.test.ts");
+    await browserSuite("skyline-3d.test.ts");
   } finally {
     await timings.run("serve:stop", () => server.close());
   }

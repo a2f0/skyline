@@ -1,4 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { chromium } from "playwright";
 import type { Browser, Page } from "playwright";
 import * as THREE from "../vendor/three-r186.js";
@@ -100,6 +102,20 @@ describe("mapped skyline geography", () => {
     near(projectGround([-87.62497155, 41.88582645])[1], 111.07, 0.02);
     near(projectGround([-87.62397155, 41.88482645])[0], 83.0, 0.02);
   }, { timeout: 180_000 });
+
+  test("gives the mapped building count wherever the study names one", () => {
+    // The pages spell the count out, so a building added to the data must update them too.
+    const ones = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+    const tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+    const count = geographicBuildings.length;
+    const word = count < 20 ? ones[count]! : `${tens[Math.floor(count / 10)]}${count % 10 ? `-${ones[count % 10]}` : ""}`;
+    const heading = `${word[0]!.toUpperCase()}${word.slice(1)} on the skyline`;
+    const page = readFileSync(path.resolve(import.meta.dirname, "../skyline-study.html"), "utf8");
+    const comparison = readFileSync(path.resolve(import.meta.dirname, "../skyline-comparison.ts"), "utf8");
+    expect(page).toContain(`<h1>${heading}</h1>`);
+    expect(page).toContain(`<title>${heading} — Skyline Study</title>`);
+    for (const source of [page, comparison]) expect(source).toContain(`with detailed facades on all ${word} buildings.`);
+  });
 
   test("places each mapped building with closed geometry and its published height", () => {
     const expected: Record<string, Vec3> = {

@@ -156,13 +156,21 @@
         title="WebGL Chicago skyline prototype"
         hidden
       ></iframe>
+      <iframe
+        class="scene"
+        id="skyline-3d-scene"
+        data-src="skyline-3d.html"
+        title="3D Chicago skyline"
+        hidden
+      ></iframe>
 
       <nav class="controls" aria-label="Skyline controls">
         <button type="button" id="fullscreen" aria-pressed="false">fullscreen</button>
         <button type="button" id="toggle-skyline" aria-pressed="false">show original</button>
         <button type="button" id="toggle-webgl" aria-pressed="false">show webgl</button>
+        <button type="button" id="toggle-3d" aria-pressed="false">3d skyline</button>
         <a href="building-study.html">3d building</a>
-        <a href="skyline-study.html">3d skyline</a>
+        <a href="skyline-study.html">skyline study</a>
         <button type="button" id="debug-motion" aria-pressed="false" aria-describedby="motion-status">debug motion</button>
         <p class="motion-status" id="motion-status" role="status">Checking motion preference…</p>
       </nav>
@@ -175,26 +183,32 @@
       const status = document.querySelector("#status");
       const scene = document.querySelector("#scene");
       const webglScene = document.querySelector("#webgl-scene");
+      const skyline3dScene = document.querySelector("#skyline-3d-scene");
       const stars = document.querySelector("#stars");
       const skylineToggleButton = document.querySelector("#toggle-skyline");
       const webglToggleButton = document.querySelector("#toggle-webgl");
+      const skyline3dToggleButton = document.querySelector("#toggle-3d");
       const debugMotionButton = document.querySelector("#debug-motion");
       const motionStatus = document.querySelector("#motion-status");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      // Modes shown in their own page, which loads the first time the mode is chosen.
+      const framedScenes = { webgl: webglScene, "3d": skyline3dScene };
       let debugMotion = false;
       let skylineMode = "enhanced";
 
       function updateSkylineView() {
         const showingOriginal = skylineMode === "original";
         const showingWebgl = skylineMode === "webgl";
+        const showing3d = skylineMode === "3d";
+        const framedScene = framedScenes[skylineMode];
 
-        if (showingWebgl) {
-          if (!webglScene.getAttribute("src")) {
-            webglScene.src = webglScene.dataset.src;
-          }
-          scene.hidden = true;
-          webglScene.hidden = false;
-        } else {
+        if (framedScene && !framedScene.getAttribute("src")) {
+          framedScene.src = framedScene.dataset.src;
+        }
+        for (const [mode, frame] of Object.entries(framedScenes)) {
+          frame.hidden = mode !== skylineMode;
+        }
+        if (!framedScene) {
           const nextSource = showingOriginal ? "skyline-original-fit.svg" : "skyline-animated.svg";
           if (scene.getAttribute("src") !== nextSource) {
             scene.src = nextSource;
@@ -202,9 +216,8 @@
           scene.title = showingOriginal
             ? "Original Chicago skyline"
             : "Animated Chicago skyline at night";
-          scene.hidden = false;
-          webglScene.hidden = true;
         }
+        scene.hidden = Boolean(framedScene);
 
         skylineToggleButton.textContent = showingOriginal ? "show enhanced" : "show original";
         skylineToggleButton.setAttribute("aria-pressed", String(showingOriginal));
@@ -216,6 +229,11 @@
         webglToggleButton.title = showingWebgl
           ? "Return to the enhanced interactive skyline"
           : "Preview the WebGL skyline prototype";
+        skyline3dToggleButton.textContent = showing3d ? "show enhanced" : "3d skyline";
+        skyline3dToggleButton.setAttribute("aria-pressed", String(showing3d));
+        skyline3dToggleButton.title = showing3d
+          ? "Return to the enhanced interactive skyline"
+          : "Explore the mapped skyline in 3D, from the drawing's camera";
       }
 
       skylineToggleButton.addEventListener("click", () => {
@@ -231,6 +249,14 @@
         updateSkylineView();
         status.textContent = skylineMode === "webgl"
           ? "WebGL skyline prototype displayed"
+          : "Enhanced interactive skyline displayed";
+      });
+
+      skyline3dToggleButton.addEventListener("click", () => {
+        skylineMode = skylineMode === "3d" ? "enhanced" : "3d";
+        updateSkylineView();
+        status.textContent = skylineMode === "3d"
+          ? "3D skyline displayed"
           : "Enhanced interactive skyline displayed";
       });
 

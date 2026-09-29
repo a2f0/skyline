@@ -12,11 +12,12 @@ import path from "node:path";
 export const root = path.resolve(import.meta.dirname, "..");
 export const dist = path.join(root, "dist");
 
-// Reachable from index.html, the two study pages, and the WebGL viewer.
+// Reachable from index.html, the two study pages, the WebGL viewer, and the 3D skyline.
 const staticFiles = [
   "index.html",
   "skyline-webgl.html",
   "skyline-study.html",
+  "skyline-3d.html",
   "building-study.html",
   "skyline-animated.svg",
   "skyline-original-fit.svg",
@@ -34,6 +35,7 @@ const compiledEntries = [
   "study-viewer.ts",
   "skyline-study.ts",
   "skyline-comparison.ts",
+  "skyline-3d.ts",
   "building-study.ts",
 ];
 
