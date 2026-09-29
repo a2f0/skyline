@@ -1578,7 +1578,7 @@
       </g>
       <g
          id="building-michigan-avenue-west">
-      <g id="building-michigan-west-right" class="interactive-building" data-building-id="michigan-west-right" aria-label="Unidentified Michigan Avenue facade (east)">
+      <g id="building-michigan-west-right" class="interactive-building" data-building-id="michigan-west-right" aria-label="Gage Building">
       <path
          data-name="Behind Panel"
          fill="#3f3f3f"
@@ -1603,7 +1603,7 @@
          id="path406"
          style="stroke-width:1.33526" />
       </g>
-      <g id="building-michigan-west-left-roof" class="interactive-building" data-building-id="michigan-west-left" aria-label="Unidentified Michigan Avenue facade (west)">
+      <g id="building-michigan-west-left-roof" class="interactive-building" data-building-id="michigan-west-left" aria-label="Gage Building (south wall)">
       <path
          stroke="#191919"
          stroke-miterlimit="10"
@@ -1611,7 +1611,7 @@
          id="path408-0" clip-path="url(#hover-roof-0)"
          style="stroke-width:1.33526" />
       </g>
-      <g id="building-michigan-west-right-roof" class="interactive-building" data-building-id="michigan-west-right" aria-label="Unidentified Michigan Avenue facade (east)">
+      <g id="building-michigan-west-right-roof" class="interactive-building" data-building-id="michigan-west-right" aria-label="Gage Building">
       <path
          stroke="#191919"
          stroke-miterlimit="10"
@@ -1619,7 +1619,7 @@
          id="path408-1" clip-path="url(#hover-roof-1)"
          style="stroke-width:1.33526" />
       </g>
-      <g id="building-michigan-west-left" class="interactive-building" data-building-id="michigan-west-left" aria-label="Unidentified Michigan Avenue facade (west)">
+      <g id="building-michigan-west-left" class="interactive-building" data-building-id="michigan-west-left" aria-label="Gage Building (south wall)">
       <path
          data-name="Behind Panel Left"
          fill="#3f3f3f"

@@ -8,6 +8,7 @@ import { createBlueCrossGeographicBuilding } from "./blue-cross-geographic.js";
 import { createBorgWarnerGeographicBuilding } from "./borg-warner-geographic.js";
 import { createBuckinghamGeographicBuilding } from "./buckingham-geographic.js";
 import { createCrainGeographicBuilding } from "./crain-geographic.js";
+import { createGageGeographicBuilding } from "./gage-geographic.js";
 import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
 import { createKemperGeographicBuilding } from "./kemper-geographic.js";
 import { createLakeViewGeographicBuilding } from "./lake-view-geographic.js";
@@ -113,6 +114,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-railway-exchange") {
     return createRailwayExchangeGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-michigan-west-right") {
+    return createGageGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);

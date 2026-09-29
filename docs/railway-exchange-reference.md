@@ -32,8 +32,8 @@ photographs, not a survey or construction drawings.
   drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its camera;
   see [the geographic audit](skyline-geography.md#skyline-camera). At the building, about
   10 of the drawing's layer units are one metre of height. The photograph shows:
-  - the Michigan front's eleven bays of paired windows and a belt under the top three
-    floors;
+  - the Michigan front's eleven bays of paired windows, with a belt under the top three
+    rows of pairs and the frieze's round windows;
   - a round window over each bay in the frieze under the cornice;
   - the green copper roof rising to a flat top, with the lit Motorola sign on it;
   - the Metropolitan Tower's shaft before the Jackson front.

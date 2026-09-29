@@ -5,8 +5,8 @@ study of the same eight buildings, plus 330 North Wabash, the Blue Cross and Blu
 Shield Tower, 340 on the Park, The Buckingham, Millennium Park Plaza, Willoughby Tower,
 Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, the
 University Club of Chicago, the Monroe Building, the MacLean Center, the Lake View
-Building, the Peoples Gas Building, the Borg-Warner Building, and the Railway Exchange
-Building, which only the geographic layout maps. The page
+Building, the Peoples Gas Building, the Borg-Warner Building, the Railway Exchange
+Building, and the Gage Building, which only the geographic layout maps. The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
@@ -111,6 +111,7 @@ and the Blue Cross and Blue Shield Tower's outline and parts on September 28, 20
 from [another](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6212,41.8845,-87.6180,41.8862),
 as were 340 on the Park's and The Buckingham's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862),
 and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's, 180 North Michigan Avenue's, the University Club's, the Monroe Building's, the MacLean Center's, the Lake View Building's, the Peoples Gas Building's, the Borg-Warner Building's and the Railway Exchange Building's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
+The Gage Building's outline was added on September 29, 2026, from the same request.
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -160,6 +161,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Peoples Gas Building | [145498710](https://www.openstreetmap.org/way/145498710) | 1179833660, 1179833658, 1179833661, 1179833659, 1179842408, with the levels from the drawing; not in the original layout |
 | Borg-Warner Building | [124873918](https://www.openstreetmap.org/way/124873918) | Outline, with the levels and rooftop from the drawing; not in the original layout |
 | Railway Exchange Building | [124873931](https://www.openstreetmap.org/way/124873931) | Outline, with the levels from the drawing and the roof from the photograph; not in the original layout |
+| Gage Building | [124865450](https://www.openstreetmap.org/way/124865450) | Outline, with the height and levels from the drawing; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -197,6 +199,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Peoples Gas Building | 82.9 m | 82.9 m | [City of Chicago](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf) |
 | Borg-Warner Building | 83.5 m | 83.5 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/borg-warner-building/18617) |
 | Railway Exchange Building | 78.9 m | 78.9 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/santa-fe-building/9587) |
+| Gage Building | 46.94 m | 47.74 m | [City of Chicago](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf) |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
 Michigan Avenue has none published, so its height is read on the drawing, and the page's
@@ -207,7 +210,8 @@ Building take the Skyscraper Center's heights over the lower ones in the City's
 and the Peoples Gas Building takes the City's 272 ft over the Skyscraper Center's 92 m.
 The Borg-Warner Building's roof and penthouse take the City's 240 and 258 ft, and the block
 behind the penthouse the Skyscraper Center's 83.5 m. The Railway Exchange Building's cornice
-takes the City's 235 ft, and its roof's top the Skyscraper Center's 259 ft. Their drawn
+takes the City's 235 ft, and its roof's top the Skyscraper Center's 259 ft. The Gage
+Building's parapet takes the City's 154 ft over Emporis's estimated 139.77 ft. Their drawn
 fronts are scaled to meet them. The
 table's before/after comparison uses the highest actual rendered vertex, so One
 Prudential's antenna is not compared to its roof. Aon's original copy is the real
@@ -365,6 +369,13 @@ Intermediate parts have less certainty than the overall height:
   floor and round windows in the frieze, to a projecting cornice at the City's 235 ft. Its
   hipped copper roof rises to a flat top at the Skyscraper Center's 259 ft, shaped from the
   photograph; see the [Railway Exchange Building reference audit](railway-exchange-reference.md).
+- The Gage Building stands between the University Club and Willoughby Tower, named through
+  the geographic camera. Louis Sullivan's terracotta front rises twelve storeys in three
+  bays between tall piers, each bay's window in four, five and four lights, to a parapet at
+  the City's 154 ft with cartouches over the inner piers. Its brick south wall, which the
+  drawing shows over 24 and 30 South Michigan, carries the drawn windows. The drawn front,
+  whose parapet reads 54.2 m, is scaled to meet the published height; see the
+  [Gage Building reference audit](gage-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -382,7 +393,7 @@ mapped footprints help inspect whether the street arrangement fits. Checking cur
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all twenty-four rendered ground
+coordinate anchors, meter scale and north direction, all twenty-five rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
