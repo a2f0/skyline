@@ -6,8 +6,8 @@ Shield Tower, 340 on the Park, The Buckingham, Millennium Park Plaza, Willoughby
 Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, the
 University Club of Chicago, the Monroe Building, the MacLean Center, the Lake View
 Building, the Peoples Gas Building, the Borg-Warner Building, the Railway Exchange
-Building, the Gage Building, and the Edson Keith and Theodore Ascher Buildings, which only
-the geographic layout maps. The page
+Building, the Gage Building, the Edson Keith and Theodore Ascher Buildings, and the Chicago
+Athletic Association, which only the geographic layout maps. The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
@@ -112,8 +112,8 @@ and the Blue Cross and Blue Shield Tower's outline and parts on September 28, 20
 from [another](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6212,41.8845,-87.6180,41.8862),
 as were 340 on the Park's and The Buckingham's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862),
 and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's, 180 North Michigan Avenue's, the University Club's, the Monroe Building's, the MacLean Center's, the Lake View Building's, the Peoples Gas Building's, the Borg-Warner Building's and the Railway Exchange Building's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
-The Gage, Edson Keith and Theodore Ascher Buildings' outlines were added on September 29,
-2026, from the same request.
+The Gage, Edson Keith and Theodore Ascher Buildings' outlines and the Chicago Athletic
+Association's were added on September 29, 2026, from the same request.
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -166,6 +166,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Gage Building | [124865450](https://www.openstreetmap.org/way/124865450) | Outline, with the levels from the drawing; not in the original layout |
 | Edson Keith Building | [126982636](https://www.openstreetmap.org/way/126982636) | Outline, with the levels from the drawing; not in the original layout |
 | Theodore Ascher Building | [126982639](https://www.openstreetmap.org/way/126982639) | Outline, with the levels from the drawing; not in the original layout |
+| Chicago Athletic Association | [147476152](https://www.openstreetmap.org/way/147476152) | Outline, with the levels from the Historic American Buildings Survey; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -206,6 +207,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Gage Building | 46.94 m | 47.74 m | [City of Chicago](https://www.chicago.gov/content/dam/city/depts/zlup/Historic_Preservation/Publications/Michigan_Blvd_HD_guidelines_04FEB2016.pdf) |
 | Edson Keith Building | 30.78 m | 30.78 m | [HABS IL-1065](https://tile.loc.gov/storage-services/master/pnp/habshaer/il/il0000/il0056/data/il0056data.pdf) |
 | Theodore Ascher Building | 30.78 m | 30.78 m | [HABS IL-1065](https://tile.loc.gov/storage-services/master/pnp/habshaer/il/il0000/il0056/data/il0056data.pdf), the Keith's height |
+| Chicago Athletic Association | 45.52 m | 45.52 m | [HABS IL-1226](https://tile.loc.gov/storage-services/master/pnp/habshaer/il/il0900/il0935/sheet/00004a.tif), measured |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
 Michigan Avenue has none published, so its height is read on the drawing, and the page's
@@ -390,6 +392,14 @@ Intermediate parts have less certainty than the overall height:
   shopfronts to plain parapets at the HABS record's 101 ft for the Keith. The drawing
   shows only their seventh floors, the drawn fronts scaled to meet that height; see
   the [Edson Keith and Theodore Ascher Buildings reference audit](keith-ascher-reference.md).
+- The Chicago Athletic Association stands between the Gage and Willoughby Tower, whose drawn
+  group paints its front. Henry Ives Cobb's Venetian Gothic front of three bays rises through
+  a great arcade over three floors to the eighth floor's traceried arcade, a carved frieze,
+  a cornice and a top storey of diaper brick pierced by nine roundels. The Historic American
+  Buildings Survey's measured drawings give its levels and the parapet's 149 ft 4 in, which
+  the drawn front, scaled to meet it, follows within about a metre. The City's 254 ft for it is
+  the annex's; see the
+  [Chicago Athletic Association reference audit](chicago-athletic-association-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -407,7 +417,7 @@ mapped footprints help inspect whether the street arrangement fits. Checking cur
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all twenty-seven rendered ground
+coordinate anchors, meter scale and north direction, all twenty-eight rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,

@@ -129,15 +129,15 @@ original casements. The windows are double-hung now; the model keeps the drawn l
   lower floors; see the [Edson Keith and Theodore Ascher Buildings audit](keith-ascher-reference.md).
 - **Alley:** brick, windows 1.6 m wide about 3.2 m apart on every floor above the ground
   floor. The drawing does not show this wall, so they are an estimate.
-- **North wall:** shared with the Chicago Athletic Association, plain.
+- **North wall:** shared with the Chicago Athletic Association, plain. The Gage stands over
+  it; see the [Chicago Athletic Association audit](chicago-athletic-association-reference.md).
 
 Colours follow the drawing's greys, not the terracotta's cream.
 
 Omitted:
 
 - Sullivan's ornament on the piers and spandrels, and the cartouches' foliage;
-- the entrances;
-- the Chicago Athletic Association.
+- the entrances.
 
 ## Verification
 

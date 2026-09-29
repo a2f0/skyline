@@ -64,8 +64,9 @@ The drawing shows neither the west nor the north face; the model repeats the Mic
 on the west and the south face on the north.
 
 The drawn group also paints, below and left of the tower, the Chicago Athletic
-Association's Michigan front, which projects there from its lot just south. The model leaves
-it out.
+Association's Michigan front, which projects there from its lot just south. This model
+leaves it out; its own model builds it, see the
+[Chicago Athletic Association audit](chicago-athletic-association-reference.md).
 
 ## Heights
 
@@ -115,7 +116,7 @@ Omitted:
 - the antenna;
 - the Gothic carving and the pinnacles' tapers;
 - the entrances;
-- the Chicago Athletic Association, which the drawn group includes.
+- the Chicago Athletic Association, which the drawn group includes and its own model builds.
 
 ## Verification
 

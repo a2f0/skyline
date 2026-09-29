@@ -7,6 +7,7 @@ import { createAonGeographicBuilding } from "./aon-geographic.js";
 import { createBlueCrossGeographicBuilding } from "./blue-cross-geographic.js";
 import { createBorgWarnerGeographicBuilding } from "./borg-warner-geographic.js";
 import { createBuckinghamGeographicBuilding } from "./buckingham-geographic.js";
+import { createChicagoAthleticAssociationGeographicBuilding } from "./chicago-athletic-association-geographic.js";
 import { createCrainGeographicBuilding } from "./crain-geographic.js";
 import { createGageGeographicBuilding } from "./gage-geographic.js";
 import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
@@ -124,6 +125,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-30-south-michigan") {
     return createAscherGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-chicago-athletic-association") {
+    return createChicagoAthleticAssociationGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);
