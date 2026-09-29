@@ -7,11 +7,19 @@ import { createGeographicSkyline } from "./skyline-comparison.js";
 const { models, ground, settings, drawingView } = createGeographicSkyline();
 // The mapped streets stay; the study's footprint outlines and grid are annotations.
 ground.group.children.forEach((child) => { child.visible = child === ground.streets; });
+const { azimuth } = drawingView;
 createBuildingStudy({
   models,
   extras: [ground.group],
   defaultView: "skyline",
-  views: { skyline: drawingView },
+  // The skyline study's presets, so reduced motion, which stops dragging, still leaves
+  // views to step between.
+  views: {
+    skyline: drawingView,
+    quarter: { azimuth: azimuth + 0.3, polar: Math.PI / 2 - 0.28, label: "three-quarter view" },
+    side: { azimuth: azimuth + Math.PI / 2, polar: Math.PI / 2 - 0.14, label: "side view" },
+  },
+  fov: 6,
   ...settings,
   platform: { ...settings.platform, color: 0x161616 },
   near: 10,

@@ -92,5 +92,5 @@ button:disabled { cursor: default; opacity: 0.35; }
   .skyline-3d .scene-controls { flex-wrap: wrap; }
   .skyline-3d .scene-controls .view-label { display: none; }
   .skyline-3d .scene-controls .hint { flex-basis: 100%; max-width: none; text-align: center; }
-  .skyline-3d .scene-controls .button-group { margin: auto; }
+  .skyline-3d .scene-controls .button-group { flex-wrap: wrap; justify-content: center; margin: auto; }
 }

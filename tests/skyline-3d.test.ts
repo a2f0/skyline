@@ -184,8 +184,8 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
-  test("keeps its controls above the skyline on a phone", async () => {
-    const phone = await browser.newPage(viewports[4].options);
+  test("keeps its controls above the skyline on a phone, with views to tap through under reduced motion", async () => {
+    const phone = await browser.newPage({ ...viewports[4].options, reducedMotion: "reduce" });
     watch(phone);
     await phone.goto(`${origin}/index.html`);
     await phone.locator("#toggle-3d").tap();
@@ -197,8 +197,21 @@ describe("full-screen 3D skyline", () => {
       frameTop: innerHeight - innerWidth * height / width,
     }), [boxWidth, boxHeight] as const);
     expect(controls).toBeLessThanOrEqual(frameTop + 0.5);
-    expect(await scene.locator("#reset").isVisible()).toBe(true);
     await phone.screenshot({ path: "/tmp/skyline-3d-mobile.png" });
+    // Reduced motion stops dragging and the turntable; the view buttons still move the camera
+    // at once, as the hint says.
+    expect(await scene.locator("#turntable").isDisabled()).toBe(true);
+    expect(await scene.locator("#camera-hint").textContent()).toContain("Use the view buttons to inspect");
+    const eye = await scene.evaluate(() => window.__buildingStudy!.cameraPosition);
+    for (const view of ["quarter", "side"]) {
+      await scene.locator(`[data-view="${view}"]`).tap();
+      expect(await scene.evaluate(() => window.__buildingStudy!.activeView)).toBe(view);
+      expect(await scene.locator(`[data-view="${view}"]`).getAttribute("aria-pressed")).toBe("true");
+      expect(await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).not.toEqual(eye);
+    }
+    await scene.locator("#reset").tap();
+    expect(await scene.evaluate(() => window.__buildingStudy!.activeView)).toBe("skyline");
+    (await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).forEach((value, axis) => near(value, eye[axis]!, 1e-6));
     await phone.close();
   }, { timeout: 180_000 });
 
