@@ -85,6 +85,12 @@ A group is renamed only where the projection and the source photograph agree.
 | `office-west-of-aon` | Two Illinois Center and River Plaza | Two buildings fill the gap between Two Prudential Plaza and Aon Center. Two Illinois Center, 233 North Michigan Avenue, OSM way 236770799, stands in front: the photograph's lit rows there repeat every 26.3 layer units, 3.47 m at its depth, where its published 114.3 m over 32 floors averages 3.57 m. Its roof projects at about 2,110 layer units. River Plaza, 405 North Wabash Avenue, OSM way 285867424, stands behind: its roof, at OpenStreetMap's 156 m under the published 159.7 m top, projects at about 1,952, between the pale top the photograph shows at 1,917 and the drawn top at 1,976, and it is the only mapped building on the sightline tall enough to reach the drawn top. Its residential floors, 2.85 m, would repeat every 18.6 units. The drawn group spans both; see the [audit](river-plaza-two-illinois-center-reference.md). Checked on 2026-09-29. |
 | `six-north-east` | Michigan Boulevard Building (south wall) | Its south wall rises above 20 North Michigan's eight storeys, and projected through the camera it spans the drawn facade. The drawing's right edge meets the drawn Michigan front at the corner, through a narrow ornamented bay where the terracotta turns onto the side; that bay's pair of windows repeats the front's rhythm. Read on the wall's plane, the drawn top is level at the front's height, 86–87 m before the published-height correction. The photograph shows common brick, windowed on its top floors, joining the cream return. The Garland Building, 111 North Wabash Avenue, first proposed here, would need about 90 m on the same reading to reach the drawn top. |
 
+The Blue Cross group also paints, between Aon and the Blue Cross tower from 5,404 to 5,453
+layer units, a dark brown sliver: the Hyatt Regency Chicago's West Tower, OSM way 235920252.
+It projects behind that gap, and the photograph shows its brick with two narrow slots of lit
+windows under a plain band, as the Skyscraper Center's photograph does. The group keeps its
+label; see the [Hyatt Regency West Tower audit](hyatt-west-tower-reference.md).
+
 These stay **Unidentified**, with their candidates:
 
 | Group | Candidates | Why unresolved |

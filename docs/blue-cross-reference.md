@@ -56,6 +56,10 @@ The block stands about 4.8 m forward of the bays on the south and 4.5 m on the n
 parts are traced with their east and west walls about 7° off square. The model keeps them,
 which makes the block a trapezoid.
 
+The drawn group also paints, left of the tower between it and Aon, a dark brown sliver: the
+Hyatt Regency Chicago's West Tower, which its own model builds; see the
+[Hyatt Regency West Tower audit](hyatt-west-tower-reference.md).
+
 ## Heights
 
 Heights are read on the drawn tower through the geographic camera. They are measured down
