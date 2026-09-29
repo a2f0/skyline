@@ -62,8 +62,8 @@ Skyscraper Center's 30 count.
 
 ## Plan
 
-The mapped outline is 39.2 m east to west and 74.9 m north to south, its long east face on
-Columbus Drive and its short south face on Wacker Drive. The mullions are 10 cm wide on a
+The mapped outline is 39.2 m east to west and 74.9 m north to south, its short north face
+toward Wacker Drive. The mullions are 10 cm wide on a
 5 ft module, set out from each face's middle.
 
 ## Against the photograph

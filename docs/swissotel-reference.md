@@ -43,8 +43,8 @@ The Skyscraper Center counts 43 floors. The model takes OpenStreetMap's 45 level
 
 ## Plan
 
-The mapped tower is a triangle, 48.8 m along its south side on Wacker Drive, its west and
-north-east faces about 48 m each to its apex at the north. A slight kink in the west face
+The mapped tower is a triangle, 48.8 m along its south side, its west and north-east faces
+about 48 m each to its apex at the north, toward Wacker Drive. A slight kink in the west face
 and a jog in the north-east face stay in the model. The mullions are 6 cm wide, about 1.5 m
 apart, set out from each face's middle. That spacing is read on the Skyscraper Center's
 photographs, and is an estimate.
@@ -87,9 +87,9 @@ Omitted:
   - up the south face between mullions, a panel to each of 45 floors, a transom on each floor
     line, and the coping;
   - ten panes in ten modules of 1.5 m between mullions;
-  - from the photograph's eye, through the skyline camera, every row of the seam's two layer
-    columns from 1,900 to 2,950 meets a model, the Swissôtel over Three Illinois Center's
-    roof;
+  - from the photograph's eye, through the skyline camera, the seam's two layer columns meet
+    a model at every layer unit from 1,900 to 2,950, the Swissôtel over Three Illinois
+    Center's roof;
   - the model's exported palette, whose window tones the frame does not share;
   - the exact mapped part at grade.
 

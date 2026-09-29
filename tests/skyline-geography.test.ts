@@ -2448,7 +2448,7 @@ describe("mapped skyline geography", () => {
         return ray.intersectObjects(meshes, false)[0]?.object.parent?.name;
       };
       const open: number[] = [];
-      for (const x of [6997.5, 6998.5]) for (let y = 1900; y <= 2950; y += 5) if (!seen(x, y)) open.push(y);
+      for (const x of [6997.5, 6998.5]) for (let y = 1900; y <= 2950; y += 1) if (!seen(x, y)) open.push(y);
       expect(open, "rows of sky in the seam").toEqual([]);
       expect(seen(6998, 2000), "the Swissôtel over Three Illinois Center's roof").toBe("Swissôtel Chicago");
     }, { timeout: 120_000 });
