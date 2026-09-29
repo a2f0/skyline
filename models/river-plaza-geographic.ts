@@ -59,31 +59,43 @@ export function createRiverPlazaGeographicBuilding(record: GeoBuilding, projectP
   // The box on the roof, on its mapped part.
   kit.prism(box, planOf(top!), [h.roof, h.box]);
 
-  // The slab's skin, one box to a chain, held 2 cm clear of its ends or 9 cm where the
-  // outline turns in: on each floor over the podium, a window 1.1 m wide and 1.5 m tall in
-  // each 1.6 m bay of the frame, from the chain's middle out. Where the podium stands against
-  // the slab, the skin starts over its roof.
+  // The slab's skin, one box to a run of a chain, held 2 cm clear of the chain's ends or 9 cm
+  // where the outline turns in: on each floor, a window 1.1 m wide and 1.5 m tall in each
+  // 1.6 m bay of the frame, from the chain's middle out. A run the podium stands against, its
+  // two ends on the podium's outline, starts over the podium's roof; a chain whose runs differ
+  // is skinned in parts, which meet at their joint.
   const plan = planOf(tower!);
-  const onPodium = (run: Run) => { const mid = run.at(run.length / 2); return podium!.some((p) => Math.hypot(p[0] - mid[0], p[1] - mid[1]) < run.length / 2 + 1); };
+  const edges = planOf(podium!);
+  const onEdge = (p: [number, number]) => edges.some((edge) => {
+    const a = edge.at(0), b = edge.at(edge.length), t = Math.max(0, Math.min(1, ((p[0] - a[0]) * (b[0] - a[0]) + (p[1] - a[1]) * (b[1] - a[1])) / (edge.length * edge.length)));
+    return Math.hypot(p[0] - a[0] - t * (b[0] - a[0]), p[1] - a[1] - t * (b[1] - a[1])) < 0.05;
+  });
+  const covered = (run: Run) => onEdge(run.at(0)) && onEdge(run.at(run.length));
   chainsOf(plan).forEach((chain, index) => {
     const first = chain.runs[0]!, last = chain.runs.at(-1)!;
     const s0 = turnsAt(plan, first)[0] > 0 ? 0.09 : 0.02, s1 = chain.length - (turnsAt(plan, last)[1] > 0 ? 0.09 : 0.02);
-    const base = chain.runs.some((run) => onPodium(plan[run]!)) ? h.podium : 0.25;
-    const heights = [base];
-    for (let n = Math.ceil(base / pitch); n < h.floors; n += 1) {
-      const sill = n * pitch + 0.75;
-      if (sill > base + 0.2) heights.push(sill, sill + 1.5);
-    }
-    heights.push(h.roof);
     const count = Math.floor(chain.length / 2 / h.bay);
     const centres = Array.from({ length: 2 * count }, (_, k) => chain.length / 2 + (k - count + 0.5) * h.bay);
-    const cuts = centres.flatMap((c) => [c - 0.55, c + 0.55]).filter((s) => s > s0 + 0.01 && s < s1 - 0.01);
-    const columns = [s0, ...cuts, s1];
-    chainSkin(kit, wall, plan, chain, 0, chain.runs.length - 1, s0, s1, columns, heights, 0.02, 0.07, (bay, r) => {
-      const middle = (columns[bay - 1]! + columns[bay]!) / 2;
-      const glazed = r % 2 === 1 && r < heights.length - 2 && centres.some((c) => Math.abs(middle - c) < 0.55);
-      return glazed ? paneColor(r, bay, index) : concrete;
-    }, concrete);
+    // The chain's parts, each a span of runs the podium covers alike.
+    const parts: [number, number][] = [];
+    chain.runs.forEach((run, k) => { const part = parts.at(-1); if (part && covered(plan[run]!) === covered(plan[chain.runs[part[0]]!]!)) part[1] = k; else parts.push([k, k]); });
+    for (const [k0, k1] of parts) {
+      const base = covered(plan[chain.runs[k0]!]!) ? h.podium : 0.25;
+      const from = k0 === 0 ? s0 : chain.starts[k0]!, to = k1 === chain.runs.length - 1 ? s1 : chain.starts[k1]! + plan[chain.runs[k1]!]!.length;
+      const heights = [base];
+      for (let n = Math.ceil(base / pitch); n < h.floors; n += 1) {
+        const sill = n * pitch + 0.75;
+        if (sill > base + 0.2) heights.push(sill, sill + 1.5);
+      }
+      heights.push(h.roof);
+      const cuts = centres.flatMap((c) => [c - 0.55, c + 0.55]).filter((s) => s > from + 0.01 && s < to - 0.01);
+      const columns = [from, ...cuts, to];
+      chainSkin(kit, wall, plan, chain, k0, k1, from, to, columns, heights, 0.02, 0.07, (bay, r) => {
+        const middle = (columns[bay - 1]! + columns[bay]!) / 2;
+        const glazed = r % 2 === 1 && centres.some((c) => Math.abs(middle - c) < 0.55);
+        return glazed ? paneColor(r, bay, index) : concrete;
+      }, concrete);
+    }
   });
 
   const model = kit.finish({ height: h.box, outlines: [shell, box], opacity: 0.16 });

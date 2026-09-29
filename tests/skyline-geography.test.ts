@@ -2160,6 +2160,15 @@ describe("mapped skyline geography", () => {
       while (!rGlass(north(edge, 20 * pitch + 1.5))) edge += 0.01;
       expect(count(edge - 0.05, edge + 6 * 1.6 - 0.1, rGlass, (x) => north(x, 20 * pitch + 1.5)), "the 1.6 m bays").toBe(6);
 
+      // Where the podium stands against the slab, its skin starts over the podium's 8 m roof;
+      // the slab's south-east end past the podium, and the bevel at its south-west corner, are
+      // skinned from grade. Sampled from the river side, at 4 m and 10 m.
+      const fromSouth = (x: number, z: number, y: number, direction: Vec3 = [0, 0, -1]) => hitPlaza([x, y, z], direction)!.object.name;
+      expect([fromSouth(-67, -500, 4), fromSouth(-67, -500, 10)], "over the podium").toEqual(["River Plaza · shell", "River Plaza · concrete and windows"]);
+      // The bevel faces south-west; its probe starts 3 m out along that normal from its middle.
+      const bevel: Vec2 = [(-93.9 - 91.8) / 2, (-553 - 550.9) / 2];
+      expect([fromSouth(-44.7, -540, 4), fromSouth(bevel[0] - 3 * Math.SQRT1_2, bevel[1] + 3 * Math.SQRT1_2, 4, [Math.SQRT1_2, 0, -Math.SQRT1_2])], "past the podium").toEqual(["River Plaza · concrete and windows", "River Plaza · concrete and windows"]);
+
       // The exact mapped outlines at grade: Two Illinois Center's, and River Plaza's slab and
       // podium.
       const grade = (model: BuildingModel, name: string) => {

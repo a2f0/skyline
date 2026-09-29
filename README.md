@@ -186,6 +186,7 @@ Between Two Prudential and Aon, the drawing's one building is two: Two Illinois 
 curtain wall to the published 114.3 m in front, and behind it River Plaza's white concrete
 frame to the published 159.7 m, the only mapped building on that sightline tall enough to
 reach the drawn top; see their [reference audit](docs/river-plaza-two-illinois-center-reference.md).
+The ground plan's frame reaches north across the river for River Plaza.
 One Prudential's is the same building as the original layout's copy, on the
 mapped tower, wing, and antenna parts: the limestone slab to its photographed
 169.5 m roof, the sign penthouse to the published 183.2 m, the WGN mast to the

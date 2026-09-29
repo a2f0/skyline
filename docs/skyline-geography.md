@@ -15,11 +15,10 @@ reconstruction on its mapped outlines. The original factories,
 placement and camera remain intact.
 
 Ground plan and height comparison use an orthographic camera. Their shared frame, 1,050 m
-east–west by 1,450 m north–south, is set in ground plan. There it holds the original
+east–west by 1,520 m north–south, is set in ground plan. There it holds the original
 layout's platform and every mapped footprint, with about 50 m east and west where a
-portrait phone's width binds it. North and south it runs from about 110 m past Trump to
-127 m past the Railway Exchange at Jackson, so the drawing's Michigan Avenue buildings south
-of Madison fit as they are added; until then its southern part stands empty. The geography
+portrait phone's width binds it. North and south it runs from about 100 m past River Plaza,
+across the river, to 127 m past the Railway Exchange at Jackson. The geography
 suite checks that each footprint and its label stay inside the plan at desktop and phone
 sizes. Height comparison sees the same
 frame at an angle, and on a portrait phone it can clip the platform's south-west corner.
@@ -411,7 +410,7 @@ Intermediate parts have less certainty than the overall height:
   dark curtain wall on a 5 ft module with its floors at the photograph's pitch and a
   mechanical band under its roof at the published 114.3 m. River Plaza stands behind, a white
   concrete frame of 56 storeys over a podium to its published 159.7 m, with the mapped box on
-  its roof. Neither is scaled to the drawing, whose top lies between their roofs; see the
+  its roof to 166 m; the published heights, roof and tip alike, leave that plant out. Neither is scaled to the drawing, whose top lies between their roofs; see the
   [Two Illinois Center and River Plaza reference audit](river-plaza-two-illinois-center-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
