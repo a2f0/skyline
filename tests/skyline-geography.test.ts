@@ -21,6 +21,7 @@ import { riverPlazaPalette } from "../models/river-plaza-geographic.js";
 import { twoIllinoisPalette } from "../models/two-illinois-center-geographic.js";
 import { hyattWestPalette } from "../models/hyatt-west-tower-geographic.js";
 import { sheratonPalette } from "../models/sheraton-grand-geographic.js";
+import { swissotelPalette } from "../models/swissotel-geographic.js";
 import { threeIllinoisPalette } from "../models/three-illinois-center-geographic.js";
 import { northMichigan180Palette } from "../models/north-michigan-180-geographic.js";
 import { universityClubPalette } from "../models/university-club-geographic.js";
@@ -106,9 +107,9 @@ describe("mapped skyline geography", () => {
       "Michigan Plaza S": [117.1, 139, 168.6], "330 N Wabash": [-217.8, 425.2, 211.84], Trump: [-123.3, 449.4, 423.2],
       "One Prudential": [152, 11.1, 278], "Two Prudential": [186.9, 65.7, 303.3], Aon: [284.2, 50.6, 362.5],
       "Blue Cross": [420.1, 5.7, 226.7], "340 on the Park": [511.75, -3.64, 204.9], Buckingham: [582.28, -1.52, 121.9],
-      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 69], MacLean: [0.85, -492.94, 77.4], "Lake View": [1.26, -509.77, 73.2], "Peoples Gas": [2.15, -545.88, 82.9], "Borg-Warner": [3.61, -612.47, 83.5], "Railway Exchange": [4.79, -690.9, 78.9], Gage: [1.46, -372.28, 47.74], Keith: [1.55, -390.86, 30.78], Ascher: [1.76, -407.26, 30.78], "Athletic Association": [-0.76, -350.62, 45.52], "Two Illinois Center": [159.19, 236.36, 114.3], "River Plaza": [-67.71, 551.99, 159.7], "Hyatt West Tower": [188.91, 319.23, 111.3], "Sheraton Grand": [423.15, 479.75, 112.3], "Three Illinois Center": [389.88, 273.78, 106.7],
+      "Millennium Park Plaza": [68.57, 46.33, 121.9], Willoughby: [8.4, -325.57, 133.5], "Six North": [-1.14, -276.41, 86], "Michigan Boulevard": [-1.64, -204.59, 83.3], "180 N Michigan": [-1.24, 77.4, 86.3], "University Club": [0.18, -424.49, 69.75], Monroe: [0.92, -468.08, 69], MacLean: [0.85, -492.94, 77.4], "Lake View": [1.26, -509.77, 73.2], "Peoples Gas": [2.15, -545.88, 82.9], "Borg-Warner": [3.61, -612.47, 83.5], "Railway Exchange": [4.79, -690.9, 78.9], Gage: [1.46, -372.28, 47.74], Keith: [1.55, -390.86, 30.78], Ascher: [1.76, -407.26, 30.78], "Athletic Association": [-0.76, -350.62, 45.52], "Two Illinois Center": [159.19, 236.36, 114.3], "River Plaza": [-67.71, 551.99, 159.7], "Hyatt West Tower": [188.91, 319.23, 111.3], "Sheraton Grand": [423.15, 479.75, 112.3], "Three Illinois Center": [389.88, 273.78, 106.7], "Swissôtel": [452.08, 283.69, 139.3],
     };
-    expect(geographicBuildings.length).toBe(33);
+    expect(geographicBuildings.length).toBe(34);
     for (const record of geographicBuildings) {
       const metrics = footprintMetrics(record.footprint.coordinates);
       const [east, north, height] = expected[record.shortName]!;
@@ -2374,6 +2375,59 @@ describe("mapped skyline geography", () => {
     }, { timeout: 60_000 });
   });
 
+  describe("Swissôtel", () => {
+    test("keeps its mapped triangle and the glass grid, a panel to each of 45 floors", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Swissôtel")!;
+      const model = models["Swissôtel"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const hit = (from: Vec3, direction: Vec3) => {
+        ray.set(new THREE.Vector3(...from), new THREE.Vector3(...direction));
+        return ray.intersectObjects(meshes, false)[0];
+      };
+      // The published 139.3 m, divided among OpenStreetMap's 45 levels.
+      expect(record.parts.map((part) => [part.way, part.bottom, part.top])).toEqual([[641288601, 0, 139.3]]);
+      near(hit([451.8, 300, -276.9], [0, -1, 0])!.point.y, 139.3, 1e-3);
+      const pitch = 139.3 / 45;
+      const palette = swissotelPalette, is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
+      const glass = (r: number) => [...palette.glass, palette.lit, palette.dim].some((hex) => is(hex)(r));
+      expect(glass(new THREE.Color(palette.frame).r), "the frame does not pass for glass").toBe(false);
+      const tone = (found: THREE.Intersection | undefined) => {
+        expect(found!.object.name).toBe("Swissôtel · curtain wall");
+        return (found!.object as THREE.Mesh).geometry.getAttribute("color").getX(found!.face!.a);
+      };
+      const count = (from: number, to: number, sample: (s: number) => number, step: number) => {
+        let runs = 0, inside = false;
+        for (let s = from; s < to; s += step) { const now = glass(sample(s)); if (now && !inside) runs += 1; inside = now; }
+        return runs;
+      };
+      // The south face, sampled from the south between two mullions: a panel to each floor
+      // between transoms on the floor lines, and the coping.
+      const south = (x: number, y: number) => tone(hit([x, y, -240], [0, 0, -1]));
+      let pane = 450;
+      while (!glass(south(pane, 20 * pitch + 1.5))) pane += 0.01;
+      pane += 0.2;
+      expect(count(0.3, 139.28, (y) => south(pane, y), 0.02), "a panel to each floor").toBe(45);
+      const lines = Array.from({ length: 44 }, (_, k) => (k + 1) * pitch);
+      expect(lines.flatMap((y, k) => [is(palette.frame)(south(pane, y)), glass(south(pane, y - 0.05)), glass(south(pane, y + 0.05))].every(Boolean) ? [] : [k + 1]), "floor lines without a transom between panels").toEqual([]);
+      expect([glass(south(pane, 139.15)), is(palette.frame)(south(pane, 139.25))], "the coping").toEqual([true, true]);
+      // Mullions 1.5 m apart: from one, ten panes to the mullion ten modules on.
+      let line = 440;
+      while (!is(palette.frame)(south(line, 20 * pitch + 1.5))) line += 0.005;
+      expect([count(line + 0.07, line + 10 * 1.5 - 0.07, (x) => south(x, 20 * pitch + 1.5), 0.01), is(palette.frame)(south(line + 10 * 1.5 + 0.02, 20 * pitch + 1.5))], "the module").toEqual([10, true]);
+      // The exact mapped part at grade.
+      const shell = meshes.find((mesh) => mesh.name === "Swissôtel · shell")!.geometry.getAttribute("position");
+      const grade = new Set<string>();
+      for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
+      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+        const [x, n] = projectGround(p);
+        return [Math.fround(x), Math.fround(-n)].map((v) => v.toFixed(3)).join(",");
+      }));
+      expect(grade).toEqual(mapped);
+    }, { timeout: 60_000 });
+  });
+
   describe("Aon", () => {
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
@@ -2509,7 +2563,7 @@ describe("geographic layout in the study", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
-    expect(await page.locator("#dimensions-body tr").count()).toBe(33);
+    expect(await page.locator("#dimensions-body tr").count()).toBe(34);
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
@@ -2668,7 +2722,7 @@ describe("geographic layout in the study", () => {
     // The eight drawn buildings, and 330 North Wabash, the Blue Cross and Blue Shield Tower,
     // 340 on the Park, The Buckingham, Millennium Park Plaza and Willoughby Tower, which only
     // the geographic layout models.
-    expect(projected.length).toBe(33);
+    expect(projected.length).toBe(34);
     // A portrait phone's width binds the plan's frame; it still holds every footprint.
     await page.locator('[data-view="top"]').click();
     await settle(page);

@@ -8,8 +8,8 @@ University Club of Chicago, the Monroe Building, the MacLean Center, the Lake Vi
 Building, the Peoples Gas Building, the Borg-Warner Building, the Railway Exchange
 Building, the Gage Building, the Edson Keith and Theodore Ascher Buildings, the Chicago
 Athletic Association, Two Illinois Center, River Plaza, the Hyatt Regency Chicago West
-Tower, the Sheraton Grand Chicago Riverwalk, and Three Illinois Center, which only the
-geographic layout maps. The page
+Tower, the Sheraton Grand Chicago Riverwalk, Three Illinois Center, and Swissôtel Chicago,
+which only the geographic layout maps. The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
@@ -118,7 +118,8 @@ Association's, Two Illinois Center's, River Plaza's with its parts, and the Hyat
 Tower's part were added on September 29, 2026, from the same request, and the Sheraton Grand
 Chicago Riverwalk's tower and corner parts the same day, from
 [a fifth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6250,41.8860,-87.6050,41.8980),
-and Three Illinois Center's outline the same day, from the fourth.
+and Three Illinois Center's outline and the Swissôtel's tower part the same day, from the
+fourth.
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -177,6 +178,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Hyatt Regency West Tower | [235920252](https://www.openstreetmap.org/way/235920252) | The tower's part of the hotel's outline, 235920251; not in the original layout |
 | Sheraton Grand | [592122464](https://www.openstreetmap.org/way/592122464) | The tower's part of the complex's outline, 188171430, and the corner's round tower, 1269924307; not in the original layout |
 | Three Illinois Center | [95486958](https://www.openstreetmap.org/way/95486958) | Outline; not in the original layout |
+| Swissôtel | [641288601](https://www.openstreetmap.org/way/641288601) | The tower's part of the hotel's outline, 95486966; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -223,6 +225,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Hyatt Regency West Tower | 111.3 m | 111.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/hyatt-regency-chicago-west-tower/13132) |
 | Sheraton Grand | 112.3 m | 112.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/sheraton-chicago-hotel-towers/10020); its 112.8 m tip is not modelled |
 | Three Illinois Center | 106.7 m | 106.7 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/three-illinois-center/13913) |
+| Swissôtel | 139.3 m | 139.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/swissotel-chicago/4362) |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
 Michigan Avenue has none published, so its height is read on the drawing, and the page's
@@ -442,6 +445,10 @@ Intermediate parts have less certainty than the overall height:
   its top two floors are the windowless mechanical penthouse the 2013 photograph shows. The
   drawn tower there stands about 140 layer units higher, so the drawing's group keeps its
   label; see the [Three Illinois Center reference audit](three-illinois-center-reference.md).
+- Swissôtel Chicago stands behind Three Illinois Center and The Buckingham. Its triangular
+  glass tower takes the published 139.3 m over OpenStreetMap's 45 levels, a panel to each,
+  and its west corner closes the seam where those two models' corners leave sky; see the
+  [Swissôtel reference audit](swissotel-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -459,7 +466,7 @@ mapped footprints help inspect whether the street arrangement fits. Checking cur
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all thirty-three rendered ground
+coordinate anchors, meter scale and north direction, all thirty-four rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
