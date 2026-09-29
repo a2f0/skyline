@@ -25,8 +25,10 @@ import { createOnTheParkGeographicBuilding } from "./on-the-park-geographic.js";
 import { createOnePrudentialGeographicBuilding } from "./one-prudential-geographic.js";
 import { createPeoplesGasGeographicBuilding } from "./peoples-gas-geographic.js";
 import { createRailwayExchangeGeographicBuilding } from "./railway-exchange-geographic.js";
+import { createRiverPlazaGeographicBuilding } from "./river-plaza-geographic.js";
 import { createSixNorthMichiganGeographicBuilding } from "./six-north-michigan-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
+import { createTwoIllinoisCenterGeographicBuilding } from "./two-illinois-center-geographic.js";
 import { createTwoPrudentialGeographicBuilding } from "./two-prudential-geographic.js";
 import { createUniversityClubGeographicBuilding } from "./university-club-geographic.js";
 import { createWilloughbyTowerGeographicBuilding } from "./willoughby-tower-geographic.js";
@@ -128,6 +130,12 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-chicago-athletic-association") {
     return createChicagoAthleticAssociationGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-office-west-of-aon") {
+    return createTwoIllinoisCenterGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-river-plaza") {
+    return createRiverPlazaGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);
