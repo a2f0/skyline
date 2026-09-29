@@ -2426,6 +2426,32 @@ describe("mapped skyline geography", () => {
       }));
       expect(grade).toEqual(mapped);
     }, { timeout: 60_000 });
+
+    test("closes the seam between Three Illinois Center and The Buckingham from the photograph's eye", () => {
+      // The skyline camera: the eye on the shore by the Adler Planetarium, its angles and
+      // the panorama frame's field of view, in the frame's layer units. Three Illinois
+      // Center's north-east corner and The Buckingham's west edge leave the layer columns
+      // at 6,997.5 and 6,998.5 open; the Swissôtel stands behind them.
+      const eye = new THREE.Vector3(1471.76, 2, 1948.8);
+      const azimuth = 36.1247 * Math.PI / 180, polar = 94.0182 * Math.PI / 180;
+      const focal = 3535.05 / 2 / Math.tan(10.5279 * Math.PI / 360);
+      const [cx, cy] = [-1400 + 9378.476 / 2, -154.834 + 3535.05 / 2];
+      const back = new THREE.Vector3(Math.sin(polar) * Math.sin(azimuth), Math.cos(polar), Math.sin(polar) * Math.cos(azimuth));
+      const right = new THREE.Vector3(Math.cos(azimuth), 0, -Math.sin(azimuth)), up = back.clone().cross(right);
+      const meshes = Object.values(models).flatMap((model) => {
+        model.building.updateMatrixWorld(true);
+        return model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      });
+      const ray = new THREE.Raycaster();
+      const seen = (x: number, y: number) => {
+        ray.set(eye, back.clone().negate().addScaledVector(right, (x - cx) / focal).addScaledVector(up, -(y - cy) / focal).normalize());
+        return ray.intersectObjects(meshes, false)[0]?.object.parent?.name;
+      };
+      const open: number[] = [];
+      for (const x of [6997.5, 6998.5]) for (let y = 1900; y <= 2950; y += 5) if (!seen(x, y)) open.push(y);
+      expect(open, "rows of sky in the seam").toEqual([]);
+      expect(seen(6998, 2000), "the Swissôtel over Three Illinois Center's roof").toBe("Swissôtel Chicago");
+    }, { timeout: 120_000 });
   });
 
   describe("Aon", () => {

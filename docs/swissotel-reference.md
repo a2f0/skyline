@@ -16,7 +16,7 @@ OpenStreetMap, published data and photographs, not a survey or construction draw
   is tagged only as a building. They were retrieved through the
   [map API](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
 - [The Skyscraper Center](https://www.skyscrapercenter.com/building/swissotel-chicago/4362):
-  139.3 m / 457 ft, 43 floors, completed 1989, all-steel.
+  139.3 m / 457 ft, 43 floors, completed 1989, all-concrete.
 - [Wikidata](https://www.wikidata.org/wiki/Q21609099): architect Harry Weese, inception 1988.
 - The Skyscraper Center's photographs: a triangular tower of reflective blue-green glass on a
   white podium, beside Three Illinois Center's bronze. Its wall is a flush grid of thin
@@ -87,6 +87,9 @@ Omitted:
   - up the south face between mullions, a panel to each of 45 floors, a transom on each floor
     line, and the coping;
   - ten panes in ten modules of 1.5 m between mullions;
+  - from the photograph's eye, through the skyline camera, every row of the seam's two layer
+    columns from 1,900 to 2,950 meets a model, the Swissôtel over Three Illinois Center's
+    roof;
   - the model's exported palette, whose window tones the frame does not share;
   - the exact mapped part at grade.
 

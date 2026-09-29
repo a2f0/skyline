@@ -14,7 +14,7 @@ construction drawings.
   outline, tagged 106 m and 29 levels. It was retrieved through the
   [map API](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
 - [The Skyscraper Center](https://www.skyscrapercenter.com/building/three-illinois-center/13913):
-  106.7 m / 350 ft, 30 floors, completed 1979, all-steel.
+  106.7 m / 350 ft, 30 floors, completed 1979, all-concrete.
 - [Emporis, archived in 2015](https://web.archive.org/web/20150514052143/http://www.emporis.com/buildings/117307/three-illinois-center-chicago-il-usa):
   "Height (roof) 350.00 ft", the same to its architectural top and tip; "Floors (above
   ground) 28"; "Facade material aluminum", "Facade system curtain wall", "Facade color dark
