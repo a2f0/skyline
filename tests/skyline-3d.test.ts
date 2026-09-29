@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
 import type { Browser, Frame, Page } from "playwright";
+import { geographicBuildings } from "../models/skyline-geography-data.js";
 import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 
@@ -76,6 +77,26 @@ describe("full-screen 3D skyline", () => {
     }
     // The eye stands where the photograph was taken, 2 m above the street datum.
     near((await page.evaluate(() => window.__buildingStudy!.cameraPosition))[1]!, 2, 1e-6);
+    // The ground stands where the study's geographic layout puts it, under every building.
+    const { platform, buildings } = await page.evaluate(() => ({ platform: window.__buildingStudy!.platformBounds, buildings: window.__buildingStudy!.modelBounds }));
+    expect(buildings.length).toBe(geographicBuildings.length);
+    for (const { id, min, max } of buildings) {
+      expect([0, 2].every((axis) => min[axis]! >= platform.min[axis]! && max[axis]! <= platform.max[axis]!), `${id} stands on the platform`).toBe(true);
+    }
+    // It is the study's geographic ground: its centre stands in the same place relative to
+    // Crain's mapped outline, which the study registers elsewhere.
+    const groundFromCrain = (from: Page) => from.evaluate(() => {
+      const { platformBounds: { min, max }, modelBounds } = window.__buildingStudy!;
+      const crain = modelBounds.find(({ id }) => id === "building-crain-communications")!;
+      return [0, 1, 2].map((axis) => (min[axis]! + max[axis]! - crain.min[axis]! - crain.max[axis]!) / 2);
+    });
+    const study = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    watch(study);
+    await study.goto(`${origin}/skyline-study.html`);
+    await study.waitForFunction(() => window.__buildingStudy?.ready);
+    const expected = await groundFromCrain(study);
+    (await groundFromCrain(page)).forEach((value, axis) => near(value, expected[axis]!, 1e-6));
+    await study.close();
     // Hover names the building under the pointer, as the viewer's SVG does.
     await page.setViewportSize({ width: 1440, height: 1000 });
     await settle(page);
@@ -85,6 +106,32 @@ describe("full-screen 3D skyline", () => {
     expect(await page.locator("#tooltip").textContent()).toBe("Aon Center · 346.3 m / tip 362.5 m");
     await page.screenshot({ path: "/tmp/skyline-3d.png" });
     await page.close();
+  }, { timeout: 180_000 });
+
+  test("pans with the pointer through the lens shift", async () => {
+    // Shift-drag moves the eye and pivot together, so a point at the pivot's depth follows
+    // the pointer. Crain's mapped centre at the street lies on that depth; the pivot is on
+    // the sightline at Crain. The lens shift widens the field of view the controls read.
+    for (const size of [{ width: 1440, height: 1000 }, { width: 620, height: 1400 }]) {
+      const page = await browser.newPage({ viewport: size });
+      watch(page);
+      await page.goto(`${origin}/skyline-3d.html`);
+      await page.waitForFunction(() => window.__buildingStudy?.ready);
+      const project = () => page.evaluate(() => window.__buildingStudy!.projectPoint("building-crain-communications", [0, 0, 0]));
+      const before = await project();
+      const start = { x: size.width / 2, y: size.height / 3 };
+      await page.keyboard.down("Shift");
+      await page.mouse.move(start.x, start.y);
+      await page.mouse.down();
+      await page.mouse.move(start.x + 200, start.y + 60, { steps: 8 });
+      await page.mouse.up();
+      await page.keyboard.up("Shift");
+      const after = await project();
+      near((after[0] - before[0]) * size.width, 200, 4);
+      near((after[1] - before[1]) * size.height, 60, 4);
+      expect(await page.evaluate(() => window.__buildingStudy!.activeView)).toBeNull();
+      await page.close();
+    }
   }, { timeout: 180_000 });
 
   test("switches in from the skyline viewer over its stars, and keeps an orbit while hidden", async () => {

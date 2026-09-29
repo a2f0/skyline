@@ -86,6 +86,7 @@ export interface BuildingStudyApi {
   turning: boolean;
   renderCount: number;
   modelBounds: { id: string; min: number[]; max: number[] }[];
+  platformBounds: { min: number[]; max: number[] };
 }
 
 declare global {
@@ -105,6 +106,7 @@ declare module "./vendor/three-r186.js" {
     enabled: boolean;
     enableDamping: boolean;
     enablePan: boolean;
+    panSpeed: number;
     minPolarAngle: number;
     maxPolarAngle: number;
     minDistance: number;
@@ -269,7 +271,7 @@ export function createBuildingStudy({
   models.forEach((model) => scene.add(model.building));
   extras.forEach((object) => scene.add(object));
   const base = new THREE.Mesh(new THREE.BoxGeometry(platform.width, 2, platform.depth), new THREE.MeshToonMaterial({ color: platform.color ?? 0x3a3a3a }));
-  base.position.y = -1.1;
+  base.position.set(platform.x || 0, -1.1, platform.z || 0);
   base.receiveShadow = true;
   scene.add(base);
   const baseEdges = new THREE.LineSegments(new THREE.EdgesGeometry(base.geometry), new THREE.LineBasicMaterial({ color: 0x555555 }));
@@ -414,6 +416,7 @@ export function createBuildingStudy({
       const height = Math.max(frameFit.height, frameFit.width / aspect);
       plan.top = height / 2; plan.bottom = -height / 2;
       plan.left = -height * aspect / 2; plan.right = height * aspect / 2;
+      controls.panSpeed = 1;
     } else shiftLens(width, height, aspect);
     controls.minDistance = fittedDistance * minimumDistanceRatio;
     controls.maxDistance = fittedDistance * 2;
@@ -436,10 +439,14 @@ export function createBuildingStudy({
     const centre = frameAlign === "bottom" ? y + (visible - frameFit.height) / 2 : y;
     if (!x && !centre) {
       perspectiveCamera.clearViewOffset();
+      controls.panSpeed = 1;
       return;
     }
     const halfWidth = Math.abs(x) + visible * aspect / 2, halfHeight = Math.abs(centre) + visible / 2, pixel = visible / height;
     perspectiveCamera.fov = Math.atan(halfHeight / fittedDistance) * 360 / Math.PI;
+    // OrbitControls pans by the field of view, now the wider frustum's; scale that back
+    // to the window so the scene follows the pointer.
+    controls.panSpeed = visible / 2 / halfHeight;
     perspectiveCamera.setViewOffset(
       2 * halfWidth / pixel, 2 * halfHeight / pixel,
       (halfWidth + x - visible * aspect / 2) / pixel, (halfHeight - centre - visible / 2) / pixel,
@@ -698,6 +705,11 @@ export function createBuildingStudy({
         });
         return { id: model.building.userData["buildingId"], min, max };
       });
+    },
+    get platformBounds() {
+      base.geometry.computeBoundingBox();
+      const { min, max } = base.geometry.boundingBox!;
+      return { min: min.clone().add(base.position).toArray(), max: max.clone().add(base.position).toArray() };
     },
   };
   return { setLayout, setView, requestRender };
