@@ -29,6 +29,7 @@ import { createRailwayExchangeGeographicBuilding } from "./railway-exchange-geog
 import { createRiverPlazaGeographicBuilding } from "./river-plaza-geographic.js";
 import { createSheratonGrandGeographicBuilding } from "./sheraton-grand-geographic.js";
 import { createSixNorthMichiganGeographicBuilding } from "./six-north-michigan-geographic.js";
+import { createThreeIllinoisCenterGeographicBuilding } from "./three-illinois-center-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
 import { createTwoIllinoisCenterGeographicBuilding } from "./two-illinois-center-geographic.js";
 import { createTwoPrudentialGeographicBuilding } from "./two-prudential-geographic.js";
@@ -144,6 +145,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-buckingham-east") {
     return createSheratonGrandGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-three-illinois-center") {
+    return createThreeIllinoisCenterGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);
