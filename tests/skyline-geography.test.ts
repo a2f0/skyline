@@ -2223,6 +2223,11 @@ describe("mapped skyline geography", () => {
       // thirty-first, a spandrel between; the plain band over them; the corners solid.
       const slot = edge + 0.5;
       expect([count(0.3, 111, (y) => east(slot, y), 0.05), spandrel(east(slot, (12 - 1) * pitch + 0.4)), brick(east(slot, 110)), brick(east(-340, window(12))), brick(east(-299, window(12)))], "the floors, the band and the corners").toEqual([31, true, true, true, true]);
+      // Each window 2.1 m tall from 80 cm over its floor, sampled 5 cm either side of its
+      // sill and head on the twelfth and thirty-first floors; the band from the last head.
+      const [sill, head] = [(n: number) => (n - 1) * pitch + 0.8, (n: number) => (n - 1) * pitch + 2.9];
+      expect([12, 31].flatMap((n) => [spandrel(east(slot, sill(n) - 0.05)), glass(east(slot, sill(n) + 0.05)), glass(east(slot, head(n) - 0.05))]), "the sills and heads").toEqual(Array(6).fill(true));
+      expect([spandrel(east(slot, head(12) + 0.05)), brick(east(slot, head(31) + 0.05))], "a spandrel over a head, and the band over the last").toEqual([true, true]);
       // The exact mapped part at grade.
       const shell = meshes.find((mesh) => mesh.name === "Hyatt Regency West Tower · shell")!.geometry.getAttribute("position");
       const grade = new Set<string>();

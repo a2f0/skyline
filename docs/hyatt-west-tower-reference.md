@@ -87,6 +87,7 @@ Omitted:
   - five slots in five modules on the east face, a slot's edges and width;
   - up a slot, the lobby's glass and a window on each floor to the thirty-first, a spandrel,
     and the plain band;
+  - the twelfth and thirty-first floors' sills and heads, and the band from the last head;
   - solid brick at the face's ends;
   - the model's exported palette, whose window tones no wall shares;
   - the exact mapped part at grade.
