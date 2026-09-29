@@ -21,6 +21,7 @@ import { createNorthWabashGeographicBuilding } from "./north-wabash-geographic.j
 import { createOnTheParkGeographicBuilding } from "./on-the-park-geographic.js";
 import { createOnePrudentialGeographicBuilding } from "./one-prudential-geographic.js";
 import { createPeoplesGasGeographicBuilding } from "./peoples-gas-geographic.js";
+import { createRailwayExchangeGeographicBuilding } from "./railway-exchange-geographic.js";
 import { createSixNorthMichiganGeographicBuilding } from "./six-north-michigan-geographic.js";
 import { createTrumpGeographicBuilding } from "./trump-geographic.js";
 import { createTwoPrudentialGeographicBuilding } from "./two-prudential-geographic.js";
@@ -109,6 +110,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-200-south-michigan") {
     return createBorgWarnerGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-railway-exchange") {
+    return createRailwayExchangeGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);
