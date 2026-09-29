@@ -6,6 +6,7 @@ import type { Browser, Frame, Page } from "playwright";
 import { geographicBuildings } from "../models/skyline-geography-data.js";
 import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
+import { expectPlanHolds } from "./geographic-plan.js";
 
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
 const settle = (page: Page | Frame) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -226,7 +227,8 @@ describe("full-screen 3D skyline", () => {
     await page.screenshot({ path: "/tmp/skyline-3d-control-bar.png" });
 
     // Ground plan and height comparison are the study's orthographic views, naming every
-    // mapped building; reset returns to the drawing's camera.
+    // mapped building. The plan holds every footprint and whole label above the bar, wide,
+    // on a phone, and on a landscape phone, where the bar leaves the least height.
     expect(await page.locator('[data-view="skyline"]').getAttribute("aria-pressed")).toBe("true");
     for (const [view, label] of [["top", "ground plan · north up"], ["heights", "height comparison"]] as const) {
       await page.locator(`[data-view="${view}"]`).click();
@@ -234,24 +236,39 @@ describe("full-screen 3D skyline", () => {
       expect(await page.evaluate(() => [window.__buildingStudy!.projection, window.__buildingStudy!.activeView])).toEqual(["orthographic", view]);
       expect(await page.locator("#view-label").textContent()).toBe(label);
       expect(await page.locator(`[data-view="${view}"]`).getAttribute("aria-pressed")).toBe("true");
+      expect(await page.locator(".study-annotations").isVisible()).toBe(true);
       expect(await page.locator(".study-annotations span:not([hidden])").count()).toBe(geographicBuildings.length);
     }
     await page.screenshot({ path: "/tmp/skyline-3d-heights.png" });
+    await page.locator('[data-view="top"]').click();
+    for (const size of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
+      await page.setViewportSize(size);
+      await settle(page);
+      await expectPlanHolds(page);
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await page.locator('[data-view="skyline"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.projection, window.__buildingStudy!.activeView])).toEqual(["perspective", "skyline"]);
     expect(await page.locator(".study-annotations").isHidden()).toBe(true);
 
-    // The ground toggles start with the streets showing and the footprints hidden, and each
-    // redraws the scene.
+    // The ground toggles start with the streets showing and the footprints hidden. Seen in
+    // height comparison, each changes the picture, and pressing it again restores it.
+    await page.locator('[data-view="heights"]').click();
+    await settle(page);
+    const picture = () => page.locator("#building").screenshot();
     for (const [id, pressed] of [["streets", "true"], ["footprints", "false"]] as const) {
       const button = page.locator(`#${id}`);
       expect(await button.getAttribute("aria-pressed")).toBe(pressed);
-      const frames = await page.evaluate(() => window.__buildingStudy!.renderCount);
+      const before = await picture();
       await button.click();
       await settle(page);
       expect(await button.getAttribute("aria-pressed")).toBe(String(pressed === "false"));
-      expect(await page.evaluate(() => window.__buildingStudy!.renderCount)).toBeGreaterThan(frames);
+      expect((await picture()).equals(before), `${id} changes the ground`).toBe(false);
+      await button.click();
+      await settle(page);
+      expect(await button.getAttribute("aria-pressed")).toBe(pressed);
+      expect((await picture()).equals(before), `${id} restores the ground`).toBe(true);
     }
     await page.close();
   }, { timeout: 180_000 });

@@ -310,17 +310,21 @@ export function createBuildingStudy({
     lastTime = time;
     renderer.render(scene, camera);
     labelLayer.hidden = !camera.isOrthographicCamera;
-    const layerWidth = labelLayer.clientWidth;
+    const layerWidth = labelLayer.clientWidth, layerHeight = labelLayer.clientHeight;
     for (const { element, position } of modelLabels) {
       const point = position.clone().project(camera);
       element.hidden = Math.abs(point.x) > 0.95 || Math.abs(point.y) > 0.95 || Math.abs(point.z) > 1;
       // A label near the side slides along it rather than being cut by the layer's edge:
       // centred labels keep half their width in from it, and one set to the right its
-      // whole width and offset.
+      // whole width and offset. Near the top or bottom it slides the same way, by its
+      // height and offset above or below its point, or half its height beside it.
       const x = (point.x + 1) / 2 * layerWidth, width = element.offsetWidth;
       const [lo, hi] = element.dataset["placement"] === "right" ? [0, layerWidth - width - 14] : [width / 2, layerWidth - width / 2];
       element.style.left = `${width && layerWidth ? Math.min(Math.max(x, lo), Math.max(lo, hi)) : x}px`;
-      element.style.top = `${(1 - point.y) * 50}%`;
+      const y = (1 - point.y) / 2 * layerHeight, height = element.offsetHeight, placement = element.dataset["placement"];
+      const [top, bottom] = placement === "right" ? [height / 2, layerHeight - height / 2]
+        : placement === "below" ? [-12, layerHeight - height - 12] : [height + 10, layerHeight + 10];
+      element.style.top = `${height && layerHeight ? Math.min(Math.max(y, top), Math.max(top, bottom)) : y}px`;
     }
     if (turning) requestRender();
   }
