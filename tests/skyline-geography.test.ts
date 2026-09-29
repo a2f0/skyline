@@ -1949,7 +1949,7 @@ describe("mapped skyline geography", () => {
         const floor = (n: number) => 5.5 + (n - 2) * (sill - 0.8 - 5.5) / 5, pane = (n: number) => floor(n) + 1.8;
         const middle = (spec.bays[0]![0] + spec.bays[0]![1]) / 2;
         expect([brick(tone(0, middle, sill - 0.05, "east")), glass(tone(0, middle, sill + 0.05, "east")), glass(tone(0, middle, head - 0.05, "east")), brick(tone(0, middle, head + 0.05, "east"))], `${shortName}'s drawn seventh-floor window`).toEqual([true, true, true, true]);
-        // Each bay's Chicago window: a fixed pane between two sashes, behind mullions.
+        // Each bay's Chicago window: a fixed pane between two sashes, split by mullions.
         const bounds = [0.1, ...spec.bays.slice(1).map(([a], i) => (spec.bays[i]![1] + a) / 2), front - 0.1];
         expect(spec.bays.map((_, i) => count(bounds[i]!, bounds[i + 1]!, (b) => tone(0, b, pane(5), "east"))), `${shortName}'s lights`).toEqual([...lights]);
         expect([brick(tone(0, spec.bays[0]![0] + 0.8, pane(5), "east")), glass(tone(0, spec.bays[0]![0] + 0.4, pane(5), "east")), brick(tone(0, (spec.bays[0]![1] + spec.bays[1]![0]) / 2, pane(5), "east"))], `${shortName}'s mullion, sash and pier`).toEqual([true, true, true]);
