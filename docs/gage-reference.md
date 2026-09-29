@@ -65,9 +65,14 @@ Read through the geographic camera, the drawn parapet stands at 54.2 m.
 
 The model takes the City's 154 ft as the parapet's top, the drawn feature it is nearest;
 the guide does not say what it measures to. Heights read on the drawing are scaled by
-46.94/54.2, so that the drawn parapet meets it. The HABS record agrees with the result:
-four floors at the scaled drawn pitch, 3.22 m (10.55 ft), over the original eight storeys'
-112 ft come to 154 ft, and the four floors of 1902 went in under the old cornice.
+46.94/54.2, so that the drawn parapet meets it, and the drawn floors become 3.22 m
+(10.55 ft).
+
+The drawing's own proportions, which no scale changes, agree with the City and the HABS
+record together. The four floors of 1902 went in under the old cornice, so they are the
+difference between the City's 154 ft and the original eight storeys' 112 ft: 42 ft, or
+27.3% of the height. The drawing's top four floors take 27.4% of its parapet's height.
+This checks the City's figure against HABS's; it is not a further published height.
 
 The drawing reads high here by more than elsewhere on this stretch, where it stands within
 about 4 m of published heights. Its Gage parapet stands 2.3 m over the University Club's drawn

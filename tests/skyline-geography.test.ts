@@ -1848,17 +1848,22 @@ describe("mapped skyline geography", () => {
         for (let s = from; s < to; s += step) { const now = glass(sample(s)); if (now && !inside) runs += 1; inside = now; }
         return runs;
       };
-      // The drawn rows, scaled: each floor's window from 86 cm over its floor as drawn, the
-      // floors 3.715 m apart as drawn from the eighth, whose window is the lowest the drawing
-      // shows. The top floor's window head meets the drawn one.
+      // The drawn rows, scaled: each floor's window from 86 cm over its floor to 3.29 m as
+      // drawn, the floors 3.715 m apart as drawn from the eighth, whose window is the lowest
+      // the drawing shows.
       const floor = (n: number) => drawn(33.47 + (n - 8) * 3.715), pane = (n: number) => floor(n) + drawn(1.5);
-      near(floor(12) + drawn(3.29), drawn(51.66), 0.05);
       // The front's three bays, their windows in four, five and four lights, between piers:
       // 2 m at the corners, 1.15 and 1.2 m between the bays.
       const front = Math.hypot(...[0, 1].map((k) => at(3)[k]! - corner[k]!));
       expect(count(0.1, front - 0.1, (b) => tone(0, b, pane(12), "east")), "the lights of a floor").toBe(13);
       expect([1, 6.2, 11.9, front - 1].map((b) => terracotta(tone(0, b, pane(10), "east"))), "the piers").toEqual([true, true, true, true]);
       expect([glass(tone(0, 3.3, pane(10), "east")), terracotta(tone(0, 2.9, pane(10), "east")), terracotta(tone(0, 3.3, floor(10) + drawn(0.4), "east")), glass(tone(0, 9, 2.5, "east")), band(tone(0, 9, 4.6, "east")), terracotta(tone(0, 9, 46.3, "east"))], "a light, a mullion, a spandrel, a shopfront, the sign band and the parapet").toEqual([true, true, true, true, true, true]);
+      // The top floor's window between its drawn sill and head, the head within 4 cm of the
+      // drawn one, and the eighth floor's.
+      const [sill, head] = [floor(12) + drawn(0.86), floor(12) + drawn(3.29)];
+      near(head, drawn(51.66), 0.04);
+      expect([terracotta(tone(0, 3.3, sill - 0.05, "east")), glass(tone(0, 3.3, sill + 0.05, "east")), glass(tone(0, 3.3, head - 0.05, "east")), terracotta(tone(0, 3.3, head + 0.05, "east"))], "the top floor's sill and head").toEqual([true, true, true, true]);
+      expect([terracotta(tone(0, 3.3, floor(8) + drawn(0.86) - 0.05, "east")), glass(tone(0, 3.3, floor(8) + drawn(0.86) + 0.05, "east"))], "the eighth floor's sill").toEqual([true, true]);
       // A window to each floor up a bay: the shopfront and eleven floors.
       expect(count(0.3, 46.9, (y) => tone(0, 9, y, "east"), 0.05), "a window to each floor").toBe(12);
       // The south wall, as drawn: a window 6 to 9.5 m west of the front on the top four floors,
