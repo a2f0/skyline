@@ -11,6 +11,7 @@ import { createChicagoAthleticAssociationGeographicBuilding } from "./chicago-at
 import { createCrainGeographicBuilding } from "./crain-geographic.js";
 import { createGageGeographicBuilding } from "./gage-geographic.js";
 import { createHeritageGeographicBuilding } from "./heritage-geographic.js";
+import { createHyattWestTowerGeographicBuilding } from "./hyatt-west-tower-geographic.js";
 import { createAscherGeographicBuilding, createKeithGeographicBuilding } from "./keith-ascher-geographic.js";
 import { createKemperGeographicBuilding } from "./kemper-geographic.js";
 import { createLakeViewGeographicBuilding } from "./lake-view-geographic.js";
@@ -136,6 +137,9 @@ export function createGeographicBuilding(record: GeoBuilding, offset: [number, n
   }
   if (record.id === "building-river-plaza") {
     return createRiverPlazaGeographicBuilding(record, plan, offset);
+  }
+  if (record.id === "building-hyatt-regency-west-tower") {
+    return createHyattWestTowerGeographicBuilding(record, plan, offset);
   }
   if (record.id === "building-heritage-at-millennium-park") {
     return createHeritageGeographicBuilding(record, plan, offset);

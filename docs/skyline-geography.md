@@ -7,8 +7,8 @@ Six North Michigan, the Michigan Boulevard Building, 180 North Michigan Avenue, 
 University Club of Chicago, the Monroe Building, the MacLean Center, the Lake View
 Building, the Peoples Gas Building, the Borg-Warner Building, the Railway Exchange
 Building, the Gage Building, the Edson Keith and Theodore Ascher Buildings, the Chicago
-Athletic Association, Two Illinois Center, and River Plaza, which only the geographic layout
-maps. The page
+Athletic Association, Two Illinois Center, River Plaza, and the Hyatt Regency Chicago West
+Tower, which only the geographic layout maps. The page
 opens on the geographic layout; `?layout=original` opens it on the drawing fit, as the
 browser suites and the dev scripts do. Every geographic building carries a detailed facade
 reconstruction on its mapped outlines. The original factories,
@@ -113,8 +113,8 @@ from [another](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6212,41.8845,-
 as were 340 on the Park's and The Buckingham's from [a third](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6198,41.8842,-87.6168,41.8862),
 and Millennium Park Plaza's, Willoughby Tower's, Six North Michigan's, the Michigan Boulevard Building's, 180 North Michigan Avenue's, the University Club's, the Monroe Building's, the MacLean Center's, the Lake View Building's, the Peoples Gas Building's, the Borg-Warner Building's and the Railway Exchange Building's from [a fourth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920).
 The Gage, Edson Keith and Theodore Ascher Buildings' outlines, the Chicago Athletic
-Association's, Two Illinois Center's, and River Plaza's with its parts were added on
-September 29, 2026, from the same request.
+Association's, Two Illinois Center's, River Plaza's with its parts, and the Hyatt Regency West
+Tower's part were added on September 29, 2026, from the same request.
 It includes the selected building outlines and parts and upper/surface street
 centerlines around them. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
@@ -170,6 +170,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Chicago Athletic Association | [147476152](https://www.openstreetmap.org/way/147476152) | Outline, with the levels from the Historic American Buildings Survey; not in the original layout |
 | Two Illinois Center | [236770799](https://www.openstreetmap.org/way/236770799) | Outline, with the floor pitch from the photograph; not in the original layout |
 | River Plaza | [285867424](https://www.openstreetmap.org/way/285867424) | 68796725, 68796733, 285867425; not in the original layout |
+| Hyatt Regency West Tower | [235920252](https://www.openstreetmap.org/way/235920252) | The tower's part of the hotel's outline, 235920251; not in the original layout |
 
 For an audit, retrieve `https://api.openstreetmap.org/api/0.6/way/ID/VERSION`
 using the retained ID/version. That gives the historical way's node references;
@@ -213,6 +214,7 @@ for outlines. No runtime requests to OSM, map tiles or height services are made.
 | Chicago Athletic Association | 45.52 m | 45.52 m | [HABS IL-1226](https://tile.loc.gov/storage-services/master/pnp/habshaer/il/il0900/il0935/sheet/00004a.tif), measured |
 | Two Illinois Center | 114.3 m | 114.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/chicago/two-illinois-center/11095) |
 | River Plaza | 159.7 m | 159.7 m | [Skyscraper Center](https://www.skyscrapercenter.com/chicago/river-plaza/3383) |
+| Hyatt Regency West Tower | 111.3 m | 111.3 m | [Skyscraper Center](https://www.skyscrapercenter.com/building/hyatt-regency-chicago-west-tower/13132) |
 
 Architectural heights include architectural spires and exclude antennas. 180 North
 Michigan Avenue has none published, so its height is read on the drawing, and the page's
@@ -414,6 +416,11 @@ Intermediate parts have less certainty than the overall height:
   OpenStreetMap's 166 m for the box stands over that tip. Neither is scaled to the drawing,
   whose top lies between their roofs; see the
   [Two Illinois Center and River Plaza reference audit](river-plaza-two-illinois-center-reference.md).
+- The Hyatt Regency Chicago's West Tower stands between Aon Center and the Blue Cross and Blue
+  Shield Tower, where the drawn Blue Cross group paints a dark brown sliver. Its brick slab
+  carries narrow window slots on a 3.5 m module between solid corners, under a plain band, to
+  the published 111.3 m, on its mapped part of the hotel's outline; see the
+  [Hyatt Regency West Tower reference audit](hyatt-west-tower-reference.md).
 
 These are mapped massing models, not surveyed architectural models. The height
 sources use their own street/entrance datum; translating all of them to a common
@@ -431,7 +438,7 @@ mapped footprints help inspect whether the street arrangement fits. Checking cur
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
-coordinate anchors, meter scale and north direction, all thirty rendered ground
+coordinate anchors, meter scale and north direction, all thirty-one rendered ground
 extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
