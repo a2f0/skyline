@@ -13,12 +13,20 @@
     <main class="viewport" id="viewport">
       <canvas id="building" tabindex="0" role="img" aria-label="Interactive 3D Chicago skyline: every mapped building of the skyline study, seen from the drawing's camera on the lakefront by the Adler Planetarium" aria-describedby="camera-hint"></canvas>
       <p class="loading" id="loading" role="status">Preparing the skyline…</p>
-      <p class="attribution">Streets and footprints <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></p>
+      <div class="scene-notes">
+        <p class="hint" id="camera-hint">Drag to orbit · scroll or pinch to zoom<br />Arrow keys rotate · + / − zoom · Home resets</p>
+        <p class="attribution">Streets and footprints <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></p>
+      </div>
       <p class="visually-hidden" id="motion-status" role="status">Camera moves only when you interact or start the turntable.</p>
       <noscript><p class="loading">Enable JavaScript to explore the 3D skyline.</p></noscript>
     </main>
     <footer class="control-bar" aria-label="3D skyline controls">
-      <div class="button-group camera-views" role="group" aria-label="Camera views">
+      <!-- Chicago's six-pointed star, after devopsrockstars' white-star-only.svg: points 12
+           units out, the notches between them 4.66. -->
+      <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="camera-views model-display" aria-label="Skyline controls" title="Show the controls">
+        <svg viewBox="-12 -12 24 24" aria-hidden="true" focusable="false"><path d="M0-12 2.33-4.04 10.39-6 4.66 0 10.39 6 2.33 4.04 0 12-2.33 4.04-10.39 6-4.66 0-10.39-6-2.33-4.04Z" /></svg>
+      </button>
+      <div class="button-group camera-views" id="camera-views" role="group" aria-label="Camera views">
         <button type="button" data-view="skyline" aria-pressed="true">skyline view</button>
         <button type="button" data-view="quarter" aria-pressed="false">three-quarter</button>
         <button type="button" data-view="side" aria-pressed="false">side</button>
@@ -26,10 +34,7 @@
         <button type="button" data-view="heights" aria-pressed="false">height comparison</button>
         <button type="button" id="reset">reset view</button>
       </div>
-      <div class="control-status">
-        <p class="hint" id="camera-hint">Drag to orbit · scroll or pinch to zoom<br />Arrow keys rotate · + / − zoom · Home resets</p>
-      </div>
-      <div class="button-group model-display" role="group" aria-label="Model display">
+      <div class="button-group model-display" id="model-display" role="group" aria-label="Model display">
         <button type="button" id="streets" aria-pressed="true">streets</button>
         <button type="button" id="footprints" aria-pressed="false">footprints</button>
         <button type="button" id="wireframe" aria-pressed="false">wireframe</button>

@@ -49,3 +49,29 @@ for (const [id, object] of [["streets", roads], ["footprints", ground.footprints
     viewer.requestRender();
   });
 }
+// The star in the middle of the bar opens and closes the toolbar. Opening shows the groups
+// at once and CSS unfolds them from the star; closing lets them fold back before hiding them,
+// or hides them at once where motion is reduced and nothing animates. Escape closes it from
+// inside the bar, returning focus to the star.
+const bar = document.querySelector<HTMLElement>(".control-bar")!;
+const menuToggle = document.querySelector<HTMLButtonElement>("#menu-toggle")!;
+function setMenu(open: boolean) {
+  menuToggle.setAttribute("aria-expanded", String(open));
+  menuToggle.title = open ? "Hide the controls" : "Show the controls";
+  if (open) {
+    bar.classList.remove("closing");
+    bar.classList.add("open");
+    return;
+  }
+  bar.classList.add("closing");
+  const folding = [...bar.querySelectorAll<HTMLElement>(".button-group")].flatMap((group) => group.getAnimations().map((animation) => animation.finished));
+  void Promise.allSettled(folding).then(() => {
+    if (menuToggle.getAttribute("aria-expanded") === "false") bar.classList.remove("open", "closing");
+  });
+}
+menuToggle.addEventListener("click", () => setMenu(menuToggle.getAttribute("aria-expanded") !== "true"));
+bar.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape" || menuToggle.getAttribute("aria-expanded") !== "true") return;
+  menuToggle.focus();
+  setMenu(false);
+});
