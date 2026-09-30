@@ -191,6 +191,7 @@ describe("full-screen 3D skyline", () => {
     expect(await page.locator("#scene").isHidden()).toBe(true);
     expect(await scene.evaluate(() => window.__buildingStudy!.activeView)).toBeNull();
     (await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).forEach((value, axis) => near(value, orbit[axis]!, 1e-6));
+    await scene.locator("#menu-toggle").click();
     await scene.locator("#reset").click();
     expect(await scene.evaluate(() => window.__buildingStudy!.activeView)).toBe("skyline");
 
@@ -224,8 +225,9 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
-  test("docks the skyline study's control bar under the skyline at every size", async () => {
-    // The bar carries the study's toolbar, in its order, and a footprints toggle.
+  test("folds the study's toolbar behind a star in the middle of the bar, docked under the skyline at every size", async () => {
+    // The bar carries the study's toolbar, in its order, and a footprints toggle, folded
+    // behind a white six-pointed star. Closed, the star alone shows, in the bar's middle.
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     watch(page);
     await page.goto(`${origin}/skyline-study.html`);
@@ -233,40 +235,127 @@ describe("full-screen 3D skyline", () => {
     const toolbar = await page.locator(".toolbar button").allTextContents();
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
-    expect((await page.locator(".control-bar button").allTextContents()).filter((label) => label !== "footprints")).toEqual(toolbar);
+    expect((await page.locator(".control-bar .button-group button").allTextContents()).filter((label) => label !== "footprints")).toEqual(toolbar);
+    const star = page.locator("#menu-toggle");
+    const groups = () => page.locator(".control-bar .button-group").evaluateAll((elements) => elements.map((element) => getComputedStyle(element).display));
+    const settled = () => page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished)));
+    expect([await star.getAttribute("aria-expanded"), await star.getAttribute("aria-label")]).toEqual(["false", "Skyline controls"]);
+    expect(await star.locator("path").evaluate((path) => getComputedStyle(path).fill)).toBe("rgb(255, 255, 255)");
+    expect(await groups()).toEqual(["none", "none"]);
+    expect(await page.locator("#camera-hint").isHidden(), "the hint shows only with the controls").toBe(true);
     // The bar spans the bottom of the window, and the canvas, whose bottom edge the drawing's
-    // frame stands on, fills the rest: the bar covers no tower, and every control shows,
-    // including either side of each of the bar's breakpoints.
-    const breakpoints = [1360, 1359, 1024, 1023, 601, 600].map((width) => ({ width, height: 768 }));
-    for (const size of [...viewports.map(({ options }) => options.viewport!), { width: 2400, height: 700 }, { width: 844, height: 390 }, ...breakpoints]) {
-      await page.setViewportSize(size);
-      await settle(page);
-      const layout = await page.evaluate(() => {
-        const box = (element: Element) => element.getBoundingClientRect().toJSON() as DOMRect;
-        return {
-          bar: box(document.querySelector(".control-bar")!),
-          canvas: box(document.querySelector("#building")!),
-          controls: [...document.querySelectorAll(".control-bar button, .control-status")].map(box),
-          overflow: document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight,
-        };
-      });
-      const at = `at ${size.width}x${size.height}`;
-      expect([layout.bar.left, layout.bar.right, layout.bar.bottom], `the bar spans the window's bottom ${at}`).toEqual([0, size.width, size.height]);
-      expect([layout.canvas.top, layout.canvas.width], `the canvas fills the width above the bar ${at}`).toEqual([0, size.width]);
-      near(layout.canvas.bottom, layout.bar.top, 0.5);
-      expect(layout.canvas.height, `the skyline keeps most of the window ${at}`).toBeGreaterThan(size.height * 0.5);
-      for (const control of layout.controls) {
-        expect(control.left >= layout.bar.left && control.right <= layout.bar.right && control.top >= layout.bar.top && control.bottom <= layout.bar.bottom, `a control inside the bar ${at}`).toBe(true);
+    // frame stands on, fills the rest: the bar covers no tower. Closed, the bar keeps its
+    // one-row height at every size, with the star in the middle. Open, every control shows
+    // inside it, including either side of each of its breakpoints, and the star stays put.
+    const sizes = [...viewports.map(({ options }) => options.viewport!), { width: 2400, height: 700 }, { width: 844, height: 390 },
+      ...[1260, 1259, 1024, 1023, 601, 600].map((width) => ({ width, height: 768 }))];
+    const measure = () => page.evaluate(() => {
+      const box = (element: Element) => element.getBoundingClientRect().toJSON() as DOMRect;
+      return {
+        bar: box(document.querySelector(".control-bar")!),
+        canvas: box(document.querySelector("#building")!),
+        star: box(document.querySelector("#menu-toggle")!),
+        controls: [...document.querySelectorAll(".control-bar .button-group button")].map(box),
+        overflow: document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight,
+      };
+    });
+    const closedHeights = new Set<number>();
+    for (const open of [false, true]) {
+      if (open) {
+        // Each group unfolds from the star. Held part way on a wide window, its clip is part
+        // open, it is part faded in, and it is still sliding out from the star.
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        await settle(page);
+        await star.click();
+        const folds = () => page.evaluate(() => document.getAnimations().filter((animation) => animation.id === "fold")
+          .map((animation) => ({ rate: animation.playbackRate, time: Number(animation.currentTime) })));
+        const halfway = await page.evaluate(() => {
+          const unfolding = document.getAnimations().filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group"));
+          unfolding.forEach((animation) => { animation.id = "fold"; animation.pause(); animation.currentTime = 100; });
+          return [...document.querySelectorAll(".control-bar .button-group")].map((group) => ({ clip: getComputedStyle(group).clipPath, opacity: Number(getComputedStyle(group).opacity), shift: getComputedStyle(group).translate }));
+        });
+        expect(halfway.length).toBe(2);
+        for (const { clip, opacity, shift } of halfway) {
+          expect(clip, "the clip opens part way").toMatch(/^inset\(/);
+          expect(clip).not.toBe("inset(-4px)");
+          expect(opacity > 0.05 && opacity < 0.99 && shift !== "0px" && shift !== "none", `part faded in and still sliding: ${opacity}, ${shift}`).toBe(true);
+        }
+        // Toggled part way, the fold reverses from where it stands, each way: the same two
+        // folds, a restart would replace them, held again as soon as the reversal takes so
+        // they cannot run out while the test looks.
+        const toggleHeld = () => page.evaluate(async () => {
+          document.querySelector<HTMLButtonElement>("#menu-toggle")!.click();
+          const held = document.getAnimations().filter((animation) => animation.id === "fold");
+          await Promise.all(held.map((animation) => animation.ready));
+          held.forEach((animation) => animation.pause());
+          return held.map((animation) => ({ rate: animation.playbackRate, time: Number(animation.currentTime) }));
+        });
+        const back = await toggleHeld();
+        expect(back.length, "the held folds carry on").toBe(2);
+        for (const { rate, time } of back) expect(rate < 0 && time > 50 && time < 150, `folds back from ${time}, not an end`).toBe(true);
+        expect(await star.getAttribute("aria-expanded")).toBe("false");
+        const again = await toggleHeld();
+        expect(again.length, "the held folds carry on").toBe(2);
+        for (const { rate, time } of again) expect(rate > 0 && time > 50 && time < 150, `unfolds again from ${time}, not an end`).toBe(true);
+        await page.evaluate(() => document.getAnimations().forEach((animation) => animation.play()));
+        await settled();
+        expect([await star.getAttribute("aria-expanded"), await groups(), await folds()]).toEqual(["true", ["flex", "flex"], []]);
+        expect(await page.locator(".control-bar .button-group").evaluateAll((elements) => elements.map((element) => getComputedStyle(element).clipPath))).toEqual(["none", "none"]);
+        // Toggled back before a fold has moved, the groups stay where they stand rather than
+        // jumping to its far end: open from a fold not yet begun, closed from an unfold.
+        const toggleTwice = () => page.evaluate(() => {
+          const toggle = document.querySelector<HTMLButtonElement>("#menu-toggle")!;
+          toggle.click();
+          toggle.click();
+          const elements = [...document.querySelectorAll(".control-bar .button-group")];
+          return {
+            expanded: toggle.getAttribute("aria-expanded"),
+            shown: elements.map((element) => [getComputedStyle(element).display, getComputedStyle(element).opacity]),
+            moving: document.getAnimations().filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group")).length,
+          };
+        });
+        expect(await toggleTwice()).toEqual({ expanded: "true", shown: [["flex", "1"], ["flex", "1"]], moving: 0 });
+        await star.click();
+        await settled();
+        expect(await toggleTwice()).toEqual({ expanded: "false", shown: [["none", "1"], ["none", "1"]], moving: 0 });
+        await star.click();
+        await settled();
+        expect([await star.getAttribute("aria-expanded"), await groups()]).toEqual(["true", ["flex", "flex"]]);
       }
-      expect(layout.overflow, `the page does not scroll ${at}`).toBe(false);
+      for (const size of sizes) {
+        await page.setViewportSize(size);
+        await settle(page);
+        const layout = await measure();
+        const at = `${open ? "open" : "closed"} at ${size.width}x${size.height}`;
+        expect([layout.bar.left, layout.bar.right, layout.bar.bottom], `the bar spans the window's bottom ${at}`).toEqual([0, size.width, size.height]);
+        expect([layout.canvas.top, layout.canvas.width], `the canvas fills the width above the bar ${at}`).toEqual([0, size.width]);
+        near(layout.canvas.bottom, layout.bar.top, 0.5);
+        expect(layout.canvas.height, `the skyline keeps most of the window ${at}`).toBeGreaterThan(size.height * 0.5);
+        near(layout.star.left + layout.star.width / 2, size.width / 2, 0.5);
+        for (const control of [layout.star, ...open ? layout.controls : []]) {
+          expect(control.left >= layout.bar.left && control.right <= layout.bar.right && control.top >= layout.bar.top && control.bottom <= layout.bar.bottom, `a control inside the bar ${at}`).toBe(true);
+        }
+        if (!open) closedHeights.add(layout.bar.height);
+        if (open && size.width >= 1260) expect(layout.bar.height, `one row ${at}, as tall as the closed bar`).toBe([...closedHeights][0]!);
+        expect(layout.overflow, `the page does not scroll ${at}`).toBe(false);
+      }
+      if (!open) expect([...closedHeights], "the closed bar is one height at every size").toEqual([39]);
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     await settle(page);
-    expect(await page.locator(".control-bar").boundingBox().then((bar) => bar!.height), "one compact row on a wide window").toBeLessThan(48);
-    // The map data is credited in the scene's corner, above the bar.
+    // The hint shows with the controls, and the map data is credited in the scene's corner,
+    // both above the bar and clear of each other.
+    expect(await page.locator("#camera-hint").isVisible()).toBe(true);
     expect(await page.locator(".attribution a").getAttribute("href")).toBe("https://www.openstreetmap.org/copyright");
-    const [credit, bar] = await Promise.all([page.locator(".attribution").boundingBox(), page.locator(".control-bar").boundingBox()]);
-    expect(credit!.y + credit!.height <= bar!.y && credit!.x + credit!.width <= 1440, "the credit shows above the bar").toBe(true);
+    for (const size of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+      await page.setViewportSize(size);
+      await settle(page);
+      const [hint, credit, bar] = await Promise.all([page.locator("#camera-hint").boundingBox(), page.locator(".attribution").boundingBox(), page.locator(".control-bar").boundingBox()]);
+      expect(hint!.y + hint!.height <= bar!.y && credit!.y + credit!.height <= bar!.y && credit!.x + credit!.width <= size.width, `the notes show above the bar at ${size.width}`).toBe(true);
+      expect(hint!.x + hint!.width <= credit!.x || hint!.y + hint!.height <= credit!.y, `the hint clears the credit at ${size.width}`).toBe(true);
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await settle(page);
     await page.screenshot({ path: "/tmp/skyline-3d-control-bar.png" });
 
     // Ground plan and height comparison are the study's orthographic views, naming every
@@ -318,6 +407,17 @@ describe("full-screen 3D skyline", () => {
       expect(await button.getAttribute("aria-pressed")).toBe(pressed);
       expect((await picture()).equals(before), `${id} restores the ground`).toBe(true);
     }
+    // Escape inside the bar folds the toolbar back behind the star and returns focus to it.
+    // The folding groups take no focus, so Tab from the star does not land in them.
+    await page.locator("#wireframe").focus();
+    await page.keyboard.press("Escape");
+    expect(await star.getAttribute("aria-expanded")).toBe("false");
+    expect(await page.evaluate(() => document.activeElement?.id)).toBe("menu-toggle");
+    await page.keyboard.press("Tab");
+    expect(await page.evaluate(() => !!document.activeElement?.closest(".button-group")), "focus stays out of the folding groups").toBe(false);
+    await settled();
+    expect(await groups()).toEqual(["none", "none"]);
+    expect(await page.locator(".control-bar").boundingBox().then((bar) => bar!.height)).toBe(39);
     await page.close();
   }, { timeout: 180_000 });
 
@@ -335,6 +435,9 @@ describe("full-screen 3D skyline", () => {
     near(canvas.bottom, bar.top, 0.5);
     expect(canvas.height).toBeGreaterThan(canvas.width * boxHeight / boxWidth);
     await phone.screenshot({ path: "/tmp/skyline-3d-mobile.png" });
+    // The star opens the controls at once under reduced motion, with nothing to animate.
+    await scene.locator("#menu-toggle").tap();
+    expect(await scene.evaluate(() => [document.getAnimations().length, getComputedStyle(document.querySelector(".camera-views")!).display])).toEqual([0, "flex"]);
     // Reduced motion stops dragging and the turntable; the view buttons still move the camera
     // at once, as the hint says.
     expect(await scene.locator("#turntable").isDisabled()).toBe(true);

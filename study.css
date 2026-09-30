@@ -63,28 +63,43 @@ button:disabled { cursor: default; opacity: 0.35; }
 .skyline-3d main.viewport { flex: 1 1 auto; min-height: 0; height: auto; max-width: none; margin: 0; padding: 0; background: none; }
 .skyline-3d canvas { height: 100%; }
 .skyline-3d .study-annotations { inset: 0; }
-/* The map data's credit, small in the scene's corner, over the canvas but not its drags. */
-.attribution { position: absolute; right: 6px; bottom: 4px; z-index: 1; margin: 0; padding: 1px 4px; background: #080808cc; color: #888; font-size: 9px; line-height: 1.4; pointer-events: none; }
-.attribution a { pointer-events: auto; }
+/* Small notes along the scene's bottom edge, over the canvas but not its drags: the camera
+   hint while the controls are open, and the map data's credit in the corner. */
+.scene-notes { position: absolute; left: 6px; right: 6px; bottom: 4px; z-index: 1; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 4px 12px; pointer-events: none; }
+.scene-notes p { position: static; margin: 0; padding: 1px 4px; background: #080808cc; color: #888; font-size: 9px; line-height: 1.4; text-align: left; }
+.scene-notes .attribution { margin-left: auto; }
+.scene-notes a { pointer-events: auto; }
+.skyline-3d:has(#menu-toggle[aria-expanded="false"]) .scene-notes .hint { display: none; }
 /* Its ground plan is drawn in greys: the scene, whose few coloured roofs and outlines lose
    their colour, and the building names over it. */
 .skyline-3d:has([data-view="top"][aria-pressed="true"]) :is(canvas, .study-annotations) { filter: grayscale(1); }
-/* The skyline study's toolbar as one compact row: camera views, the camera hint, then model
-   display. Narrower windows give the hint its own row above the buttons. */
-.control-bar { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "views status display"; align-items: center; gap: 5px 16px; padding: 5px max(12px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); border-top: 1px solid #292929; background: #080808; }
+/* The skyline study's toolbar, folded behind a white six-pointed star in the middle of the
+   bar. Pressing the star opens it outward, camera views to the star's left and model display
+   to its right, each group revealed from its `--fold` inset by skyline-3d.ts; pressing it
+   again folds them back. The star stays in the middle, so narrower windows put the groups in
+   a row under it, then in a row each. */
+.control-bar { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "views menu display"; align-items: center; gap: 5px 12px; padding: 5px max(12px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); border-top: 1px solid #292929; background: #080808; }
 .control-bar .button-group { gap: 4px; }
-.control-bar .camera-views { grid-area: views; }
-.control-bar .model-display { grid-area: display; justify-content: end; }
-.control-status { grid-area: status; min-width: 0; text-align: center; }
-.control-bar .hint { position: static; line-height: 1.4; }
+.control-bar .camera-views { grid-area: views; justify-content: end; --fold: inset(0 0 0 100%); --fold-shift: 24px; }
+.control-bar .model-display { grid-area: display; justify-content: start; --fold: inset(0 100% 0 0); --fold-shift: -24px; }
+.control-bar:not(.open) { row-gap: 0; }
+.control-bar:not(.open) .button-group { display: none; }
 .control-bar button { padding: 5px 8px; }
 .control-bar :focus-visible { outline-offset: 1px; }
-@media (max-width: 1359px) {
-  .control-bar { grid-template-columns: auto auto; grid-template-areas: "status status" "views display"; justify-content: space-between; }
+.control-bar .menu-toggle { grid-area: menu; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: none; color: #fff; }
+.control-bar .menu-toggle:hover { background: #ffffff1a; }
+.menu-toggle svg { width: 20px; height: 20px; fill: currentColor; transition: rotate 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.menu-toggle[aria-expanded="true"] svg { rotate: 30deg; }
+@media (max-width: 1259px) {
+  .control-bar { grid-template-columns: auto auto; grid-template-areas: "menu menu" "views display"; justify-content: center; }
+  .control-bar .menu-toggle { justify-self: center; }
 }
 @media (max-width: 1023px) {
-  .control-bar { grid-template-columns: minmax(0, 1fr); grid-template-areas: "status" "views" "display"; }
-  .control-bar .button-group { justify-content: center; }
+  .control-bar { grid-template-columns: minmax(0, 1fr); grid-template-areas: "menu" "views" "display"; }
+  .control-bar .button-group { justify-content: center; --fold: inset(0 50%); --fold-shift: 0px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-toggle svg { transition: none; }
 }
 @media (max-width: 600px) {
   .layout-controls { align-items: start; flex-direction: column; gap: 12px; }
