@@ -138,11 +138,13 @@ describe("single-building study", () => {
     expect(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await mobile.locator("#toggle-skyline").tap();
     expect(await mobile.locator("#scene").getAttribute("src")).toBe("skyline-original-fit.svg");
+    await mobile.locator("#toggle-enhanced").tap();
+    expect(await mobile.locator("#scene").getAttribute("src")).toBe("skyline-animated.svg");
     await mobile.locator("#toggle-webgl").tap();
     await mobile.frameLocator("#webgl-scene").locator("#badge").waitFor({ state: "visible", timeout: 30000 });
     expect(await mobile.locator("#scene").isHidden()).toBe(true);
     await mobile.locator("#toggle-webgl").tap();
-    expect(await mobile.locator("#scene").getAttribute("src")).toBe("skyline-animated.svg");
+    expect(await mobile.locator("#skyline-3d-scene").isVisible()).toBe(true);
     expect(await mobile.locator("#webgl-scene").isHidden()).toBe(true);
     expect(errors).toEqual([]);
     await mobile.close();

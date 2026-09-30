@@ -26,7 +26,6 @@
         <button type="button" id="reset">reset view</button>
       </div>
       <div class="control-status">
-        <span class="view-label" id="view-label">skyline view</span>
         <p class="hint" id="camera-hint">Drag to orbit · scroll or pinch to zoom<br />Arrow keys rotate · + / − zoom · Home resets</p>
       </div>
       <div class="button-group model-display" role="group" aria-label="Model display">
@@ -37,6 +36,7 @@
       </div>
     </footer>
     <div class="tooltip" id="tooltip" aria-hidden="true" hidden></div>
-    <script src="study-loader.js" data-study="./skyline-3d.js"></script>
+    <!-- The loader is compiled into dist/; opened from the sources, say how to build it. -->
+    <script src="study-loader.js" data-study="./skyline-3d.js" onerror="document.querySelector('#loading').textContent = 'Build the site with bun run build:site, then serve dist/ with python3 -m http.server -d dist to explore the 3D skyline.'"></script>
   </body>
 </html>

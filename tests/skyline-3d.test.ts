@@ -31,7 +31,10 @@ describe("full-screen 3D skyline", () => {
   const errors: string[] = [], external: string[] = [];
   const watch = (page: Page) => {
     page.on("pageerror", (error) => errors.push(error.message));
-    page.on("request", (request) => { if (!request.url().startsWith(origin) && !request.url().startsWith("data:")) external.push(request.url()); });
+    // The WebGL prototype, reachable from the viewer, rasterizes its textures into blob URLs of
+    // the page's own origin.
+    const local = [origin, "data:", `blob:${origin}/`];
+    page.on("request", (request) => { if (!local.some((prefix) => request.url().startsWith(prefix))) external.push(request.url()); });
   };
   beforeAll(async () => {
     browser = await chromium.launch({ channel: "chrome", headless: true });
@@ -137,33 +140,43 @@ describe("full-screen 3D skyline", () => {
     }
   }, { timeout: 180_000 });
 
-  test("switches in from the skyline viewer over its stars, and keeps an orbit while hidden", async () => {
+  test("opens the skyline viewer on the 3D skyline over its stars, and keeps an orbit while hidden", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     watch(page);
     const requested: string[] = [];
     page.on("request", (request) => requested.push(new URL(request.url()).pathname));
     await page.goto(`${origin}/index.html`);
-    await page.locator('a[href="skyline-study.html"]', { hasText: "skyline study" }).waitFor();
-    expect(requested, "the 3D skyline waits until it is chosen").not.toContain("/skyline-3d.html");
-    const toggle = page.locator("#toggle-3d");
-    expect([await toggle.textContent(), await toggle.getAttribute("aria-pressed")]).toEqual(["3d skyline", "false"]);
-    await toggle.click();
-    expect([await toggle.textContent(), await toggle.getAttribute("aria-pressed")]).toEqual(["show enhanced", "true"]);
-    expect(await page.locator("#skyline-3d-scene").getAttribute("src")).toBe("skyline-3d.html");
+    const scene = await openScene(page);
+    expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
     expect(await page.locator("#scene").isHidden()).toBe(true);
     expect(await page.locator("#stars").isVisible(), "the stars stay behind the 3D skyline").toBe(true);
-    const scene = await openScene(page);
+    expect(requested, "the drawing waits until it is chosen").not.toContain("/skyline-animated.svg");
+    expect(requested, "the WebGL prototype waits until it is chosen").not.toContain("/skyline-webgl.html");
     expect(await scene.evaluate(() => [getComputedStyle(document.documentElement).backgroundColor, getComputedStyle(document.body).backgroundColor]))
       .toEqual(["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)"]);
+    const toggle = page.locator("#toggle-enhanced");
+    const state = async (button = toggle) => [await button.textContent(), await button.getAttribute("aria-pressed"), await button.getAttribute("title")];
+    const announced = () => page.locator("#status").textContent();
+    expect(await state()).toEqual(["show enhanced", "false", "Show the enhanced interactive skyline drawing"]);
     await page.screenshot({ path: "/tmp/skyline-3d-viewer.png" });
 
-    // Orbit, hide the scene for the enhanced skyline, and bring it back: the hidden frame has
-    // no size, and the eye must not be refitted to it.
+    // Orbit, switch to the enhanced skyline, and come back: the hidden frame has no size, and
+    // the eye must not be refitted to it.
     await scene.locator("#building").focus();
     await page.keyboard.press("ArrowLeft");
     await page.keyboard.press("ArrowUp");
     const orbit = await scene.evaluate(() => window.__buildingStudy!.cameraPosition);
+    // The fullscreen shortcut works from the focused canvas, inside the scene's own frame.
+    await page.evaluate(() => {
+      const viewer = window as unknown as { fullscreenRequests: number };
+      viewer.fullscreenRequests = 0;
+      document.documentElement.requestFullscreen = async () => { viewer.fullscreenRequests++; };
+    });
+    await page.keyboard.press("f");
+    expect(await page.evaluate(() => (window as unknown as { fullscreenRequests: number }).fullscreenRequests)).toBe(1);
     await toggle.click();
+    expect(await state()).toEqual(["3d skyline", "true", "Return to the 3D skyline"]);
+    expect(await announced()).toBe("Enhanced interactive skyline displayed");
     expect(await page.locator("#skyline-3d-scene").isHidden()).toBe(true);
     expect(await page.locator("#scene").getAttribute("src")).toBe("skyline-animated.svg");
     expect(await page.locator("#scene").isVisible()).toBe(true);
@@ -172,18 +185,42 @@ describe("full-screen 3D skyline", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await toggle.click();
     await settle(scene);
+    expect(await state()).toEqual(["show enhanced", "false", "Show the enhanced interactive skyline drawing"]);
+    expect(await announced()).toBe("3D skyline displayed");
+    expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
+    expect(await page.locator("#scene").isHidden()).toBe(true);
     expect(await scene.evaluate(() => window.__buildingStudy!.activeView)).toBeNull();
     (await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).forEach((value, axis) => near(value, orbit[axis]!, 1e-6));
     await scene.locator("#reset").click();
     expect(await scene.evaluate(() => window.__buildingStudy!.activeView)).toBe("skyline");
 
-    // The other modes replace it, and each returns to the enhanced skyline.
-    await page.locator("#toggle-skyline").click();
+    // The other modes replace it and each other, and each returns to the 3D skyline.
+    const original = page.locator("#toggle-skyline");
+    const webgl = page.locator("#toggle-webgl");
+    await original.click();
     expect(await page.locator("#skyline-3d-scene").isHidden()).toBe(true);
     expect(await page.locator("#scene").getAttribute("src")).toBe("skyline-original-fit.svg");
-    expect(await toggle.textContent()).toBe("3d skyline");
-    await page.locator("#toggle-skyline").click();
-    expect(await page.locator("#scene").getAttribute("src")).toBe("skyline-animated.svg");
+    expect([await state(original), await state(webgl), await state()]).toEqual([
+      ["3d skyline", "true", "Return to the 3D skyline"],
+      ["show webgl", "false", "Preview the WebGL skyline prototype"],
+      ["show enhanced", "false", "Show the enhanced interactive skyline drawing"],
+    ]);
+    expect(await announced()).toBe("Original skyline displayed");
+    await webgl.click();
+    expect(await page.locator("#webgl-scene").getAttribute("src")).toBe("skyline-webgl.html");
+    expect(await page.locator("#webgl-scene").isVisible()).toBe(true);
+    expect(await page.locator("#scene").isHidden()).toBe(true);
+    expect([await state(original), await state(webgl)]).toEqual([
+      ["show original", "false", "Compare with the original skyline SVG"],
+      ["3d skyline", "true", "Return to the 3D skyline"],
+    ]);
+    expect(await announced()).toBe("WebGL skyline prototype displayed");
+    await webgl.click();
+    expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
+    expect(await page.locator("#webgl-scene").isHidden()).toBe(true);
+    expect(await page.locator("#scene").isHidden()).toBe(true);
+    expect(await state(webgl)).toEqual(["show webgl", "false", "Preview the WebGL skyline prototype"]);
+    expect(await announced()).toBe("3D skyline displayed");
     await page.close();
   }, { timeout: 180_000 });
 
@@ -229,14 +266,15 @@ describe("full-screen 3D skyline", () => {
     await page.screenshot({ path: "/tmp/skyline-3d-control-bar.png" });
 
     // Ground plan and height comparison are the study's orthographic views, naming every
-    // mapped building. The plan holds every footprint and whole label above the bar, wide,
-    // on a phone, and on a landscape phone, where the bar leaves the least height.
+    // mapped building. The pressed button names the view; the bar carries no view label. The
+    // plan holds every footprint and whole label above the bar, wide, on a phone, and on a
+    // landscape phone, where the bar leaves the least height.
+    expect(await page.locator("#view-label").count()).toBe(0);
     expect(await page.locator('[data-view="skyline"]').getAttribute("aria-pressed")).toBe("true");
-    for (const [view, label] of [["top", "ground plan · north up"], ["heights", "height comparison"]] as const) {
+    for (const view of ["top", "heights"]) {
       await page.locator(`[data-view="${view}"]`).click();
       await settle(page);
       expect(await page.evaluate(() => [window.__buildingStudy!.projection, window.__buildingStudy!.activeView])).toEqual(["orthographic", view]);
-      expect(await page.locator("#view-label").textContent()).toBe(label);
       expect(await page.locator(`[data-view="${view}"]`).getAttribute("aria-pressed")).toBe("true");
       expect(await page.locator(".study-annotations").isVisible()).toBe(true);
       expect(await page.locator(".study-annotations span:not([hidden])").count()).toBe(geographicBuildings.length);
@@ -279,7 +317,6 @@ describe("full-screen 3D skyline", () => {
     const phone = await browser.newPage({ ...viewports[4].options, reducedMotion: "reduce" });
     watch(phone);
     await phone.goto(`${origin}/index.html`);
-    await phone.locator("#toggle-3d").tap();
     const scene = await openScene(phone);
     expect(await phone.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     // The drawing's frame is as wide as a portrait screen and stands on the bar.

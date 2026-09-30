@@ -145,9 +145,15 @@
       ></iframe>
       <iframe
         class="scene"
+        id="skyline-3d-scene"
+        src="skyline-3d.html"
+        title="3D Chicago skyline"
+      ></iframe>
+      <iframe
+        class="scene"
         id="scene"
-        src="skyline-animated.svg"
         title="Animated Chicago skyline at night"
+        hidden
       ></iframe>
       <iframe
         class="scene"
@@ -156,19 +162,12 @@
         title="WebGL Chicago skyline prototype"
         hidden
       ></iframe>
-      <iframe
-        class="scene"
-        id="skyline-3d-scene"
-        data-src="skyline-3d.html"
-        title="3D Chicago skyline"
-        hidden
-      ></iframe>
 
       <nav class="controls" aria-label="Skyline controls">
         <button type="button" id="fullscreen" aria-pressed="false">fullscreen</button>
         <button type="button" id="toggle-skyline" aria-pressed="false">show original</button>
         <button type="button" id="toggle-webgl" aria-pressed="false">show webgl</button>
-        <button type="button" id="toggle-3d" aria-pressed="false">3d skyline</button>
+        <button type="button" id="toggle-enhanced" aria-pressed="false">show enhanced</button>
         <a href="building-study.html">3d building</a>
         <a href="skyline-study.html">skyline study</a>
         <button type="button" id="debug-motion" aria-pressed="false" aria-describedby="motion-status">debug motion</button>
@@ -185,21 +184,40 @@
       const webglScene = document.querySelector("#webgl-scene");
       const skyline3dScene = document.querySelector("#skyline-3d-scene");
       const stars = document.querySelector("#stars");
-      const skylineToggleButton = document.querySelector("#toggle-skyline");
-      const webglToggleButton = document.querySelector("#toggle-webgl");
-      const skyline3dToggleButton = document.querySelector("#toggle-3d");
       const debugMotionButton = document.querySelector("#debug-motion");
       const motionStatus = document.querySelector("#motion-status");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-      // Modes shown in their own page, which loads the first time the mode is chosen.
+      // Modes shown in their own page. The 3D skyline loads with the viewer; the others load
+      // the first time they are chosen.
       const framedScenes = { webgl: webglScene, "3d": skyline3dScene };
+      // The viewer opens on the 3D skyline. Each toggle shows its mode and, pressed again,
+      // returns to the 3D skyline.
+      const homeMode = "3d";
+      const home = { label: "3d skyline", title: "Return to the 3D skyline", status: "3D skyline displayed" };
+      const toggles = {
+        original: {
+          button: document.querySelector("#toggle-skyline"),
+          label: "show original",
+          title: "Compare with the original skyline SVG",
+          status: "Original skyline displayed",
+        },
+        webgl: {
+          button: document.querySelector("#toggle-webgl"),
+          label: "show webgl",
+          title: "Preview the WebGL skyline prototype",
+          status: "WebGL skyline prototype displayed",
+        },
+        enhanced: {
+          button: document.querySelector("#toggle-enhanced"),
+          label: "show enhanced",
+          title: "Show the enhanced interactive skyline drawing",
+          status: "Enhanced interactive skyline displayed",
+        },
+      };
       let debugMotion = false;
-      let skylineMode = "enhanced";
+      let skylineMode = homeMode;
 
       function updateSkylineView() {
-        const showingOriginal = skylineMode === "original";
-        const showingWebgl = skylineMode === "webgl";
-        const showing3d = skylineMode === "3d";
         const framedScene = framedScenes[skylineMode];
 
         if (framedScene && !framedScene.getAttribute("src")) {
@@ -209,6 +227,7 @@
           frame.hidden = mode !== skylineMode;
         }
         if (!framedScene) {
+          const showingOriginal = skylineMode === "original";
           const nextSource = showingOriginal ? "skyline-original-fit.svg" : "skyline-animated.svg";
           if (scene.getAttribute("src") !== nextSource) {
             scene.src = nextSource;
@@ -219,46 +238,21 @@
         }
         scene.hidden = Boolean(framedScene);
 
-        skylineToggleButton.textContent = showingOriginal ? "show enhanced" : "show original";
-        skylineToggleButton.setAttribute("aria-pressed", String(showingOriginal));
-        skylineToggleButton.title = showingOriginal
-          ? "Return to the enhanced interactive skyline"
-          : "Compare with the original skyline SVG";
-        webglToggleButton.textContent = showingWebgl ? "show enhanced" : "show webgl";
-        webglToggleButton.setAttribute("aria-pressed", String(showingWebgl));
-        webglToggleButton.title = showingWebgl
-          ? "Return to the enhanced interactive skyline"
-          : "Preview the WebGL skyline prototype";
-        skyline3dToggleButton.textContent = showing3d ? "show enhanced" : "3d skyline";
-        skyline3dToggleButton.setAttribute("aria-pressed", String(showing3d));
-        skyline3dToggleButton.title = showing3d
-          ? "Return to the enhanced interactive skyline"
-          : "Explore the mapped skyline in 3D, from the drawing's camera";
+        for (const [mode, toggle] of Object.entries(toggles)) {
+          const showing = mode === skylineMode;
+          toggle.button.textContent = showing ? home.label : toggle.label;
+          toggle.button.setAttribute("aria-pressed", String(showing));
+          toggle.button.title = showing ? home.title : toggle.title;
+        }
       }
 
-      skylineToggleButton.addEventListener("click", () => {
-        skylineMode = skylineMode === "original" ? "enhanced" : "original";
-        updateSkylineView();
-        status.textContent = skylineMode === "original"
-          ? "Original skyline displayed"
-          : "Enhanced interactive skyline displayed";
-      });
-
-      webglToggleButton.addEventListener("click", () => {
-        skylineMode = skylineMode === "webgl" ? "enhanced" : "webgl";
-        updateSkylineView();
-        status.textContent = skylineMode === "webgl"
-          ? "WebGL skyline prototype displayed"
-          : "Enhanced interactive skyline displayed";
-      });
-
-      skyline3dToggleButton.addEventListener("click", () => {
-        skylineMode = skylineMode === "3d" ? "enhanced" : "3d";
-        updateSkylineView();
-        status.textContent = skylineMode === "3d"
-          ? "3D skyline displayed"
-          : "Enhanced interactive skyline displayed";
-      });
+      for (const [mode, toggle] of Object.entries(toggles)) {
+        toggle.button.addEventListener("click", () => {
+          skylineMode = skylineMode === mode ? homeMode : mode;
+          updateSkylineView();
+          status.textContent = skylineMode === homeMode ? home.status : toggle.status;
+        });
+      }
 
       updateSkylineView();
 
@@ -310,12 +304,25 @@
         fullscreenButton.hidden = true;
       }
 
-      document.addEventListener("keydown", (event) => {
+      function fullscreenShortcut(event) {
         if (event.key.toLowerCase() === "f" && !event.metaKey && !event.ctrlKey && !event.altKey) {
           event.preventDefault();
           toggleFullscreen();
         }
-      });
+      }
+
+      document.addEventListener("keydown", fullscreenShortcut);
+      // Keys pressed inside a scene, such as on the 3D skyline's canvas, go to its frame's own
+      // window, so listen there too. A frame from another origin, as under file://, keeps them.
+      function listenInFrame(frame) {
+        try {
+          frame.contentWindow.addEventListener("keydown", fullscreenShortcut);
+        } catch {}
+      }
+      for (const frame of [skyline3dScene, scene, webglScene]) {
+        listenInFrame(frame);
+        frame.addEventListener("load", () => listenInFrame(frame));
+      }
     </script>
   </body>
 </html>

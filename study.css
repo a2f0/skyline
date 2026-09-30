@@ -63,16 +63,14 @@ button:disabled { cursor: default; opacity: 0.35; }
 .skyline-3d main.viewport { flex: 1 1 auto; min-height: 0; height: auto; max-width: none; margin: 0; padding: 0; background: none; }
 .skyline-3d canvas { height: 100%; }
 .skyline-3d .study-annotations { inset: 0; }
-/* The skyline study's toolbar as one compact row: camera views, the view and its hint, then
-   model display. Narrower windows give the view and hint their own row above the buttons. */
+/* The skyline study's toolbar as one compact row: camera views, the camera hint, then model
+   display. Narrower windows give the hint its own row above the buttons. */
 .control-bar { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "views status display"; align-items: center; gap: 5px 16px; padding: 5px max(12px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); border-top: 1px solid #292929; background: #080808; }
 .control-bar .button-group { gap: 4px; }
 .control-bar .camera-views { grid-area: views; }
 .control-bar .model-display { grid-area: display; justify-content: end; }
-.control-status { grid-area: status; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 12px; min-width: 0; text-align: center; }
-.control-bar .view-label, .control-bar .hint { position: static; }
-.control-bar .view-label { color: #858585; letter-spacing: 0.13em; text-transform: uppercase; }
-.control-bar .hint { line-height: 1.4; }
+.control-status { grid-area: status; min-width: 0; text-align: center; }
+.control-bar .hint { position: static; line-height: 1.4; }
 .control-bar button { padding: 5px 8px; }
 .control-bar :focus-visible { outline-offset: 1px; }
 @media (max-width: 1359px) {
