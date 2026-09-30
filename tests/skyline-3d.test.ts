@@ -198,8 +198,10 @@ describe("full-screen 3D skyline", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     expect((await page.locator(".control-bar button").allTextContents()).filter((label) => label !== "footprints")).toEqual(toolbar);
     // The bar spans the bottom of the window, and the canvas, whose bottom edge the drawing's
-    // frame stands on, fills the rest: the bar covers no tower, and every control shows.
-    for (const size of [...viewports.map(({ options }) => options.viewport!), { width: 2400, height: 700 }, { width: 844, height: 390 }]) {
+    // frame stands on, fills the rest: the bar covers no tower, and every control shows,
+    // including either side of each of the bar's breakpoints.
+    const breakpoints = [1360, 1359, 1024, 1023, 601, 600].map((width) => ({ width, height: 768 }));
+    for (const size of [...viewports.map(({ options }) => options.viewport!), { width: 2400, height: 700 }, { width: 844, height: 390 }, ...breakpoints]) {
       await page.setViewportSize(size);
       await settle(page);
       const layout = await page.evaluate(() => {
@@ -223,7 +225,7 @@ describe("full-screen 3D skyline", () => {
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     await settle(page);
-    expect(await page.locator(".control-bar").boundingBox().then((bar) => bar!.height), "one row on a wide window").toBeLessThan(80);
+    expect(await page.locator(".control-bar").boundingBox().then((bar) => bar!.height), "one compact row on a wide window").toBeLessThan(48);
     await page.screenshot({ path: "/tmp/skyline-3d-control-bar.png" });
 
     // Ground plan and height comparison are the study's orthographic views, naming every
