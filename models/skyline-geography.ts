@@ -225,31 +225,36 @@ export function createGeographicRoads(bounds: { x: Vec2; z: Vec2 }, color: numbe
     const points = clipToRectangle(polygon, bounds.x, bounds.z);
     for (let i = 1; i < points.length - 1; i += 1) {
       const a = points[0]!, b = points[i]!, c = points[i + 1]!;
-      // Wind each triangle to face up.
-      const up = (b[1] - a[1]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[1] - a[1]) > 0;
-      for (const [x, z] of up ? [a, b, c] : [a, c, b]) positions.push(x, 0.03, z);
+      // Wind each triangle to face up, and drop the slivers a clip or a straight run leaves.
+      const area = (b[1] - a[1]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[1] - a[1]);
+      if (Math.abs(area) < 1e-6) continue;
+      for (const [x, z] of area > 0 ? [a, b, c] : [a, c, b]) positions.push(x, 0.03, z);
     }
   };
   for (const street of geographicStreets) {
     const radius = streetWidth(street) / 2;
-    const points: Vec2[] = street.coordinates.map((coordinate) => { const [east, north] = projectGround(coordinate); return [east, -north]; });
+    const points = street.coordinates.map((coordinate): Vec2 => { const [east, north] = projectGround(coordinate); return [east, -north]; })
+      .filter((p, i, all) => i === 0 || Math.hypot(p[0] - all[i - 1]![0], p[1] - all[i - 1]![1]) > 1e-6);
+    // Each segment's unit normal, scaled to the roadway's half width.
+    const sides = points.slice(1).map((b, i): Vec2 => {
+      const a = points[i]!, length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      return [-(b[1] - a[1]) / length * radius, (b[0] - a[0]) / length * radius];
+    });
     points.forEach((a, i) => {
-      // A round join where the street ends or turns; the segments cover a straight run.
-      const before = points[i - 1], after = points[i + 1];
-      const turn = before && after ? Math.abs(Math.atan2(
-        (a[0] - before[0]) * (after[1] - a[1]) - (a[1] - before[1]) * (after[0] - a[0]),
-        (a[0] - before[0]) * (after[0] - a[0]) + (a[1] - before[1]) * (after[1] - a[1]))) : Math.PI;
+      // A round join where the street ends or turns. A shallow bend needs only the bevel
+      // between its segments' edge corners, on either side, to close the outer wedge.
+      const before = sides[i - 1], after = sides[i];
+      const turn = before && after ? Math.abs(Math.atan2(before[0] * after[1] - before[1] * after[0], before[0] * after[0] + before[1] * after[1])) : Math.PI;
       if (turn > 0.05) {
         const joint: Vec2[] = [];
         for (let k = 0; k < 12; k += 1) joint.push([a[0] + radius * Math.cos(k * Math.PI / 6), a[1] + radius * Math.sin(k * Math.PI / 6)]);
         addPolygon(joint);
+      } else if (before && after) {
+        for (const sign of [1, -1]) addPolygon([a, [a[0] + sign * before[0], a[1] + sign * before[1]], [a[0] + sign * after[0], a[1] + sign * after[1]]]);
       }
-      const b = after;
-      if (!b) return;
-      const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      if (length < 1e-6) return;
-      const side: Vec2 = [-(b[1] - a[1]) / length * radius, (b[0] - a[0]) / length * radius];
-      addPolygon([[a[0] + side[0], a[1] + side[1]], [b[0] + side[0], b[1] + side[1]], [b[0] - side[0], b[1] - side[1]], [a[0] - side[0], a[1] - side[1]]]);
+      const b = points[i + 1];
+      if (!b || !after) return;
+      addPolygon([[a[0] + after[0], a[1] + after[1]], [b[0] + after[0], b[1] + after[1]], [b[0] - after[0], b[1] - after[1]], [a[0] - after[0], a[1] - after[1]]]);
     });
   }
   const geometry = new THREE.BufferGeometry();

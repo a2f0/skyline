@@ -263,6 +263,10 @@ describe("full-screen 3D skyline", () => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await settle(page);
     expect(await page.locator(".control-bar").boundingBox().then((bar) => bar!.height), "one compact row on a wide window").toBeLessThan(48);
+    // The map data is credited in the scene's corner, above the bar.
+    expect(await page.locator(".attribution a").getAttribute("href")).toBe("https://www.openstreetmap.org/copyright");
+    const [credit, bar] = await Promise.all([page.locator(".attribution").boundingBox(), page.locator(".control-bar").boundingBox()]);
+    expect(credit!.y + credit!.height <= bar!.y && credit!.x + credit!.width <= 1440, "the credit shows above the bar").toBe(true);
     await page.screenshot({ path: "/tmp/skyline-3d-control-bar.png" });
 
     // Ground plan and height comparison are the study's orthographic views, naming every

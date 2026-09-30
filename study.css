@@ -63,6 +63,9 @@ button:disabled { cursor: default; opacity: 0.35; }
 .skyline-3d main.viewport { flex: 1 1 auto; min-height: 0; height: auto; max-width: none; margin: 0; padding: 0; background: none; }
 .skyline-3d canvas { height: 100%; }
 .skyline-3d .study-annotations { inset: 0; }
+/* The map data's credit, small in the scene's corner, over the canvas but not its drags. */
+.attribution { position: absolute; right: 6px; bottom: 4px; z-index: 1; margin: 0; padding: 1px 4px; background: #080808cc; color: #888; font-size: 9px; line-height: 1.4; pointer-events: none; }
+.attribution a { pointer-events: auto; }
 /* Its ground plan is drawn in greys: the scene, whose few coloured roofs and outlines lose
    their colour, and the building names over it. */
 .skyline-3d:has([data-view="top"][aria-pressed="true"]) :is(canvas, .study-annotations) { filter: grayscale(1); }
