@@ -134,8 +134,18 @@ Chicago Riverwalk's tower and corner parts the same day, from
 [a fifth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6250,41.8860,-87.6050,41.8980),
 and Three Illinois Center's outline and the Swissôtel's tower part the same day, from the
 fourth.
-It includes the selected building outlines and parts and upper/surface street
-centerlines around them. Each record retains its OSM way ID, version and WGS84
+It includes the selected building outlines and parts. The streets come from a separate
+extract retrieved on September 30, 2026 through the
+[Overpass API](https://overpass-api.de/api/interpreter?data=%5Bout%3Ajson%5D%3Bway%5B%22highway%22%5D%2841.8765%2C-87.6310%2C41.8916%2C-87.6158%29%3Bout%20meta%20geom%3B),
+every `highway` way over the full-screen 3D skyline's platform: the roads and their links,
+and the named service ways other than driveways and parking aisles, on the upper or surface
+level, leaving out tunnels, negative layers and ways named Lower. Each keeps its class, lane
+count and direction and only the nodes that reach the platform. The 3D skyline draws each
+as a roadway 3.3 m to a lane about its centreline, with the class's usual lanes where none
+are mapped (a named service way is one 5 m lane), cut at the platform's edges; divided
+avenues such as Michigan are two one-way ways, so they show as two carriageways. These are
+lane widths, not surveyed curbs. The skyline study draws the same ways as centerlines inside
+its 100 m grid. Each record retains its OSM way ID, version and WGS84
 longitude/latitude vertices. The source XML also includes ways crossing the
 request bounds. Only selected features are retained; contact and unrelated tags
 are excluded. The extract is © OpenStreetMap contributors, under the

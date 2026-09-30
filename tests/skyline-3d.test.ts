@@ -269,12 +269,16 @@ describe("full-screen 3D skyline", () => {
     // mapped building. The pressed button names the view; the bar carries no view label. The
     // plan holds every footprint and whole label above the bar, wide, on a phone, and on a
     // landscape phone, where the bar leaves the least height.
+    // Ground plan alone is drawn in greys, its scene and its names.
     expect(await page.locator("#view-label").count()).toBe(0);
     expect(await page.locator('[data-view="skyline"]').getAttribute("aria-pressed")).toBe("true");
+    const filters = () => page.evaluate(() => [...document.querySelectorAll("#building, .study-annotations")].map((element) => getComputedStyle(element).filter));
+    expect(await filters()).toEqual(["none", "none"]);
     for (const view of ["top", "heights"]) {
       await page.locator(`[data-view="${view}"]`).click();
       await settle(page);
       expect(await page.evaluate(() => [window.__buildingStudy!.projection, window.__buildingStudy!.activeView])).toEqual(["orthographic", view]);
+      expect(await filters()).toEqual(view === "top" ? ["grayscale(1)", "grayscale(1)"] : ["none", "none"]);
       expect(await page.locator(`[data-view="${view}"]`).getAttribute("aria-pressed")).toBe("true");
       expect(await page.locator(".study-annotations").isVisible()).toBe(true);
       expect(await page.locator(".study-annotations span:not([hidden])").count()).toBe(geographicBuildings.length);
@@ -292,8 +296,8 @@ describe("full-screen 3D skyline", () => {
     expect(await page.evaluate(() => [window.__buildingStudy!.projection, window.__buildingStudy!.activeView])).toEqual(["perspective", "skyline"]);
     expect(await page.locator(".study-annotations").isHidden()).toBe(true);
 
-    // The ground toggles start with the streets showing and the footprints hidden. Seen in
-    // height comparison, each changes the picture, and pressing it again restores it.
+    // The ground toggles start with the streets' roadways showing and the footprints hidden.
+    // Seen in height comparison, each changes the picture, and pressing it again restores it.
     await page.locator('[data-view="heights"]').click();
     await settle(page);
     const picture = () => page.locator("#building").screenshot();

@@ -372,6 +372,13 @@ export function createBuildingStudy({
     controls.update();
   }
 
+  // The platform, and any extra marked as ground, such as mapped roads, take building
+  // shadows in every view but ground plan.
+  function setGroundShadows(enabled: boolean) {
+    base.receiveShadow = enabled;
+    extras.forEach((object) => object.traverse((child) => { if (child.userData["ground"]) child.receiveShadow = enabled; }));
+  }
+
   function setView(name: string) {
     setTurning(false);
     if (!views[name]) return;
@@ -386,7 +393,7 @@ export function createBuildingStudy({
     controls.minZoom = 0.5;
     controls.maxZoom = maximumZoom;
     camera.zoom = 1;
-    base.receiveShadow = name !== "top";
+    setGroundShadows(name !== "top");
     frameFit = view.fit || fit;
     frameDistance = view.distance ?? null;
     frameOffset = view.offset ?? [0, 0];
@@ -601,7 +608,7 @@ export function createBuildingStudy({
     setView(keepPose ? previousView || "top" : nextView);
     if (keepPose && camera.isOrthographicCamera) {
       camera.position.copy(pose.position); controls.target.copy(pose.target); camera.zoom = pose.zoom;
-      base.receiveShadow = pose.groundShadows;
+      setGroundShadows(pose.groundShadows);
       camera.updateProjectionMatrix(); controls.update();
       if (!previousView) markView(null);
     }

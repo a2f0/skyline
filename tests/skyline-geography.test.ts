@@ -6,7 +6,7 @@ import type { Browser, Page } from "playwright";
 import * as THREE from "../vendor/three-r186.js";
 import type { BuildingModel, Vec2, Vec3 } from "../models/building-kit.js";
 import { geographicBuildings, geographicStreets } from "../models/skyline-geography-data.js";
-import { projectGround, footprintMetrics, createGeographicBuilding } from "../models/skyline-geography.js";
+import { projectGround, footprintMetrics, createGeographicBuilding, createGeographicRoads, streetWidth } from "../models/skyline-geography.js";
 import { floorLevel, onePrudentialLevels, wallStations } from "../models/one-prudential-tower.js";
 import { trumpSpire } from "../models/trump-geographic.js";
 import { trumpLevels } from "../models/trump-tower.js";
@@ -2537,6 +2537,43 @@ describe("mapped skyline geography", () => {
     expect(geographicStreets.some((street) => street.name === "North Michigan Avenue")).toBe(true);
     expect(geographicStreets.every((street) => !street.name.includes("Lower"))).toBe(true);
   }, { timeout: 180_000 });
+
+  test("lays the streets as roadways over the 3D skyline's platform, Michigan Avenue to its south edge", () => {
+    // Widths come from mapped lanes, or the class's usual count for the direction.
+    const street = { way: 0, version: 0, name: "", coordinates: [] };
+    expect(streetWidth({ ...street, highway: "secondary", lanes: 3, oneway: true })).toBeCloseTo(9.9, 9);
+    expect(streetWidth({ ...street, highway: "secondary" })).toBeCloseTo(13.2, 9);
+    expect(streetWidth({ ...street, highway: "tertiary", oneway: true })).toBeCloseTo(6.6, 9);
+    expect(streetWidth({ ...street, highway: "trunk_link", oneway: true })).toBeCloseTo(3.3, 9);
+    expect(streetWidth({ ...street, highway: "service" })).toBe(5);
+    // skyline-comparison.ts's platform: 1,200 m by 1,600 m, centred 128 m east and 85 m
+    // south of Crain.
+    const bounds = { x: [-472, 728] as Vec2, z: [-715, 885] as Vec2 };
+    const roads = createGeographicRoads(bounds, 0x2c2c2c);
+    const position = roads.geometry.getAttribute("position"), normal = roads.geometry.getAttribute("normal");
+    expect(position.count).toBeGreaterThan(0);
+    let outside = 0, downward = 0, notUp = 0;
+    for (let i = 0; i < position.count; i += 1) {
+      const x = position.getX(i), z = position.getZ(i);
+      if (x < bounds.x[0] - 1e-3 || x > bounds.x[1] + 1e-3 || z < bounds.z[0] - 1e-3 || z > bounds.z[1] + 1e-3) outside += 1;
+      if (normal.getY(i) !== 1) notUp += 1;
+    }
+    for (let i = 0; i < position.count; i += 3) {
+      const [ax, az, bx, bz, cx, cz] = [i, i + 1, i + 2].flatMap((j) => [position.getX(j), position.getZ(j)]) as [number, number, number, number, number, number];
+      if ((bz - az) * (cx - ax) - (bx - ax) * (cz - az) < 0) downward += 1;
+    }
+    expect([outside, notUp, downward], "every roadway lies on the platform, facing up").toEqual([0, 0, 0]);
+    expect(roads.receiveShadow && roads.userData["ground"], "roadways take building shadows with the platform").toBe(true);
+    // Michigan Avenue's carriageways reach the platform's south edge, past Jackson.
+    const michigan = geographicStreets.filter((record) => record.name === "South Michigan Avenue")
+      .flatMap((record) => record.coordinates.map((p) => projectGround(p)[0]));
+    let southEdge = 0;
+    for (let i = 0; i < position.count; i += 1) {
+      const x = position.getX(i);
+      if (Math.abs(position.getZ(i) - bounds.z[1]) < 1e-3 && x > Math.min(...michigan) - 10 && x < Math.max(...michigan) + 10) southEdge += 1;
+    }
+    expect(southEdge, "Michigan Avenue's roadway meets the platform's south edge").toBeGreaterThan(0);
+  });
 });
 
 describe("geographic layout in the study", () => {
