@@ -1,6 +1,7 @@
 import { createBuildingStudy } from "./study-viewer.js";
 import { createGeographicSkyline } from "./skyline-comparison.js";
 import { createGeographicRoads } from "./models/skyline-geography.js";
+import type { BuildingModel } from "./models/building-kit.js";
 
 // The skyline viewer's full-screen 3D mode: every mapped building, seen through the
 // drawing's own camera and framed as index.html frames the drawing, so each tower stands
@@ -120,6 +121,110 @@ menuToggle.addEventListener("click", () => setMenu(menuToggle.getAttribute("aria
 addEventListener("resize", () => folds.forEach((fold) => fold.finish()));
 bar.addEventListener("keydown", (event) => {
   if (event.key !== "Escape" || menuToggle.getAttribute("aria-expanded") !== "true") return;
+  event.preventDefault();
   menuToggle.focus();
   setMenu(false);
 });
+
+// Right-clicking a building, or a long press on it where the browser raises a context menu
+// for one, as Chrome on Android does, opens its context menu at the pointer: the building's
+// name over one item, which floats the building's detail over the skyline. A right-drag still pans, so the menu opens only for a press that stays put: on
+// its release where the menu event comes with the press, as on macOS. Escape, Tab, a press
+// elsewhere, the wheel, or a resize closes it.
+const canvas = document.querySelector<HTMLCanvasElement>("#building")!;
+const menu = document.querySelector<HTMLElement>("#building-menu")!;
+const menuTitle = document.querySelector<HTMLElement>("#building-menu-title")!;
+const detailLink = document.querySelector<HTMLAnchorElement>("#building-detail-link")!;
+let menuBuilding = "";
+let press: { x: number; y: number; mouse: boolean; down: boolean; moved: boolean } | null = null;
+let pendingMenu: { building: BuildingModel; x: number; y: number } | null = null;
+function openMenu(building: BuildingModel, x: number, y: number) {
+  menuBuilding = building.building.userData["buildingId"];
+  menuTitle.textContent = building.building.userData["geography"]?.name ?? building.building.name;
+  detailLink.href = `building-detail.html?building=${encodeURIComponent(menuBuilding)}`;
+  menu.hidden = false;
+  // At the pointer, turned back from the window's right and bottom edges.
+  const { width, height } = menu.getBoundingClientRect();
+  menu.style.left = `${Math.max(4, x + width > innerWidth - 4 ? x - width : x)}px`;
+  menu.style.top = `${Math.max(4, y + height > innerHeight - 4 ? y - height : y)}px`;
+  detailLink.focus({ preventScroll: true });
+}
+function closeMenu() {
+  pendingMenu = null;
+  if (menu.hidden) return;
+  if (menu.contains(document.activeElement)) canvas.focus({ preventScroll: true });
+  menu.hidden = true;
+}
+window.addEventListener("pointerdown", (event) => { if (!menu.contains(event.target as Node)) closeMenu(); }, { capture: true });
+canvas.addEventListener("pointerdown", (event) => {
+  press = { x: event.clientX, y: event.clientY, mouse: event.pointerType === "mouse", down: true, moved: false };
+});
+window.addEventListener("pointermove", (event) => {
+  if (press?.down && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 4) press.moved = true;
+});
+window.addEventListener("pointerup", () => {
+  if (!press?.down) return;
+  press.down = false;
+  const pending = pendingMenu;
+  pendingMenu = null;
+  if (pending && !press.moved) openMenu(pending.building, pending.x, pending.y);
+});
+window.addEventListener("pointercancel", () => {
+  if (press) press.down = false;
+  pendingMenu = null;
+});
+canvas.addEventListener("contextmenu", (event) => {
+  const building = viewer.buildingAt(event.clientX, event.clientY);
+  if (!building) return closeMenu();
+  event.preventDefault();
+  if (press?.down && press.mouse) pendingMenu = { building, x: event.clientX, y: event.clientY };
+  else if (!(press?.mouse && press.moved)) openMenu(building, event.clientX, event.clientY);
+});
+canvas.addEventListener("wheel", closeMenu, { passive: true });
+window.addEventListener("resize", closeMenu);
+window.addEventListener("blur", closeMenu);
+menu.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" || event.key === "Tab") {
+    event.preventDefault();
+    closeMenu();
+  } else if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+    event.preventDefault();
+    detailLink.focus();
+  }
+});
+detailLink.addEventListener("click", (event) => {
+  closeMenu();
+  // A modified click opens the detail's own page, as any link does.
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  openDetail(menuBuilding, menuTitle.textContent ?? "");
+});
+
+// The detail floats in a panel over the skyline, in a frame of its own. Each detail gets a
+// fresh frame, so the page's history stays as it was, and closing the panel removes the frame
+// and its 3D view. The skyline stays live around it, and another building's menu replaces the
+// detail. Escape closes it from anywhere on the page or in the detail, unless an open menu or
+// toolbar takes it first, and focus returns to the skyline.
+const detailPanel = document.querySelector<HTMLDialogElement>("#building-detail")!;
+const detailClose = document.querySelector<HTMLButtonElement>("#detail-close")!;
+function openDetail(id: string, name: string) {
+  detailPanel.querySelector("iframe")?.remove();
+  const frame = document.createElement("iframe");
+  frame.title = `${name} — Building Detail`;
+  frame.src = `building-detail.html?building=${encodeURIComponent(id)}`;
+  frame.addEventListener("load", () => frame.contentWindow?.addEventListener("keydown", closeDetailOnEscape));
+  detailPanel.append(frame);
+  if (!detailPanel.open) detailPanel.show();
+  detailClose.focus();
+}
+function closeDetailOnEscape(event: KeyboardEvent) {
+  if (event.key !== "Escape" || event.defaultPrevented || !detailPanel.open) return;
+  event.preventDefault();
+  detailPanel.close();
+}
+window.addEventListener("keydown", closeDetailOnEscape);
+detailPanel.addEventListener("close", () => {
+  detailPanel.querySelector("iframe")?.remove();
+  canvas.focus({ preventScroll: true });
+});
+detailClose.addEventListener("click", () => detailPanel.close());

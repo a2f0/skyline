@@ -2,7 +2,7 @@
 
 This is a static site in TypeScript. Sources live as `.ts`; the browser module
 graph (`study-loader.ts`, `study-viewer.ts`, `skyline-study.ts`,
-`skyline-comparison.ts`, `skyline-3d.ts`, `building-study.ts`, and `models/*.ts`) compiles to
+`skyline-comparison.ts`, `skyline-3d.ts`, `building-study.ts`, `building-detail.ts`, and `models/*.ts`) compiles to
 `dist/` with tsc, which is the only build step, and `dist/` is gitignored.
 `bun run build:site` builds it; `bun run check` builds before the browser suites.
 The strictest `@tsconfig/strictest` rules apply everywhere; `bun run typecheck`
@@ -20,8 +20,8 @@ when it finishes whether it passed or failed, and appends the run to
 reads it back and `ship-pr` prints it at the end of a shipping run. The check runner typechecks the
 repository, starts and closes its own local server, and runs the merge helper,
 reference excerpt, and building kit suites under `bun test`, then builds `dist/`
-and runs the hover regressions, both 3D study browser suites, and the
-full-screen 3D skyline suite against the compiled site. Study pages share `study-viewer.ts`, `study.css`, and
+and runs the hover regressions, both 3D study browser suites, the building
+detail suite, and the full-screen 3D skyline suite against the compiled site. Study pages share `study-viewer.ts`, `study.css`, and
 `study-loader.ts`; keep model geometry and scene-specific placement and camera
 presets in their own modules. Use explicit paths when staging changes. Do not modify the vendored Three.js bundle as incidental cleanup.
 For branch review/shipping, set `SKYLINE_BASE_SHA` to the fetched base commit so

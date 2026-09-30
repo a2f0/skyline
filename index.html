@@ -323,6 +323,17 @@
         listenInFrame(frame);
         frame.addEventListener("load", () => listenInFrame(frame));
       }
+
+      // The controls lie over the top of the 3D skyline's frame, which floats a building's
+      // detail below them.
+      const controls = document.querySelector(".controls");
+      function insetSkyline() {
+        try {
+          skyline3dScene.contentDocument.documentElement.style.setProperty("--viewer-controls", `${Math.ceil(controls.getBoundingClientRect().bottom)}px`);
+        } catch {}
+      }
+      new ResizeObserver(insetSkyline).observe(controls);
+      skyline3dScene.addEventListener("load", insetSkyline);
     </script>
   </body>
 </html>

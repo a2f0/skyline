@@ -43,6 +43,7 @@ async function main() {
     const browserSuite = (file: string) => timings.run(`test:${path.basename(file, ".test.ts")}`, () => run(process.execPath, ["test", `tests/${file}`], env));
     await browserSuite("building-hover.test.ts");
     await browserSuite("building-study.test.ts");
+    await browserSuite("building-detail.test.ts");
     await browserSuite("skyline-study.test.ts");
     await browserSuite("skyline-geography.test.ts");
     await browserSuite("skyline-3d.test.ts");

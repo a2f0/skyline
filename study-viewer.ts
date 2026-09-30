@@ -509,16 +509,22 @@ export function createBuildingStudy({
   });
   controls.addEventListener("end", () => { interacting = false; });
 
-  canvas.addEventListener("pointermove", (event) => {
-    if (interacting || turning || event.pointerType === "touch") return;
+  // The building at a point in the window, if any: the nearest surface there, so a nearer
+  // tower hides the one behind it.
+  function buildingAt(x: number, y: number): BuildingModel | null {
     const bounds = canvas.getBoundingClientRect();
-    pointer.set((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1);
+    pointer.set((x - bounds.left) / bounds.width * 2 - 1, -(y - bounds.top) / bounds.height * 2 + 1);
     raycaster.setFromCamera(pointer, camera);
     // Intersect the full scene so the pedestal can occlude the tower base.
     const hit = raycaster.intersectObjects(scene.children, true).find((intersection) => (intersection.object as THREE.Mesh).isMesh && intersection.object.visible);
     let owner: THREE.Object3D | null | undefined = hit?.object;
     while (owner && !modelOwners.has(owner)) owner = owner.parent;
-    const nextModel = modelOwners.get(owner as THREE.Object3D) || null;
+    return modelOwners.get(owner as THREE.Object3D) || null;
+  }
+
+  canvas.addEventListener("pointermove", (event) => {
+    if (interacting || turning || event.pointerType === "touch") return;
+    const nextModel = buildingAt(event.clientX, event.clientY);
     if (nextModel !== selectedModel) {
       selectedModel?.setHighlighted(false);
       selectedModel = nextModel;
@@ -725,5 +731,5 @@ export function createBuildingStudy({
       return { min: min.clone().add(base.position).toArray(), max: max.clone().add(base.position).toArray() };
     },
   };
-  return { setLayout, setView, requestRender };
+  return { setLayout, setView, requestRender, buildingAt };
 }

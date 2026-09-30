@@ -25,6 +25,9 @@ const panorama = { x: -1400, y: -154.834, width: 9378.476, height: 3535.05 };
 // and centred, in the same layer units. The file's `skyline-position` group translates the
 // layer by (1105.5923, -87.26366) inside its viewBox.
 const drawingFrame = { x: -1105.5923, y: 87.26366, width: 8501.0986, height: 2782.0373 };
+// The direction the drawing's camera looks from, south-east of the skyline: its azimuth from
+// south toward east. A building's detail faces it the same way.
+export const skylineAzimuth = 36.1247 * Math.PI / 180;
 
 // The geographic skyline, registered with Crain's mapped centre at `anchor`: every mapped
 // building, their ground, the settings a study shows them with, and the drawing's camera.
@@ -58,7 +61,7 @@ export function createGeographicSkyline(anchor: Vec3 = [0, 0, 0]) {
   // buildings stay where they are mapped; only the camera is fitted. Eye positions
   // are meters east, up, and south of Crain's mapped centre.
   const photoEye: Vec3 = [1471.76, 2, 1948.8];
-  const photoAzimuth = 36.1247 * Math.PI / 180, photoPolar = 94.0182 * Math.PI / 180;
+  const photoAzimuth = skylineAzimuth, photoPolar = 94.0182 * Math.PI / 180;
   // The panorama's vertical field of view. The panorama is the reference excerpt's frame
   // widened about the same centre to every building the drawing shows, so the camera aims
   // where it always has.

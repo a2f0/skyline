@@ -12,13 +12,15 @@ import path from "node:path";
 export const root = path.resolve(import.meta.dirname, "..");
 export const dist = path.join(root, "dist");
 
-// Reachable from index.html, the two study pages, the WebGL viewer, and the 3D skyline.
+// Reachable from index.html, the two study pages, the WebGL viewer, the 3D skyline, and the
+// building detail its context menu opens.
 const staticFiles = [
   "index.html",
   "skyline-webgl.html",
   "skyline-study.html",
   "skyline-3d.html",
   "building-study.html",
+  "building-detail.html",
   "skyline-animated.svg",
   "skyline-original-fit.svg",
   "stars.svg",
@@ -37,6 +39,7 @@ const compiledEntries = [
   "skyline-comparison.ts",
   "skyline-3d.ts",
   "building-study.ts",
+  "building-detail.ts",
 ];
 
 // Top-level .ts files in models/ ship automatically as compiled .js, and their

@@ -55,6 +55,42 @@ button:disabled { cursor: default; opacity: 0.35; }
 .study-annotations [data-placement="below"] { transform: translate(-50%, 0); margin-top: 12px; }
 .study-annotations [data-placement="right"] { transform: translate(0, -50%); margin-top: 0; margin-left: 14px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+/* A building's detail fills its window: the model takes the height the header and toolbar
+   leave it, beside its notes, or above them in a narrow or short window, where the page
+   scrolls to them. Every height is set by the window, never by the canvas it holds.
+   Floated over the skyline viewer, the viewer's panel closes it, so the header leaves the
+   panel's close button its corner and drops the page's own links. */
+.building-detail { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+.building-detail header { padding: 22px 5vw 16px; }
+.building-detail h1 { font-size: clamp(24px, 3vw, 38px); }
+.building-detail main { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, 270px); grid-template-rows: minmax(0, 1fr); gap: 0 28px; width: 100%; margin: 0 auto; }
+.detail-model { display: flex; flex-direction: column; min-height: 0; }
+.building-detail .viewport { flex: 1 1 0; height: auto; min-height: 280px; border-top: 1px solid #292929; border-bottom: 1px solid #292929; }
+.building-detail .notes { display: block; min-height: 0; overflow-y: auto; border-top: 1px solid #292929; padding-top: 4px; }
+.framed .building-detail header { padding-right: 60px; }
+.framed .building-detail .study-links { display: none; }
+@media (max-width: 799px), (max-height: 499px) {
+  .building-detail { height: auto; min-height: 100vh; min-height: 100dvh; }
+  .building-detail main, .detail-model { display: block; }
+  .building-detail .viewport { height: clamp(300px, 62vh, 560px); }
+  .building-detail .notes { overflow: visible; border-top: 0; padding-top: 0; }
+}
+/* A building's context menu on the 3D skyline, at the pointer: the building's name over the
+   menu's one item. */
+.context-menu { position: fixed; z-index: 4; min-width: 160px; max-width: min(280px, calc(100vw - 8px)); padding: 4px; border: 1px solid #393939; border-radius: 3px; background: #080808f2; box-shadow: 0 10px 30px #000000cc; font-size: 11px; }
+.context-menu-title { margin: 0; padding: 5px 8px 6px; color: #858585; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.context-menu [role="menuitem"] { display: block; padding: 7px 8px; border-radius: 2px; color: #ddd; text-decoration: none; white-space: nowrap; }
+.context-menu [role="menuitem"]:is(:hover, :focus) { background: #202020; color: #fff; }
+.context-menu :focus-visible { outline-offset: -1px; }
+/* The detail its item floats over the skyline: centred in the scene above the control bar,
+   below anything that lies over the frame's top, as the skyline viewer's controls do, which
+   set --viewer-controls. The menu stays above it, so every building's menu can replace it. */
+.detail-panel { position: absolute; z-index: 3; inset: calc(var(--viewer-controls, 0px) + 12px) 12px 12px; width: min(1040px, calc(100% - 24px)); height: min(760px, calc(100% - var(--viewer-controls, 0px) - 24px)); max-width: none; max-height: none; margin: auto; padding: 0; overflow: hidden; border: 1px solid #393939; border-radius: 3px; background: #080808; color: #ddd; box-shadow: 0 24px 80px #000000e6; }
+.detail-panel[open] { animation: detail-in 0.18s cubic-bezier(0.2, 0.7, 0.2, 1); }
+@keyframes detail-in { from { opacity: 0; scale: 0.98; } }
+.detail-panel iframe { display: block; width: 100%; height: 100%; border: 0; }
+.detail-panel .detail-close { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; font-size: 18px; line-height: 1; }
+.detail-panel .detail-close:focus-visible { outline-offset: 2px; }
 /* The skyline viewer's full-screen 3D mode fills its frame above a control bar docked to
    the bottom, and stays transparent, so the viewer's stars show above the towers. The
    skyline stands on the bar, as the drawing stands on the viewer's bottom edge. */
@@ -101,6 +137,7 @@ button:disabled { cursor: default; opacity: 0.35; }
 }
 @media (prefers-reduced-motion: reduce) {
   .menu-toggle svg { transition: none; }
+  .detail-panel[open] { animation: none; }
 }
 @media (max-width: 600px) {
   .layout-controls { align-items: start; flex-direction: column; gap: 12px; }
