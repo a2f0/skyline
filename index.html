@@ -304,12 +304,25 @@
         fullscreenButton.hidden = true;
       }
 
-      document.addEventListener("keydown", (event) => {
+      function fullscreenShortcut(event) {
         if (event.key.toLowerCase() === "f" && !event.metaKey && !event.ctrlKey && !event.altKey) {
           event.preventDefault();
           toggleFullscreen();
         }
-      });
+      }
+
+      document.addEventListener("keydown", fullscreenShortcut);
+      // Keys pressed inside a scene, such as on the 3D skyline's canvas, go to its frame's own
+      // window, so listen there too. A frame from another origin, as under file://, keeps them.
+      function listenInFrame(frame) {
+        try {
+          frame.contentWindow.addEventListener("keydown", fullscreenShortcut);
+        } catch {}
+      }
+      for (const frame of [skyline3dScene, scene, webglScene]) {
+        listenInFrame(frame);
+        frame.addEventListener("load", () => listenInFrame(frame));
+      }
     </script>
   </body>
 </html>
