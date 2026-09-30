@@ -165,6 +165,8 @@ interface BuildingStudyOptions {
   initialLayout?: string;
   onLayoutChange?: (name: string) => void;
   labels?: StudyLabel[];
+  // Whether the page opens on the turntable, where reduced motion allows it.
+  turntable?: boolean;
 }
 
 export function createBuildingStudy({
@@ -193,6 +195,7 @@ export function createBuildingStudy({
   initialLayout = "original",
   onLayoutChange = () => {},
   labels = [],
+  turntable = false,
 }: BuildingStudyOptions) {
   const original = { models, extras, fit, target, platform, lightPosition, shadowCamera, clippingMargin };
   let layout = "original";
@@ -669,6 +672,7 @@ export function createBuildingStudy({
   // layout its markup starts in.
   if (initialLayout !== layout) setLayout(initialLayout);
   else { markLayout(layout); onLayoutChange(layout); }
+  if (turntable) setTurning(true);
   renderer.render(scene, camera);
   document.querySelector<HTMLElement>("#loading")!.hidden = true;
   window.__buildingStudy = {
