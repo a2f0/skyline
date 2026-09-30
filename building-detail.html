@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#080808" />
+    <link rel="icon" href="data:," />
+    <title>Building Detail — Chicago Skyline</title>
+    <link rel="stylesheet" href="study.css" />
+    <!-- Floated over the skyline viewer, the page leaves its links to the viewer's panel. -->
+    <script>if (window.frameElement) document.documentElement.classList.add("framed");</script>
+  </head>
+  <body class="building-detail">
+    <header>
+      <div>
+        <p class="eyebrow">Chicago skyline / building detail</p>
+        <h1 id="building-name">Building detail</h1>
+        <p class="address" id="building-heights"></p>
+      </div>
+      <nav class="study-links" aria-label="Studies"><a href="skyline-study.html">Skyline study →</a><a class="back" href="index.html">← back to skyline</a></nav>
+    </header>
+    <main>
+      <div class="detail-model">
+        <div class="viewport" id="viewport">
+          <canvas id="building" tabindex="0" role="img" aria-label="Interactive 3D model of the building" aria-describedby="camera-hint"></canvas>
+          <span class="view-label" id="view-label">three-quarter view</span>
+          <p class="loading" id="loading" role="status">Preparing the building…</p>
+          <p class="hint" id="camera-hint">Drag to orbit · scroll or pinch to zoom<br />Arrow keys rotate · + / − zoom · Home resets</p>
+        </div>
+        <div class="toolbar" aria-label="Building detail controls">
+          <div class="button-group" role="group" aria-label="Camera views">
+            <button type="button" data-view="front">front</button>
+            <button type="button" data-view="quarter" aria-pressed="true">three-quarter</button>
+            <button type="button" data-view="side">side</button>
+            <button type="button" id="reset">reset view</button>
+          </div>
+          <div class="button-group" role="group" aria-label="Model display">
+            <button type="button" id="wireframe" aria-pressed="false">wireframe</button>
+            <button type="button" id="turntable" aria-pressed="false" aria-describedby="motion-status">turntable</button>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <p id="building-note"></p>
+        <p id="building-facts"></p>
+        <p id="motion-status" role="status">Camera moves only when you interact or start the turntable.</p>
+      </div>
+      <noscript><p>Enable JavaScript to explore the 3D model.</p></noscript>
+    </main>
+    <div class="tooltip" id="tooltip" aria-hidden="true" hidden></div>
+    <script src="study-loader.js" data-study="./building-detail.js"></script>
+  </body>
+</html>

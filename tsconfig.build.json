@@ -12,6 +12,7 @@
     "skyline-comparison.ts",
     "skyline-3d.ts",
     "building-study.ts",
+    "building-detail.ts",
     "models/*.ts"
   ]
 }

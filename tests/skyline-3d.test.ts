@@ -4,6 +4,7 @@ import path from "node:path";
 import { chromium } from "playwright";
 import type { Browser, Frame, Page } from "playwright";
 import { geographicBuildings } from "../models/skyline-geography-data.js";
+import { footprintMetrics } from "../models/skyline-geography.js";
 import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
@@ -515,6 +516,136 @@ describe("full-screen 3D skyline", () => {
     expect(await scene.evaluate(() => window.__buildingStudy!.activeView)).toBe("skyline");
     (await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).forEach((value, axis) => near(value, eye[axis]!, 1e-6));
     await phone.close();
+  }, { timeout: 180_000 });
+
+  test("floats a building's detail over the skyline from its context menu, without leaving the viewer", async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    watch(page);
+    await page.goto(`${origin}/index.html`);
+    const scene = await openScene(page);
+    const visits = await page.evaluate(() => history.length);
+    const canvas = (await scene.locator("#building").boundingBox())!;
+    // A point on a building, halfway up its mapped centre, in the viewer's window.
+    const on = async (id: string) => {
+      const record = geographicBuildings.find((building) => building.id === id)!;
+      const { center } = footprintMetrics(record.footprint.coordinates);
+      const point = [center[0], record.height / 2, -center[1]];
+      const [u, v] = await scene.evaluate(([id, point]) => window.__buildingStudy!.projectPoint(id, point), [id, point] as const);
+      return { x: canvas.x + u * canvas.width, y: canvas.y + v * canvas.height };
+    };
+    const aon = await on("layer3");
+    const menu = scene.locator("#building-menu");
+    const focused = (frame: Page | Frame) => frame.evaluate(() => document.activeElement?.id);
+    const topmost = (frame: Page | Frame, { x, y, width, height }: { x: number; y: number; width: number; height: number }) =>
+      frame.evaluate(([x, y]) => document.elementFromPoint(x, y)?.id, [x + width / 2, y + height / 2] as const);
+    // The sky has no menu, and a right-drag across a building pans rather than opening one.
+    await page.mouse.click(canvas.x + 60, canvas.y + 120, { button: "right" });
+    expect(await menu.isHidden()).toBe(true);
+    const eye = await scene.evaluate(() => window.__buildingStudy!.cameraPosition);
+    await page.mouse.move(aon.x, aon.y);
+    await page.mouse.down({ button: "right" });
+    await page.mouse.move(aon.x + 80, aon.y + 20, { steps: 6 });
+    await page.mouse.up({ button: "right" });
+    expect(await menu.isHidden()).toBe(true);
+    expect(await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).not.toEqual(eye);
+    await scene.locator("#building").focus();
+    await page.keyboard.press("Home");
+    // A right-click on a building opens its menu at the pointer: its name over one item,
+    // focused. Escape closes it and returns focus to the skyline.
+    await page.mouse.click(aon.x, aon.y, { button: "right" });
+    expect(await menu.isVisible()).toBe(true);
+    expect(await scene.locator("#building-menu-title").textContent()).toBe("Aon Center");
+    expect(await scene.locator('#building-menu [role="menuitem"]').allTextContents()).toEqual(["building detail"]);
+    expect(await scene.locator("#building-detail-link").getAttribute("href")).toBe("building-detail.html?building=layer3");
+    expect(await focused(scene)).toBe("building-detail-link");
+    const box = (await menu.boundingBox())!;
+    near(box.x, aon.x, 1);
+    near(box.y, aon.y, 1);
+    await page.keyboard.press("Escape");
+    expect(await menu.isHidden()).toBe(true);
+    expect(await focused(scene)).toBe("building");
+    // Its item floats the building's detail over the skyline, below the viewer's controls,
+    // and the panel takes focus. The viewer stays where it is, with no history of its own.
+    await page.mouse.click(aon.x, aon.y, { button: "right" });
+    await scene.locator("#building-detail-link").click();
+    expect(await menu.isHidden()).toBe(true);
+    const panel = scene.locator("#building-detail");
+    expect(await panel.isVisible()).toBe(true);
+    const openDetail = async () => {
+      const frame = (await (await panel.locator("iframe").elementHandle())!.contentFrame())!;
+      await frame.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
+      return frame;
+    };
+    let detail = await openDetail();
+    expect(detail.url()).toBe(`${origin}/building-detail.html?building=layer3`);
+    expect([page.url(), scene.url()]).toEqual([`${origin}/index.html`, `${origin}/skyline-3d.html`]);
+    expect(await page.evaluate(() => history.length)).toBe(visits);
+    expect(await detail.locator("h1").textContent()).toBe("Aon Center");
+    expect(await panel.locator("iframe").getAttribute("title")).toBe("Aon Center — Building Detail");
+    expect(await detail.locator(".study-links").isHidden(), "the panel closes the detail, not the page's own links").toBe(true);
+    expect(await focused(scene)).toBe("detail-close");
+    const floating = (await panel.boundingBox())!, controls = (await page.locator(".controls").boundingBox())!;
+    const bar = (await scene.locator(".control-bar").boundingBox())!;
+    expect(floating.x >= 0 && floating.x + floating.width <= 1440 && floating.y + floating.height <= bar.y, "the panel stays in the scene above the control bar").toBe(true);
+    expect(controls.y + controls.height, "the panel stands below the viewer's controls").toBeLessThanOrEqual(floating.y);
+    const close = (await scene.locator("#detail-close").boundingBox())!;
+    expect([await topmost(page, close), await topmost(scene, close)], "nothing covers the close button").toEqual(["skyline-3d-scene", "detail-close"]);
+    await page.screenshot({ path: "/tmp/skyline-3d-detail.png" });
+    // The skyline stays live beside it, and another building's menu, drawn over the panel
+    // where it reaches it, replaces the detail.
+    const park = await on("building-340-on-the-park");
+    expect(park.x, "340 on the Park shows beside the panel").toBeGreaterThan(floating.x + floating.width);
+    await page.mouse.click(park.x, park.y, { button: "right" });
+    expect(await scene.locator("#building-menu-title").textContent()).toBe("340 on the Park");
+    const item = (await scene.locator("#building-detail-link").boundingBox())!;
+    expect(item.x, "the menu reaches over the panel").toBeLessThan(floating.x + floating.width);
+    expect(await topmost(scene, item)).toBe("building-detail-link");
+    await scene.locator("#building-detail-link").click();
+    await scene.waitForFunction(() => document.querySelector<HTMLIFrameElement>("#building-detail iframe")?.src.endsWith("building=building-340-on-the-park"));
+    detail = await openDetail();
+    expect(await panel.locator("iframe").count()).toBe(1);
+    expect(await detail.locator("h1").textContent()).toBe("340 on the Park");
+    // Escape inside the detail closes the panel, removing its frame, and focus returns to
+    // the skyline; so does the close button.
+    await detail.locator("#building").focus();
+    await page.keyboard.press("Escape");
+    await scene.waitForFunction(() => !document.querySelector("#building-detail iframe"));
+    expect(await panel.isHidden()).toBe(true);
+    expect(await focused(scene)).toBe("building");
+    await page.mouse.click(aon.x, aon.y, { button: "right" });
+    await scene.locator("#building-detail-link").click();
+    await openDetail();
+    await scene.locator("#detail-close").click();
+    await scene.waitForFunction(() => !document.querySelector("#building-detail iframe"));
+    expect(await panel.isHidden()).toBe(true);
+    expect(await page.evaluate(() => history.length)).toBe(visits);
+    await page.close();
+  }, { timeout: 180_000 });
+
+  test("floats the detail on its own page too, at once under reduced motion", async () => {
+    // Reduced motion stops the orbit controls, which otherwise take the right button; the
+    // menu opens all the same. With nothing over the page's top, the panel is centred in the
+    // scene above the control bar.
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+    watch(page);
+    await page.goto(`${origin}/skyline-3d.html`);
+    await page.waitForFunction(() => window.__buildingStudy?.ready);
+    const [u, v] = await page.evaluate(() => window.__buildingStudy!.projectPoint("layer3", [284, 200, -50]));
+    const canvas = (await page.locator("#building").boundingBox())!;
+    await page.mouse.click(canvas.x + u * canvas.width, canvas.y + v * canvas.height, { button: "right" });
+    expect(await page.locator("#building-menu-title").textContent()).toBe("Aon Center");
+    await page.locator("#building-detail-link").click();
+    const panel = page.locator("#building-detail");
+    expect(await panel.evaluate((element) => element.getAnimations().length)).toBe(0);
+    const box = (await panel.boundingBox())!, bar = (await page.locator(".control-bar").boundingBox())!;
+    expect([box.width, box.height]).toEqual([1040, 760]);
+    near(box.x, (1440 - box.width) / 2, 1);
+    near(box.y, (bar.y - box.height) / 2, 1);
+    const detail = (await (await panel.locator("iframe").elementHandle())!.contentFrame())!;
+    await detail.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
+    expect(await detail.locator("h1").textContent()).toBe("Aon Center");
+    expect(page.url()).toBe(`${origin}/skyline-3d.html`);
+    await page.close();
   }, { timeout: 180_000 });
 
   test("loads only local assets without page errors", () => {
