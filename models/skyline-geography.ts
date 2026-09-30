@@ -2,7 +2,7 @@ import * as THREE from "../vendor/three-r186.js";
 import { line } from "./building-kit.js";
 import type { BuildingModel, Plan, Vec2, Vec3 } from "./building-kit.js";
 import { geographicBuildings, geographicStreets } from "./skyline-geography-data.js";
-import type { GeoBuilding } from "./skyline-geography-data.js";
+import type { GeoBuilding, GeoStreet } from "./skyline-geography-data.js";
 import { createAonGeographicBuilding } from "./aon-geographic.js";
 import { createBlueCrossGeographicBuilding } from "./blue-cross-geographic.js";
 import { createBorgWarnerGeographicBuilding } from "./borg-warner-geographic.js";
@@ -183,6 +183,90 @@ function lines(points: Vec3[], color: number): THREE.LineSegments {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(points.flat(), 3));
   return new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color }));
+}
+
+// A street's roadway, 3.3 m to a lane: its mapped lanes, or its class's usual count, which
+// depends on whether it is one-way. A named service way is a single 5 m lane.
+const usualLanes: Record<string, [oneWay: number, twoWay: number]> = {
+  trunk: [3, 6], primary: [3, 4], secondary: [3, 4], tertiary: [2, 2], residential: [1, 2], unclassified: [1, 2], living_street: [1, 2],
+};
+export function streetWidth(street: GeoStreet): number {
+  if (street.highway === "service") return 5;
+  const lanes = street.lanes ?? (street.highway.endsWith("_link") ? 1 : usualLanes[street.highway]?.[street.oneway ? 0 : 1] ?? 2);
+  return lanes * 3.3;
+}
+
+// Clips a polygon in the ground's x/z plane to a rectangle (Sutherland–Hodgman).
+function clipToRectangle(polygon: Vec2[], [xMin, xMax]: Vec2, [zMin, zMax]: Vec2): Vec2[] {
+  const edges: [axis: 0 | 1, limit: number, keepBelow: boolean][] = [[0, xMin, false], [0, xMax, true], [1, zMin, false], [1, zMax, true]];
+  return edges.reduce((points, [axis, limit, keepBelow]) => {
+    const inside = (p: Vec2) => keepBelow ? p[axis] <= limit : p[axis] >= limit;
+    const clipped: Vec2[] = [];
+    points.forEach((current, i) => {
+      const previous = points[(i + points.length - 1) % points.length]!;
+      if (inside(current) !== inside(previous)) {
+        const t = (limit - previous[axis]) / (current[axis] - previous[axis]);
+        clipped.push([previous[0] + (current[0] - previous[0]) * t, previous[1] + (current[1] - previous[1]) * t]);
+      }
+      if (inside(current)) clipped.push(current);
+    });
+    return clipped;
+  }, polygon);
+}
+
+// The mapped streets as roadway surfaces, each its width about its centreline with round
+// joins, cut to a rectangle of the ground (x east, z south, in metres from the ground's
+// origin) so no road runs past the platform it lies on. They sit just above the platform,
+// under the footprint outlines; overlapping roadways share one flat colour. Marked as
+// ground, so they take building shadows wherever the platform does.
+export function createGeographicRoads(bounds: { x: Vec2; z: Vec2 }, color: number, offset: [number, number] = [0, 0]): THREE.Mesh {
+  const positions: number[] = [];
+  const addPolygon = (polygon: Vec2[]) => {
+    const points = clipToRectangle(polygon, bounds.x, bounds.z);
+    for (let i = 1; i < points.length - 1; i += 1) {
+      const a = points[0]!, b = points[i]!, c = points[i + 1]!;
+      // Wind each triangle to face up, and drop the slivers a clip or a straight run leaves.
+      const area = (b[1] - a[1]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[1] - a[1]);
+      if (Math.abs(area) < 1e-6) continue;
+      for (const [x, z] of area > 0 ? [a, b, c] : [a, c, b]) positions.push(x, 0.03, z);
+    }
+  };
+  for (const street of geographicStreets) {
+    const radius = streetWidth(street) / 2;
+    const points = street.coordinates.map((coordinate): Vec2 => { const [east, north] = projectGround(coordinate); return [east, -north]; })
+      .filter((p, i, all) => i === 0 || Math.hypot(p[0] - all[i - 1]![0], p[1] - all[i - 1]![1]) > 1e-6);
+    // Each segment's unit normal, scaled to the roadway's half width.
+    const sides = points.slice(1).map((b, i): Vec2 => {
+      const a = points[i]!, length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      return [-(b[1] - a[1]) / length * radius, (b[0] - a[0]) / length * radius];
+    });
+    points.forEach((a, i) => {
+      // A round join where the street ends or turns. A shallow bend needs only the bevel
+      // between its segments' edge corners, on either side, to close the outer wedge.
+      const before = sides[i - 1], after = sides[i];
+      const turn = before && after ? Math.abs(Math.atan2(before[0] * after[1] - before[1] * after[0], before[0] * after[0] + before[1] * after[1])) : Math.PI;
+      if (turn > 0.05) {
+        // Twelve sides about the half width's circle, so every edge corner within it is covered.
+        const joint: Vec2[] = [], reach = radius / Math.cos(Math.PI / 12);
+        for (let k = 0; k < 12; k += 1) joint.push([a[0] + reach * Math.cos(k * Math.PI / 6), a[1] + reach * Math.sin(k * Math.PI / 6)]);
+        addPolygon(joint);
+      } else if (before && after) {
+        for (const sign of [1, -1]) addPolygon([a, [a[0] + sign * before[0], a[1] + sign * before[1]], [a[0] + sign * after[0], a[1] + sign * after[1]]]);
+      }
+      const b = points[i + 1];
+      if (!b || !after) return;
+      addPolygon([[a[0] + after[0], a[1] + after[1]], [b[0] + after[0], b[1] + after[1]], [b[0] - after[0], b[1] - after[1]], [a[0] - after[0], a[1] - after[1]]]);
+    });
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute("normal", new THREE.Float32BufferAttribute(positions.map((_, i) => i % 3 === 1 ? 1 : 0), 3));
+  const roads = new THREE.Mesh(geometry, new THREE.MeshToonMaterial({ color }));
+  roads.name = "Mapped streets";
+  roads.position.set(offset[0], 0, offset[1]);
+  roads.receiveShadow = true;
+  roads.userData["ground"] = true;
+  return roads;
 }
 
 export function createGeographicGround(offset: [number, number] = [0, 0]): { group: THREE.Group; streets: THREE.Group; footprints: THREE.LineSegments } {

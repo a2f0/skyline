@@ -6,7 +6,7 @@ import type { Browser, Page } from "playwright";
 import * as THREE from "../vendor/three-r186.js";
 import type { BuildingModel, Vec2, Vec3 } from "../models/building-kit.js";
 import { geographicBuildings, geographicStreets } from "../models/skyline-geography-data.js";
-import { projectGround, footprintMetrics, createGeographicBuilding } from "../models/skyline-geography.js";
+import { projectGround, footprintMetrics, createGeographicBuilding, createGeographicRoads, streetWidth } from "../models/skyline-geography.js";
 import { floorLevel, onePrudentialLevels, wallStations } from "../models/one-prudential-tower.js";
 import { trumpSpire } from "../models/trump-geographic.js";
 import { trumpLevels } from "../models/trump-tower.js";
@@ -2537,6 +2537,95 @@ describe("mapped skyline geography", () => {
     expect(geographicStreets.some((street) => street.name === "North Michigan Avenue")).toBe(true);
     expect(geographicStreets.every((street) => !street.name.includes("Lower"))).toBe(true);
   }, { timeout: 180_000 });
+
+  test("lays the streets as roadways over the 3D skyline's platform, Michigan Avenue to its south edge", () => {
+    // Widths come from mapped lanes, or the class's usual count for the direction.
+    const street = { way: 0, version: 0, name: "", coordinates: [] };
+    expect(streetWidth({ ...street, highway: "secondary", lanes: 3, oneway: true })).toBeCloseTo(9.9, 9);
+    expect(streetWidth({ ...street, highway: "secondary" })).toBeCloseTo(13.2, 9);
+    expect(streetWidth({ ...street, highway: "tertiary", oneway: true })).toBeCloseTo(6.6, 9);
+    expect(streetWidth({ ...street, highway: "trunk_link", oneway: true })).toBeCloseTo(3.3, 9);
+    expect(streetWidth({ ...street, highway: "service" })).toBe(5);
+    // skyline-comparison.ts's platform: 1,200 m by 1,600 m, centred 128 m east and 85 m
+    // south of Crain.
+    const bounds = { x: [-472, 728] as Vec2, z: [-715, 885] as Vec2 };
+    const roads = createGeographicRoads(bounds, 0x2c2c2c);
+    const position = roads.geometry.getAttribute("position"), normal = roads.geometry.getAttribute("normal");
+    expect(position.count).toBeGreaterThan(0);
+    let outside = 0, downward = 0, notUp = 0;
+    for (let i = 0; i < position.count; i += 1) {
+      const x = position.getX(i), z = position.getZ(i);
+      if (x < bounds.x[0] - 1e-3 || x > bounds.x[1] + 1e-3 || z < bounds.z[0] - 1e-3 || z > bounds.z[1] + 1e-3) outside += 1;
+      if (normal.getY(i) !== 1) notUp += 1;
+    }
+    for (let i = 0; i < position.count; i += 3) {
+      const [ax, az, bx, bz, cx, cz] = [i, i + 1, i + 2].flatMap((j) => [position.getX(j), position.getZ(j)]) as [number, number, number, number, number, number];
+      if ((bz - az) * (cx - ax) - (bx - ax) * (cz - az) < 0) downward += 1;
+    }
+    expect([outside, notUp, downward], "every roadway lies on the platform, facing up").toEqual([0, 0, 0]);
+    expect(roads.receiveShadow && roads.userData["ground"], "roadways take building shadows with the platform").toBe(true);
+    // Whether a roadway covers a ground point, through a 10 m grid of the triangles.
+    const cells = new Map<string, number[]>();
+    for (let i = 0; i < position.count; i += 3) {
+      const xs = [i, i + 1, i + 2].map((j) => position.getX(j)), zs = [i, i + 1, i + 2].map((j) => position.getZ(j));
+      for (let cx = Math.floor(Math.min(...xs) / 10); cx <= Math.floor(Math.max(...xs) / 10); cx += 1) {
+        for (let cz = Math.floor(Math.min(...zs) / 10); cz <= Math.floor(Math.max(...zs) / 10); cz += 1) {
+          const key = `${cx},${cz}`;
+          cells.set(key, [...cells.get(key) ?? [], i]);
+        }
+      }
+    }
+    const covered = ([x, z]: Vec2) => (cells.get(`${Math.floor(x / 10)},${Math.floor(z / 10)}`) ?? []).some((i) => {
+      const corners = [i, i + 1, i + 2].map((j) => [position.getX(j), position.getZ(j)] as Vec2);
+      return corners.every((a, k) => {
+        const b = corners[(k + 1) % 3]!;
+        return (b[1] - a[1]) * (x - a[0]) - (b[0] - a[0]) * (z - a[1]) >= 0;
+      });
+    });
+    // Michigan Avenue's two carriageways each reach the platform's south edge, past Jackson,
+    // across their whole width.
+    const crossings = geographicStreets.filter((record) => record.name === "South Michigan Avenue").flatMap((record) => {
+      const points = record.coordinates.map((p): Vec2 => { const [east, north] = projectGround(p); return [east, -north]; });
+      return points.slice(1).flatMap((b, i) => {
+        const a = points[i]!;
+        if ((a[1] - bounds.z[1]) * (b[1] - bounds.z[1]) > 0) return [];
+        return [{ x: a[0] + (b[0] - a[0]) * (bounds.z[1] - a[1]) / (b[1] - a[1]), radius: streetWidth(record) / 2 }];
+      });
+    });
+    expect(crossings.length, "both carriageways cross the south edge").toBe(2);
+    for (const { x, radius } of crossings) {
+      for (const across of [-0.9, 0, 0.9]) expect(covered([x + across * radius, bounds.z[1] - 0.5]), `Michigan Avenue at ${x.toFixed(1)} m east`).toBe(true);
+    }
+    // Every bend and every street end is closed out to 99% of the half width: along each
+    // bend's arc between its segments' edges, on either side, and all round each end, where
+    // another way may meet it at an angle. The arc's own ends lie on the edges its segments
+    // share with the join, so the samples stay between them.
+    let open = 0, bends = 0, ends = 0;
+    const onPlatform = (a: Vec2, radius: number) => bounds.x[0] + 2 * radius < a[0] && a[0] < bounds.x[1] - 2 * radius && bounds.z[0] + 2 * radius < a[1] && a[1] < bounds.z[1] - 2 * radius;
+    const reach = (a: Vec2, radius: number, angle: number) => covered([a[0] + 0.99 * radius * Math.cos(angle), a[1] + 0.99 * radius * Math.sin(angle)]);
+    for (const record of geographicStreets) {
+      const radius = streetWidth(record) / 2;
+      const points = record.coordinates.map((p): Vec2 => { const [east, north] = projectGround(p); return [east, -north]; });
+      for (const end of [points[0]!, points.at(-1)!]) {
+        if (!onPlatform(end, radius)) continue;
+        ends += 1;
+        for (let k = 0; k < 24; k += 1) if (!reach(end, radius, k * Math.PI / 12)) open += 1;
+      }
+      points.slice(1, -1).forEach((a, i) => {
+        const before = points[i]!, after = points[i + 2]!;
+        const heading = ([p, q]: [Vec2, Vec2]) => Math.atan2(q[1] - p[1], q[0] - p[0]);
+        const [h1, h2] = [heading([before, a]), heading([a, after])];
+        const turn = Math.atan2(Math.sin(h2 - h1), Math.cos(h2 - h1));
+        if (!onPlatform(a, radius) || !(Math.abs(turn) > 1e-3)) return;
+        bends += 1;
+        for (const side of [Math.PI / 2, -Math.PI / 2]) {
+          for (let k = 1; k < 8; k += 1) if (!reach(a, radius, h1 + side + turn * k / 8)) open += 1;
+        }
+      });
+    }
+    expect([bends > 100, ends > 100]).toEqual([true, true]);
+    expect(open, "bend or end points within the half width that show the platform").toBe(0);
+  });
 });
 
 describe("geographic layout in the study", () => {
