@@ -246,8 +246,9 @@ export function createGeographicRoads(bounds: { x: Vec2; z: Vec2 }, color: numbe
       const before = sides[i - 1], after = sides[i];
       const turn = before && after ? Math.abs(Math.atan2(before[0] * after[1] - before[1] * after[0], before[0] * after[0] + before[1] * after[1])) : Math.PI;
       if (turn > 0.05) {
-        const joint: Vec2[] = [];
-        for (let k = 0; k < 12; k += 1) joint.push([a[0] + radius * Math.cos(k * Math.PI / 6), a[1] + radius * Math.sin(k * Math.PI / 6)]);
+        // Twelve sides about the half width's circle, so every edge corner within it is covered.
+        const joint: Vec2[] = [], reach = radius / Math.cos(Math.PI / 12);
+        for (let k = 0; k < 12; k += 1) joint.push([a[0] + reach * Math.cos(k * Math.PI / 6), a[1] + reach * Math.sin(k * Math.PI / 6)]);
         addPolygon(joint);
       } else if (before && after) {
         for (const sign of [1, -1]) addPolygon([a, [a[0] + sign * before[0], a[1] + sign * before[1]], [a[0] + sign * after[0], a[1] + sign * after[1]]]);

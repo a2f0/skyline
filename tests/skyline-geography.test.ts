@@ -2596,26 +2596,35 @@ describe("mapped skyline geography", () => {
     for (const { x, radius } of crossings) {
       for (const across of [-0.9, 0, 0.9]) expect(covered([x + across * radius, bounds.z[1] - 0.5]), `Michigan Avenue at ${x.toFixed(1)} m east`).toBe(true);
     }
-    // Every bend is closed: just inside the corner where two segments' edges meet, on either
-    // side, a roadway covers the ground.
-    let open = 0, bends = 0;
+    // Every bend and every street end is closed out to 99% of the half width: along each
+    // bend's arc between its segments' edges, on either side, and all round each end, where
+    // another way may meet it at an angle. The arc's own ends lie on the edges its segments
+    // share with the join, so the samples stay between them.
+    let open = 0, bends = 0, ends = 0;
+    const onPlatform = (a: Vec2, radius: number) => bounds.x[0] + 2 * radius < a[0] && a[0] < bounds.x[1] - 2 * radius && bounds.z[0] + 2 * radius < a[1] && a[1] < bounds.z[1] - 2 * radius;
+    const reach = (a: Vec2, radius: number, angle: number) => covered([a[0] + 0.99 * radius * Math.cos(angle), a[1] + 0.99 * radius * Math.sin(angle)]);
     for (const record of geographicStreets) {
       const radius = streetWidth(record) / 2;
       const points = record.coordinates.map((p): Vec2 => { const [east, north] = projectGround(p); return [east, -north]; });
+      for (const end of [points[0]!, points.at(-1)!]) {
+        if (!onPlatform(end, radius)) continue;
+        ends += 1;
+        for (let k = 0; k < 24; k += 1) if (!reach(end, radius, k * Math.PI / 12)) open += 1;
+      }
       points.slice(1, -1).forEach((a, i) => {
         const before = points[i]!, after = points[i + 2]!;
-        const inward = [bounds.x[0] + 2 * radius < a[0], a[0] < bounds.x[1] - 2 * radius, bounds.z[0] + 2 * radius < a[1], a[1] < bounds.z[1] - 2 * radius];
-        const normal = ([p, q]: [Vec2, Vec2]): Vec2 => { const length = Math.hypot(q[0] - p[0], q[1] - p[1]); return [-(q[1] - p[1]) / length, (q[0] - p[0]) / length]; };
-        const [n1, n2] = [normal([before, a]), normal([a, after])];
-        const turn = Math.abs(Math.atan2(n1[0] * n2[1] - n1[1] * n2[0], n1[0] * n2[0] + n1[1] * n2[1]));
-        if (!inward.every(Boolean) || !(turn > 1e-3)) return;
-        const bisector: Vec2 = [(n1[0] + n2[0]) / Math.hypot(n1[0] + n2[0], n1[1] + n2[1]), (n1[1] + n2[1]) / Math.hypot(n1[0] + n2[0], n1[1] + n2[1])];
+        const heading = ([p, q]: [Vec2, Vec2]) => Math.atan2(q[1] - p[1], q[0] - p[0]);
+        const [h1, h2] = [heading([before, a]), heading([a, after])];
+        const turn = Math.atan2(Math.sin(h2 - h1), Math.cos(h2 - h1));
+        if (!onPlatform(a, radius) || !(Math.abs(turn) > 1e-3)) return;
         bends += 1;
-        for (const sign of [1, -1]) if (!covered([a[0] + sign * 0.95 * radius * bisector[0], a[1] + sign * 0.95 * radius * bisector[1]])) open += 1;
+        for (const side of [Math.PI / 2, -Math.PI / 2]) {
+          for (let k = 1; k < 8; k += 1) if (!reach(a, radius, h1 + side + turn * k / 8)) open += 1;
+        }
       });
     }
-    expect(bends).toBeGreaterThan(100);
-    expect(open, "bends whose outer corner shows the platform").toBe(0);
+    expect([bends > 100, ends > 100]).toEqual([true, true]);
+    expect(open, "bend or end points within the half width that show the platform").toBe(0);
   });
 });
 

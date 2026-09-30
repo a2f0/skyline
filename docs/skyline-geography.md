@@ -480,13 +480,15 @@ zero plane does not recover absolute roof elevations above sea level.
 
 ## Streets and validation
 
-Gold lines are mapped street **centerlines**, with no implied road or sidewalk
-width. Names containing “Lower”, negative OSM layers and negative levels are
+In the skyline study, gold lines are mapped street **centerlines**, with no implied road
+or sidewalk width. Tunnels, negative OSM layers and names containing “Lower” are
 excluded. Retained upper/surface roads are flattened to the ground; bridge
-heights, curbs, tunnels, the river and surrounding buildings are absent. The
-100 m grid runs from 850 m south of Crain to 650 m north, but the street extract stops
-near Madison, so the buildings south of it stand beyond the gold lines. The grid and
-mapped footprints help inspect whether the street arrangement fits. Checking curb clearances or Chicago's stacked streets requires additional
+heights, curbs, the river and surrounding buildings are absent. The gold lines are
+cut to the 100 m grid, which runs from 850 m south of Crain, past Jackson, to 650 m north,
+so every mapped building stands among them. The grid and mapped footprints help inspect
+whether the street arrangement fits. The full-screen 3D skyline draws the same ways as grey
+roadways sized from their lanes, cut to its platform's edges 885 m south and 715 m north of
+Crain. Checking curb clearances or Chicago's stacked streets requires additional
 width and elevation data.
 
 `tests/skyline-geography.test.ts`, included in `bun run check`, checks independent
