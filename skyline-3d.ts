@@ -50,8 +50,8 @@ for (const [id, object] of [["streets", roads], ["footprints", ground.footprints
   });
 }
 // The star in the middle of the bar opens and closes the toolbar. Each group unfolds from
-// the star's side of it, clipped open from its `--fold` inset while it fades in and slides
-// out, and folds back the same way before it hides. A toggle mid-way reverses the moving
+// the star: clipped open from its `--fold` inset while it fades in, one beside the star
+// slides out from it to its edge of the bar, and it folds back the same way before it hides. A toggle mid-way reverses the moving
 // fold from where it is. Closing groups are inert at once, and focus inside them returns to
 // the star first; reduced motion shows and hides them at once. Escape closes the toolbar from
 // inside the bar.
@@ -64,10 +64,13 @@ const foldDuration = 300;
 let folds: Animation[] = [];
 let unfolding = false;
 function unfold(group: HTMLElement) {
-  const style = getComputedStyle(group);
+  // A group in the star's row starts against the star; one in a row under it opens in place.
+  const star = menuToggle.getBoundingClientRect(), box = group.getBoundingClientRect();
+  const beside = box.top < star.bottom && box.bottom > star.top;
+  const shift = !beside ? 0 : box.right <= star.left ? star.left - box.right : box.left >= star.right ? star.right - box.left : 0;
   // Open, the clip stands off the group far enough to keep its buttons' focus rings.
   return group.animate([
-    { clipPath: style.getPropertyValue("--fold").trim(), opacity: 0, translate: `${style.getPropertyValue("--fold-shift").trim()} 0` },
+    { clipPath: getComputedStyle(group).getPropertyValue("--fold").trim(), opacity: 0, translate: `${shift}px 0` },
     { clipPath: "inset(-4px)", opacity: 1, translate: "0 0" },
   ], { duration: foldDuration, easing: "cubic-bezier(0.2, 0.7, 0.2, 1)", fill: "both" });
 }

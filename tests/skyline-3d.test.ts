@@ -227,7 +227,7 @@ describe("full-screen 3D skyline", () => {
 
   test("folds the study's toolbar behind a star in the middle of the bar, docked under the skyline at every size", async () => {
     // The bar carries the study's toolbar, in its order, and a footprints toggle, folded
-    // behind a white six-pointed star. Closed, the star alone shows, in the bar's middle.
+    // behind a muted grey six-pointed star. Closed, the star alone shows, in the bar's middle.
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     watch(page);
     await page.goto(`${origin}/skyline-study.html`);
@@ -240,7 +240,12 @@ describe("full-screen 3D skyline", () => {
     const groups = () => page.locator(".control-bar .button-group").evaluateAll((elements) => elements.map((element) => getComputedStyle(element).display));
     const settled = () => page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished)));
     expect([await star.getAttribute("aria-expanded"), await star.getAttribute("aria-label")]).toEqual(["false", "Skyline controls"]);
-    expect(await star.locator("path").evaluate((path) => getComputedStyle(path).fill)).toBe("rgb(255, 255, 255)");
+    const fill = () => star.locator("path").evaluate((path) => getComputedStyle(path).fill);
+    expect(await fill()).toBe("rgb(140, 140, 140)");
+    await star.hover();
+    expect(await fill(), "the star turns white under the pointer").toBe("rgb(255, 255, 255)");
+    await page.mouse.move(1, 1);
+    expect(await fill()).toBe("rgb(140, 140, 140)");
     expect(await groups()).toEqual(["none", "none"]);
     expect(await page.locator("#camera-hint").isHidden(), "the hint shows only with the controls").toBe(true);
     // The bar spans the bottom of the window, and the canvas, whose bottom edge the drawing's
@@ -262,18 +267,25 @@ describe("full-screen 3D skyline", () => {
     const closedHeights = new Set<number>();
     for (const open of [false, true]) {
       if (open) {
-        // Each group unfolds from the star. Held part way on a wide window, its clip is part
-        // open, it is part faded in, and it is still sliding out from the star.
+        // Each group unfolds from the star. On a wide window it starts against the star, and
+        // held part way, its clip is part open, it is part faded in, and it is still sliding
+        // out to its edge.
         await page.setViewportSize({ width: 1440, height: 1000 });
         await settle(page);
         await star.click();
         const folds = () => page.evaluate(() => document.getAnimations().filter((animation) => animation.id === "fold")
           .map((animation) => ({ rate: animation.playbackRate, time: Number(animation.currentTime) })));
-        const halfway = await page.evaluate(() => {
+        const { start, halfway } = await page.evaluate(() => {
           const unfolding = document.getAnimations().filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group"));
-          unfolding.forEach((animation) => { animation.id = "fold"; animation.pause(); animation.currentTime = 100; });
-          return [...document.querySelectorAll(".control-bar .button-group")].map((group) => ({ clip: getComputedStyle(group).clipPath, opacity: Number(getComputedStyle(group).opacity), shift: getComputedStyle(group).translate }));
+          const elements = [".camera-views", ".model-display", "#menu-toggle"].map((selector) => document.querySelector(selector)!);
+          unfolding.forEach((animation) => { animation.id = "fold"; animation.pause(); animation.currentTime = 0; });
+          const start = elements.map((element) => element.getBoundingClientRect().toJSON() as DOMRect);
+          unfolding.forEach((animation) => { animation.currentTime = 100; });
+          return { start, halfway: elements.slice(0, 2).map((group) => ({ clip: getComputedStyle(group).clipPath, opacity: Number(getComputedStyle(group).opacity), shift: getComputedStyle(group).translate })) };
         });
+        const [views, display, toggle] = start as [DOMRect, DOMRect, DOMRect];
+        near(views.right, toggle.left, 0.5);
+        near(display.left, toggle.right, 0.5);
         expect(halfway.length).toBe(2);
         for (const { clip, opacity, shift } of halfway) {
           expect(clip, "the clip opens part way").toMatch(/^inset\(/);
@@ -334,6 +346,12 @@ describe("full-screen 3D skyline", () => {
         near(layout.star.left + layout.star.width / 2, size.width / 2, 0.5);
         for (const control of [layout.star, ...open ? layout.controls : []]) {
           expect(control.left >= layout.bar.left && control.right <= layout.bar.right && control.top >= layout.bar.top && control.bottom <= layout.bar.bottom, `a control inside the bar ${at}`).toBe(true);
+        }
+        // Open, camera views reach the bar's left edge and model display its right, but for
+        // the narrowest windows, which centre each group in a row of its own.
+        if (open && size.width >= 1024) {
+          near(layout.controls[0]!.left, 12, 0.5);
+          near(layout.controls.at(-1)!.right, size.width - 12, 0.5);
         }
         if (!open) closedHeights.add(layout.bar.height);
         if (open && size.width >= 1260) expect(layout.bar.height, `one row ${at}, as tall as the closed bar`).toBe([...closedHeights][0]!);
