@@ -60,6 +60,7 @@ const menuToggle = document.querySelector<HTMLButtonElement>("#menu-toggle")!;
 const groups = [...bar.querySelectorAll<HTMLElement>(".button-group")];
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 // The groups' folds while they move, and which way: toward open, or back toward closed.
+const foldDuration = 300;
 let folds: Animation[] = [];
 let unfolding = false;
 function unfold(group: HTMLElement) {
@@ -68,7 +69,7 @@ function unfold(group: HTMLElement) {
   return group.animate([
     { clipPath: style.getPropertyValue("--fold").trim(), opacity: 0, translate: `${style.getPropertyValue("--fold-shift").trim()} 0` },
     { clipPath: "inset(-4px)", opacity: 1, translate: "0 0" },
-  ], { duration: 300, easing: "cubic-bezier(0.2, 0.7, 0.2, 1)", fill: "both" });
+  ], { duration: foldDuration, easing: "cubic-bezier(0.2, 0.7, 0.2, 1)", fill: "both" });
 }
 function setMenu(open: boolean) {
   menuToggle.setAttribute("aria-expanded", String(open));
@@ -82,9 +83,21 @@ function setMenu(open: boolean) {
     bar.classList.toggle("open", open);
     return;
   }
-  // Reverse a fold still moving the other way; otherwise start a fresh one from its end.
+  // Reverse a fold still moving the other way; otherwise start a fresh one from its end. A
+  // fold that has yet to leave its starting end, toggled back before its first frame, would
+  // seek to its far end on reverse(), so it settles where it stands instead.
   if (folds.length && folds.every((fold) => fold.playState === "running" || fold.playState === "paused")) {
-    if (unfolding !== open) folds.forEach((fold) => fold.reverse());
+    if (unfolding !== open) {
+      const unmoved = folds.every((fold) => { const time = Number(fold.currentTime ?? 0); return unfolding ? time <= 0 : time >= foldDuration; });
+      if (unmoved) {
+        folds.forEach((fold) => fold.cancel());
+        folds = [];
+        unfolding = open;
+        bar.classList.toggle("open", open);
+        return;
+      }
+      folds.forEach((fold) => fold.reverse());
+    }
   } else {
     folds.forEach((fold) => fold.cancel());
     folds = groups.map(unfold);

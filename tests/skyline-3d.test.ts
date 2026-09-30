@@ -280,22 +280,47 @@ describe("full-screen 3D skyline", () => {
           expect(clip).not.toBe("inset(-4px)");
           expect(opacity > 0.05 && opacity < 0.99 && shift !== "0px" && shift !== "none", `part faded in and still sliding: ${opacity}, ${shift}`).toBe(true);
         }
-        // Toggled part way, the fold reverses from where it stands, each way.
-        // The same two folds keep moving; a restart would replace them.
-        await star.click();
-        await settle(page);
-        const back = await folds();
+        // Toggled part way, the fold reverses from where it stands, each way: the same two
+        // folds, a restart would replace them, held again as soon as the reversal takes so
+        // they cannot run out while the test looks.
+        const toggleHeld = () => page.evaluate(async () => {
+          document.querySelector<HTMLButtonElement>("#menu-toggle")!.click();
+          const held = document.getAnimations().filter((animation) => animation.id === "fold");
+          await Promise.all(held.map((animation) => animation.ready));
+          held.forEach((animation) => animation.pause());
+          return held.map((animation) => ({ rate: animation.playbackRate, time: Number(animation.currentTime) }));
+        });
+        const back = await toggleHeld();
         expect(back.length, "the held folds carry on").toBe(2);
-        for (const { rate, time } of back) expect(rate < 0 && time > 30 && time <= 100, `folds back from ${time}`).toBe(true);
+        for (const { rate, time } of back) expect(rate < 0 && time > 50 && time < 150, `folds back from ${time}, not an end`).toBe(true);
         expect(await star.getAttribute("aria-expanded")).toBe("false");
-        await star.click();
-        await settle(page);
-        const again = await folds();
+        const again = await toggleHeld();
         expect(again.length, "the held folds carry on").toBe(2);
-        for (const { rate, time } of again) expect(rate > 0 && time > 30 && time <= 100, `unfolds again from ${time}`).toBe(true);
+        for (const { rate, time } of again) expect(rate > 0 && time > 50 && time < 150, `unfolds again from ${time}, not an end`).toBe(true);
+        await page.evaluate(() => document.getAnimations().forEach((animation) => animation.play()));
         await settled();
         expect([await star.getAttribute("aria-expanded"), await groups(), await folds()]).toEqual(["true", ["flex", "flex"], []]);
         expect(await page.locator(".control-bar .button-group").evaluateAll((elements) => elements.map((element) => getComputedStyle(element).clipPath))).toEqual(["none", "none"]);
+        // Toggled back before a fold has moved, the groups stay where they stand rather than
+        // jumping to its far end: open from a fold not yet begun, closed from an unfold.
+        const toggleTwice = () => page.evaluate(() => {
+          const toggle = document.querySelector<HTMLButtonElement>("#menu-toggle")!;
+          toggle.click();
+          toggle.click();
+          const elements = [...document.querySelectorAll(".control-bar .button-group")];
+          return {
+            expanded: toggle.getAttribute("aria-expanded"),
+            shown: elements.map((element) => [getComputedStyle(element).display, getComputedStyle(element).opacity]),
+            moving: document.getAnimations().filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group")).length,
+          };
+        });
+        expect(await toggleTwice()).toEqual({ expanded: "true", shown: [["flex", "1"], ["flex", "1"]], moving: 0 });
+        await star.click();
+        await settled();
+        expect(await toggleTwice()).toEqual({ expanded: "false", shown: [["none", "1"], ["none", "1"]], moving: 0 });
+        await star.click();
+        await settled();
+        expect([await star.getAttribute("aria-expanded"), await groups()]).toEqual(["true", ["flex", "flex"]]);
       }
       for (const size of sizes) {
         await page.setViewportSize(size);
