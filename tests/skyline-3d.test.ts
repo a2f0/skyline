@@ -606,15 +606,33 @@ describe("full-screen 3D skyline", () => {
     expect(await panel.locator("iframe").count()).toBe(1);
     expect(await detail.locator("h1").textContent()).toBe("340 on the Park");
     // Escape inside the detail closes the panel, removing its frame, and focus returns to
-    // the skyline; so does the close button.
+    // the skyline.
     await detail.locator("#building").focus();
     await page.keyboard.press("Escape");
     await scene.waitForFunction(() => !document.querySelector("#building-detail iframe"));
     expect(await panel.isHidden()).toBe(true);
     expect(await focused(scene)).toBe("building");
-    await page.mouse.click(aon.x, aon.y, { button: "right" });
-    await scene.locator("#building-detail-link").click();
-    await openDetail();
+    // So does Escape once focus has left the panel for the skyline, but an open menu or
+    // toolbar takes it first; and so does the close button.
+    const reopen = async () => {
+      await page.mouse.click(aon.x, aon.y, { button: "right" });
+      await scene.locator("#building-detail-link").click();
+      await openDetail();
+    };
+    await reopen();
+    await page.mouse.click(park.x, park.y, { button: "right" });
+    expect(await menu.isVisible()).toBe(true);
+    await page.keyboard.press("Escape");
+    expect([await menu.isHidden(), await panel.isVisible(), await focused(scene)]).toEqual([true, true, "building"]);
+    const star = scene.locator("#menu-toggle");
+    await star.click();
+    await scene.locator("#wireframe").focus();
+    await page.keyboard.press("Escape");
+    expect([await star.getAttribute("aria-expanded"), await panel.isVisible(), await focused(scene)]).toEqual(["false", true, "menu-toggle"]);
+    await page.keyboard.press("Escape");
+    await scene.waitForFunction(() => !document.querySelector("#building-detail iframe"));
+    expect(await panel.isHidden()).toBe(true);
+    await reopen();
     await scene.locator("#detail-close").click();
     await scene.waitForFunction(() => !document.querySelector("#building-detail iframe"));
     expect(await panel.isHidden()).toBe(true);
@@ -622,7 +640,7 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
-  test("floats the detail on its own page too, at once under reduced motion", async () => {
+  test("floats the detail on its own page too, at once under reduced motion, whatever order the menu event comes in", async () => {
     // Reduced motion stops the orbit controls, which otherwise take the right button; the
     // menu opens all the same. With nothing over the page's top, the panel is centred in the
     // scene above the control bar.
@@ -632,7 +650,28 @@ describe("full-screen 3D skyline", () => {
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     const [u, v] = await page.evaluate(() => window.__buildingStudy!.projectPoint("layer3", [284, 200, -50]));
     const canvas = (await page.locator("#building").boundingBox())!;
-    await page.mouse.click(canvas.x + u * canvas.width, canvas.y + v * canvas.height, { button: "right" });
+    const x = canvas.x + u * canvas.width, y = canvas.y + v * canvas.height;
+    // Browsers send the menu event in different orders, and the pointer the other tests drive
+    // sends it one way only. Where it comes with the press, as on macOS, the menu opens on the
+    // release; where it follows the release, as on Windows and Linux, at once; after a drag,
+    // neither; and for a long press on a touch screen, whose event comes while the finger is
+    // still down, at once. Each step reports whether the menu shows after it, and whether the
+    // browser's own menu was held back.
+    type Step = [type: "pointerdown" | "pointermove" | "pointerup" | "contextmenu", dx?: number, touch?: boolean];
+    const run = (steps: Step[]) => page.evaluate(([steps, x, y]) => steps.map(([type, dx = 0, touch = false]) => {
+      const canvas = document.querySelector("#building")!, at = { clientX: x + dx, clientY: y, bubbles: true, cancelable: true };
+      const delivered = type === "contextmenu" ? canvas.dispatchEvent(new MouseEvent(type, at))
+        : canvas.dispatchEvent(new PointerEvent(type, { ...at, pointerId: touch ? 2 : 1, pointerType: touch ? "touch" : "mouse", button: type === "pointermove" ? -1 : 2 }));
+      return [!document.querySelector<HTMLElement>("#building-menu")!.hidden, type === "contextmenu" ? !delivered : null];
+    }), [steps, x, y] as const);
+    expect(await run([["pointerdown"], ["contextmenu"], ["pointerup"]]), "the event with the press").toEqual([[false, null], [false, true], [true, null]]);
+    expect(await run([["pointerdown"], ["pointerup"], ["contextmenu"]]), "the event after the release").toEqual([[false, null], [false, null], [true, true]]);
+    expect(await run([["pointerdown"], ["contextmenu"], ["pointermove", 40], ["pointerup", 40]]), "a drag after the event").toEqual([[false, null], [false, true], [false, null], [false, null]]);
+    expect(await run([["pointerdown"], ["pointermove", 40], ["pointerup", 40], ["contextmenu"]]), "the event after a drag").toEqual([[false, null], [false, null], [false, null], [false, true]]);
+    expect(await run([["pointerdown", 0, true], ["contextmenu"], ["pointerup", 0, true]]), "a long press").toEqual([[false, null], [true, true], [true, null]]);
+    await page.keyboard.press("Escape");
+    expect(await page.locator("#building-menu").isHidden()).toBe(true);
+    await page.mouse.click(x, y, { button: "right" });
     expect(await page.locator("#building-menu-title").textContent()).toBe("Aon Center");
     await page.locator("#building-detail-link").click();
     const panel = page.locator("#building-detail");

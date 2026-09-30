@@ -121,6 +121,7 @@ menuToggle.addEventListener("click", () => setMenu(menuToggle.getAttribute("aria
 addEventListener("resize", () => folds.forEach((fold) => fold.finish()));
 bar.addEventListener("keydown", (event) => {
   if (event.key !== "Escape" || menuToggle.getAttribute("aria-expanded") !== "true") return;
+  event.preventDefault();
   menuToggle.focus();
   setMenu(false);
 });
@@ -202,7 +203,8 @@ detailLink.addEventListener("click", (event) => {
 // The detail floats in a panel over the skyline, in a frame of its own. Each detail gets a
 // fresh frame, so the page's history stays as it was, and closing the panel removes the frame
 // and its 3D view. The skyline stays live around it, and another building's menu replaces the
-// detail. Escape closes it from the panel or the detail, and focus returns to the skyline.
+// detail. Escape closes it from anywhere on the page or in the detail, unless an open menu or
+// toolbar takes it first, and focus returns to the skyline.
 const detailPanel = document.querySelector<HTMLDialogElement>("#building-detail")!;
 const detailClose = document.querySelector<HTMLButtonElement>("#detail-close")!;
 function openDetail(id: string, name: string) {
@@ -216,11 +218,11 @@ function openDetail(id: string, name: string) {
   detailClose.focus();
 }
 function closeDetailOnEscape(event: KeyboardEvent) {
-  if (event.key !== "Escape" || !detailPanel.open) return;
+  if (event.key !== "Escape" || event.defaultPrevented || !detailPanel.open) return;
   event.preventDefault();
   detailPanel.close();
 }
-detailPanel.addEventListener("keydown", closeDetailOnEscape);
+window.addEventListener("keydown", closeDetailOnEscape);
 detailPanel.addEventListener("close", () => {
   detailPanel.querySelector("iframe")?.remove();
   canvas.focus({ preventScroll: true });
