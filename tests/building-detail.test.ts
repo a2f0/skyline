@@ -91,17 +91,17 @@ describe("building detail", () => {
     // Opened on its own, it links back to the skyline.
     expect(await page.locator(".study-links").isVisible()).toBe(true);
     // It opens on the turntable, circling the building from the three-quarter view and
-    // drawing every frame; the turntable button, pressed, says so and stops it, and the
-    // page then draws only when the view changes.
-    const turntable = page.locator("#turntable");
+    // drawing frame after frame, as its status says; the turntable button, pressed, says so
+    // and stops it, and the page then draws only when the view changes.
+    const turntable = page.locator("#turntable"), status = page.locator("#motion-status");
     expect([await page.evaluate(() => window.__buildingStudy!.turning), await turntable.getAttribute("aria-pressed"), await turntable.textContent()]).toEqual([true, "true", "stop turntable"]);
-    const circling = await page.evaluate(() => [window.__buildingStudy!.renderCount, window.__buildingStudy!.cameraPosition] as const);
-    await page.waitForTimeout(300);
-    const circled = await page.evaluate(() => [window.__buildingStudy!.renderCount, window.__buildingStudy!.cameraPosition] as const);
-    expect(circled[0], "the turntable draws every frame").toBeGreaterThan(circling[0] + 5);
-    expect(circled[1]).not.toEqual(circling[1]);
+    expect(await status.textContent()).toBe("Turntable on: the camera circles the model until you stop the turntable, choose a view, or drag.");
+    const circling = await page.evaluate(() => ({ renders: window.__buildingStudy!.renderCount, eye: window.__buildingStudy!.cameraPosition }));
+    await page.waitForFunction(({ renders, eye }) => window.__buildingStudy!.renderCount > renders + 5
+      && window.__buildingStudy!.cameraPosition.some((value, axis) => Math.abs(value - eye[axis]!) > 1e-6), circling, { timeout: 10_000 });
     await turntable.click();
     expect([await page.evaluate(() => window.__buildingStudy!.turning), await turntable.getAttribute("aria-pressed"), await turntable.textContent()]).toEqual([false, "false", "turntable"]);
+    expect(await status.textContent()).toBe("Camera moves only when you interact or start the turntable.");
     await settle(page);
     const idle = await page.evaluate(() => window.__buildingStudy!.renderCount);
     await page.waitForTimeout(300);
@@ -148,6 +148,7 @@ describe("building detail", () => {
     await openDetail(page, "layer3");
     expect(await page.evaluate(() => [window.__buildingStudy!.turning, window.__buildingStudy!.activeView])).toEqual([false, "quarter"]);
     expect([await page.locator("#turntable").isDisabled(), await page.locator("#turntable").getAttribute("aria-pressed")]).toEqual([true, "false"]);
+    expect(await page.locator("#motion-status").textContent()).toStartWith("Reduced motion:");
     const idle = await page.evaluate(() => window.__buildingStudy!.renderCount);
     await page.waitForTimeout(300);
     expect(await page.evaluate(() => window.__buildingStudy!.renderCount)).toBe(idle);

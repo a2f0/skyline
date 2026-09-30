@@ -358,7 +358,19 @@ export function createBuildingStudy({
       markView(null);
       clearHighlight();
     }
+    updateMotionStatus();
     requestRender();
+  }
+
+  // Says how the camera moves: held still by reduced motion, circling on the turntable, or
+  // still until asked. The text changes only when that does, so it is not read out again.
+  function updateMotionStatus() {
+    const text = reducedMotion.matches
+      ? "Reduced motion: turntable and drag movement paused. View buttons and keyboard controls change the view immediately."
+      : turning
+        ? "Turntable on: the camera circles the model until you stop the turntable, choose a view, or drag."
+        : "Camera moves only when you interact or start the turntable.";
+    if (motionStatus.textContent !== text) motionStatus.textContent = text;
   }
 
   function viewFor(name: string): StudyView {
@@ -642,9 +654,7 @@ export function createBuildingStudy({
     controls.enabled = !reducedMotion.matches;
     turntableButton.disabled = reducedMotion.matches;
     if (reducedMotion.matches) setTurning(false);
-    motionStatus.textContent = reducedMotion.matches
-      ? "Reduced motion: turntable and drag movement paused. View buttons and keyboard controls change the view immediately."
-      : "Camera moves only when you interact or start the turntable.";
+    updateMotionStatus();
     updateCameraHint();
     clearHighlight();
   }
