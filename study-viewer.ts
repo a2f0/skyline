@@ -199,7 +199,9 @@ export function createBuildingStudy({
   const viewport = document.querySelector<HTMLElement>("#viewport")!;
   const canvas = document.querySelector<HTMLCanvasElement>("#building")!;
   const tooltip = document.querySelector<HTMLElement>("#tooltip")!;
-  const viewLabel = document.querySelector<HTMLElement>("#view-label")!;
+  // The studies name the active view in the viewport; the full-screen skyline leaves it to
+  // the pressed button.
+  const viewLabel = document.querySelector<HTMLElement>("#view-label");
   const wireframeButton = document.querySelector<HTMLElement>("#wireframe")!;
   const turntableButton = document.querySelector<HTMLButtonElement>("#turntable")!;
   const motionStatus = document.querySelector<HTMLElement>("#motion-status")!;
@@ -338,7 +340,7 @@ export function createBuildingStudy({
 
   function markView(name: string | null) {
     activeView = name;
-    viewLabel.textContent = views[name!]?.label || "orbit view";
+    if (viewLabel) viewLabel.textContent = views[name!]?.label || "orbit view";
     document.querySelectorAll<HTMLElement>("[data-view]").forEach((button) => {
       button.setAttribute("aria-pressed", String(button.dataset["view"] === name));
     });
