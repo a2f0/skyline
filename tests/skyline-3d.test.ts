@@ -281,13 +281,18 @@ describe("full-screen 3D skyline", () => {
           expect(opacity > 0.05 && opacity < 0.99 && shift !== "0px" && shift !== "none", `part faded in and still sliding: ${opacity}, ${shift}`).toBe(true);
         }
         // Toggled part way, the fold reverses from where it stands, each way.
+        // The same two folds keep moving; a restart would replace them.
         await star.click();
         await settle(page);
-        for (const { rate, time } of await folds()) expect(rate < 0 && time > 30 && time <= 100, `folds back from ${time}`).toBe(true);
+        const back = await folds();
+        expect(back.length, "the held folds carry on").toBe(2);
+        for (const { rate, time } of back) expect(rate < 0 && time > 30 && time <= 100, `folds back from ${time}`).toBe(true);
         expect(await star.getAttribute("aria-expanded")).toBe("false");
         await star.click();
         await settle(page);
-        for (const { rate, time } of await folds()) expect(rate > 0 && time > 30 && time <= 100, `unfolds again from ${time}`).toBe(true);
+        const again = await folds();
+        expect(again.length, "the held folds carry on").toBe(2);
+        for (const { rate, time } of again) expect(rate > 0 && time > 30 && time <= 100, `unfolds again from ${time}`).toBe(true);
         await settled();
         expect([await star.getAttribute("aria-expanded"), await groups(), await folds()]).toEqual(["true", ["flex", "flex"], []]);
         expect(await page.locator(".control-bar .button-group").evaluateAll((elements) => elements.map((element) => getComputedStyle(element).clipPath))).toEqual(["none", "none"]);
