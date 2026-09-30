@@ -71,6 +71,9 @@ function showBuilding(record: GeoBuilding) {
     lightPosition: [-0.62 * size, 1.36 * size, 0.96 * size],
     shadowCamera: { left: -size, right: size, top: size, bottom: -size, near: 1, far: 4 * size },
     far: 12 * size,
+    // The detail opens circling the building, which any view, drag, or the turntable
+    // button stops.
+    turntable: true,
   });
 }
 

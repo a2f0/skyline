@@ -41,7 +41,8 @@ describe("building detail", () => {
       for (const record of geographicBuildings) {
         await openDetail(page, record.id);
         expect(await page.locator("h1").textContent()).toBe(record.name);
-        expect(await page.evaluate(() => [window.__buildingStudy!.modelNames.length, window.__buildingStudy!.activeView])).toEqual([1, "quarter"]);
+        // It opens circling the building on the turntable; each view below stops it.
+        expect(await page.evaluate(() => [window.__buildingStudy!.modelNames.length, window.__buildingStudy!.turning])).toEqual([1, true]);
         const { center } = footprintMetrics(record.footprint.coordinates);
         for (const view of ["quarter", "front", "side"]) {
           await page.locator(`[data-view="${view}"]`).click();
@@ -89,7 +90,25 @@ describe("building detail", () => {
     expect(await page.locator("#building-heights a, #building-facts a").evaluateAll((links) => links.map((link) => link.getAttribute("target")))).toEqual(["_blank", "_blank"]);
     // Opened on its own, it links back to the skyline.
     expect(await page.locator(".study-links").isVisible()).toBe(true);
+    // It opens on the turntable, circling the building from the three-quarter view and
+    // drawing frame after frame, as its status says; the turntable button, pressed, says so
+    // and stops it, and the page then draws only when the view changes.
+    const turntable = page.locator("#turntable"), status = page.locator("#motion-status");
+    expect([await page.evaluate(() => window.__buildingStudy!.turning), await turntable.getAttribute("aria-pressed"), await turntable.textContent()]).toEqual([true, "true", "stop turntable"]);
+    expect(await status.textContent()).toBe("Turntable on: the camera circles the model until you stop the turntable, choose a view, or drag.");
+    const circling = await page.evaluate(() => ({ renders: window.__buildingStudy!.renderCount, eye: window.__buildingStudy!.cameraPosition }));
+    await page.waitForFunction(({ renders, eye }) => window.__buildingStudy!.renderCount > renders + 5
+      && window.__buildingStudy!.cameraPosition.some((value, axis) => Math.abs(value - eye[axis]!) > 1e-6), circling, { timeout: 10_000 });
+    await turntable.click();
+    expect([await page.evaluate(() => window.__buildingStudy!.turning), await turntable.getAttribute("aria-pressed"), await turntable.textContent()]).toEqual([false, "false", "turntable"]);
+    expect(await status.textContent()).toBe("Camera moves only when you interact or start the turntable.");
+    await settle(page);
+    const idle = await page.evaluate(() => window.__buildingStudy!.renderCount);
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => window.__buildingStudy!.renderCount), "stopped, the page does not keep drawing").toBe(idle);
     // Hover names the building, as the skyline does.
+    await page.locator('[data-view="quarter"]').click();
+    await settle(page);
     const canvas = (await page.locator("#building").boundingBox())!;
     const { center } = footprintMetrics(aon.footprint.coordinates);
     const [u, v] = await page.evaluate(([east, north]) => window.__buildingStudy!.projectPoint("layer3", [east, 150, -north]), center);
@@ -122,6 +141,19 @@ describe("building detail", () => {
     }
     await page.close();
   }, { timeout: 180_000 });
+
+  test("stays still under reduced motion", async () => {
+    const page = await browser.newPage({ viewport: { width: 1038, height: 758 }, reducedMotion: "reduce" });
+    watch(page);
+    await openDetail(page, "layer3");
+    expect(await page.evaluate(() => [window.__buildingStudy!.turning, window.__buildingStudy!.activeView])).toEqual([false, "quarter"]);
+    expect([await page.locator("#turntable").isDisabled(), await page.locator("#turntable").getAttribute("aria-pressed")]).toEqual([true, "false"]);
+    expect(await page.locator("#motion-status").textContent()).toStartWith("Reduced motion:");
+    const idle = await page.evaluate(() => window.__buildingStudy!.renderCount);
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => window.__buildingStudy!.renderCount)).toBe(idle);
+    await page.close();
+  }, { timeout: 60_000 });
 
   test("says so for a building the skyline does not map", async () => {
     const page = await browser.newPage({ viewport: { width: 1038, height: 758 } });
