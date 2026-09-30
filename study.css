@@ -74,6 +74,7 @@ button:disabled { cursor: default; opacity: 0.35; }
 .control-bar .view-label { color: #858585; letter-spacing: 0.13em; text-transform: uppercase; }
 .control-bar .hint { line-height: 1.4; }
 .control-bar button { padding: 5px 8px; }
+.control-bar :focus-visible { outline-offset: 1px; }
 @media (max-width: 1359px) {
   .control-bar { grid-template-columns: auto auto; grid-template-areas: "status status" "views display"; justify-content: space-between; }
 }
