@@ -75,25 +75,21 @@ button:disabled { cursor: default; opacity: 0.35; }
 .skyline-3d:has([data-view="top"][aria-pressed="true"]) :is(canvas, .study-annotations) { filter: grayscale(1); }
 /* The skyline study's toolbar, folded behind a white six-pointed star in the middle of the
    bar. Pressing the star opens it outward, camera views to the star's left and model display
-   to its right, each group revealed from its edge by the star; pressing it again folds them
-   back. The star stays in the middle, so narrower windows put the groups in a row under it,
-   then in a row each. */
+   to its right, each group revealed from its `--fold` inset by skyline-3d.ts; pressing it
+   again folds them back. The star stays in the middle, so narrower windows put the groups in
+   a row under it, then in a row each. */
 .control-bar { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "views menu display"; align-items: center; gap: 5px 12px; padding: 5px max(12px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); border-top: 1px solid #292929; background: #080808; }
 .control-bar .button-group { gap: 4px; }
 .control-bar .camera-views { grid-area: views; justify-content: end; --fold: inset(0 0 0 100%); --fold-shift: 24px; }
 .control-bar .model-display { grid-area: display; justify-content: start; --fold: inset(0 100% 0 0); --fold-shift: -24px; }
 .control-bar:not(.open) { row-gap: 0; }
 .control-bar:not(.open) .button-group { display: none; }
-.control-bar.open .button-group { animation: menu-unfold 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
-.control-bar.closing .button-group { animation: menu-fold 0.22s ease-in forwards; }
-@keyframes menu-unfold { from { clip-path: var(--fold); opacity: 0; translate: var(--fold-shift) 0; } }
-@keyframes menu-fold { to { clip-path: var(--fold); opacity: 0; translate: var(--fold-shift) 0; } }
 .control-bar button { padding: 5px 8px; }
 .control-bar :focus-visible { outline-offset: 1px; }
 .control-bar .menu-toggle { grid-area: menu; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: none; color: #fff; }
 .control-bar .menu-toggle:hover { background: #ffffff1a; }
 .menu-toggle svg { width: 20px; height: 20px; fill: currentColor; transition: rotate 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
-.control-bar.open:not(.closing) .menu-toggle svg { rotate: 30deg; }
+.menu-toggle[aria-expanded="true"] svg { rotate: 30deg; }
 @media (max-width: 1259px) {
   .control-bar { grid-template-columns: auto auto; grid-template-areas: "menu menu" "views display"; justify-content: center; }
   .control-bar .menu-toggle { justify-self: center; }
@@ -103,7 +99,7 @@ button:disabled { cursor: default; opacity: 0.35; }
   .control-bar .button-group { justify-content: center; --fold: inset(0 50%); --fold-shift: 0px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .control-bar .button-group, .menu-toggle svg { animation: none !important; transition: none; }
+  .menu-toggle svg { transition: none; }
 }
 @media (max-width: 600px) {
   .layout-controls { align-items: start; flex-direction: column; gap: 12px; }

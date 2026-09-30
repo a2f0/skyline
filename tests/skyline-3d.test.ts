@@ -262,10 +262,35 @@ describe("full-screen 3D skyline", () => {
     const closedHeights = new Set<number>();
     for (const open of [false, true]) {
       if (open) {
+        // Each group unfolds from the star. Held part way on a wide window, its clip is part
+        // open, it is part faded in, and it is still sliding out from the star.
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        await settle(page);
         await star.click();
-        expect(await page.evaluate(() => document.getAnimations().map((animation) => (animation as CSSAnimation).animationName)).then((names) => names.filter((name) => name === "menu-unfold").length), "each group unfolds from the star").toBe(2);
+        const folds = () => page.evaluate(() => document.getAnimations().filter((animation) => animation.id === "fold")
+          .map((animation) => ({ rate: animation.playbackRate, time: Number(animation.currentTime) })));
+        const halfway = await page.evaluate(() => {
+          const unfolding = document.getAnimations().filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group"));
+          unfolding.forEach((animation) => { animation.id = "fold"; animation.pause(); animation.currentTime = 100; });
+          return [...document.querySelectorAll(".control-bar .button-group")].map((group) => ({ clip: getComputedStyle(group).clipPath, opacity: Number(getComputedStyle(group).opacity), shift: getComputedStyle(group).translate }));
+        });
+        expect(halfway.length).toBe(2);
+        for (const { clip, opacity, shift } of halfway) {
+          expect(clip, "the clip opens part way").toMatch(/^inset\(/);
+          expect(clip).not.toBe("inset(-4px)");
+          expect(opacity > 0.05 && opacity < 0.99 && shift !== "0px" && shift !== "none", `part faded in and still sliding: ${opacity}, ${shift}`).toBe(true);
+        }
+        // Toggled part way, the fold reverses from where it stands, each way.
+        await star.click();
+        await settle(page);
+        for (const { rate, time } of await folds()) expect(rate < 0 && time > 30 && time <= 100, `folds back from ${time}`).toBe(true);
+        expect(await star.getAttribute("aria-expanded")).toBe("false");
+        await star.click();
+        await settle(page);
+        for (const { rate, time } of await folds()) expect(rate > 0 && time > 30 && time <= 100, `unfolds again from ${time}`).toBe(true);
         await settled();
-        expect([await star.getAttribute("aria-expanded"), await groups()]).toEqual(["true", ["flex", "flex"]]);
+        expect([await star.getAttribute("aria-expanded"), await groups(), await folds()]).toEqual(["true", ["flex", "flex"], []]);
+        expect(await page.locator(".control-bar .button-group").evaluateAll((elements) => elements.map((element) => getComputedStyle(element).clipPath))).toEqual(["none", "none"]);
       }
       for (const size of sizes) {
         await page.setViewportSize(size);
@@ -353,10 +378,13 @@ describe("full-screen 3D skyline", () => {
       expect((await picture()).equals(before), `${id} restores the ground`).toBe(true);
     }
     // Escape inside the bar folds the toolbar back behind the star and returns focus to it.
+    // The folding groups take no focus, so Tab from the star does not land in them.
     await page.locator("#wireframe").focus();
     await page.keyboard.press("Escape");
     expect(await star.getAttribute("aria-expanded")).toBe("false");
     expect(await page.evaluate(() => document.activeElement?.id)).toBe("menu-toggle");
+    await page.keyboard.press("Tab");
+    expect(await page.evaluate(() => !!document.activeElement?.closest(".button-group")), "focus stays out of the folding groups").toBe(false);
     await settled();
     expect(await groups()).toEqual(["none", "none"]);
     expect(await page.locator(".control-bar").boundingBox().then((bar) => bar!.height)).toBe(39);
