@@ -439,6 +439,50 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
+  test("opens stacked groups in place and centred, and settles a fold the window resizes under", async () => {
+    const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
+    watch(page);
+    await page.goto(`${origin}/skyline-3d.html`);
+    await page.waitForFunction(() => window.__buildingStudy?.ready);
+    const star = page.locator("#menu-toggle");
+    const settled = () => page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished)));
+    // Each group's fold, held at a time, and the slide it then gives the group.
+    const hold = (time: number) => page.evaluate((time) => document.getAnimations()
+      .filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group"))
+      .map((animation) => { animation.pause(); animation.currentTime = time; return getComputedStyle((animation.effect as KeyframeEffect).target as Element).translate; }), time);
+    const groups = () => page.evaluate(() => [...document.querySelectorAll(".control-bar .button-group")].map((group) => {
+      const box = group.getBoundingClientRect(), bar = document.querySelector(".control-bar")!.getBoundingClientRect();
+      return { centre: (box.left + box.right) / 2, inside: box.left >= bar.left && box.right <= bar.right, translate: getComputedStyle(group).translate };
+    }));
+    const folding = () => page.evaluate(() => document.getAnimations().filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group")).length);
+    // Under the star, each group opens where it stands, centred in its own row.
+    await star.click();
+    expect(await hold(0), "no slide under the star").toEqual(["0px", "0px"]);
+    await page.evaluate(() => document.getAnimations().forEach((animation) => animation.play()));
+    await settled();
+    for (const { centre, inside } of await groups()) {
+      near(centre, 422, 1);
+      expect(inside).toBe(true);
+    }
+    await star.click();
+    await settled();
+    // Opened on a wide window, a fold held part way still slides. The window narrowing under
+    // it settles it at once, leaving the stacked groups in place, centred and inside the bar.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await settle(page);
+    await star.click();
+    expect((await hold(100)).every((slide) => slide !== "0px" && slide !== "none"), "sliding out on a wide window").toBe(true);
+    await page.setViewportSize({ width: 844, height: 390 });
+    await settle(page);
+    expect(await folding(), "the resize settles the fold").toBe(0);
+    for (const { centre, inside, translate } of await groups()) {
+      near(centre, 422, 1);
+      expect([inside, translate]).toEqual([true, "none"]);
+    }
+    expect(await star.getAttribute("aria-expanded")).toBe("true");
+    await page.close();
+  }, { timeout: 180_000 });
+
   test("keeps its skyline above the control bar on a phone, with views to tap through under reduced motion", async () => {
     const phone = await browser.newPage({ ...viewports[4].options, reducedMotion: "reduce" });
     watch(phone);

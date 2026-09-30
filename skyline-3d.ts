@@ -116,6 +116,8 @@ function setMenu(open: boolean) {
   });
 }
 menuToggle.addEventListener("click", () => setMenu(menuToggle.getAttribute("aria-expanded") !== "true"));
+// A fold measures its slide from the layout it starts in, so a resize settles it at once.
+addEventListener("resize", () => folds.forEach((fold) => fold.finish()));
 bar.addEventListener("keydown", (event) => {
   if (event.key !== "Escape" || menuToggle.getAttribute("aria-expanded") !== "true") return;
   menuToggle.focus();
