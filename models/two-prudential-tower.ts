@@ -8,20 +8,25 @@ import { mitredBox } from "./facade-grid.js";
 // at the drawing's datum. A 40.8 x 37.5 m limestone core rises to 229.3 m at its corners.
 // Each face ends in a gable that steps up floor by floor to a pointed glass strip at its
 // middle, 256 m, and a stepped pyramid turned 45° to the plan rises from those four points
-// to 280.2 m, where the spire takes over to the published 303.3 m. On the north and south
-// faces two gabled tiers stand forward of the core, the lower in front of the middle one,
-// and fill the rest of the mapped depth. Heights are measured on the photograph, down from
-// the published tip; the plan on the photograph against the mapped outline. See
-// docs/two-prudential-reference.md. Units are meters; +x is east and +z is south.
+// to 280.2 m, where the spire takes over to the published 303.3 m. A broad rib runs up each
+// ridge from its strip's head to the apex, and the pyramid's steps end on the ribs. On the
+// north and south faces two gabled tiers stand forward of the core, the lower in front of
+// the middle one, and fill the rest of the mapped depth. Heights are measured on the
+// photographs, down from the published tip; the plan on the photograph against the mapped
+// outline. See docs/two-prudential-reference.md. Units are meters; +x is east and +z is south.
+const pitch = 3.96;
+// A tier's point stands on the line through its steps' corners: its glass head rises a floor
+// for every 3.16 m bay, as the steps beside it do, from its 4.6 m half-strip's shoulder.
+const tierPeak = (shoulder: number, bays: number) => shoulder + (bays + 4.6 / 3.16) * pitch;
 export const twoPrudentialLevels = Object.freeze({
-  pitch: 3.96, // the photograph's window rows
+  pitch, // the photograph's window rows
   lobbyTop: 11.52, // the first office floor, a whole number of floors below the tiers
   sill: 0.9,
   head: 2.9, // a window's sill and head above its floor
   lowerShoulder: 162,
-  lowerPeak: 181.9,
+  lowerPeak: tierPeak(162, 3), // 179.64
   middleShoulder: 193.68,
-  middlePeak: 217.2,
+  middlePeak: tierPeak(193.68, 4), // 215.28
   eave: 229.32, // the core's corners
   peak: 256, // each face's gable
   apex: 280.2, // the pyramid
@@ -68,14 +73,21 @@ export function wallExtent(gable: Gable, y: number) {
 // the strip's edge. Windows are centred in their bays.
 const pierWidth = 0.9, pierDepth = 0.35, windowHalf = 0.8;
 export const pierStations = (gable: Gable) => Array.from({ length: gable.bays + 1 }, (_, i) => (i ? gable.half - i * gable.bay : gable.half - pierWidth / 2));
-// The pyramid's horizontal section at a height above the eave, in the core's frame: the
-// core's walls to where each reaches, cut across each corner by the step's riser, and above
-// the gables a rhombus on the four ridges.
+// Where a face's part of the pyramid ends at a height, as its half-width along the face and
+// its reach from the core's centre: the face's wall to where it reaches, up to its strip's
+// shoulder, and above that the inner edge of its ridge's rib, the straight line from the
+// shoulder to the apex, so each floor's step ends a fixed way further up that line.
+function crownEnd(gable: Gable, reach: number, y: number): Vec2 {
+  const shoulder = stripShoulder(gable);
+  if (y <= shoulder + 1e-9) return [wallExtent(gable, y), reach];
+  const s = (h.apex - y) / (h.apex - shoulder);
+  return [gable.strip * s, reach * s];
+}
+// The pyramid's horizontal section at a height above the eave, in the core's frame: each
+// face's end, joined across each corner by the step's riser.
 export function crownSection(y: number): Vec2[] {
-  const [a, b] = twoPrudentialCore, front = wallExtent(g.front, y), side = wallExtent(g.side, y);
-  if (front > 1e-3 && side > 1e-3) return [[-front, b], [front, b], [a, side], [a, -side], [front, -b], [-front, -b], [-a, -side], [-a, side]];
-  const t = (h.apex - y) / (h.apex - h.peak);
-  return [[0, b * t], [a * t, 0], [0, -b * t], [-a * t, 0]];
+  const [a, b] = twoPrudentialCore, [front, south] = crownEnd(g.front, b, y), [side, east] = crownEnd(g.side, a, y);
+  return [[-front, south], [front, south], [east, side], [east, -side], [front, -south], [-front, -south], [-east, -side], [-east, side]];
 }
 // The crown's steps stop a floor under the apex, where a pointed cap and the spire take over.
 export const crownSteps = Math.floor((h.apex - h.eave) / h.pitch - 0.25);
@@ -106,6 +118,9 @@ export interface TwoPrudentialForm {
   base: number;
   // The mapped outline, standing from grade to the lobby's top.
   lobby?: Plan;
+  // The tiers' points where a copy follows a drawing that puts them elsewhere; as built
+  // they stand on the line of their steps.
+  tierPeaks?: { lower: number; middle: number };
 }
 
 // What a prism's edge carries: a gabled wall's bays from x = `from` at its start, the ends
@@ -124,6 +139,8 @@ export function buildTwoPrudentialTower(form: TwoPrudentialForm): BuildingModel 
   const spirePanels = kit.batch("Two Prudential · spire inset panels", kit.material(0x575757));
   const y = (real: number) => real - form.base;
   const [coreA, coreB] = twoPrudentialCore;
+  const middle: Gable = form.tierPeaks ? { ...g.middle, peak: form.tierPeaks.middle } : g.middle;
+  const lower: Gable = form.tierPeaks ? { ...g.lower, peak: form.tierPeaks.lower } : g.lower;
 
   // The core's frame, and the same turned half a turn: the north and west halves are the
   // south and east ones seen from the other side, so one description builds both.
@@ -246,15 +263,13 @@ export function buildTwoPrudentialTower(form: TwoPrudentialForm): BuildingModel 
     [0, 1].flatMap((frame): Edge[] => [{ wall: walls(frame).front, from: -coreA }, { wall: walls(frame).side, from: -coreB }]));
 
   // The crown: one floor's step at a time, each on the pyramid's section at its top, so
-  // every step's nosing lies on the pyramid. Its walls are the gables' stepped bays.
+  // every step's nosing lies on the pyramid. Up to a strip's shoulder a face's end is its
+  // gable's stepped bays; above it the end stands back under the ridge's rib, plain stone.
   let crownTop: number = h.eave;
   for (let step = 1; step <= crownSteps; step += 1) {
     const lo = h.eave + (step - 1) * h.pitch, hi = lo + h.pitch, section = crownSection(hi);
-    const edges: Edge[] = section.length === 8
-      ? [0, 1].flatMap((frame) => [
-        { wall: walls(frame).front, from: -wallExtent(g.front, hi) }, { riser: true } as const,
-        { wall: walls(frame).side, from: -wallExtent(g.side, hi) }, { riser: true } as const])
-      : section.map(() => ({ riser: true }) as const);
+    const end = (wall: Wall): Edge => (hi <= stripShoulder(wall.gable) + 1e-9 ? { wall, from: -wallExtent(wall.gable, hi) } : { plain: stone });
+    const edges = [0, 1].flatMap((frame): Edge[] => [end(walls(frame).front), { riser: true }, end(walls(frame).side), { riser: true }]);
     prism(ringOf(0, section), rowsBetween(lo, hi, [2.5]), edges);
     crownTop = hi;
   }
@@ -267,8 +282,9 @@ export function buildTwoPrudentialTower(form: TwoPrudentialForm): BuildingModel 
       const n: Vec3 = [u[1]! * w[2]! - u[2]! * w[1]!, u[2]! * w[0]! - u[0]! * w[2]!, u[0]! * w[1]! - u[1]! * w[0]!];
       kit.triangle(body, [apex, pp, qq], [n, n, n].map((v) => (v[1] < 0 ? v.map((c) => -c) : v) as Vec3), band);
     });
-    kit.triangle(body, [lift(section[0]!, crownTop), lift(section[1]!, crownTop), lift(section[2]!, crownTop)], [[0, -1, 0], [0, -1, 0], [0, -1, 0]], soffit);
-    kit.triangle(body, [lift(section[0]!, crownTop), lift(section[2]!, crownTop), lift(section[3]!, crownTop)], [[0, -1, 0], [0, -1, 0], [0, -1, 0]], soffit);
+    for (let i = 1; i + 1 < section.length; i += 1) {
+      kit.triangle(body, [lift(section[0]!, crownTop), lift(section[i]!, crownTop), lift(section[i + 1]!, crownTop)], [[0, -1, 0], [0, -1, 0], [0, -1, 0]], soffit);
+    }
   }
 
   // The tiers, on the north and south faces: each a block to its shoulder and a step per
@@ -276,8 +292,8 @@ export function buildTwoPrudentialTower(form: TwoPrudentialForm): BuildingModel 
   const tiers = [0, 1].flatMap((frame) => {
     const depth = (form.fronts[frame]! - coreB) / 2;
     return [
-      { frame, gable: g.middle, back: coreB, front: coreB + depth, seed: 10 + frame * 2 },
-      { frame, gable: g.lower, back: coreB + depth, front: form.fronts[frame]!, seed: 11 + frame * 2 },
+      { frame, gable: middle, back: coreB, front: coreB + depth, seed: 10 + frame * 2 },
+      { frame, gable: lower, back: coreB + depth, front: form.fronts[frame]!, seed: 11 + frame * 2 },
     ];
   });
   for (const tier of tiers) {
@@ -307,10 +323,10 @@ export function buildTwoPrudentialTower(form: TwoPrudentialForm): BuildingModel 
   const faces = [0, 1].flatMap((frame) => {
     const depth = (form.fronts[frame]! - coreB) / 2;
     return [
-      { run: line(at(frame, -coreA, coreB), at(frame, coreA, coreB)), gable: g.front, cover: (x: number) => (Math.abs(x) <= g.middle.half ? wallTop(g.middle, x) : h.lobbyTop), tier: false },
+      { run: line(at(frame, -coreA, coreB), at(frame, coreA, coreB)), gable: g.front, cover: (x: number) => (Math.abs(x) <= middle.half ? wallTop(middle, x) : h.lobbyTop), tier: false },
       { run: line(at(frame, coreA, coreB), at(frame, coreA, -coreB)), gable: g.side, cover: () => h.lobbyTop, tier: false },
-      { run: line(at(frame, -g.middle.half, coreB + depth), at(frame, g.middle.half, coreB + depth)), gable: g.middle, cover: (x: number) => (Math.abs(x) <= g.lower.half ? wallTop(g.lower, x) : h.lobbyTop), tier: true },
-      { run: line(at(frame, -g.lower.half, form.fronts[frame]!), at(frame, g.lower.half, form.fronts[frame]!)), gable: g.lower, cover: () => h.lobbyTop, tier: true },
+      { run: line(at(frame, -middle.half, coreB + depth), at(frame, middle.half, coreB + depth)), gable: middle, cover: (x: number) => (Math.abs(x) <= lower.half ? wallTop(lower, x) : h.lobbyTop), tier: true },
+      { run: line(at(frame, -lower.half, form.fronts[frame]!), at(frame, lower.half, form.fronts[frame]!)), gable: lower, cover: () => h.lobbyTop, tier: true },
     ];
   });
   const rightAngle = -Math.PI / 2;
@@ -367,41 +383,36 @@ export function buildTwoPrudentialTower(form: TwoPrudentialForm): BuildingModel 
     }
   }
 
-  // Ribs on the four ridges, from each gable's point up into the spire's foot.
-  const up = (p: Vec3, q: Vec3, lateral: Vec2) => {
-    const d = p.map((value, k) => q[k]! - value) as Vec3, length = Math.hypot(...d), dir = d.map((value) => value / length) as Vec3;
-    const side: Vec3 = [lateral[0], 0, lateral[1]];
-    let n: Vec3 = [side[1] * dir[2] - side[2] * dir[1], side[2] * dir[0] - side[0] * dir[2], side[0] * dir[1] - side[1] * dir[0]];
-    if (n[1] < 0) n = n.map((value) => -value) as Vec3;
-    // Shallower at the apex, where a full-depth end would reach past the centre and into
-    // the opposite rib.
-    const section = (c: Vec3, below: number): Vec3[] => ([[-0.6, -below], [0.6, -below], [0.6, 0.8], [-0.6, 0.8]] as [number, number][])
-      .map(([across, lift]) => c.map((value, k) => value + across * side[k]! + lift * n[k]!) as Vec3);
-    const [bottom, top] = [section(p, 1.2), section(q, 0.5)];
-    const normalOf = (points: Vec3[]): Vec3 => {
+  // A broad rib on each ridge: a hipped plate whose front edges follow its strip's pointed
+  // head, from the head's shoulders to its point, and whose ridge and inner edges run on
+  // straight to the apex. The pyramid's steps end on its inner edges, and under it each
+  // step stands back, so the rib stands proud of the steps beside it.
+  const ribDepth = 0.35;
+  for (const frame of [0, 1, 2, 3]) {
+    const gable = frame < 2 ? g.front : g.side, reach = frame < 2 ? coreB : coreA, shoulder = stripShoulder(gable);
+    const corner = (u: number, v: number, real: number) => lift(at(frame, u, v), real);
+    // Its left shoulder seen from outside, the head's point, its right shoulder and the apex,
+    // then the same raised.
+    const low = [corner(-gable.strip, reach, shoulder), corner(0, reach, gable.peak), corner(gable.strip, reach, shoulder), corner(0, 0, h.apex)];
+    const high = low.map(([x, real, z]) => [x, real + ribDepth, z] as Vec3);
+    // A point inside each half of the plate, to turn every face's normal outward: the plate
+    // is folded along its ridge, so no one centre lies inside it.
+    const inside = (a: Vec3, b: Vec3, c: Vec3): Vec3 => [0, 1, 2].map((k) => (a[k]! + b[k]! + c[k]!) / 3 + (k === 1 ? ribDepth / 2 : 0)) as Vec3;
+    const left = inside(low[0]!, low[1]!, low[3]!), right = inside(low[1]!, low[2]!, low[3]!);
+    const face = (points: Vec3[], within: Vec3) => {
       const u = points[1]!.map((value, k) => value - points[0]![k]!), w = points[2]!.map((value, k) => value - points[0]![k]!);
-      return [u[1]! * w[2]! - u[2]! * w[1]!, u[2]! * w[0]! - u[0]! * w[2]!, u[0]! * w[1]! - u[1]! * w[0]!];
+      let n: Vec3 = [u[1]! * w[2]! - u[2]! * w[1]!, u[2]! * w[0]! - u[0]! * w[2]!, u[0]! * w[1]! - u[1]! * w[0]!];
+      const centre = points.reduce((sum, p) => sum.map((value, k) => value + p[k]! / points.length) as Vec3, [0, 0, 0] as Vec3);
+      if (n[0] * (centre[0] - within[0]) + n[1] * (centre[1] - within[1]) + n[2] * (centre[2] - within[2]) < 0) n = n.map((value) => -value) as Vec3;
+      if (points.length === 3) kit.triangle(ribs, points, [n, n, n]);
+      else kit.quad(ribs, points as [Vec3, Vec3, Vec3, Vec3], [n]);
     };
-    const middle = p.map((value, k) => (value + q[k]!) / 2) as Vec3;
-    const outward = (points: Vec3[]): Vec3[] => {
-      const n0 = normalOf(points), centre = points.reduce((sum, v) => sum.map((value, k) => value + v[k]! / points.length) as Vec3, [0, 0, 0] as Vec3);
-      return [n0[0] * (centre[0] - middle[0]) + n0[1] * (centre[1] - middle[1]) + n0[2] * (centre[2] - middle[2]) < 0 ? n0.map((value) => -value) as Vec3 : n0];
-    };
-    kit.quad(ribs, [bottom[0]!, bottom[1]!, bottom[2]!, bottom[3]!], [dir.map((value) => -value) as Vec3]);
-    kit.quad(ribs, [top[0]!, top[1]!, top[2]!, top[3]!], [dir]);
-    for (let i = 0; i < 4; i += 1) {
-      const j = (i + 1) % 4, quad = [bottom[i]!, bottom[j]!, top[j]!, top[i]!] as [Vec3, Vec3, Vec3, Vec3];
-      kit.quad(ribs, quad, outward(quad));
-    }
-  };
-  const ridgeEnd = 0.6;
-  for (const frame of [0, 1]) {
-    for (const [reach, axis] of [[coreB, 1], [coreA, 0]] as const) {
-      const point = (d: number): Vec2 => (axis ? at(frame, 0, d) : at(frame, d, 0));
-      const rise = h.apex - h.peak;
-      const { a, s } = frames[frame]!;
-      up(lift(point(reach), h.peak), lift(point(ridgeEnd), h.apex - rise * ridgeEnd / reach), axis ? a : s);
-    }
+    face([high[0]!, high[1]!, high[3]!], left);
+    face([high[1]!, high[2]!, high[3]!], right);
+    face([low[0]!, low[1]!, low[3]!], left);
+    face([low[1]!, low[2]!, low[3]!], right);
+    // Its front edges over the head, then its inner edges back from the apex.
+    for (const [i, j, within] of [[0, 1, left], [1, 2, right], [2, 3, right], [3, 0, left]] as const) face([low[i]!, low[j]!, high[j]!, high[i]!], within);
   }
 
   // The spire: a shaft turned with the pyramid, its corners on the ridges, tapering from its

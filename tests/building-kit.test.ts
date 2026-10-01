@@ -545,11 +545,12 @@ describe("fitted and geographic models", () => {
       expect(hit([60, 100, 24], [-1, 0, 0])!.point.x).toBeLessThan(17.3);
     });
     test("the pyramid steps a floor at a time and is turned to the plan", async () => {
-      const crown = named("limestone, glass and crown");
-      const heightAt = (x: number, z: number) => hit([x, 400, z], [0, -1, 0], crown)!.point.y;
-      // Toward a face's middle it stands higher than toward a corner at the same distance.
-      expect(heightAt(1.2, 16) - heightAt(11.8, 11)).toBeGreaterThan(1.5 * pitch);
-      expect(heightAt(-16, 1.2) - heightAt(-11.8, -11)).toBeGreaterThan(1.5 * pitch);
+      const crown = named("limestone, glass and crown"), ridged = [...crown, ...named("crown ribs")];
+      const heightAt = (x: number, z: number, targets = crown) => hit([x, 400, z], [0, -1, 0], targets)!.point.y;
+      // Toward a face's middle, over the rib on its ridge, it stands higher than toward a
+      // corner at the same distance.
+      expect(heightAt(1.2, 16, ridged) - heightAt(11.8, 11, ridged)).toBeGreaterThan(1.5 * pitch);
+      expect(heightAt(-16, 1.2, ridged) - heightAt(-11.8, -11, ridged)).toBeGreaterThan(1.5 * pitch);
       for (let k = 1; k <= 11; k += 1) {
         const r = 25 * (1 - k / 12.5);
         const y = heightAt(r * 0.72, r * 0.69);
