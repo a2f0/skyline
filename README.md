@@ -213,7 +213,8 @@ see its [reference audit](docs/trump-reference.md).
 Two Prudential's is the same tower as the original layout's copy, on the mapped
 outline: the lobby fills it to the first office floor, the core stands on its
 area centroid, square to its south wall, and the tiers fill the mapped depth
-between the core and its north and south walls; see its
+between the core and its north and south walls. Its tiers' points stand on the
+line of their steps, where the copy keeps the drawing's, about 2 m higher; see its
 [reference audit](docs/two-prudential-reference.md).
 Aon Center is the same tower on its mapped outline and rooftop part: the 340 m
 shaft, fourteen bays to each mapped face with glass up to the cap, the solid notched

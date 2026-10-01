@@ -325,9 +325,10 @@ Intermediate parts have less certainty than the overall height:
   limestone core stands on its area centroid, square to its south wall. Each
   face's gable steps a floor a bay from 229.3 m corners to a pointed glass strip at
   256 m, and a stepped pyramid turned 45° to the plan rises from those points to
-  280.2 m, under the spire to the published 303.3 m. Paired gabled tiers fill the
-  mapped depth north and south; see the
-  [Two Prudential reference audit](two-prudential-reference.md).
+  280.2 m, under the spire to the published 303.3 m. A broad rib runs up each ridge
+  from its strip's head, and the steps end on its edges in straight lines to the apex.
+  Paired gabled tiers fill the mapped depth north and south, each head on the line of
+  its steps; see the [Two Prudential reference audit](two-prudential-reference.md).
 - Aon's mapped shaft keeps its 340 m top and its rooftop enclosure the
   346.3 m part top. The tube carries granite V-shaped columns on the 10 ft
   module, fourteen bays to each mapped face, with glass floor by floor on the

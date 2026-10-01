@@ -632,7 +632,8 @@ describe("mapped skyline geography", () => {
 
       // The levels themselves, at vertices of the stone, glass and crown: the core's four
       // corners at the eave, each face's gable point at its middle, the pyramid's apex over
-      // the centroid as the body's highest point, and each tier's point at its front.
+      // the centroid as the body's highest point, and each tier's point at its front, on the
+      // line its steps climb: a floor for every 3.16 m bay, out to its 4.6 m half-strip.
       const body = named("limestone, glass and crown")[0]!.geometry.getAttribute("position");
       const vertex = (target: Vec3) => {
         let best = Infinity;
@@ -646,14 +647,16 @@ describe("mapped skyline geography", () => {
       near(top, apex, 1e-4);
       near(vertex(at(0, 0, apex)), 0, 0.01);
       const middleFront = coreSouth + (mappedSouth - coreSouth) / 2;
-      near(vertex(at(0, middleFront, 217.2)), 0, 0.05);
-      near(vertex(at(0, mappedSouth - 0.02, 181.9)), 0, 0.05);
+      const onSteps = (shoulder: number, bays: number) => shoulder + (bays + 4.6 / 3.16) * pitch;
+      near(vertex(at(0, middleFront, onSteps(193.68, 4))), 0, 0.05);
+      near(vertex(at(0, mappedSouth - 0.02, onSteps(162, 3))), 0, 0.05);
 
       // The pyramid steps one floor at a time from the eave, and it is turned 45° to the
       // plan: its ridges run to the gables' points at the faces' middles, so at the same
-      // distance from the centre it stands higher toward a face than toward a corner, the
-      // opposite of a pyramid square to the plan. Treads are the stone and glass body's own.
-      const crown = named("limestone, glass and crown");
+      // distance from the centre, counting the ribs on its ridges, it stands higher toward a
+      // face than toward a corner, the opposite of a pyramid square to the plan. Treads are
+      // the stone and glass body's own.
+      const crown = named("limestone, glass and crown"), ridged = [...crown, ...named("crown ribs")];
       const treads = new Set<number>();
       for (let radius = 1; radius < 26; radius += 0.5) {
         for (const [du, dv] of [[0.72, 0.69], [-0.72, 0.69], [0.72, -0.69], [-0.72, -0.69]]) {
@@ -663,11 +666,25 @@ describe("mapped skyline geography", () => {
       }
       // Eleven show; the twelfth step's top is the floor of the pointed cap over it.
       expect([...treads].sort((a, b) => a - b)).toEqual(Array.from({ length: 11 }, (_, k) => Math.round((eave + (k + 1) * pitch) * 100) / 100));
-      const heightAt = (u: number, v: number) => hit(at(u, v, 400), [0, -1, 0], crown)!.point.y;
+      const heightAt = (u: number, v: number) => hit(at(u, v, 400), [0, -1, 0], ridged)!.point.y;
       expect(heightAt(1.2, 16) - heightAt(11.8, 11)).toBeGreaterThan(1.5 * pitch);
       expect(heightAt(16, -1.2) - heightAt(11.8, -11)).toBeGreaterThan(1.5 * pitch);
       // A rib runs up each ridge.
       for (const point of [at(0, 9, 400), at(0, -9, 400), at(10, 0, 400), at(-10, 0, 400)]) expect(hit(point, [0, -1, 0])!.object.name).toBe("Two Prudential · crown ribs");
+      // Above each strip's shoulder the steps end on its rib's inner edges, the straight lines
+      // from the shoulder to the apex: each of the twelve steps' corners there stands a fixed
+      // way further up them. The north and south strips are 9.2 m wide with their shoulders
+      // five floors over the eave; the east and west ones 11.4 m, four floors over it.
+      const southShoulder = eave + 5 * pitch, eastShoulder = eave + 4 * pitch;
+      for (let k = 1; k <= 12; k += 1) {
+        const y = eave + k * pitch, south = (apex - y) / (apex - southShoulder), east = (apex - y) / (apex - eastShoulder);
+        for (const side of [1, -1]) {
+          for (const w of [-1, 1]) {
+            if (y > southShoulder) near(vertex(at(w * 4.6 * south, side * coreSouth * south, y)), 0, 0.01);
+            if (y > eastShoulder) near(vertex(at(side * coreEast * east, w * 5.7 * east, y)), 0, 0.01);
+          }
+        }
+      }
 
       // Each face's stone bays step up one floor from the corner toward its glass strip,
       // under a coping standing proud of the wall: the core's south face has five, the

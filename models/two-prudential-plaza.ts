@@ -13,12 +13,16 @@ const front = 27.75;
 // crosses the tower above the street: fitted with the placement in skyline-study.ts,
 // which scales, turns, and places this copy. Its y = 0 is that datum.
 export const twoPrudentialSkylineBase = 35.4;
+// The drawing draws each tier's gable as one slope from its shoulders to a point about 2 m
+// above the line its steps climb: in the night photograph it traces, each tier's dark glass
+// head runs on into the dark strip of the wall behind it. This copy keeps the drawn points.
+export const twoPrudentialDrawnTierPeaks = Object.freeze({ lower: 181.9, middle: 217.2 });
 export function createTwoPrudentialPlazaBuilding(): BuildingModel {
-  return buildTwoPrudentialTower({ name: "Two Prudential Plaza", id: "building-two-prudential-plaza", centre: [0, 0], along: [1, 0], fronts: [front, front], base: twoPrudentialSkylineBase });
+  return buildTwoPrudentialTower({ name: "Two Prudential Plaza", id: "building-two-prudential-plaza", centre: [0, 0], along: [1, 0], fronts: [front, front], base: twoPrudentialSkylineBase, tierPeaks: twoPrudentialDrawnTierPeaks });
 }
 
 // Features the skyline test projects against the drawing, in this copy's coordinates.
-const h = twoPrudentialLevels, g = twoPrudentialGables, [coreA, coreB] = twoPrudentialCore;
+const h = twoPrudentialLevels, g = twoPrudentialGables, [coreA, coreB] = twoPrudentialCore, drawn = twoPrudentialDrawnTierPeaks;
 const at = (x: number, real: number, z: number): Vec3 => [x, real - twoPrudentialSkylineBase, z];
 const middleFront = coreB + (front - coreB) / 2;
 // A pier's point halfway out to its face, so a present pier is met a little before it.
@@ -35,8 +39,8 @@ export const twoPrudentialFeatures: Record<string, Vec3 | Vec3[]> = {
   twoPyramid: at(0, h.apex, 0),
   twoSpire: at(0, h.tip, 0),
   // The tiers' points and their shoulders at their fronts' corners.
-  twoMiddleChevron: at(0, h.middlePeak, middleFront),
-  twoLowerChevron: at(0, h.lowerPeak, front),
+  twoMiddleChevron: at(0, drawn.middle, middleFront),
+  twoLowerChevron: at(0, drawn.lower, front),
   twoMiddleWest: at(-g.middle.half, h.middleShoulder, middleFront),
   twoMiddleEast: at(g.middle.half, h.middleShoulder, middleFront),
   twoLowerWest: at(-g.lower.half, h.lowerShoulder, front),
