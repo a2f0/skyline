@@ -60,6 +60,7 @@ describe("full-screen 3D skyline", () => {
         const trace = scene.locator(".skyline-trace");
         await trace.waitFor({ state: "visible" });
         expect(await scene.locator("#loading").textContent()).toContain("Preparing the skyline");
+        expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
         expect(await scene.evaluate(() => window.__buildingStudy?.ready)).toBeUndefined();
         const bounds = (await trace.boundingBox())!;
         expect(bounds.width).toBeCloseTo(Math.min(720, width - 48) / 3, 1);
@@ -96,6 +97,7 @@ describe("full-screen 3D skyline", () => {
         release();
         await scene.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
         expect(await scene.locator("#loading").isHidden()).toBe(true);
+        expect(await scene.locator(".scene-notes").isVisible()).toBe(true);
       } finally {
         release();
         await page.close();
