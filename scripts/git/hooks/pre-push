@@ -1,5 +1,5 @@
 #!/bin/sh
-# Refuses to push a commit carrying agent attribution. Adapted from tearleads'
+# Checks managed skills and refuses commits carrying agent attribution. Adapted from tearleads'
 # scripts/git/hooks/pre-push, with its timing, lint and test stages dropped:
 # this repository's suite runs from `bun run check`, and gating a push on the
 # browser suites would cost minutes on every push.
@@ -44,6 +44,9 @@ else
   echo "       repository, or put mise's shims on PATH, then try again." >&2
   exit 1
 fi
+
+# Use the resolved runtime directly: a GUI client's PATH may carry no bun shim.
+"$BUN" "$REPO_ROOT/node_modules/agent-tool/src/index.ts" skills check </dev/null
 
 zero_sha="0000000000000000000000000000000000000000"
 refs_file=$(mktemp)

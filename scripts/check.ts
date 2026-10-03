@@ -26,12 +26,12 @@ async function main() {
     await run("git", ["diff", "--cached", "--check"]);
     if (baseSha) await run("git", ["diff", "--check", `${baseSha}...HEAD`]);
   });
+  await timings.run("agents:check", () => run(process.execPath, ["run", "agents:check"]));
   // The strictest-config typecheck over the whole repository.
   await timings.run("typecheck", () => run(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]));
   await suite("check-coauthors.test.ts");
   await suite("git-hooks.test.ts");
   await suite("timings.test.ts");
-  await suite("squash-merge.test.ts");
   await suite("verify-deploy.test.ts");
   await timings.run("reference-svg", () => run(process.execPath, ["scripts/reference-svg.ts", "--check"]));
   await timings.run("skyline-loading", () => run(process.execPath, ["scripts/skyline-loading.ts", "--check"]));

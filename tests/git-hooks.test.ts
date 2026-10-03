@@ -54,6 +54,16 @@ beforeAll(() => {
   cpSync(path.join(root, "scripts/git/hooks"), path.join(repo, "scripts/git/hooks"), { recursive: true });
   cpSync(path.join(root, "scripts/git/install-hooks.sh"), path.join(repo, "scripts/git/install-hooks.sh"));
   cpSync(path.join(root, "mise.toml"), path.join(repo, "mise.toml"));
+  // Exercise the installed shared tool against real managed copies, including
+  // on the isolated PATH used to prove mise's runtime fallback.
+  for (const directory of [".agents/skills", ".claude/skills"]) {
+    cpSync(path.join(root, directory), path.join(repo, directory), { recursive: true });
+  }
+  cpSync(path.join(root, ".agent-tool-skills.json"), path.join(repo, ".agent-tool-skills.json"));
+  cpSync(path.join(root, "agent-tool.json"), path.join(repo, "agent-tool.json"));
+  mkdirSync(path.join(repo, "node_modules"));
+  symlinkSync(path.join(root, "node_modules/agent-tool"), path.join(repo, "node_modules/agent-tool"));
+  writeFileSync(path.join(repo, ".gitignore"), "node_modules/\n");
   writeFileSync(path.join(repo, "file.txt"), "seed");
   git(["add", "-A"]);
   git(["-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", "seed"]);
@@ -250,6 +260,41 @@ describe("what the installer protects", () => {
 });
 
 describe("the installed pre-push hook", () => {
+  test("checks skills using mise's bun when no bun is on PATH", () => {
+    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
+    const directory = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-path-"));
+    try {
+      execFileSync("git", ["init", "--bare", "--quiet", remote], { stdio: "ignore" });
+      for (const tool of ["git", "cmp", "mktemp", "cat", "rm"]) {
+        symlinkSync(execFileSync("sh", ["-c", `command -v ${tool}`], { encoding: "utf8" }).trim(), path.join(directory, tool));
+      }
+      writeFileSync(path.join(directory, "mise"), `#!/bin/sh\n[ "$1" = which ] && printf '%s\\n' '${process.execPath}'\n`, { mode: 0o755 });
+      const push = git(["push", remote, "HEAD:refs/heads/main"], { ...process.env, PATH: directory });
+      expect(push.ok, push.output).toBe(true);
+      expect(push.output).toContain('"ok": true');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+      rmSync(remote, { recursive: true, force: true });
+    }
+  }, 60_000);
+  test("refuses a push when a managed skill has drifted", () => {
+    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
+    const skill = path.join(repo, ".agents/skills/ship-pr/SKILL.md");
+    const original = readFileSync(skill, "utf8");
+    try {
+      execFileSync("git", ["init", "--bare", "--quiet", remote], { stdio: "ignore" });
+      expect(git(["push", "-q", remote, "HEAD:refs/heads/main"]).ok).toBe(true);
+      expect(commit("test: exercise skill drift").ok).toBe(true);
+      writeFileSync(skill, `${original}\nLocal drift\n`);
+      const push = git(["push", remote, "HEAD:refs/heads/main"]);
+      expect(push.ok).toBe(false);
+      expect(push.output).toContain("Locally edited or unmanaged skill");
+      expect(push.output).not.toContain("agent attribution");
+    } finally {
+      writeFileSync(skill, original);
+      rmSync(remote, { recursive: true, force: true });
+    }
+  }, 60_000);
   test("refuses a commit that reached the branch past commit-msg", () => {
     const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
     try {

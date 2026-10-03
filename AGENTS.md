@@ -28,8 +28,9 @@ in `mise.toml`; `mise use` installs it) and Google Chrome, then run
 when it finishes whether it passed or failed, and appends the run to
 `skyline-timings.log` in the Git common directory; `bun scripts/show-timings.ts`
 reads it back and `ship-pr` prints it at the end of a shipping run. The check runner typechecks the
-repository, starts and closes its own local server, and runs the merge helper,
-reference excerpt, and building kit suites under `bun test`, then builds `dist/`
+repository, checks managed skill drift, starts and closes its own local server,
+and runs the attribution, hooks, package, reference excerpt, and building kit
+suites under `bun test`, then builds `dist/`
 and runs the hover regressions, both 3D study browser suites, the building
 detail suite, and the full-screen 3D skyline suite against the compiled site. Study pages share `study-viewer.ts`, `study.css`, and
 `study-loader.ts`; keep model geometry and scene-specific placement and camera
@@ -66,10 +67,35 @@ study" gives the loop, and `docs/adding-a-building.md` the long form: the
 drawing's projection, the platform datum, how the fit is found, and the
 traps that cost time.
 
-The PR workflow skills live in `.agents/skills`; `.claude/skills` links to the
-same files. For an open-PR request use `open-pr`. For an explicit end-to-end
-shipping request use `ship-pr`, including its review/repair and merge steps.
-Read the selected skill before running it.
+PR workflows come from the commit-pinned `a2f0/agent-tool` dev dependency.
+`bun run agents:sync` installs managed regular-file copies in `.agents/skills`
+and `.claude/skills`; `.agent-tool-skills.json` records ownership. Do not edit
+those copies. Keep Skyline-specific policy here. To upgrade, update the package
+pin, run `bun install --ignore-scripts` and `bun run agents:sync`, then commit
+the dependency, lockfile, both skill directories, and manifest together.
+`bun run agents:check` checks drift without writing; the check runner and
+installed pre-push hook run it too. Reinstall hooks after changing their source.
+For an open-PR request use `open-pr`; for end-to-end shipping use `ship-pr`,
+including independent review, repairs, merge, and cleanup. Read the selected
+skill before running it. `bun run agent-tool` exposes the shared CLI.
+
+`agent-tool.json` keeps conventional subjects at 72 characters, rejects Claude
+branding in PR content, and gives each independent review 20 minutes. Poll
+review processes in short intervals so progress updates remain possible; a
+quiet output file is not failure, and an incomplete verdict is never clean.
+Skyline has no GitHub CI workflows, so `merge.requireChecks` is explicitly
+false; all reported checks must still pass, and `bun run check` is required
+locally before shipping. Fetch and pin the base for validation and review, and
+recheck it before pushing and merging; if it moved, integrate, validate, and
+review again. Merge only the reviewed HEAD, with a subject-only squash title
+and PR-number suffix. Use the shared executable directly for an empty subject:
+`node_modules/.bin/agent-tool pr merge '' <reviewed-head> <base-branch>`;
+`bun run` drops empty positional arguments.
+Record the shipping start time and feature branch, then print this session's
+timings even after cleanup: `bun scripts/show-timings.ts --branch <branch>
+--since <start-iso>`. Include PR link, reviewer and fallback, repairs, validation,
+squash subject/SHA, checkout and branch cleanup, and the timing table in the
+shipping report. Deploys are manual; run them when requested.
 
 **This repository records no agent attribution in its history.** Do not put a
 `Co-authored-by` trailer naming Claude or Anthropic, or a generated-with line,
