@@ -62,7 +62,7 @@ describe("full-screen 3D skyline", () => {
         expect(await scene.locator("#loading").textContent()).toContain("Preparing the skyline");
         expect(await scene.evaluate(() => window.__buildingStudy?.ready)).toBeUndefined();
         const bounds = (await trace.boundingBox())!;
-        expect(bounds.width).toBeGreaterThan(300);
+        expect(bounds.width).toBeCloseTo(Math.min(720, width - 48) / 3, 1);
         expect(bounds.x).toBeGreaterThanOrEqual(0);
         expect(bounds.x + bounds.width).toBeLessThanOrEqual(page.viewportSize()!.width);
         const line = scene.locator(".skyline-trace-line");
