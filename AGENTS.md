@@ -12,6 +12,16 @@ by `skyline-webgl.html`. Preserve path geometry and draw order when changing
 hover ownership; see `docs/building-labels.md`. The original comparison artwork
 is separate.
 
+`bun run build:package` additionally emits ESM and declarations to `lib/` and
+copies the complete built viewer to `site/`; both are gitignored and included
+in the package's publishing allowlist. `skyline-package.ts` and `package-assets.ts`
+are package-only entrypoints, not static-site entries. Scene construction lives
+in `skyline-scene.ts`, with DOM-free view types in `study-types.ts`. Library
+models share the consumer's Three.js through a generated forwarding module;
+the standalone site keeps the vendored engine. `bun run check:package` tests
+the tarball, imports, declarations, asset copying, and embed lifecycle.
+Package checks also use Node.js 22+, npm (included with Node), and system tar.
+
 Install test dependencies with `bun install --ignore-scripts`. Use Bun (pinned
 in `mise.toml`; `mise use` installs it) and Google Chrome, then run
 `bun run check` (or `bun scripts/check.ts`). It times every step, prints a table

@@ -8,6 +8,7 @@
 // Cloudflare.
 import { cp, mkdir, readdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
+import { createRequire } from "node:module";
 
 export const root = path.resolve(import.meta.dirname, "..");
 export const dist = path.join(root, "dist");
@@ -35,6 +36,8 @@ const staticFiles = [
 const compiledEntries = [
   "study-loader.ts",
   "study-viewer.ts",
+  "study-types.ts",
+  "skyline-scene.ts",
   "skyline-study.ts",
   "skyline-comparison.ts",
   "skyline-3d.ts",
@@ -80,7 +83,7 @@ export async function compileBrowser() {
   const { execFile } = await import("node:child_process");
   const { promisify } = await import("node:util");
   const run = promisify(execFile);
-  const tsc = path.join(root, "node_modules/typescript/bin/tsc");
+  const tsc = path.join(path.dirname(createRequire(import.meta.url).resolve("typescript/package.json")), "bin/tsc");
   const { stdout, stderr } = await run(process.execPath, [tsc, "-p", path.join(root, "tsconfig.build.json")], { cwd: root, maxBuffer: 1 << 24 });
   if (stdout) console.log(stdout.trim());
   if (stderr) throw new Error(stderr.trim());
