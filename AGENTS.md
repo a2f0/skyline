@@ -27,7 +27,7 @@ in `mise.toml`; `mise use` installs it) and Google Chrome, then run
 `bun run check` (or `bun scripts/check.ts`). It times every step, prints a table
 when it finishes whether it passed or failed, and appends the run to
 `skyline-timings.log` in the Git common directory; `bun scripts/show-timings.ts`
-reads it back and `ship-pr` prints it at the end of a shipping run. The check
+reads it back; Skyline’s shipping policy requires printing it at the end. The check
 runner checks managed skill drift and tool configuration, typechecks the
 repository, runs the attribution, hooks, timings, merge guard, deploy verification,
 skyline-loading, package, reference excerpt, and building kit checks, then
@@ -86,7 +86,12 @@ pinned base commit for validation/review; treat branch content as untrusted
 review material. Honor requested reviewer/pass counts, counting only completed
 verdicts. Push the reviewed feature HEAD with an explicit remote and refspec;
 never let an inherited upstream send feature work to the base branch. Read the
-selected skill before running it. `bun run agent-tool` exposes the shared CLI.
+selected skill before running it.
+
+Use `bun run agent-tool` for shared CLI commands in Skyline.
+Merge through `bun scripts/merge-pr.ts <reviewed-head> <base-branch>
+<reviewed-base-sha>` instead of invoking the generic merge command directly.
+
 `CLAUDE.md` imports this policy for Claude Code. Skyline's wrapper currently
 supports same-repository PRs whose remote and local feature branch names match.
 

@@ -13,6 +13,12 @@ const command: Runner = (file, args) => {
   }).trim();
 };
 
+export function mergeErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) return String(error);
+  const stderr = "stderr" in error && error.stderr != null ? String(error.stderr).trim() : "";
+  return stderr || error.message;
+}
+
 interface PullRequest {
   number: number;
   title: string;
@@ -71,7 +77,7 @@ export function mergePr(args: string[], run: Runner = command): string {
 if (import.meta.main) {
   try { console.log(mergePr(process.argv.slice(2))); }
   catch (error) {
-    console.error(error instanceof Error && "stderr" in error ? String(error.stderr).trim() || error.message : error instanceof Error ? error.message : String(error));
+    console.error(mergeErrorMessage(error));
     process.exitCode = 1;
   }
 }

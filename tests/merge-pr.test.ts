@@ -1,13 +1,14 @@
 import { describe, expect, test } from "bun:test";
-import { mergePr, type Runner } from "../scripts/merge-pr.js";
+import { mergeErrorMessage, mergePr, type Runner } from "../scripts/merge-pr.js";
 
 const head = "a".repeat(40), base = "b".repeat(40), merged = "c".repeat(40);
-function fixture(options: { dirty?: boolean; changedHead?: boolean; staleBase?: boolean; prBase?: string; prHead?: string; state?: string; confirmed?: boolean; message?: string; ancestor?: boolean; branch?: string; draft?: boolean; prState?: string; mergeable?: string; mergedNumber?: number } = {}) {
+function fixture(options: { dirty?: boolean; changedHead?: boolean; staleBase?: boolean; prBase?: string; prHead?: string; state?: string; confirmed?: boolean; message?: string; ancestor?: boolean; branch?: string; draft?: boolean; prState?: string; mergeable?: string; mergedNumber?: number; repo?: string; title?: string; mergeFailure?: boolean } = {}) {
   let called = false;
   const run: Runner = (file, args) => {
     if (file === process.execPath) {
-      expect(args.slice(1)).toEqual(["pr", "merge", "chore: change", head, "main"]);
+      expect(args.slice(1)).toEqual(["pr", "merge", options.title ?? "chore: change", head, "main"]);
       called = true;
+      if (options.mergeFailure) throw Object.assign(new Error("Shared merge failed"), { stderr: null });
       return "";
     }
     if (file === "git") {
@@ -17,9 +18,9 @@ function fixture(options: { dirty?: boolean; changedHead?: boolean; staleBase?: 
       if (args[0] === "merge-base" && options.ancestor === false) throw new Error("Reviewed base is not an ancestor");
       return "";
     }
-    if (args[0] === "repo") return "a2f0/skyline";
+    if (args[0] === "repo") return options.repo ?? "a2f0/skyline";
     if (args[0] === "pr") return JSON.stringify({
-      number: called ? options.mergedNumber ?? 123 : 123, title: "chore: change",
+      number: called ? options.mergedNumber ?? 123 : 123, title: options.title ?? "chore: change",
       state: called && options.confirmed !== false ? "MERGED" : options.prState ?? "OPEN",
       isDraft: options.draft ?? false, headRefName: "feature", headRefOid: options.prHead ?? head,
       baseRefName: "main", baseRefOid: options.prBase ?? base,
@@ -52,6 +53,7 @@ describe("Skyline merge guards around the shared tool", () => {
     ["unreviewed ancestry", { ancestor: false }, "not an ancestor"],
     ["base branch checkout", { branch: "main" }, "feature branch"],
     ["detached checkout", { branch: "" }, "feature branch"],
+    ["invalid repository identity", { repo: "unknown" }, "resolve the repository"],
   ] as const) {
     test(`refuses ${name} before invoking the shared merge`, () => {
       const f = fixture(options);
@@ -76,5 +78,16 @@ describe("Skyline merge guards around the shared tool", () => {
     const f = fixture({ mergedNumber: 124 });
     expect(() => mergePr([head, "main", base], f.run)).toThrow("did not confirm");
     expect(f.called()).toBe(true);
+  });
+  test("verifies a title that already includes its PR number", () => {
+    expect(mergePr([head, "main", base], fixture({ title: "chore: change (#123)" }).run)).toBe(merged);
+  });
+  test("propagates a shared CLI failure and reports its message with inherited stderr", () => {
+    const f = fixture({ mergeFailure: true });
+    let result: string | undefined;
+    try { result = mergePr([head, "main", base], f.run); }
+    catch (error) { expect(mergeErrorMessage(error)).toBe("Shared merge failed"); }
+    expect(f.called()).toBe(true);
+    expect(result).toBeUndefined();
   });
 });

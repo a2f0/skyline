@@ -295,7 +295,7 @@ describe("the installed pre-push hook", () => {
       rmSync(remote, { recursive: true, force: true });
     }
   }, 60_000);
-  test("refuses committed skill drift in the checked-out branch", () => {
+  test("refuses worktree skill drift that matches the checked-out commit", () => {
     const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
     const relative = ".claude/skills/ship-pr/SKILL.md";
     const skill = path.join(repo, relative);
