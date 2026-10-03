@@ -44,6 +44,70 @@ describe("full-screen 3D skyline", () => {
     await browser.close();
   }, { timeout: 60_000 });
 
+  test("traces the loading elevation before the 3D code arrives, then removes it at the first frame", async () => {
+    for (const [width, height, reduced] of [[1440, 900, false], [390, 844, false], [390, 844, true]] as const) {
+      const page = await browser.newPage({
+        viewport: { width, height },
+        reducedMotion: reduced ? "reduce" : "no-preference",
+      });
+      watch(page);
+      let release!: () => void;
+      const held = new Promise<void>((resolve) => { release = resolve; });
+      await page.route("**/skyline-3d.js", async (route) => { await held; await route.continue(); });
+      try {
+        await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
+        const scene = (await (await page.locator("#skyline-3d-scene").elementHandle())!.contentFrame())!;
+        const trace = scene.locator(".skyline-trace");
+        await trace.waitFor({ state: "visible" });
+        expect(await scene.locator("#loading").textContent()).toContain("Preparing the skyline");
+        expect(await scene.evaluate(() => window.__buildingStudy?.ready)).toBeUndefined();
+        const bounds = (await trace.boundingBox())!;
+        expect(bounds.width).toBeGreaterThan(300);
+        expect(bounds.x).toBeGreaterThanOrEqual(0);
+        expect(bounds.x + bounds.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+        const line = scene.locator(".skyline-trace-line");
+        if (reduced) {
+          expect(await line.evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
+          expect(await line.evaluate((element) => getComputedStyle(element).strokeDasharray)).toBe("none");
+          expect(await scene.locator(".skyline-trace-tip").isHidden()).toBe(true);
+        } else {
+          const offsets = await line.evaluate((element) => {
+            const animation = element.getAnimations()[0]!;
+            animation.pause();
+            animation.currentTime = 0;
+            const start = parseFloat(getComputedStyle(element).strokeDashoffset);
+            animation.currentTime = 2000;
+            const middle = parseFloat(getComputedStyle(element).strokeDashoffset);
+            animation.currentTime = 3200;
+            return [start, middle, parseFloat(getComputedStyle(element).strokeDashoffset)];
+          });
+          expect(offsets[0]).toBe(1);
+          expect(offsets[1]).toBeGreaterThan(0);
+          expect(offsets[1]).toBeLessThan(1);
+          expect(offsets[2]).toBe(0);
+        }
+        release();
+        await scene.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
+        expect(await scene.locator("#loading").isHidden()).toBe(true);
+      } finally {
+        release();
+        await page.close();
+      }
+    }
+  }, { timeout: 120_000 });
+
+  test("replaces the trace with a readable error when the scene cannot load", async () => {
+    const page = await browser.newPage();
+    await page.route("**/skyline-3d.js", (route) => route.abort());
+    await page.goto(`${origin}/skyline-3d.html`);
+    const loading = page.locator("#loading");
+    await page.waitForFunction(() => document.querySelector("#loading")!.textContent!.includes("WebGL 2"));
+    expect(await loading.isVisible()).toBe(true);
+    expect(await loading.locator("svg").count()).toBe(0);
+    expect(await loading.evaluate((element) => getComputedStyle(element).display)).not.toBe("grid");
+    await page.close();
+  });
+
   test("stands the mapped buildings where the skyline viewer draws them, at every layout", async () => {
     // The page frames the drawing's viewBox through the geographic skyline camera, centred
     // and bottom-aligned as the viewer's SVG is, so each landmark lands on its drawn point
