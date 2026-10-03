@@ -300,6 +300,7 @@ describe("the installed pre-push hook", () => {
     const relative = ".claude/skills/ship-pr/SKILL.md";
     const skill = path.join(repo, relative);
     const original = readFileSync(skill, "utf8");
+    const previousHead = git(["rev-parse", "HEAD"]).output.trim();
     try {
       execFileSync("git", ["init", "--bare", "--quiet", remote], { stdio: "ignore" });
       writeFileSync(skill, `${original}\nCommitted drift\n`);
@@ -310,9 +311,8 @@ describe("the installed pre-push hook", () => {
       expect(push.ok).toBe(false);
       expect(push.output).toContain("Locally edited or unmanaged skill");
     } finally {
-      writeFileSync(skill, original);
-      git(["add", relative]);
-      expect(commit("test: restore managed skill").ok).toBe(true);
+      // Only this disposable fixture is reset; leave no drift for later cases.
+      git(["reset", "--hard", previousHead]);
       rmSync(remote, { recursive: true, force: true });
     }
   }, 60_000);
