@@ -46,7 +46,12 @@ else
 fi
 
 # Use the resolved runtime directly: a GUI client's PATH may carry no bun shim.
-"$BUN" "$REPO_ROOT/node_modules/agent-tool/src/index.ts" skills check </dev/null
+AGENT_TOOL="$REPO_ROOT/node_modules/agent-tool/src/index.ts"
+if [ ! -f "$AGENT_TOOL" ]; then
+  echo "Error: the managed skill check needs agent-tool. Run bun install --ignore-scripts." >&2
+  exit 1
+fi
+"$BUN" "$AGENT_TOOL" skills check </dev/null
 
 zero_sha="0000000000000000000000000000000000000000"
 refs_file=$(mktemp)

@@ -271,7 +271,7 @@ describe("the installed pre-push hook", () => {
       writeFileSync(path.join(directory, "mise"), `#!/bin/sh\n[ "$1" = which ] && printf '%s\\n' '${process.execPath}'\n`, { mode: 0o755 });
       const push = git(["push", remote, "HEAD:refs/heads/main"], { ...process.env, PATH: directory });
       expect(push.ok, push.output).toBe(true);
-      expect(push.output).toContain('"ok": true');
+      expect(push.output).toMatch(/"ok"\s*:\s*true/);
     } finally {
       rmSync(directory, { recursive: true, force: true });
       rmSync(remote, { recursive: true, force: true });
@@ -292,6 +292,42 @@ describe("the installed pre-push hook", () => {
       expect(push.output).not.toContain("agent attribution");
     } finally {
       writeFileSync(skill, original);
+      rmSync(remote, { recursive: true, force: true });
+    }
+  }, 60_000);
+  test("refuses committed skill drift in the checked-out branch", () => {
+    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
+    const relative = ".claude/skills/ship-pr/SKILL.md";
+    const skill = path.join(repo, relative);
+    const original = readFileSync(skill, "utf8");
+    try {
+      execFileSync("git", ["init", "--bare", "--quiet", remote], { stdio: "ignore" });
+      writeFileSync(skill, `${original}\nCommitted drift\n`);
+      git(["add", relative]);
+      expect(commit("test: commit managed skill drift").ok).toBe(true);
+      expect(git(["diff", "HEAD", "--", relative]).output).toBe("");
+      const push = git(["push", remote, "HEAD:refs/heads/main"]);
+      expect(push.ok).toBe(false);
+      expect(push.output).toContain("Locally edited or unmanaged skill");
+    } finally {
+      writeFileSync(skill, original);
+      git(["add", relative]);
+      expect(commit("test: restore managed skill").ok).toBe(true);
+      rmSync(remote, { recursive: true, force: true });
+    }
+  }, 60_000);
+  test("explains how to install a missing shared tool", () => {
+    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
+    const installed = path.join(repo, "node_modules/agent-tool");
+    try {
+      execFileSync("git", ["init", "--bare", "--quiet", remote], { stdio: "ignore" });
+      rmSync(installed);
+      const push = git(["push", remote, "HEAD:refs/heads/main"]);
+      expect(push.ok).toBe(false);
+      expect(push.output).toContain("Run bun install --ignore-scripts");
+      expect(push.output).not.toContain("agent attribution");
+    } finally {
+      symlinkSync(path.join(root, "node_modules/agent-tool"), installed);
       rmSync(remote, { recursive: true, force: true });
     }
   }, 60_000);

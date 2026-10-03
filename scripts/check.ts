@@ -27,6 +27,7 @@ async function main() {
     if (baseSha) await run("git", ["diff", "--check", `${baseSha}...HEAD`]);
   });
   await timings.run("agents:check", () => run(process.execPath, ["run", "agents:check"]));
+  await timings.run("agent-tool:config", () => run(process.execPath, ["node_modules/agent-tool/src/index.ts", "config", "show"]));
   // The strictest-config typecheck over the whole repository.
   await timings.run("typecheck", () => run(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]));
   await suite("check-coauthors.test.ts");
