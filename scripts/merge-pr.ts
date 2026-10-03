@@ -3,9 +3,15 @@ import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
 export type Runner = (file: string, args: string[]) => string;
-const command: Runner = (file, args) => execFileSync(file, args, {
-  cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
-}).trim();
+const command: Runner = (file, args) => {
+  if (file === process.execPath) {
+    execFileSync(file, args, { cwd: root, stdio: "inherit" });
+    return "";
+  }
+  return execFileSync(file, args, {
+    cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
+  }).trim();
+};
 
 interface PullRequest {
   number: number;

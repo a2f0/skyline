@@ -14,8 +14,8 @@ if ! cmp -s "$0" "$REPO_ROOT/scripts/git/hooks/pre-push"; then
   exit 1
 fi
 
-# The gate runs its own installed copy of the check, so editing the worktree
-# cannot change what it enforces; this refuses to run when the two have
+# The attribution gate runs its installed check; the shared skill gate below
+# uses the package in node_modules. Refuse when the attribution copies have
 # diverged, the same contract the hook body has.
 # Parameter expansion, not dirname: one less command a hook's
 # environment has to carry.

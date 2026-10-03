@@ -87,6 +87,8 @@ review material. Honor requested reviewer/pass counts, counting only completed
 verdicts. Push the reviewed feature HEAD with an explicit remote and refspec;
 never let an inherited upstream send feature work to the base branch. Read the
 selected skill before running it. `bun run agent-tool` exposes the shared CLI.
+`CLAUDE.md` imports this policy for Claude Code. Skyline's wrapper currently
+supports same-repository PRs whose remote and local feature branch names match.
 
 `agent-tool.json` keeps conventional subjects at 72 characters, rejects Claude
 branding in PR content, and gives each independent review 20 minutes. Poll
@@ -112,6 +114,13 @@ CI and the subject-only squash to agent-tool, then verifies MERGED and the
 stored title with PR-number suffix before cleanup. `tests/merge-pr.test.ts`
 covers these project guards. The wrapper passes a nonempty title directly to
 the shared CLI, avoiding `bun run`'s empty-argument behavior.
+After confirmed MERGED, verify the default branch contains the merge and the
+feature ref still equals the reviewed HEAD. Delete the remote feature branch
+only with an explicit lease on that SHA, for example
+`git push --force-with-lease=refs/heads/<feature>:<reviewed-head> origin
+:refs/heads/<feature>`; if already absent, verify absence. Never delete a branch
+that has advanced. Delete the local branch only after verifying its reviewed
+SHA and the squash's tree, then return to the updated default branch.
 Record the shipping start time and feature branch, then print this session's
 timings even after cleanup: `bun scripts/show-timings.ts --branch <branch>
 --since <start-iso>`. Include PR link, reviewer and fallback, repairs, validation,
