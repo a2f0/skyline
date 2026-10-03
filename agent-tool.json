@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "subject": { "maxLength": 72 },
+  "merge": { "requireChecks": false, "requiredChecks": [] },
+  "review": { "timeoutMs": 1200000 },
+  "pr": { "rejectClaudeBranding": true }
+}

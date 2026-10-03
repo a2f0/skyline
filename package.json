@@ -37,6 +37,9 @@
   "peerDependenciesMeta": { "three": { "optional": true } },
   "dependencies": { "@types/three": "0.186.0" },
   "scripts": {
+    "agent-tool": "agent-tool",
+    "agents:sync": "bun run agent-tool skills install --apply",
+    "agents:check": "bun run agent-tool skills check",
     "check": "bun scripts/check.ts",
     "test": "bun scripts/check.ts",
     "typecheck": "bunx --bun tsc -p tsconfig.json",
@@ -53,6 +56,7 @@
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.8",
     "@types/bun": "^1.4.2",
+    "agent-tool": "github:a2f0/agent-tool#dfae8d2caca5710eb69717b3f441ec5256bf1f48",
     "three": "0.186.0",
     "playwright": "1.63.0",
     "typescript": "^7.0.2",
