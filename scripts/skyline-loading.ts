@@ -83,7 +83,9 @@ export function skylineTrace(buildings: THREE.Object3D[], azimuth: number): stri
   points.push([width - margin, baseline], [width, baseline]);
   const number = (n: number) => Number(n.toFixed(2));
   const d = simplify(points, 0.3).map(([x, y], i) => `${i ? "L" : "M"}${number(x)} ${number(y)}`).join(" ");
-  return `<svg class="skyline-trace" viewBox="0 0 ${width} ${number(baseline + 16)}" aria-hidden="true" focusable="false">
+  // End the view box at the ground line so bottom alignment touches the toolbar,
+  // regardless of how tall future buildings make the skyline.
+  return `<svg class="skyline-trace" viewBox="0 0 ${width} ${number(baseline)}" aria-hidden="true" focusable="false">
           <defs><path id="skyline-loading-outline" pathLength="1" d="${d}" /></defs>
           <use class="skyline-trace-rail" href="#skyline-loading-outline" />
           <use class="skyline-trace-line" href="#skyline-loading-outline" />

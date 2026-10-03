@@ -45,7 +45,7 @@ describe("full-screen 3D skyline", () => {
   }, { timeout: 60_000 });
 
   test("traces the loading elevation before the 3D code arrives, then removes it at the first frame", async () => {
-    for (const [width, height, reduced] of [[1440, 900, false], [390, 844, false], [390, 844, true]] as const) {
+    for (const [width, height, reduced] of [[1440, 900, false], [390, 844, false], [390, 844, true], [844, 390, false]] as const) {
       const page = await browser.newPage({
         viewport: { width, height },
         reducedMotion: reduced ? "reduce" : "no-preference",
@@ -60,11 +60,19 @@ describe("full-screen 3D skyline", () => {
         const trace = scene.locator(".skyline-trace");
         await trace.waitFor({ state: "visible" });
         expect(await scene.locator("#loading").textContent()).toContain("Preparing the skyline");
+        expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
         expect(await scene.evaluate(() => window.__buildingStudy?.ready)).toBeUndefined();
         const bounds = (await trace.boundingBox())!;
         expect(bounds.width).toBeCloseTo(Math.min(720, width - 48) / 3, 1);
         expect(bounds.x).toBeGreaterThanOrEqual(0);
         expect(bounds.x + bounds.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+        const ground = await scene.evaluate(() => {
+          const svg = document.querySelector<SVGSVGElement>(".skyline-trace")!;
+          const outline = document.querySelector<SVGPathElement>("#skyline-loading-outline")!;
+          const baseline = outline.getPointAtLength(outline.getTotalLength()).matrixTransform(svg.getScreenCTM()!).y;
+          return { baseline, toolbar: document.querySelector(".control-bar")!.getBoundingClientRect().top };
+        });
+        expect(ground.baseline, "the traced ground line touches the toolbar").toBeCloseTo(ground.toolbar, 1);
         const line = scene.locator(".skyline-trace-line");
         if (reduced) {
           expect(await line.evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
@@ -89,6 +97,7 @@ describe("full-screen 3D skyline", () => {
         release();
         await scene.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
         expect(await scene.locator("#loading").isHidden()).toBe(true);
+        expect(await scene.locator(".scene-notes").isVisible()).toBe(true);
       } finally {
         release();
         await page.close();
