@@ -100,12 +100,13 @@ button:disabled { cursor: default; opacity: 0.35; }
 .skyline-3d canvas { height: 100%; }
 .skyline-3d .study-annotations { inset: 0; }
 /* A level skyline elevation traces itself while the scene boots. It is inline so it
-   appears before the model graph loads; errors replace it with the normal loading text. */
+   appears before the model graph loads; errors replace it with the normal loading text.
+   Scaled strokes and glow keep the smaller outline legible. */
 .skyline-3d .loading:has(.skyline-trace) { inset: 0; margin: 0; display: grid; place-items: center; padding: 32px 24px; pointer-events: none; }
-.skyline-trace { display: block; width: min(720px, 100%); max-height: 42vh; overflow: visible; fill: none; stroke: #ddd; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
+.skyline-trace { display: block; width: min(240px, calc(100% / 3)); max-height: 14vh; overflow: visible; fill: none; stroke: #ddd; stroke-width: 4.2; stroke-linejoin: round; stroke-linecap: round; }
 .skyline-trace-rail { opacity: 0.08; }
 .skyline-trace-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: skyline-trace 4s linear infinite; }
-.skyline-trace-tip { stroke: #fff; stroke-width: 2.2; stroke-dasharray: 0.008 0.992; stroke-dashoffset: 0.008; filter: drop-shadow(0 0 3px #ffffff99); animation: skyline-trace-tip 4s linear infinite; }
+.skyline-trace-tip { stroke: #fff; stroke-width: 6.6; stroke-dasharray: 0.008 0.992; stroke-dashoffset: 0.008; filter: drop-shadow(0 0 9px #ffffff99); animation: skyline-trace-tip 4s linear infinite; }
 @keyframes skyline-trace {
   0% { stroke-dashoffset: 1; opacity: 0; }
   5% { opacity: 1; }
@@ -161,8 +162,8 @@ button:disabled { cursor: default; opacity: 0.35; }
   .skyline-trace-tip { display: none; animation: none; }
 }
 @media (max-width: 600px) {
-  .skyline-trace { stroke-width: 2.8; }
-  .skyline-trace-tip { stroke-width: 4; }
+  .skyline-trace { stroke-width: 8.4; }
+  .skyline-trace-tip { stroke-width: 12; }
   .layout-controls { align-items: start; flex-direction: column; gap: 12px; }
   header { padding: 24px 5vw; flex-wrap: wrap; gap: 18px; }
   h1 { max-width: 300px; }
