@@ -1,7 +1,25 @@
 import { geographicBuildings } from "./models/skyline-geography-data.js";
 import { createGeographicBuilding, createGeographicGround } from "./models/skyline-geography.js";
-import type { Vec3 } from "./models/building-kit.js";
-import type { StudyLayout, StudyView } from "./study-types.js";
+import type { BuildingModel, Vec3 } from "./models/building-kit.js";
+import type { FitBox, PlatformOptions, ShadowCameraOptions, StudyLabel, StudyLayout, StudyView } from "./study-types.js";
+
+export interface GeographicSkyline {
+  models: BuildingModel[];
+  ground: ReturnType<typeof createGeographicGround>;
+  center: Vec3;
+  settings: {
+    target: Vec3;
+    fit: FitBox;
+    platform: PlatformOptions & { x: number; z: number };
+    clippingMargin: number;
+    lightPosition: Vec3;
+    shadowCamera: ShadowCameraOptions;
+  };
+  layout: StudyLayout;
+  drawingView: StudyView;
+  comparisonViews: Record<string, StudyView>;
+  labels: StudyLabel[];
+}
 
 // The panorama's viewBox, models/skyline-panorama.svg, in the drawing's layer units. Its
 // centre is the skyline camera's sightline and its height the camera's vertical field of view.
@@ -16,7 +34,7 @@ export const skylineAzimuth = 36.1247 * Math.PI / 180;
 
 // The geographic skyline, registered with Crain's mapped centre at `anchor`: every mapped
 // building, their ground, the settings a study shows them with, and the drawing's camera.
-export function createGeographicSkyline(anchor: Vec3 = [0, 0, 0]) {
+export function createGeographicSkyline(anchor: Vec3 = [0, 0, 0]): GeographicSkyline {
   const offset: [number, number] = [anchor[0], anchor[2]];
   const models = geographicBuildings.map((record) => createGeographicBuilding(record, offset));
   const ground = createGeographicGround(offset);

@@ -1,5 +1,6 @@
 export type { BuildingModel, Vec2, Vec3 } from "./models/building-kit.js";
 export type { FitBox, PlatformOptions, ShadowCameraOptions, StudyView, StudyLayout, StudyLabel } from "./study-types.js";
+export type { GeographicSkyline } from "./skyline-scene.js";
 
 export interface SkylineOptions {
   /** Directory serving the package's viewer assets, e.g. "/static/skyline/". */

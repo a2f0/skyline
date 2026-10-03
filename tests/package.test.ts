@@ -82,16 +82,21 @@ console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
 
   test("builds a GitHub source install with only the host's compiler and types", async () => {
     const host = path.join(temporary, "github-consumer");
-    const source = path.join(host, "node_modules/chicago-skyline");
+    const source = path.join(host, "node_modules/.bun/chicago-skyline@github/node_modules/chicago-skyline");
     const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8" }).split("\0").filter(Boolean);
     for (const file of tracked) {
       const destination = path.join(source, file);
       await mkdir(path.dirname(destination), { recursive: true });
       await cp(path.join(root, file), destination);
     }
-    for (const dependency of ["typescript", "@tsconfig", "@types"]) {
+    for (const dependency of ["typescript", "@tsconfig", "@webgpu"]) {
       await symlink(path.join(root, "node_modules", dependency), path.join(host, "node_modules", dependency));
     }
+    // Real type files behind Bun-style symlinks reproduce declaration
+    // portability failures that a flat checkout dependency layout can conceal.
+    const types = path.join(host, "node_modules/.bun/types/node_modules/@types");
+    await cp(path.join(root, "node_modules/@types"), types, { recursive: true, dereference: true });
+    await symlink(types, path.join(host, "node_modules/@types"));
     // The installed GitHub source has neither generated artifacts nor its own
     // node_modules. The consuming application's postinstall builds it explicitly.
     expect(await Bun.file(path.join(source, "lib/skyline-package.js")).exists()).toBe(false);
