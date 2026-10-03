@@ -691,5 +691,6 @@ export function createBuildingStudy({
       return { min: min.clone().add(base.position).toArray(), max: max.clone().add(base.position).toArray() };
     },
   };
+  if (window.parent !== window) window.parent.postMessage({ type: "skyline:ready" }, location.origin);
   return { setLayout, setView, requestRender, buildingAt };
 }

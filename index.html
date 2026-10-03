@@ -246,7 +246,9 @@
       };
       let debugMotion = false;
       let skylineMode = homeMode;
-      let sceneUnavailable = false;
+      // Keep SVG recovery reachable until the first 3D frame succeeds, even if
+      // the scene document or its bootstrap script never initializes.
+      let sceneUnavailable = true;
 
       function updateSkylineView() {
         const framedScene = framedScenes[skylineMode];
@@ -295,8 +297,8 @@
       // this origin and while it is displayed, can request the original drawing.
       window.addEventListener("message", (event) => {
         if (event.origin !== location.origin || event.source !== skyline3dScene.contentWindow) return;
-        if (event.data?.type === "skyline:unavailable") {
-          sceneUnavailable = true;
+        if (event.data?.type === "skyline:unavailable" || event.data?.type === "skyline:ready") {
+          sceneUnavailable = event.data.type === "skyline:unavailable";
           updateSkylineView();
           return;
         }
