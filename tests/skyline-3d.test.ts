@@ -116,6 +116,19 @@ describe("full-screen 3D skyline", () => {
     expect(await loading.isVisible()).toBe(true);
     expect(await loading.locator("svg").count()).toBe(0);
     expect(await loading.evaluate((element) => getComputedStyle(element).display)).not.toBe("grid");
+
+    // The viewer can still compare the drawing after a failed load. Its disabled
+    // scene controls cannot receive focus, so returning focuses the top switch.
+    await page.goto(`${origin}/index.html`);
+    const scene = (await (await page.locator("#skyline-3d-scene").elementHandle())!.contentFrame())!;
+    await scene.waitForFunction(() => document.querySelector("#loading")!.textContent!.includes("WebGL 2"));
+    expect(await scene.locator("#menu-toggle").isDisabled()).toBe(true);
+    await page.locator("#toggle-skyline").click();
+    await page.locator("#return-skyline-3d").press("Enter");
+    expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
+    expect(await page.locator("#return-skyline-3d").isHidden()).toBe(true);
+    expect(await page.evaluate(() => document.activeElement?.id)).toBe("toggle-skyline");
+    expect(await scene.locator("#loading").textContent()).toContain("WebGL 2");
     await page.close();
   });
 

@@ -291,7 +291,9 @@
         const sceneDocument = skyline3dScene.contentDocument;
         const star = sceneDocument?.querySelector("#menu-toggle");
         const focus = star?.getAttribute("aria-expanded") === "true" ? sceneDocument.querySelector("#show-original") : star;
-        (focus ?? toggles.original.button).focus();
+        const target = focus?.matches(":enabled") ? focus : null;
+        target?.focus();
+        if (!target || sceneDocument?.activeElement !== target) toggles.original.button.focus();
       });
 
       updateSkylineView();
