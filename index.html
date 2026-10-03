@@ -6,6 +6,11 @@
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#000000" />
     <title>Chicago Skyline — Living Night</title>
+    <script>
+      if (new URLSearchParams(location.search).get("embed") === "1") {
+        document.documentElement.dataset.embedded = "true";
+      }
+    </script>
     <style>
       :root {
         color-scheme: dark;
@@ -86,6 +91,10 @@
         text-underline-offset: 3px;
         cursor: pointer;
         opacity: 0.88;
+      }
+
+      html[data-embedded="true"] .controls {
+        display: none;
       }
 
       .controls button:hover,

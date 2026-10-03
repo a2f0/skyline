@@ -2,7 +2,7 @@
 
 `chicago-skyline` provides the complete viewer and separate Three.js scene/building
 modules. Package builds emit ordinary ESM JavaScript and TypeScript declarations;
-consumers do not compile repository sources or run installation scripts. Browser
+tarball consumers do not compile repository sources or run installation scripts. Browser
 code and Node/Bun build helpers have separate entrypoints.
 
 ## Build and pack
@@ -29,6 +29,34 @@ The tarball includes `lib/` (ESM and declarations), `site/` (the complete static
 viewer), package documentation, and third-party notices. Sources, test fixtures,
 credentials, deployment configuration, and the unused source photograph are
 excluded. No viewer assets load from a CDN.
+
+## Install from GitHub with Bun
+
+GitHub dependencies contain repository sources, rather than the generated
+`lib/` and `site/` directories in a published tarball. Pin a full commit SHA:
+
+```sh
+bun add github:a2f0/skyline#<full-commit-sha>
+```
+
+Build the installed source explicitly with your application's pinned Bun and
+TypeScript tools. Add this root `package.json` script so fresh installs and CI
+prepare the same artifacts:
+
+```json
+{
+  "scripts": {
+    "postinstall": "bun node_modules/chicago-skyline/scripts/build-package.ts"
+  }
+}
+```
+
+The host needs TypeScript 7, `@tsconfig/strictest`, `@types/bun`, and `@types/node`
+as development dependencies. The build resolves those tools from the host;
+it does not install Skyline's development dependencies or run dependency
+lifecycle scripts. Keep `trustedDependencies` unchanged. Run `bun install` after
+adding the script. Both the published tarball and this GitHub build expose the
+same entrypoints, declarations, and complete viewer assets.
 
 ## Copy the viewer assets
 
@@ -68,7 +96,9 @@ skyline.destroy();
 
 The container determines the viewer's size and placement; give it an explicit
 height. The viewer fills it through an iframe, which isolates its styles and
-controls from the application's header and CSS. It retains stars, the traced
+controls from the application's header and CSS. Embedding hides the standalone
+toolbar and study links so they do not overlap the host's navigation. Set
+`navigation: true` to show them. It retains stars, the traced
 loading silhouette, star controls, original comparison, and building details.
 Unmounting removes the entire document, its event handlers, and its WebGL context.
 Imports themselves do not access `window` or `document`, so server rendering and

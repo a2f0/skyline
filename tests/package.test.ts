@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -80,6 +80,28 @@ console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
     expect(result.align).toBe("bottom");
   }, { timeout: 60_000 });
 
+  test("builds a GitHub source install with only the host's compiler and types", async () => {
+    const host = path.join(temporary, "github-consumer");
+    const source = path.join(host, "node_modules/chicago-skyline");
+    const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8" }).split("\0").filter(Boolean);
+    for (const file of tracked) {
+      const destination = path.join(source, file);
+      await mkdir(path.dirname(destination), { recursive: true });
+      await cp(path.join(root, file), destination);
+    }
+    for (const dependency of ["typescript", "@tsconfig", "@types"]) {
+      await symlink(path.join(root, "node_modules", dependency), path.join(host, "node_modules", dependency));
+    }
+    // The installed GitHub source has neither generated artifacts nor its own
+    // node_modules. The consuming application's postinstall builds it explicitly.
+    expect(await Bun.file(path.join(source, "lib/skyline-package.js")).exists()).toBe(false);
+    execFileSync(process.execPath, [path.join(source, "scripts/build-package.ts")], { cwd: host, stdio: "pipe" });
+    const { mountSkyline } = await import(pathToFileURL(path.join(source, "lib/skyline-package.js")).href) as { mountSkyline: unknown };
+    expect(typeof mountSkyline).toBe("function");
+    for (const file of await publishedFiles()) expect(await Bun.file(path.join(source, "site", file)).exists()).toBe(true);
+    expect(await Bun.file(path.join(source, "lib/skyline-package.d.ts")).exists()).toBe(true);
+  }, { timeout: 60_000 });
+
   test("the complete viewer's entrypoints import without the optional Three.js peer", async () => {
     const withoutPeer = path.join(temporary, "without-peer");
     const packageDirectory = path.join(withoutPeer, "node_modules/chicago-skyline");
@@ -103,9 +125,9 @@ console.log(JSON.stringify({ mount: typeof mountSkyline, copy: typeof copySkylin
     await writeFile(path.join(consumer, "browser.ts"), `
 import { mountSkyline } from 'chicago-skyline';
 let skyline;
-window.mountFixture = () => {
+window.mountFixture = (navigation = false) => {
   skyline?.destroy();
-  skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/nested/skyline' });
+  skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/nested/skyline', navigation });
 };
 window.destroyFixture = () => skyline.destroy();
 window.mountFixture();
@@ -129,6 +151,7 @@ window.mountFixture();
           const frame = (await (await page.locator("#host > iframe").elementHandle())!.contentFrame())!;
           const scene = (await (await frame.locator("#skyline-3d-scene").elementHandle())!.contentFrame())!;
           await scene.waitForFunction(() => window.__buildingStudy?.ready);
+          expect(await frame.locator(".controls").isHidden()).toBe(true);
           expect(await frame.locator("#skyline-3d-scene").isVisible()).toBe(true);
           expect(await scene.locator("#show-original").isHidden()).toBe(true);
           await scene.locator("#menu-toggle").click();
@@ -145,6 +168,10 @@ window.mountFixture();
           expect(frame.isDetached()).toBe(true);
           expect(scene.isDetached()).toBe(true);
           expect(await page.locator("#host > iframe").count()).toBe(1);
+          await page.evaluate(() => (window as unknown as { mountFixture(navigation: boolean): void }).mountFixture(true));
+          const standalone = (await (await page.locator("#host > iframe").elementHandle())!.contentFrame())!;
+          await standalone.locator(".controls").waitFor({ state: "visible" });
+          expect(await standalone.locator("#fullscreen").isVisible()).toBe(true);
           await page.evaluate(() => (window as unknown as { destroyFixture(): void }).destroyFixture());
           await page.waitForFunction(() => !document.querySelector("#host > iframe"));
           expect(external).toEqual([]);
