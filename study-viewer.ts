@@ -220,6 +220,7 @@ export function createBuildingStudy({
   labelLayer.setAttribute("aria-hidden", "true");
   viewport.append(labelLayer);
   let modelLabels: ModelLabel[] = [];
+  let labelsPrepared = false;
   function prepareLabels() {
     labelLayer.replaceChildren();
     // A label names a building only in the layouts that have it: the geographic layout
@@ -234,9 +235,10 @@ export function createBuildingStudy({
         if (!mesh.isMesh) return;
         const positions = mesh.geometry.getAttribute("position"), point = new THREE.Vector3();
         for (let i = 0; i < positions.count; i += 1) {
-          point.fromBufferAttribute(positions, i).applyMatrix4(mesh.matrixWorld).toArray().forEach((n, axis) => {
-            min[axis] = Math.min(min[axis]!, n); max[axis] = Math.max(max[axis]!, n);
-          });
+          point.fromBufferAttribute(positions, i).applyMatrix4(mesh.matrixWorld);
+          min[0] = Math.min(min[0]!, point.x); max[0] = Math.max(max[0]!, point.x);
+          min[1] = Math.min(min[1]!, point.y); max[1] = Math.max(max[1]!, point.y);
+          min[2] = Math.min(min[2]!, point.z); max[2] = Math.max(max[2]!, point.z);
         }
       });
       const element = document.createElement("span");
@@ -245,8 +247,8 @@ export function createBuildingStudy({
       labelLayer.append(element);
       return [{ element, position: new THREE.Vector3((min[0]! + max[0]!) / 2, max[1]! + 5, (min[2]! + max[2]!) / 2) }];
     });
+    labelsPrepared = true;
   }
-  prepareLabels();
   const perspectiveCamera = new THREE.PerspectiveCamera(fov, 1, near, far);
   const planCamera = new THREE.OrthographicCamera(-500, 500, 500, -500, near, far);
   let camera: StudyCamera = perspectiveCamera;
@@ -399,6 +401,9 @@ export function createBuildingStudy({
     if (!views[name]) return;
     const view = viewFor(name);
     camera = view.projection === "orthographic" ? planCamera : perspectiveCamera;
+    // Labels appear only in orthographic views. Their exact bounds scan every mesh
+    // vertex, so defer it until a view actually needs them and reuse it for this layout.
+    if (camera.isOrthographicCamera && !labelsPrepared) prepareLabels();
     controls.object = camera;
     controls.enablePan = enablePan || !!camera.isOrthographicCamera;
     controls.minPolarAngle = camera.isOrthographicCamera ? 0 : Math.PI * 0.12;
@@ -616,7 +621,7 @@ export function createBuildingStudy({
     models.forEach((model) => { scene.add(model.building); model.setWireframe(wireframe); });
     extras.forEach((object) => scene.add(object));
     modelOwners = new Map<THREE.Object3D, BuildingModel>(models.map((model) => [model.building, model]));
-    prepareLabels();
+    labelsPrepared = false;
     base.geometry.dispose(); baseEdges.geometry.dispose();
     base.geometry = new THREE.BoxGeometry(platform.width, 2, platform.depth);
     baseEdges.geometry = new THREE.EdgesGeometry(base.geometry);

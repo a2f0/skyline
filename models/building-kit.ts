@@ -193,20 +193,28 @@ export function createBuilder(name: string, buildingId: string, { gradient = [70
   }
   const white = new THREE.Color(1, 1, 1);
   // Winding follows the first normal, so every helper stays outward-facing.
-  function triangle(target: BatchData, points: Vec3[], normals: Vec3[], color: THREE.Color = white) {
-    const [a, b, c] = points as [Vec3, Vec3, Vec3], n = normals[0]!;
-    const u: Vec3 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], v: Vec3 = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
-    const facing = (u[1] * v[2] - u[2] * v[1]) * n[0] + (u[2] * v[0] - u[0] * v[2]) * n[1] + (u[0] * v[1] - u[1] * v[0]) * n[2];
-    for (const i of facing < 0 ? [0, 2, 1] : [0, 1, 2]) {
-      target.positions.push(...points[i]!);
-      target.normals.push(...normals[i]!);
-      target.colors.push(color.r, color.g, color.b);
+  // Quads pass their vertices directly, avoiding temporary triangle and normal arrays
+  // for every face while retaining the same winding, vertex order, and attributes.
+  function appendTriangle(target: BatchData, a: Vec3, b: Vec3, c: Vec3, na: Vec3, nb: Vec3, nc: Vec3, color: THREE.Color = white) {
+    const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+    const vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+    const facing = (uy * vz - uz * vy) * na[0] + (uz * vx - ux * vz) * na[1] + (ux * vy - uy * vx) * na[2];
+    if (facing < 0) {
+      const point = b; b = c; c = point;
+      const normal = nb; nb = nc; nc = normal;
     }
+    target.positions.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
+    target.normals.push(na[0], na[1], na[2], nb[0], nb[1], nb[2], nc[0], nc[1], nc[2]);
+    target.colors.push(color.r, color.g, color.b, color.r, color.g, color.b, color.r, color.g, color.b);
+  }
+  function triangle(target: BatchData, points: Vec3[], normals: Vec3[], color?: THREE.Color) {
+    appendTriangle(target, points[0]!, points[1]!, points[2]!, normals[0]!, normals[1]!, normals[2]!, color);
   }
   function quad(target: BatchData, [a, b, c, d]: [Vec3, Vec3, Vec3, Vec3], normals: Vec3[], color?: THREE.Color) {
-    const n = normals.length === 1 ? [normals[0]!, normals[0]!, normals[0]!, normals[0]!] : normals as [Vec3, Vec3, Vec3, Vec3];
-    triangle(target, [a, b, c], [n[0]!, n[1]!, n[2]!], color);
-    triangle(target, [a, c, d], [n[0]!, n[2]!, n[3]!], color);
+    const na = normals[0]!, flat = normals.length === 1;
+    const nb = flat ? na : normals[1]!, nc = flat ? na : normals[2]!, nd = flat ? na : normals[3]!;
+    appendTriangle(target, a, b, c, na, nb, nc, color);
+    appendTriangle(target, a, c, d, na, nc, nd, color);
   }
   // Names a face that does not exist, so a typo cannot silently keep it.
   const checkOmit = (omit: string[] | undefined, allowed: string[], what: string) => {
@@ -327,18 +335,18 @@ export function createBuilder(name: string, buildingId: string, { gradient = [70
     const area = shoelace(polygon);
     const ring = polygon.map((_, i) => i), normal = [0, up ? 1 : -1, 0] as Vec3;
     const convex = (a: number, b: number, c: number) => {
-      const [pa, pb, pc] = [polygon[a]!, polygon[b]!, polygon[c]!];
+      const pa = polygon[a]!, pb = polygon[b]!, pc = polygon[c]!;
       return ((pb[0] - pa[0]) * (pc[1] - pa[1]) - (pb[1] - pa[1]) * (pc[0] - pa[0])) * area > 0;
     };
     const touches = (a: number, b: number, q: Vec2) => {
-      const [pa, pb] = [polygon[a]!, polygon[b]!];
+      const pa = polygon[a]!, pb = polygon[b]!;
       return ((pb[0] - pa[0]) * (q[1] - pa[1]) - (pb[1] - pa[1]) * (q[0] - pa[0])) * area >= -1e-9;
     };
     const contains = (a: number, b: number, c: number, q: Vec2) => touches(a, b, q) && touches(b, c, q) && touches(c, a, q);
     for (let guard = 0; ring.length > 3 && guard < polygon.length * polygon.length; guard += 1) {
       for (let i = 0; i < ring.length; i += 1) {
         const [a, b, c] = [ring[(i + ring.length - 1) % ring.length]!, ring[i]!, ring[(i + 1) % ring.length]!];
-        if (!convex(a, b, c) || ring.some((k) => !([a, b, c] as number[]).includes(k) && contains(a, b, c, polygon[k]!))) continue;
+        if (!convex(a, b, c) || ring.some((k) => k !== a && k !== b && k !== c && contains(a, b, c, polygon[k]!))) continue;
         triangle(target, [point(polygon[a]!, y), point(polygon[b]!, y), point(polygon[c]!, y)], [normal, normal, normal]);
         ring.splice(i, 1);
         break;
