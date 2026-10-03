@@ -3,6 +3,7 @@
   function showStudyError(message: string) {
     document.querySelector<HTMLElement>("#loading")!.textContent = message;
     document.querySelectorAll<HTMLButtonElement>("button").forEach((button) => { button.disabled = true; });
+    if (window.parent !== window) window.parent.postMessage({ type: "skyline:unavailable" }, location.origin);
   }
   if (location.protocol === "file:") {
     const page = location.pathname.split("/").pop();

@@ -201,6 +201,7 @@
       </nav>
 
       <button type="button" class="original-return" id="return-skyline-3d" title="Return to the 3D skyline" hidden>3d skyline</button>
+      <button type="button" class="original-return" id="embedded-original" title="Compare with the original skyline SVG" hidden>show original</button>
       <p class="visually-hidden" id="status" aria-live="polite"></p>
     </main>
 
@@ -214,6 +215,7 @@
       const debugMotionButton = document.querySelector("#debug-motion");
       const motionStatus = document.querySelector("#motion-status");
       const originalReturn = document.querySelector("#return-skyline-3d");
+      const embeddedOriginal = document.querySelector("#embedded-original");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       // Modes shown in their own page. The 3D skyline loads with the viewer; the others load
       // the first time they are chosen.
@@ -244,6 +246,7 @@
       };
       let debugMotion = false;
       let skylineMode = homeMode;
+      let sceneUnavailable = false;
 
       function updateSkylineView() {
         const framedScene = framedScenes[skylineMode];
@@ -266,6 +269,7 @@
         }
         scene.hidden = Boolean(framedScene);
         originalReturn.hidden = skylineMode !== "original";
+        embeddedOriginal.hidden = document.documentElement.dataset.embedded !== "true" || skylineMode !== homeMode || !sceneUnavailable;
 
         for (const [mode, toggle] of Object.entries(toggles)) {
           const showing = mode === skylineMode;
@@ -290,8 +294,13 @@
       // The scene's bottom shortcut uses the viewer's mode switch. Only this scene, on
       // this origin and while it is displayed, can request the original drawing.
       window.addEventListener("message", (event) => {
-        if (event.origin !== location.origin || event.source !== skyline3dScene.contentWindow
-          || event.data?.type !== "skyline:show-original" || skylineMode !== homeMode) return;
+        if (event.origin !== location.origin || event.source !== skyline3dScene.contentWindow) return;
+        if (event.data?.type === "skyline:unavailable") {
+          sceneUnavailable = true;
+          updateSkylineView();
+          return;
+        }
+        if (event.data?.type !== "skyline:show-original" || skylineMode !== homeMode) return;
         showSkylineMode("original");
         originalReturn.focus();
       });
@@ -302,7 +311,13 @@
         const focus = star?.getAttribute("aria-expanded") === "true" ? sceneDocument.querySelector("#show-original") : star;
         const target = focus?.matches(":enabled") ? focus : null;
         target?.focus();
-        if (!target || sceneDocument?.activeElement !== target) toggles.original.button.focus();
+        if (!target || sceneDocument?.activeElement !== target) {
+          (embeddedOriginal.hidden ? toggles.original.button : embeddedOriginal).focus();
+        }
+      });
+      embeddedOriginal.addEventListener("click", () => {
+        showSkylineMode("original");
+        originalReturn.focus();
       });
 
       updateSkylineView();

@@ -177,6 +177,18 @@ window.mountFixture();
           const standalone = (await (await page.locator("#host > iframe").elementHandle())!.contentFrame())!;
           await standalone.locator(".controls").waitFor({ state: "visible" });
           expect(await standalone.locator("#fullscreen").isVisible()).toBe(true);
+          // The host can still choose the SVG if the embedded 3D module fails.
+          await page.route("**/skyline-3d.js", (route) => route.abort());
+          await page.evaluate(() => (window as unknown as { mountFixture(): void }).mountFixture());
+          const failedViewer = (await (await page.locator("#host > iframe").elementHandle())!.contentFrame())!;
+          const failedScene = (await (await failedViewer.locator("#skyline-3d-scene").elementHandle())!.contentFrame())!;
+          await failedScene.waitForFunction(() => document.querySelector("#loading")!.textContent!.includes("WebGL 2"));
+          expect(await failedViewer.locator(".controls").isHidden()).toBe(true);
+          await failedViewer.locator("#embedded-original").click();
+          expect(await failedViewer.locator("#scene").isVisible()).toBe(true);
+          expect(await failedViewer.locator("#scene").getAttribute("src")).toBe("skyline-original-fit.svg");
+          await failedViewer.locator("#return-skyline-3d").press("Enter");
+          expect(await failedViewer.evaluate(() => document.activeElement?.id)).toBe("embedded-original");
           await page.evaluate(() => (window as unknown as { destroyFixture(): void }).destroyFixture());
           await page.waitForFunction(() => !document.querySelector("#host > iframe"));
           expect(external).toEqual([]);

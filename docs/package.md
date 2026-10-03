@@ -100,6 +100,8 @@ controls from the application's header and CSS. Embedding hides the standalone
 toolbar and study links so they do not overlap the host's navigation. Set
 `navigation: true` to show them. It retains stars, the traced
 loading silhouette, star controls, original comparison, and building details.
+A small independent **show original** button appears if WebGL or a scene module
+fails to load, or the graphics context is lost.
 Unmounting removes the entire document, its event handlers, and its WebGL context.
 Imports themselves do not access `window` or `document`, so server rendering and
 lazy loading are safe. Asset URLs may be relative or absolute HTTP(S) directories.

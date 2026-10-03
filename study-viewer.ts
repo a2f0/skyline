@@ -617,6 +617,7 @@ export function createBuildingStudy({
     const loading = document.querySelector<HTMLElement>("#loading")!;
     loading.textContent = "The graphics context was interrupted. Reload to restore the 3D preview.";
     loading.hidden = false;
+    if (window.parent !== window) window.parent.postMessage({ type: "skyline:unavailable" }, location.origin);
   });
 
   new ResizeObserver(resize).observe(viewport);
