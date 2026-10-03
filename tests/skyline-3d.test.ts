@@ -301,6 +301,61 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
+  test("compares with the original from the star's controls and returns from the bottom without resetting the 3D view", async () => {
+    for (const [width, height, reduced] of [[1440, 900, false], [390, 844, true], [844, 390, false]] as const) {
+      const page = await browser.newPage({ viewport: { width, height }, reducedMotion: reduced ? "reduce" : "no-preference" });
+      watch(page);
+      try {
+        await page.goto(`${origin}/index.html`);
+        const scene = await openScene(page);
+        const original = scene.locator("#show-original");
+        const back = page.locator("#return-skyline-3d");
+        expect(await original.isHidden(), "the shortcut stays inside the folded controls").toBe(true);
+        expect(await back.isHidden()).toBe(true);
+        // A request from another source, or a different origin, cannot change the mode.
+        await page.evaluate(() => {
+          window.postMessage({ type: "skyline:show-original" }, location.origin);
+          window.dispatchEvent(new MessageEvent("message", {
+            origin: "https://example.invalid",
+            source: document.querySelector<HTMLIFrameElement>("#skyline-3d-scene")!.contentWindow,
+            data: { type: "skyline:show-original" },
+          }));
+        });
+        await settle(page);
+        expect(await back.isHidden()).toBe(true);
+        await scene.locator("#menu-toggle").click();
+        await scene.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished)));
+        expect(await original.isVisible()).toBe(true);
+        const [button, bar] = await Promise.all([original.boundingBox(), scene.locator(".control-bar").boundingBox()]);
+        expect(button!.x >= bar!.x && button!.x + button!.width <= bar!.x + bar!.width && button!.y >= bar!.y && button!.y + button!.height <= bar!.y + bar!.height, "the original shortcut fits inside the bottom toolbar").toBe(true);
+        await scene.locator("#building").focus();
+        await page.keyboard.press("ArrowLeft");
+        const orbit = await scene.evaluate(() => window.__buildingStudy!.cameraPosition);
+        await original.click();
+        await back.waitFor({ state: "visible" });
+        expect(await page.locator("#skyline-3d-scene").isHidden()).toBe(true);
+        expect(await page.locator("#scene").getAttribute("src")).toBe("skyline-original-fit.svg");
+        expect(await page.locator("#toggle-skyline").textContent()).toBe("3d skyline");
+        expect(await page.locator("#toggle-skyline").getAttribute("aria-pressed")).toBe("true");
+        expect(await page.locator("#status").textContent()).toBe("Original skyline displayed");
+        expect(await page.evaluate(() => document.activeElement?.id)).toBe("return-skyline-3d");
+        const bounds = (await back.boundingBox())!;
+        expect(bounds.y >= height - 44 && bounds.y + bounds.height <= height, "the return button is at the bottom").toBe(true);
+        // Enter on the focused bottom button returns focus to the same shortcut in the
+        // same scene. Its camera and unfolded controls survive the comparison.
+        await page.keyboard.press("Enter");
+        expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
+        expect(await back.isHidden()).toBe(true);
+        expect(await scene.locator("#menu-toggle").getAttribute("aria-expanded")).toBe("true");
+        expect(await scene.evaluate(() => document.activeElement?.id)).toBe("show-original");
+        (await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).forEach((value, axis) => near(value, orbit[axis]!, 1e-6));
+        expect(await page.locator("#toggle-skyline").textContent()).toBe("show original");
+        expect(await page.locator("#toggle-skyline").getAttribute("aria-pressed")).toBe("false");
+        expect(await page.locator("#status").textContent()).toBe("3D skyline displayed");
+      } finally { await page.close(); }
+    }
+  }, { timeout: 180_000 });
+
   test("folds the study's toolbar behind a star in the middle of the bar, docked under the skyline at every size", async () => {
     // The bar carries the study's toolbar, in its order, and a footprints toggle, folded
     // behind a muted grey six-pointed star. Closed, the star alone shows, in the bar's middle.
@@ -311,7 +366,8 @@ describe("full-screen 3D skyline", () => {
     const toolbar = await page.locator(".toolbar button").allTextContents();
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
-    expect((await page.locator(".control-bar .button-group button").allTextContents()).filter((label) => label !== "footprints")).toEqual(toolbar);
+    expect((await page.locator(".control-bar .button-group button").allTextContents()).filter((label) => label !== "footprints" && label !== "show original")).toEqual(toolbar);
+    expect(await page.locator("#show-original").isHidden(), "the shortcut belongs to the index viewer").toBe(true);
     const star = page.locator("#menu-toggle");
     const groups = () => page.locator(".control-bar .button-group").evaluateAll((elements) => elements.map((element) => getComputedStyle(element).display));
     const settled = () => page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished)));
@@ -337,7 +393,7 @@ describe("full-screen 3D skyline", () => {
         bar: box(document.querySelector(".control-bar")!),
         canvas: box(document.querySelector("#building")!),
         star: box(document.querySelector("#menu-toggle")!),
-        controls: [...document.querySelectorAll(".control-bar .button-group button")].map(box),
+        controls: [...document.querySelectorAll(".control-bar .button-group button")].filter((button) => getComputedStyle(button).display !== "none").map(box),
         overflow: document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight,
       };
     });
