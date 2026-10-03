@@ -99,6 +99,25 @@ button:disabled { cursor: default; opacity: 0.35; }
 .skyline-3d main.viewport { flex: 1 1 auto; min-height: 0; height: auto; max-width: none; margin: 0; padding: 0; background: none; }
 .skyline-3d canvas { height: 100%; }
 .skyline-3d .study-annotations { inset: 0; }
+/* A level skyline elevation traces itself while the scene boots. It is inline so it
+   appears before the model graph loads; errors replace it with the normal loading text. */
+.skyline-3d .loading:has(.skyline-trace) { inset: 0; margin: 0; display: grid; place-items: center; padding: 32px 24px; pointer-events: none; }
+.skyline-trace { display: block; width: min(720px, 100%); max-height: 42vh; overflow: visible; fill: none; stroke: #ddd; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
+.skyline-trace-rail { opacity: 0.08; }
+.skyline-trace-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: skyline-trace 4s linear infinite; }
+.skyline-trace-tip { stroke: #fff; stroke-width: 2.2; stroke-dasharray: 0.008 0.992; stroke-dashoffset: 0.008; filter: drop-shadow(0 0 3px #ffffff99); animation: skyline-trace-tip 4s linear infinite; }
+@keyframes skyline-trace {
+  0% { stroke-dashoffset: 1; opacity: 0; }
+  5% { opacity: 1; }
+  78%, 88% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes skyline-trace-tip {
+  0% { stroke-dashoffset: 0.008; opacity: 0; }
+  5% { opacity: 1; }
+  78% { stroke-dashoffset: -0.992; opacity: 1; }
+  88%, 100% { stroke-dashoffset: -0.992; opacity: 0; }
+}
 /* Small notes along the scene's bottom edge, over the canvas but not its drags: the camera
    hint while the controls are open, and the map data's credit in the corner. */
 .scene-notes { position: absolute; left: 6px; right: 6px; bottom: 4px; z-index: 1; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 4px 12px; pointer-events: none; }
@@ -138,8 +157,12 @@ button:disabled { cursor: default; opacity: 0.35; }
 @media (prefers-reduced-motion: reduce) {
   .menu-toggle svg { transition: none; }
   .detail-panel[open] { animation: none; }
+  .skyline-trace-line { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; opacity: 0.65; }
+  .skyline-trace-tip { display: none; animation: none; }
 }
 @media (max-width: 600px) {
+  .skyline-trace { stroke-width: 2.8; }
+  .skyline-trace-tip { stroke-width: 4; }
   .layout-controls { align-items: start; flex-direction: column; gap: 12px; }
   header { padding: 24px 5vw; flex-wrap: wrap; gap: 18px; }
   h1 { max-width: 300px; }

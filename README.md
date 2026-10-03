@@ -14,6 +14,14 @@ Stars pause automatically when the browser reports the operating system's reduce
 
 Use **debug motion** to preview a slightly wider brightness range (30–70% opacity) on the same ten stars, at the same gentle 40–67-second pace. All stars stay the same size. This opt-in preview overrides reduced motion until you select **stop debug** or reload the page. You can also open `stars.svg#debug-motion` directly to preview this mode; remove the fragment to return to the system preference.
 
+The index page's loading indicator is an inline SVG roofline traced left to right with CSS,
+then faded and repeated until the first 3D frame appears. It is a level orthographic
+elevation of the mapped buildings, viewed from the skyline camera's horizontal direction,
+with no perspective or facade edges. Reduced motion shows the complete outline. After
+adding or changing buildings, run `bun scripts/skyline-loading.ts` to refresh the inline
+path in `skyline-3d.html`; `bun run check` catches a stale outline. The normal site build
+still only compiles TypeScript and copies assets.
+
 ## WebGL prototype
 
 `skyline-webgl.html` uses `skyline-animated.svg` as source artwork. At runtime it rasterizes 38 SVG paint layers representing 31 building identities into cropped GPU textures, draws them as subtly depth-shifted quads, applies façade shading and hover illumination in a fragment shader, and resolves overlapping buildings with an offscreen color-picking pass. Separate portions of one building share a hover identity and parallax depth while keeping their original draw order. The foreground remains a separate top layer, and the existing star field stays visible beneath the transparent WebGL canvas.
