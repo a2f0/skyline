@@ -101,8 +101,8 @@ button:disabled { cursor: default; opacity: 0.35; }
 .skyline-3d .study-annotations { inset: 0; }
 /* A level skyline elevation traces itself while the scene boots. It is inline so it
    appears before the model graph loads; errors replace it with the normal loading text.
-   Scaled strokes and glow keep the smaller outline legible. */
-.skyline-3d .loading:has(.skyline-trace) { inset: 0; margin: 0; display: grid; place-items: center; padding: 32px 24px; pointer-events: none; }
+   Its baseline stands on the toolbar. Scaled strokes and glow keep the outline legible. */
+.skyline-3d .loading:has(.skyline-trace) { inset: 0; margin: 0; display: grid; place-items: end center; padding: 32px 24px 0; pointer-events: none; }
 .skyline-trace { display: block; width: min(240px, calc(100% / 3)); max-height: 14vh; overflow: visible; fill: none; stroke: #ddd; stroke-width: 4.2; stroke-linejoin: round; stroke-linecap: round; }
 .skyline-trace-rail { opacity: 0.08; }
 .skyline-trace-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: skyline-trace 4s linear infinite; }
