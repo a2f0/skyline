@@ -448,6 +448,7 @@ describe("full-screen 3D skyline", () => {
     // Ground plan alone is drawn in greys, its scene and its names.
     expect(await page.locator("#view-label").count()).toBe(0);
     expect(await page.locator('[data-view="skyline"]').getAttribute("aria-pressed")).toBe("true");
+    expect(await page.locator(".study-annotations span").count(), "startup leaves unused building labels unprepared").toBe(0);
     const filters = () => page.evaluate(() => [...document.querySelectorAll("#building, .study-annotations")].map((element) => getComputedStyle(element).filter));
     expect(await filters()).toEqual(["none", "none"]);
     for (const view of ["top", "heights"]) {

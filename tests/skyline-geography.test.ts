@@ -2785,6 +2785,7 @@ describe("geographic layout in the study", () => {
     for (const layout of ["original", "geographic", "original", "geographic"]) {
       await page.locator(`[data-layout="${layout}"]`).click();
       await settle(page);
+      expect(await page.locator(".study-annotations span").count(), "labels are rebuilt for the current layout").toBe(await page.evaluate(() => window.__buildingStudy!.modelNames.length));
       near(await page.evaluate(() => window.__buildingStudy!.zoom), zoom, 1e-8);
       expect(await page.evaluate(() => window.__buildingStudy!.groundShadows), "plan toggles retain the uncluttered ground").toBe(false);
       const camera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
