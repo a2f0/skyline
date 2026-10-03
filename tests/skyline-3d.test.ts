@@ -97,6 +97,8 @@ describe("full-screen 3D skyline", () => {
         release();
         await scene.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
         expect(await scene.locator("#loading").isHidden()).toBe(true);
+        expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
+        await scene.locator("#menu-toggle").click();
         expect(await scene.locator(".scene-notes").isVisible()).toBe(true);
       } finally {
         release();
@@ -322,6 +324,7 @@ describe("full-screen 3D skyline", () => {
     expect(await fill()).toBe("rgb(140, 140, 140)");
     expect(await groups()).toEqual(["none", "none"]);
     expect(await page.locator("#camera-hint").isHidden(), "the hint shows only with the controls").toBe(true);
+    expect(await page.locator(".attribution").isHidden(), "the attribution shows only with the controls").toBe(true);
     // The bar spans the bottom of the window, and the canvas, whose bottom edge the drawing's
     // frame stands on, fills the rest: the bar covers no tower. Closed, the bar keeps its
     // one-row height at every size, with the star in the middle. Open, every control shows
@@ -413,6 +416,7 @@ describe("full-screen 3D skyline", () => {
         await settle(page);
         const layout = await measure();
         const at = `${open ? "open" : "closed"} at ${size.width}x${size.height}`;
+        expect(await page.locator(".attribution").isVisible(), `the attribution follows the controls ${at}`).toBe(open);
         expect([layout.bar.left, layout.bar.right, layout.bar.bottom], `the bar spans the window's bottom ${at}`).toEqual([0, size.width, size.height]);
         expect([layout.canvas.top, layout.canvas.width], `the canvas fills the width above the bar ${at}`).toEqual([0, size.width]);
         near(layout.canvas.bottom, layout.bar.top, 0.5);
@@ -505,6 +509,7 @@ describe("full-screen 3D skyline", () => {
     await page.locator("#wireframe").focus();
     await page.keyboard.press("Escape");
     expect(await star.getAttribute("aria-expanded")).toBe("false");
+    expect(await page.locator(".attribution").isHidden(), "Escape hides the attribution with the controls").toBe(true);
     expect(await page.evaluate(() => document.activeElement?.id)).toBe("menu-toggle");
     await page.keyboard.press("Tab");
     expect(await page.evaluate(() => !!document.activeElement?.closest(".button-group")), "focus stays out of the folding groups").toBe(false);

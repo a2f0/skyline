@@ -123,12 +123,12 @@ button:disabled { cursor: default; opacity: 0.35; }
   88%, 100% { stroke-dashoffset: -0.992; opacity: 0; }
 }
 /* Small notes along the scene's bottom edge, over the canvas but not its drags: the camera
-   hint while the controls are open, and the map data's credit in the corner. */
+   hint and map data's credit, both revealed with the controls. */
 .scene-notes { position: absolute; left: 6px; right: 6px; bottom: 4px; z-index: 1; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 4px 12px; pointer-events: none; }
 .scene-notes p { position: static; margin: 0; padding: 1px 4px; background: #080808cc; color: #888; font-size: 9px; line-height: 1.4; text-align: left; }
 .scene-notes .attribution { margin-left: auto; }
 .scene-notes a { pointer-events: auto; }
-.skyline-3d:has(#menu-toggle[aria-expanded="false"]) .scene-notes .hint { display: none; }
+.skyline-3d:has(#menu-toggle[aria-expanded="false"]) .scene-notes { display: none; }
 /* Its ground plan is drawn in greys: the scene, whose few coloured roofs and outlines lose
    their colour, and the building names over it. */
 .skyline-3d:has([data-view="top"][aria-pressed="true"]) :is(canvas, .study-annotations) { filter: grayscale(1); }
