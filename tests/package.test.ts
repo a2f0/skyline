@@ -4,6 +4,7 @@ import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/pr
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { Script } from "node:vm";
 import { chromium } from "playwright";
 import type { Browser } from "playwright";
 import { buildPackage } from "../scripts/build-package.js";
@@ -104,6 +105,9 @@ console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
     const { mountSkyline } = await import(pathToFileURL(path.join(source, "lib/skyline-package.js")).href) as { mountSkyline: unknown };
     expect(typeof mountSkyline).toBe("function");
     for (const file of await publishedFiles()) expect(await Bun.file(path.join(source, "site", file)).exists()).toBe(true);
+    // HTML loads the bootstrap as a classic script, including in GitHub installs
+    // under node_modules where automatic module detection can append exports.
+    new Script(await readFile(path.join(source, "site/study-loader.js"), "utf8"));
     expect(await Bun.file(path.join(source, "lib/skyline-package.d.ts")).exists()).toBe(true);
   }, { timeout: 60_000 });
 
