@@ -1,12 +1,50 @@
 {
   "name": "chicago-skyline",
-  "private": true,
+  "version": "0.1.0",
+  "description": "Interactive Chicago skyline viewer and reusable Three.js building models",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/a2f0/skyline.git"
+  },
   "type": "module",
+  "sideEffects": ["./site/**/*.js"],
+  "files": ["lib/", "site/", "NOTICE.md", "docs/package.md", "docs/skyline-geography.md"],
+  "main": "./lib/skyline-package.js",
+  "types": "./lib/skyline-package.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/skyline-package.d.ts",
+      "import": "./lib/skyline-package.js"
+    },
+    "./scene": {
+      "types": "./lib/skyline-scene.d.ts",
+      "import": "./lib/skyline-scene.js"
+    },
+    "./models/*": {
+      "types": "./lib/models/*.d.ts",
+      "import": "./lib/models/*.js"
+    },
+    "./build": {
+      "types": "./lib/package-assets.d.ts",
+      "import": "./lib/package-assets.js"
+    },
+    "./assets/*": "./site/*",
+    "./package.json": "./package.json"
+  },
+  "engines": { "node": ">=22" },
+  "peerDependencies": { "three": "~0.186.0" },
+  "peerDependenciesMeta": { "three": { "optional": true } },
+  "dependencies": { "@types/three": "0.186.0" },
   "scripts": {
     "check": "bun scripts/check.ts",
     "test": "bun scripts/check.ts",
     "typecheck": "bunx --bun tsc -p tsconfig.json",
     "build:site": "bun scripts/build-site.ts",
+    "build:package": "bun scripts/build-package.ts",
+    "check:package": "bun test tests/package.test.ts",
+    "prepack": "bun run build:package",
+    "prepublishOnly": "bun run check",
     "fidelity": "bun scripts/fidelity-report.ts",
     "renders": "bun scripts/render-study.ts",
     "deploy": "scripts/deploy.sh",
@@ -15,7 +53,7 @@
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.8",
     "@types/bun": "^1.4.2",
-    "@types/three": "^0.186.0",
+    "three": "0.186.0",
     "playwright": "1.63.0",
     "typescript": "^7.0.2",
     "wrangler": "4.131.2"

@@ -35,6 +35,8 @@ const staticFiles = [
 const compiledEntries = [
   "study-loader.ts",
   "study-viewer.ts",
+  "study-types.ts",
+  "skyline-scene.ts",
   "skyline-study.ts",
   "skyline-comparison.ts",
   "skyline-3d.ts",

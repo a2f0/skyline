@@ -1,5 +1,13 @@
 # Chicago Skyline
 
+## Package imports
+
+The repository also builds the `chicago-skyline` ESM package: a complete embeddable
+viewer, reusable Three.js scenes and building models, and TypeScript declarations.
+Run `bun run build:package` or `bun pm pack` to produce it. See
+[package usage and the devopsrockstars integration guide](docs/package.md) for
+asset copying, React mounting/cleanup, module imports, and publishing.
+
 ## Animated version
 
 The full-screen viewer, `index.html`, opens on the [full-screen 3D skyline](#full-screen-3d-skyline), whose browser modules compile to `dist/`. Build and serve the site from the repository directory with `bun install --ignore-scripts`, `bun run build:site`, and `python3 -m http.server -d dist`, then open `http://localhost:8000`. Use the viewer's fullscreen control or press `F` to enter fullscreen. Select **show enhanced** for the animated drawing described below, **show original** to compare it with `skyline-original-fit.svg`, or **show webgl** to try the GPU-rendered prototype. While its mode shows, each of these reads **3d skyline** and returns to the 3D skyline. You can also open the star's controls at the bottom for **show original**; the original drawing's bottom **3d skyline** button returns to the same camera and open controls. The self-contained comparison file gives the original vector `Landscape` layer the same viewBox, bottom alignment, and artwork offset as the enhanced skyline; the source-photo layer from `skyline.svg` has been removed.

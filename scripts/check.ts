@@ -37,6 +37,7 @@ async function main() {
   await timings.run("skyline-loading", () => run(process.execPath, ["scripts/skyline-loading.ts", "--check"]));
   await suite("skyline-loading.test.ts");
   await suite("building-kit.test.ts");
+  await suite("package.test.ts");
   // The browser suites exercise the compiled site: build first, then serve dist/.
   await timings.run("build:site", () => buildSite().then(() => undefined));
   const server = await timings.run("serve:dist", () => startServer(dist));

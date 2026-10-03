@@ -2,6 +2,9 @@
 node_modules/
 .secrets
 dist/
+lib/
+site/
+*.tgz
 .wrangler/
 
 # Terraform: provider caches and any local state. The lock file is committed.

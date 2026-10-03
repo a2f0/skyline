@@ -1,5 +1,5 @@
 import { createBuildingStudy } from "./study-viewer.js";
-import { createGeographicSkyline } from "./skyline-comparison.js";
+import { createGeographicSkyline } from "./skyline-scene.js";
 import { createGeographicRoads } from "./models/skyline-geography.js";
 import type { BuildingModel } from "./models/building-kit.js";
 
