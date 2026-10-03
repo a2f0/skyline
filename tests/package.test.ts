@@ -198,6 +198,8 @@ window.mountFixture();
           await bootstrapScene.waitForFunction(() => document.querySelector("#loading")!.textContent!.includes("Build the site"));
           await bootstrapViewer.locator("#embedded-original").click();
           expect(await bootstrapViewer.locator("#scene").getAttribute("src")).toBe("skyline-original-fit.svg");
+          await bootstrapViewer.locator("#return-skyline-3d").press("Enter");
+          expect(await bootstrapViewer.evaluate(() => document.activeElement?.id)).toBe("embedded-original");
           await page.evaluate(() => (window as unknown as { destroyFixture(): void }).destroyFixture());
           await page.waitForFunction(() => !document.querySelector("#host > iframe"));
           expect(external).toEqual([]);

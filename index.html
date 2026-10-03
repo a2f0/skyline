@@ -311,7 +311,7 @@
         const sceneDocument = skyline3dScene.contentDocument;
         const star = sceneDocument?.querySelector("#menu-toggle");
         const focus = star?.getAttribute("aria-expanded") === "true" ? sceneDocument.querySelector("#show-original") : star;
-        const target = focus?.matches(":enabled") ? focus : null;
+        const target = !sceneUnavailable && focus?.matches(":enabled") ? focus : null;
         target?.focus();
         if (!target || sceneDocument?.activeElement !== target) {
           (embeddedOriginal.hidden ? toggles.original.button : embeddedOriginal).focus();
