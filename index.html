@@ -288,7 +288,10 @@
       });
       originalReturn.addEventListener("click", () => {
         showSkylineMode(homeMode);
-        skyline3dScene.contentDocument?.querySelector("#show-original")?.focus();
+        const sceneDocument = skyline3dScene.contentDocument;
+        const star = sceneDocument?.querySelector("#menu-toggle");
+        const focus = star?.getAttribute("aria-expanded") === "true" ? sceneDocument.querySelector("#show-original") : star;
+        (focus ?? toggles.original.button).focus();
       });
 
       updateSkylineView();

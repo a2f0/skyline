@@ -312,6 +312,14 @@ describe("full-screen 3D skyline", () => {
         const back = page.locator("#return-skyline-3d");
         expect(await original.isHidden(), "the shortcut stays inside the folded controls").toBe(true);
         expect(await back.isHidden()).toBe(true);
+        // The top switch can enter the drawing while the star stays folded. Returning
+        // from the bottom then focuses the visible star, rather than a hidden shortcut.
+        await page.locator("#toggle-skyline").click();
+        await back.press("Enter");
+        expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
+        expect(await scene.locator("#menu-toggle").getAttribute("aria-expanded")).toBe("false");
+        expect(await scene.evaluate(() => document.activeElement?.id)).toBe("menu-toggle");
+        expect(await original.isHidden()).toBe(true);
         // A request from another source, or a different origin, cannot change the mode.
         await page.evaluate(() => {
           window.postMessage({ type: "skyline:show-original" }, location.origin);
