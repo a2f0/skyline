@@ -58,6 +58,15 @@ for (const [id, object] of [["streets", roads], ["footprints", ground.footprints
 // inside the bar.
 const bar = document.querySelector<HTMLElement>(".control-bar")!;
 const menuToggle = document.querySelector<HTMLButtonElement>("#menu-toggle")!;
+// This shortcut belongs to the index viewer; the standalone scene has no drawing to
+// switch to. Returning from the drawing keeps this frame and its camera intact.
+const showOriginal = document.querySelector<HTMLButtonElement>("#show-original")!;
+try {
+  if (parent !== window && parent.document.querySelector<HTMLIFrameElement>("#skyline-3d-scene")?.contentWindow === window) {
+    showOriginal.hidden = false;
+    showOriginal.addEventListener("click", () => parent.postMessage({ type: "skyline:show-original" }, location.origin));
+  }
+} catch { /* A scene embedded on another origin has no viewer switch. */ }
 const groups = [...bar.querySelectorAll<HTMLElement>(".button-group")];
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 // The groups' folds while they move, and which way: toward open, or back toward closed.
