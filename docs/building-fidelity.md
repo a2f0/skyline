@@ -12,7 +12,7 @@ compared the source and audits for Aon, Kemper, Swissôtel, Blue Cross, River
 Plaza, and Millennium Park Plaza; fresh external research concentrated on Aon.
 A subsequent pass researched Crain against the architect’s photographs and
 owner’s leasing plans. The crown-lighting follow-up assessed Crain again using
-dated celebration photographs, correcting its shortened roof-grid ends and
+celebration photographs, one dated 2010-06-10, correcting its shortened roof-grid ends and
 reconstructing its lamp displays. Other buildings are not yet reassessed. Existing detailed facades are not a
 claim of survey accuracy. This is a curated queue, not a score for all 34.
 
