@@ -2,6 +2,7 @@ import { createBuildingStudy } from "./study-viewer.js";
 import { createGeographicSkyline } from "./skyline-scene.js";
 import { createGeographicRoads } from "./models/skyline-geography.js";
 import type { BuildingModel } from "./models/building-kit.js";
+import { celebrations } from "./models/celebrations.js";
 
 // The skyline viewer's full-screen 3D mode: every mapped building, seen through the
 // drawing's own camera and framed as index.html frames the drawing, so each tower stands
@@ -41,6 +42,25 @@ const viewer = createBuildingStudy({
   enablePan: true,
   minimumCameraHeight: 1,
 });
+// All presets use the documented south-facing window billboard. A selected
+// logo toggles off; another replaces it, so two messages never overlap.
+const illuminated = models.filter((model) => model.illumination);
+const celebrationStatus = document.querySelector<HTMLElement>("#celebration-status")!;
+const celebrationButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-celebration]")];
+for (const button of celebrationButtons) {
+  const preset = celebrations.find(({ id }) => id === button.dataset["celebration"])!;
+  const message = preset.lines.join(" ");
+  button.title = `${preset.label}: ${message}${preset.adapted ? " (adapted tribute)" : ""} · Blue Cross and Blue Shield Tower · click again to turn off`;
+  button.disabled = illuminated.length === 0;
+  button.addEventListener("click", () => {
+    const next = button.getAttribute("aria-pressed") === "true" ? null : preset.id;
+    illuminated.forEach((model) => model.illumination!.set(next));
+    celebrationButtons.forEach((other) => other.setAttribute("aria-pressed", String(other.dataset["celebration"] === next)));
+    celebrationStatus.hidden = false;
+    celebrationStatus.textContent = next ? `${message} · Blue Cross and Blue Shield Tower${preset.adapted ? " · adapted tribute" : ""}` : "Celebratory lights off";
+    viewer.requestRender();
+  });
+}
 // The control bar's ground toggles, each pressed while what it toggles shows.
 for (const [id, object] of [["streets", roads], ["footprints", ground.footprints]] as const) {
   const button = document.querySelector<HTMLButtonElement>(`#${id}`)!;

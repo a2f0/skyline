@@ -8,6 +8,9 @@ import { footprintMetrics } from "../models/skyline-geography.js";
 import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
+import { celebrations } from "../models/celebrations.js";
+import { createGeographicBuilding } from "../models/skyline-geography.js";
+import type * as THREE from "../vendor/three-r186.js";
 
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
 const settle = (page: Page | Frame) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -57,6 +60,98 @@ describe("full-screen 3D skyline", () => {
   afterAll(async () => {
     await browser.close();
   }, { timeout: 60_000 });
+
+  test("logo buttons light the actual windows, replace and restore messages, and preserve hover", async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+    watch(page);
+    const shaderErrors: string[] = [];
+    page.on("console", (message) => { if (message.type() === "error") shaderErrors.push(message.text()); });
+    await page.goto(`${origin}/skyline-3d.html`);
+    await page.waitForFunction(() => window.__buildingStudy?.ready);
+    await page.locator("#menu-toggle").click();
+    await page.mouse.move(1, 1);
+    await settle(page);
+    const canvas = page.locator("#building");
+    const snapshot = () => canvas.screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
+    const baseline = await snapshot();
+    const identity = await page.evaluate(() => ({ names: window.__buildingStudy!.modelNames, triangles: window.__buildingStudy!.triangleCount, camera: window.__buildingStudy!.cameraPosition }));
+    // Count actual rendered white pixels, so a correct controller with a broken
+    // shader still fails. Baseline and active images have the same canvas size.
+    const bright = async (png: Buffer) => page.evaluate(async (data) => {
+      const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
+      const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
+      context.drawImage(bitmap, 0, 0);
+      const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height).data;
+      let count = 0;
+      for (let i = 0; i < pixels.length; i += 4) if (pixels[i]! > 240) count += 1;
+      return count;
+    }, png.toString("base64"));
+    const unlit = await bright(baseline);
+    for (const preset of celebrations) {
+      const button = page.locator(`[data-celebration="${preset.id}"]`);
+      await button.focus();
+      await button.press("Enter");
+      await settle(page);
+      expect(await page.locator("[data-celebration][aria-pressed=true]").count()).toBe(1);
+      expect(await button.getAttribute("aria-pressed")).toBe("true");
+      expect(await page.locator("#celebration-status").textContent()).toContain(preset.lines.join(" "));
+      expect(await bright(await snapshot()), preset.id).toBeGreaterThan(unlit + 20);
+      expect(await page.evaluate(() => window.__buildingStudy!.illuminations[0]!.active)).toBe(preset.id);
+    }
+    expect(await chroma(page)).toBe(0);
+    await page.locator("[data-celebration=thanks]").press("Space");
+    await settle(page);
+    expect(await snapshot()).toEqual(baseline);
+    expect(await page.evaluate(() => ({ names: window.__buildingStudy!.modelNames, triangles: window.__buildingStudy!.triangleCount, camera: window.__buildingStudy!.cameraPosition }))).toEqual(identity);
+
+    await page.locator("[data-celebration=cubs]").click();
+    const model = createGeographicBuilding(geographicBuildings.find(({ id }) => id === "building-blue-cross-blue-shield")!);
+    model.illumination!.set("cubs");
+    const geometry = (model.building.getObjectByName("Blue Cross · glass, spandrels and bands") as THREE.Mesh).geometry;
+    const light = geometry.getAttribute("windowLight"), positions = geometry.getAttribute("position");
+    let vertex = 0;
+    while (light.getX(vertex) === 0) vertex += 1;
+    const point = [0, 1, 2].map((axis) => [0, 1, 2].reduce((sum, offset) => sum + positions.array[(vertex + offset) * 3 + axis]!, 0) / 3);
+    const [x, y] = await page.evaluate((coordinates) => {
+      const [u, v] = window.__buildingStudy!.projectPoint("building-blue-cross-blue-shield", coordinates);
+      const box = document.querySelector("canvas")!.getBoundingClientRect();
+      return [box.x + u * box.width, box.y + v * box.height];
+    }, point) as [number, number];
+    await page.mouse.move(x, y);
+    await settle(page);
+    expect(await page.evaluate(() => window.__buildingStudy!.selectedBuilding)).toBe("building-blue-cross-blue-shield");
+    await page.locator("#wireframe").click();
+    await page.locator("#wireframe").click();
+    expect(await page.evaluate(() => window.__buildingStudy!.illuminations[0]!.active)).toBe("cubs");
+    await page.locator("[data-celebration=cubs]").focus();
+    await page.keyboard.press("Escape");
+    expect(await page.evaluate(() => document.activeElement?.id)).toBe("menu-toggle");
+    expect(await page.locator("[data-celebration=cubs]").isHidden()).toBe(true);
+    expect(await page.evaluate(() => window.__buildingStudy!.illuminations[0]!.active)).toBe("cubs");
+    expect(shaderErrors).toEqual([]);
+    await page.close();
+  }, { timeout: 60_000 });
+
+  test("celebration buttons fit on touch screens and survive original-artwork comparison", async () => {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, reducedMotion: "reduce" });
+    watch(page);
+    await page.goto(`${origin}/`);
+    const scene = await openScene(page);
+    await scene.locator("#menu-toggle").tap();
+    for (const button of await scene.locator("[data-celebration]").all()) {
+      const box = (await button.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(390);
+      expect(box.height).toBeGreaterThanOrEqual(36);
+    }
+    await scene.locator("[data-celebration=bears]").tap();
+    await scene.locator("#show-original").tap();
+    await page.locator("#return-skyline-3d").tap();
+    expect(await scene.evaluate(() => window.__buildingStudy!.illuminations[0]!.active)).toBe("bears");
+    await scene.locator("[data-celebration=bears]").tap();
+    expect(await scene.evaluate(() => window.__buildingStudy!.illuminations[0]!.litWindows)).toBe(0);
+    await page.close();
+  });
 
   test("traces the loading elevation before the 3D code arrives, then removes it at the first frame", async () => {
     for (const [width, height, reduced] of [[1440, 900, false], [390, 844, false], [390, 844, true], [844, 390, false]] as const) {
@@ -401,7 +496,7 @@ describe("full-screen 3D skyline", () => {
     const toolbar = await page.locator(".toolbar button").allTextContents();
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
-    expect((await page.locator(".control-bar .button-group button").allTextContents()).filter((label) => label !== "footprints" && label !== "show original")).toEqual(toolbar);
+    expect((await page.locator(".control-bar .button-group button:not([data-celebration])").allTextContents()).filter((label) => label !== "footprints" && label !== "show original")).toEqual(toolbar);
     expect(await page.locator("#show-original").isHidden(), "the shortcut belongs to the index viewer").toBe(true);
     const star = page.locator("#menu-toggle");
     const groups = () => page.locator(".control-bar .button-group").evaluateAll((elements) => elements.map((element) => getComputedStyle(element).display));
@@ -523,7 +618,9 @@ describe("full-screen 3D skyline", () => {
           near(layout.controls.at(-1)!.right, size.width - 12, 0.5);
         }
         if (!open) closedHeights.add(layout.bar.height);
-        if (open && size.width >= 1260) expect(layout.bar.height, `one row ${at}, as tall as the closed bar`).toBe([...closedHeights][0]!);
+        if (open && size.width >= 1260) {
+          expect(layout.bar.height, `the lighting badges fit in a second row ${at}`).toBeLessThanOrEqual([...closedHeights][0]! + 40);
+        }
         expect(layout.overflow, `the page does not scroll ${at}`).toBe(false);
       }
       if (!open) expect([...closedHeights], "the closed bar is one height at every size").toEqual([39]);

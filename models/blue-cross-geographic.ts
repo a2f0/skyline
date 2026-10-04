@@ -3,6 +3,8 @@ import { createBuilder, inside, polygonOf } from "./building-kit.js";
 import type { BuildingModel, Plan, Run, Vec2, Vec3 } from "./building-kit.js";
 import { chainSkin, chainsOf, orient, paintedSlab, planOf } from "./facade-grid.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
+import { createWindowIllumination } from "./window-illumination.js";
+import type { WindowCell } from "./window-illumination.js";
 
 // The Blue Cross and Blue Shield Tower, 300 East Randolph Street (Lohan Associates, 1997;
 // Goettsch Partners' 24-storey addition, 2010): the geographic layout's model, on the
@@ -82,6 +84,8 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
   const wall = kit.batch("Blue Cross · glass, spandrels and bands", kit.material(0xffffff, { vertexColors: true }));
   const mullions = kit.batch("Blue Cross · mullions", kit.material(0x2c2c2c));
   const bars = kit.batch("Blue Cross · band columns and emblems", kit.material(0xb4b4b4));
+  const windows: WindowCell[] = [];
+  let windowColumns = 0;
   const outline = (way: number) => orient(polygonOf(projectPlan(record.parts.find((part) => part.way === way)!.coordinates)));
   const footprint = orient(polygonOf(projectPlan(record.footprint.coordinates)));
   const block = outline(284779637), slab = outline(284779635);
@@ -132,14 +136,21 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
     chainsOf(plan).forEach((chain, index) => {
       const count = Math.max(1, Math.round(chain.length / h.module));
       const stations = Array.from({ length: count + 1 }, (_, i) => chain.length * i / count);
+      const messageFace = seed === 0 && plan[chain.runs[0]!]!.normal(0)[1] > 0.9 && chain.length > 50;
+      if (messageFace) windowColumns = count;
       const kept = chain.runs.map((run) => keep(plan[run]!));
       for (let k0 = kept.indexOf(true); k0 >= 0;) {
         let k1 = k0;
         while (kept[k1 + 1]) k1 += 1;
         const s0 = chain.starts[k0]! + 0.02, s1 = chain.starts[k1]! + plan[chain.runs[k1]!]!.length - 0.02;
-        chainSkin(kit, wall, plan, chain, k0, k1, s0, s1, stations.filter((_, i) => i % 2 === 0), heights, 0.02, 0.07, (cell, r) => {
+        chainSkin(kit, wall, plan, chain, k0, k1, s0, s1, stations.filter((_, i) => messageFace || i % 2 === 0), heights, 0.02, 0.07, (cell, r) => {
           const row = cuts[r]!;
-          if (row.kind === "glass") return paneColor(row.floor, cell, seed * 8 + index);
+          if (row.kind === "glass") {
+            if (messageFace) windows.push({ vertex: wall.positions.length / 3, column: cell - 1, floor: row.floor });
+            // Subdivide the message face at every mullion while retaining its
+            // original paired-pane colors when the lights are off.
+            return paneColor(row.floor, messageFace ? Math.ceil(cell / 2) : cell, seed * 8 + index);
+          }
           if (row.kind === "band") return recess;
           if (row.kind === "screen") return screen;
           return spandrel;
@@ -220,6 +231,8 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
   });
 
   const model = kit.finish({ height: h.top, outlines: [shell, mullions], opacity: 0.16 });
+  const glass = model.building.getObjectByName(wall.name) as THREE.Mesh<THREE.BufferGeometry, THREE.MeshToonMaterial>;
+  model.illumination = createWindowIllumination(glass, windows, windowColumns);
   model.building.position.set(offset[0], 0, offset[1]);
   model.building.userData["geography"] = record;
   model.building.userData["geographicDetail"] = { levels: h, source: "docs/blue-cross-reference.md" };
