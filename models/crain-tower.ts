@@ -32,8 +32,8 @@ export interface CrainForm {
   // The roof grid's axes: its origin and the direction of the first axis in plan.
   grid: { origin: Vec2; axis: Vec2 };
   // Geographic crown research: exposed outer walls have plant louvers and three
-  // recessed strips below solid metal tips. Omit to retain the drawing fit.
-  crown?: { officeTop: number; louvers: readonly (readonly [number, number])[]; recesses: readonly (readonly [number, number])[] };
+  // dark strips below solid metal tips. Omit to retain the drawing fit.
+  crown?: { officeTop: number; louvers: readonly (readonly [number, number])[]; shadowStrips: readonly (readonly [number, number])[] };
 }
 
 // The curtain wall's rhythm. The drawing and the photograph both give a 3.5 m band pitch,
@@ -108,9 +108,9 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
   const deck = kit.batch("Crain · slot floor", kit.material(0x4a4a4a));
   const vents = form.crown ? kit.batch("Crain · mechanical louvers", kit.material(0xffffff, { vertexColors: true })) : ribbons;
   const blades = form.crown ? kit.batch("Crain · louver blades", kit.material(0xffffff, { vertexColors: true })) : ribbons;
-  const recesses = form.crown ? kit.batch("Crain · crown recesses", kit.material(0xffffff, { vertexColors: true })) : ribbons;
-  const ventTone = new THREE.Color(0x303030), bladeTone = new THREE.Color(0x696969), recessTone = new THREE.Color(0x252525);
-  type Surface = "glass" | "vent" | "blade" | "recess";
+  const shadowStrips = form.crown ? kit.batch("Crain · crown shadow strips", kit.material(0xffffff, { vertexColors: true })) : ribbons;
+  const ventTone = new THREE.Color(0x303030), bladeTone = new THREE.Color(0x696969), shadowTone = new THREE.Color(0x252525);
+  type Surface = "glass" | "vent" | "blade" | "shadow";
   const base = form.base;
   const volumes = form.volumes.map((volume) => {
     const corners = orient(volume.corners);
@@ -185,7 +185,7 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
   // cut into panes and mullions on the curtain wall's module, counted from the run's start so
   // mullions line up from floor to floor.
   const strip = (run: Run, from: number, to: number, b0: number, b1: number, t0: number, t1: number, row: number, wall: number, surface: Surface) => {
-    const target = surface === "glass" ? ribbons : surface === "vent" ? vents : surface === "blade" ? blades : recesses;
+    const target = surface === "glass" ? ribbons : surface === "vent" ? vents : surface === "blade" ? blades : shadowStrips;
     const back = surface === "blade" ? 0.045 : 0.02, front = surface === "blade" ? 0.13 : 0.08;
     const n = run.normal(0), tangent: Vec2 = [n[1], -n[0]];
     const at = (s: number, depth: number, h: number): Vec3 => { const p = run.at(s, depth); return [p[0], y(h), p[1]]; };
@@ -200,7 +200,7 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
       if (sb - sa < 1e-6) continue;
       const mullion = i % 2 === 1;
       const color = mullion ? mullionTone : surface === "glass" ? paneColor(row, Math.floor((sa + sb) / 2 / module), wall)
-        : surface === "vent" ? ventTone : surface === "blade" ? bladeTone : recessTone;
+        : surface === "vent" ? ventTone : surface === "blade" ? bladeTone : shadowTone;
       kit.quad(target, [at(sa, front, bottom(sa)), at(sb, front, bottom(sb)), at(sb, front, top(sb)), at(sa, front, top(sa))], [outward], color);
     }
     const dark = paneTones[0]!;
@@ -329,7 +329,7 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
         const peak = Math.max(roof(0), roof(run.length));
         for (let row = 1; crainFloors.lobbyTop + (row - 1) * crainFloors.pitch + crainFloors.sill < peak; row += 1) {
           const level = crainFloors.lobbyTop + (row - 1) * crainFloors.pitch;
-          if (crown && (level + crainFloors.head > crown.officeTop || crown.louvers.some(([lo, hi]) => level + crainFloors.sill < hi && level + crainFloors.head > lo))) continue;
+          if (crown && level + crainFloors.head > crown.officeTop) continue;
           ribbon(run, clear, roof, cover, level + crainFloors.sill, level + crainFloors.head, row, wall);
         }
         if (crown) {
@@ -340,7 +340,7 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
             const bladeClear: [number, number] = [clear[0] + 0.1, clear[1] + 0.1];
             for (let bottom = lo + 0.12; bottom + 0.07 < hi; bottom += 0.22) ribbon(run, bladeClear, (s) => roof(s) - 0.04, cover, bottom, bottom + 0.07, 0, wall, "blade");
           }
-          for (const [lo, hi] of crown.recesses) ribbon(run, clear, roof, cover, lo, hi, 0, wall, "recess");
+          for (const [lo, hi] of crown.shadowStrips) ribbon(run, clear, roof, cover, lo, hi, 0, wall, "shadow");
         }
         // Roof edges: only where this volume stands above its neighbour. The lit outline runs
         // along the four faces; the diagonal edges of the split, the notches, and the slot

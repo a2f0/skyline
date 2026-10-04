@@ -91,14 +91,16 @@ it.
 | Window module | 1.524 m | Estimate, a common 5 ft module |
 | Main roof | 152.5 m | OSM wedge part; forty-one floors reach 147 m beneath it |
 
-Every exposed wall carries ribbon windows between the floors' sills and heads. They stop
-0.8 m under the roof edge, and above any neighbouring volume, so the slot's walls carry
+In the original drawing-fit and clean copies, every exposed wall carries ribbon windows
+between the floors' sills and heads. They stop 0.8 m under the roof edge, and above any
+neighbouring volume, so the slot's walls carry
 ribbons only above its floor. The ribbons' panes vary a little in tone, with a few lit or
 dimmed, and slim dark mullions divide them on the module. The sloped glass carries a
 raised grid at twice the module, aligned with the faces. A light fascia along each half's
 outer roof edges stands for the lit outline; the diagonal edges of the split, the
 notches, and the slot take a dark coping. Fascias hang from the roof edge rather than
-over the roof, so the peaks stay the building's top.
+over the roof, so the peaks stay the building's top. The geographic crown and grid
+orientation were refined in the 2026-10-04 pass below.
 
 Omitted: the plaza and Yaacov Agam's *Communication X9* sculpture, entrance canopies,
 signage, rooftop equipment inside the spires, and the lights' colour. Colours follow the
@@ -186,12 +188,13 @@ For **FID-CRAIN-001**, count bands from the slot floor and locate them on the
 existing 3.5 m story rhythm. This is an approximate alignment, not a measured
 elevation: allow about one story of vertical uncertainty until an elevation is
 available. Geographic exterior walls now have louvers at 144.40–146.05 m and
-147.90–149.55 m, three dark recess bands at 154.90–156.55 m,
+147.90–149.55 m, three dark shadow bands at 154.90–156.55 m,
 158.40–160.05 m and 161.90–163.55 m, and solid aluminum above them. The bands
 clip beneath each sloped edge; diagonal slot walls keep their glazing. Louver
 blades have estimated 0.22 m pitch and 0.05 m relief, enough to distinguish
-the vents in close views. Dark closed recesses stand in for the visible crown
-openings: internal trusses and through-views are still omitted.
+the vents in close views. Closed dark strips 0.02–0.08 m proud of the wall stand
+in for the shadow of visible crown openings; they are not recessed or cut through the shell.
+Internal trusses and through-views are still omitted.
 
 For **FID-CRAIN-002**, orient the geographic roof grid along the existing 133°
 downhill bearing and its perpendicular. Keep the earlier estimated 3.048 m
@@ -204,6 +207,10 @@ vent bands with blades in front of their backing, exactly three dark strips
 above the slot datum, and metal at 165, 169 and 172 m. Roof bars include both
 constant-height crossbars and members following the roof's 1.225 fall.
 Existing peak, slot, notch, footprint and original-sill tests must still pass.
+The vent dividers remain on the estimated facade module: the photograph shows
+vertical divisions but does not establish their pitch. The near-axis exterior
+wall rule includes eligible notch arms; neighboring volumes still mask covered
+areas. Diagonal slot faces remain glazed.
 
 ### Validation and remaining opportunities
 
@@ -212,7 +219,10 @@ Existing peak, slot, notch, footprint and original-sill tests must still pass.
   fail, while the existing diamond/slot/footprint test passes.
 - All 11 focused Crain building-kit checks passed: winding, coplanar-overlap
   checks, covered omissions, grid containment and original drawing sills,
-  plus closed-mesh checks for the clean copies.
+  plus closed-mesh checks for the clean copies. Independent review prompted
+  clearer shadow-strip naming, qualification of the earlier audit, removal of
+  a redundant louver filter, shared downhill direction and band heights derived
+  from the existing story rhythm; focused checks were repeated after repair.
 - Before/after mesh digests for both clean Crain copies are identical to the
   base. Building-detail captures at 1000 × 1000 with reduced motion used the
   same front, quarter and side presets, then 18 right-arrow steps from side

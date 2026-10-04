@@ -346,7 +346,7 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Crain", () => {
-    test("distinguishes the two plant bands, three crown recesses and solid tips in Epstein's photographs", () => {
+    test("distinguishes the two plant bands, three crown shadow strips and solid tips in Epstein's photographs", () => {
       const model = models["Crain"]!;
       model.building.updateMatrixWorld(true);
       const ray = new THREE.Raycaster();
@@ -361,6 +361,7 @@ describe("mapped skyline geography", () => {
         const at = (height: number) => hit([point[0], height, point[2]], direction);
         expect(at(142).object.name).toBe("Crain · ribbon glazing");
         for (const height of [145.1, 148.6]) {
+          // Mid-band gap followed by a blade at the estimated 0.22 m pitch.
           expect(at(height).object.name).toBe("Crain · mechanical louvers");
           const backing = at(height), blade = at(height + 0.1);
           expect(blade.object.name).toBe("Crain · louver blades");
@@ -371,7 +372,7 @@ describe("mapped skyline geography", () => {
         let previous = "";
         for (let height = 153; height < 173; height += 0.1) {
           const name = at(height).object.name;
-          if (name === "Crain · crown recesses" && name !== previous) bands.push(height);
+          if (name === "Crain · crown shadow strips" && name !== previous) bands.push(height);
           previous = name;
         }
         expect(bands).toHaveLength(3);
