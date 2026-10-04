@@ -6,7 +6,7 @@ import { chainsOf, gridBox, mitredBox, orient, paintedSlab, planOf, turnAt } fro
 // Aon Center, 200 East Randolph Street (Edward Durell Stone with Perkins and Will, 1973),
 // shared by the drawing-fitted model and the geographic one. A framed tube of V-shaped
 // steel columns, clad in white granite, stands on a square plan with notched corners.
-// On each face the columns stand one 10 ft module apart, and dark glass fills the slots
+// Each face has fifteen bays, nominally 10 ft on the clean plan; dark glass fills the slots
 // between them floor by floor, over the mechanical floors too, up to the granite cap that
 // finishes the shaft. The notched corners are solid stone.
 // A rooftop enclosure and an antenna stand on the flat roof.
@@ -40,7 +40,8 @@ export const aonLevels = Object.freeze({
   head: 3.1,
   enclosureTop: 346.3,
   tip: 362.5,
-  bay: 3.048,
+  bay: 3.048, // nominal clean-plan module; mapped spacing follows each face's chord
+  baysPerFace: 15, // tenant portal's Suite 1300 plan: sixteen piers, fifteen openings
   faceLength: 20,
 });
 const h = aonLevels;
@@ -87,10 +88,11 @@ export function buildAonTower(form: AonForm): BuildingModel {
   paintedSlab(kit, shell, outline, 0, false, roofing);
   paintedSlab(kit, shell, outline, y(h.roof), true, roofing);
 
-  // Each face's bays: as many 10 ft modules as the face holds, evened out to fill it. The
-  // columns stand on the bay lines, the end ones drawn in to stay on their face.
+  // The source plan fixes fifteen openings per face, independent of an OSM trace's
+  // corner depth. Distribute them over each face's chord; mapped spacing remains an
+  // approximation (docs/aon-reference.md, FID-AON-001). End piers stay on their face.
   const faceBays = (run: Run) => {
-    const count = Math.max(1, Math.round(run.length / h.bay)), bay = run.length / count;
+    const count = h.baysPerFace, bay = run.length / count;
     return Array.from({ length: count + 1 }, (_, i) => i * bay);
   };
   const pierHalf = 0.65, pierPoint = 0.7;
@@ -99,13 +101,16 @@ export function buildAonTower(form: AonForm): BuildingModel {
 
   faces.forEach(({ chord: run }, face) => {
     const stations = faceBays(run);
+    // End piers are inset from the corner. Stop glass at their centres so it
+    // cannot peek past the taper of the V and create two extra narrow slots.
+    const glassStations = [pierHalf, ...stations.slice(1, -1), run.length - pierHalf];
     // The glass: one ribbon per floor across the face, cut into panes at the columns, which
     // stand in front of the joints. The lobby is a single tall storey of glass.
     const visible = (low: number) => low >= base;
-    if (visible(0.4)) grid(glazing, run, stations, [0.4, h.lobbyTop - 0.9], 0.02, 0.07, (bay) => paneColor(0, bay, face), spandrel);
+    if (visible(0.4)) grid(glazing, run, glassStations, [0.4, h.lobbyTop - 0.9], 0.02, 0.07, (bay) => paneColor(0, bay, face), spandrel);
     floors.forEach((level, row) => {
       if (!visible(level + h.sill)) return;
-      grid(glazing, run, stations, [level + h.sill, level + h.head], 0.02, 0.07, (bay) => paneColor(row + 1, bay, face), spandrel);
+      grid(glazing, run, glassStations, [level + h.sill, level + h.head], 0.02, 0.07, (bay) => paneColor(row + 1, bay, face), spandrel);
     });
     // The V-shaped columns: granite prisms from just above grade to the cap, their points
     // outward. They start 0.3 m up so their relief leaves the street outline unchanged.

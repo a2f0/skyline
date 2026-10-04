@@ -233,7 +233,7 @@ between the core and its north and south walls. Its tiers' points stand on the
 line of their steps, where the copy keeps the drawing's, about 2 m higher; see its
 [reference audit](docs/two-prudential-reference.md).
 Aon Center is the same tower on its mapped outline and rooftop part: the 340 m
-shaft, fourteen bays to each mapped face with glass up to the cap, the solid notched
+shaft, fifteen bays to each mapped face with glass up to the cap, the solid notched
 corners, the 346.3 m enclosure, and the inferred antenna at the published
 362.5 m tip; see its [reference audit](docs/aon-reference.md).
 Intermediate
@@ -249,6 +249,15 @@ The viewer opens on the geographic layout's buildings full screen over its stars
 Drag to orbit, shift-drag or use two fingers to pan, and scroll or pinch to zoom; hovering names a building and its heights. Open, the bar holds the study's toolbar: **skyline view** and **reset view** (or `Home`) return to the drawing's camera, **three-quarter** and **side** step to the study's presets, **ground plan** and **height comparison** are its orthographic views, naming every mapped building, **streets** hides or shows the mapped streets, grey roadways sized from their mapped lanes across the whole platform, with Michigan Avenue's two carriageways running past Jackson to its south edge, **wireframe** shows the triangles, and **turntable** circles the city about the camera's pivot. **Footprints** adds the study's light grey mapped outlines, hidden at first; the study's grid stays hidden. The pressed camera button names the view, so the bar has no separate view label. A small credit in the scene's corner links OpenStreetMap's copyright page for the streets and footprints, beside the hint while the controls are open. Reduced motion pauses dragging and the turntable, as in the studies, and leaves the view buttons. The page shares `study-viewer.ts`, `study.css`, and `study-loader.ts` with the studies, and `skyline-3d.ts` holds only its settings: `createGeographicSkyline` in `skyline-comparison.ts` supplies the models, the camera, and the frame to both pages.
 
 Right-click a building, or press and hold it where the browser raises a context menu for a long press, as Chrome on Android does, for its context menu: the building's name over one item, **building detail**. The item floats the building's detail over the skyline in a panel, without leaving the viewer or adding to its history. The detail is `building-detail.html?building=<id>`: the building alone on its own platform, as the building study shows Crain, with its published height or the one read on the drawing, the model's note, its mapped outline and OpenStreetMap way, and the study's views, wireframe, and turntable, its front view facing the building as the skyline camera does. It opens on the turntable, circling the building from the three-quarter view until a view button, a drag, or the turntable button stops it; under reduced motion it opens still. A right-drag still pans, so the menu opens only for a press that stays put. The skyline stays live around the panel, and another building's menu, drawn over the panel, replaces the detail; the close button or `Escape` closes it, and focus returns to the skyline. The panel stands below the viewer's controls, whose height `index.html` passes to the frame as `--viewer-controls`. `building-detail.ts` centres the geographic model on its mapped outline and frames it and its platform from every side; `tests/building-detail.test.ts` holds each mapped building inside the canvas in each view, in the viewer's panel and on a phone. A modified click on the item, or the page's own address, opens the detail on its own, with links back to the skyline and the skyline study.
+
+## Improving existing buildings
+
+Use `$building-fidelity` in Codex or `/building-fidelity` in Claude Code to
+research and refine an existing geographic building. The skill maintains the
+[fidelity opportunity queue](docs/building-fidelity.md) and dated, source-linked
+findings in the building reference audits. It selects specific accuracy gaps,
+updates the geographic model, and checks the visible result. The queue records
+remaining uncertainty and next research actions between invocations.
 
 ## Adding a building to the skyline study
 

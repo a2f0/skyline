@@ -330,8 +330,8 @@ Intermediate parts have less certainty than the overall height:
   Paired gabled tiers fill the mapped depth north and south, each head on the line of
   its steps; see the [Two Prudential reference audit](two-prudential-reference.md).
 - Aon's mapped shaft keeps its 340 m top and its rooftop enclosure the
-  346.3 m part top. The tube carries granite V-shaped columns on the 10 ft
-  module, fourteen bays to each mapped face, with glass floor by floor on the
+  346.3 m part top. The tube carries granite V-shaped columns enclosing fifteen
+  bays per mapped face, with spacing fitted to the trace and glass floor by floor on the
   photograph's 3.87 m pitch, which runs on over the mechanical floors to a
   granite cap. Its notched corners are solid stone, and the inferred antenna
   reaches the published 362.5 m tip; see the

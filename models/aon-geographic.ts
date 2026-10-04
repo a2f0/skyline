@@ -6,8 +6,8 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // Aon Center: the geographic layout's model, on the mapped outline 64388609 with its
 // notched corners, the rooftop enclosure part 284775635, and the published heights. The
 // tower is the shared generator in aon-tower.ts, the same one the original layout's copy
-// uses. The mapped faces hold fourteen 10 ft bays; the mapped notches run about 1.5 m
-// deeper than the photograph's, which leaves the clean plan fifteen. The antenna stands
+// uses. Each mapped face carries the source plan's fifteen window bays, distributed
+// over its chord; the mapped notches are deeper, so this spacing is approximate. The antenna stands
 // at the enclosure's centre, reaching the published 362.5 m tip; the map gives no antenna
 // geometry. See docs/aon-reference.md. Units are meters; +x is east, +z is south.
 export const aonGeographicLevels = Object.freeze({

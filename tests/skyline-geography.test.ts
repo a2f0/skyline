@@ -2462,6 +2462,40 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Aon", () => {
+    test("shows the leasing plan's fifteen window slots on each geographic face", () => {
+      // FID-AON-001: Suite1300.pdf p1 has sixteen perimeter piers enclosing
+      // fifteen openings on each street face. Scan visible geometry between
+      // independently recorded OSM corners; do not import the generator's bay count.
+      const model = models["Aon"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh);
+      const faces: [string, Vec2, Vec2, Vec3][] = [
+        ["Randolph", [-87.6217961, 41.8850104], [-87.6212842, 41.885017], [0, 0, 1]],
+        ["Columbus", [-87.6211911, 41.8850928], [-87.6211977, 41.8854796], [1, 0, 0]],
+        ["Lake", [-87.6212967, 41.8855528], [-87.6218087, 41.8855461], [0, 0, -1]],
+        ["Stetson", [-87.6219047, 41.8854699], [-87.6219023, 41.8850841], [-1, 0, 0]],
+      ];
+      const ray = new THREE.Raycaster();
+      for (const [street, from, to, outward] of faces) {
+        const a = projectGround(from), b = projectGround(to);
+        let slots = 0, wasGlass = false;
+        // About 5 cm per sample: each window must appear as an unbroken
+        // visible interval separated by a projecting granite pier.
+        for (let sample = 1; sample < 900; sample += 1) {
+          const t = sample / 900;
+          const x = a[0] + (b[0] - a[0]) * t, z = -a[1] - (b[1] - a[1]) * t;
+          ray.set(new THREE.Vector3(x + outward[0] * 10, 99.04, z + outward[2] * 10), new THREE.Vector3(...outward).negate());
+          const first = ray.intersectObjects(meshes, false)[0];
+          expect(first, `${street}: facade has no holes`).toBeDefined();
+          const glass = first!.object.name === "Aon · window ribbons";
+          if (glass && !wasGlass) slots += 1;
+          if (!glass) expect(first!.object.name).toBe("Aon · granite piers");
+          wasGlass = glass;
+        }
+        expect(slots, `${street}: observed openings between sixteen piers`).toBe(15);
+      }
+    }, { timeout: 60_000 });
+
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;
       const model = models["Aon"]!;
@@ -2496,14 +2530,14 @@ describe("mapped skyline geography", () => {
       for (const [dx, dz] of [[0.5, 0], [-0.5, 0], [0, 0.5], [0, -0.5]]) {
         near(hit([enclosureCenter[0] + dx!, 400, enclosureCenter[2] + dz!], [0, -1, 0])!.point.y, 346.3, 0.001);
       }
-      // The mapped south face between its notches holds fourteen 10 ft bays. From the
+      // The source plan shows fifteen openings on the south face. From the
       // lake, a mid-bay probe meets the glass on an office floor and the dark spandrel
       // between floors, and one on a bay line meets a column. The glass runs on at the same
       // pitch over the mechanical floors to the granite cap, with no band of louvers
       // between: daylight photographs show the slots unchanged to the top.
       const west = world(-87.6217961, 41.8850104), east = world(-87.6212842, 41.885017);
-      const bay = Math.hypot(east[0] - west[0], east[2] - west[2]) / 14;
-      const along = (s: number): Vec3 => { const t = s / (bay * 14); return [west[0] + (east[0] - west[0]) * t, 0, west[2] + (east[2] - west[2]) * t]; };
+      const bay = Math.hypot(east[0] - west[0], east[2] - west[2]) / 15;
+      const along = (s: number): Vec3 => { const t = s / (bay * 15); return [west[0] + (east[0] - west[0]) * t, 0, west[2] + (east[2] - west[2]) * t]; };
       const fromLake = (s: number, height: number) => { const p = along(s); return hit([p[0], height, p[2] + 30], [0, 0, -1])!; };
       const level = 11.9 + 22 * 3.87;
       expect(fromLake(7.5 * bay, level + 2).object.name).toBe("Aon · window ribbons");
