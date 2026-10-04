@@ -10,7 +10,9 @@ runs `tsc --noEmit`. Serve the built `dist/` over HTTP for WebGL and the 3D
 study. `skyline-animated.svg` owns the building labels and paint groups consumed
 by `skyline-webgl.html`. Preserve path geometry and draw order when changing
 hover ownership; see `docs/building-labels.md`. The original comparison artwork
-is separate.
+is separate. Every colour is a grey, with equal red, green and blue; only the
+photograph `skyline.jpg` keeps its colour, and `tests/grayscale.test.ts` refuses
+any other.
 
 `bun run build:package` additionally emits ESM and declarations to `lib/` and
 copies the complete built viewer to `site/`; both are gitignored and included
@@ -29,7 +31,7 @@ when it finishes whether it passed or failed, and appends the run to
 `skyline-timings.log` in the Git common directory; `bun scripts/show-timings.ts`
 reads it back; Skyline’s shipping policy requires printing it at the end. The check
 runner checks managed skill drift and tool configuration, typechecks the
-repository, runs the attribution, hooks, timings, merge guard, deploy verification,
+repository, runs the attribution, hooks, timings, merge guard, deploy verification, grayscale,
 skyline-loading, package, reference excerpt, and building kit checks, then
 builds `dist/` and starts its own temporary server for the hover regressions,
 both 3D study browser suites, the building

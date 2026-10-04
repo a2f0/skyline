@@ -68,7 +68,7 @@ brick at its ends.
   - The plain band over the top two floors.
 - **Roof:** flat.
 
-Colours follow the drawing's greys, warmed toward the brick's red-brown.
+Colours follow the drawing's greys.
 
 Omitted:
 

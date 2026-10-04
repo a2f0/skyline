@@ -24,12 +24,12 @@ const h = swissotelLevels;
 const pitch = h.roof / h.levels;
 
 // The skins' colours: the window tones, and the frame, which no window shares.
-export const swissotelPalette = Object.freeze({ glass: [0x2a2e31, 0x2e3235, 0x323639, 0x262a2d], lit: 0x8a877c, dim: 0x505250, frame: 0x3e4245 });
+export const swissotelPalette = Object.freeze({ glass: [0x2d2d2d, 0x313131, 0x353535, 0x292929], lit: 0x878787, dim: 0x515151, frame: 0x414141 });
 const palette = swissotelPalette;
 const color = (hex: number) => new THREE.Color(hex);
 const glassTones = palette.glass.map(color);
 const litGlass = color(palette.lit), dimGlass = color(palette.dim), frame = color(palette.frame);
-const core = color(0x1c1e20), roofing = color(0x303234);
+const core = color(0x1e1e1e), roofing = color(0x323232);
 function paneColor(row: number, bay: number, wall: number): THREE.Color {
   const hash = (Math.imul(row + 71, 0x9e3779b1) ^ Math.imul(bay + 13, 0x85ebca77) ^ Math.imul(wall + 47, 0xc2b2ae3d)) >>> 0;
   const value = hash % 101;

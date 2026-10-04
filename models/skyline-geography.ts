@@ -278,7 +278,7 @@ export function createGeographicGround(offset: [number, number] = [0, 0]): { gro
   const grid: Vec3[] = [];
   for (let x = -400; x <= 500; x += 100) grid.push([x, 0.02, -650], [x, 0.02, 850]);
   for (let north = -850; north <= 650; north += 100) grid.push([-400, 0.02, -north], [500, 0.02, -north]);
-  group.add(lines(grid, 0x303b3e));
+  group.add(lines(grid, 0x393939));
   const streets = new THREE.Group();
   streets.name = "Mapped street centerlines";
   for (const street of geographicStreets) {
@@ -301,7 +301,7 @@ export function createGeographicGround(offset: [number, number] = [0, 0]): { gro
       }
       if (lo <= hi) segments.push(...[lo, hi].map((t) => a.map((n, axis) => n + (b[axis]! - n) * t) as Vec3));
     }
-    const object = lines(segments, 0xb9a578);
+    const object = lines(segments, 0xa7a7a7);
     object.name = street.name;
     streets.add(object);
   }
@@ -311,7 +311,7 @@ export function createGeographicGround(offset: [number, number] = [0, 0]): { gro
     const points: Vec3[] = record.footprint.coordinates.map((p) => { const [x, y] = projectGround(p); return [x, 0.1, -y]; });
     points.forEach((p, i) => outlines.push(p, points[(i + 1) % points.length]!));
   }
-  const footprints = lines(outlines, 0x8ed5de);
+  const footprints = lines(outlines, 0xc9c9c9);
   group.add(footprints);
   return { group, streets, footprints };
 }

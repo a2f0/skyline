@@ -12,6 +12,20 @@ import { expectPlanHolds } from "./geographic-plan.js";
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
 const settle = (page: Page | Frame) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 const near = (a: number, b: number, tolerance: number) => expect(Math.abs(a - b), `${a} vs ${b}`).toBeLessThan(tolerance);
+// The widest gap between two colour channels of any pixel on screen, read back from a
+// screenshot: zero while everything shown, scene and page alike, is a grey.
+const chroma = async (page: Page) => page.evaluate(async (png) => {
+  const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${png}`)).blob());
+  const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
+  context.drawImage(bitmap, 0, 0);
+  const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height).data;
+  let widest = 0;
+  for (let i = 0; i < pixels.length; i += 4) {
+    const [r, g, b] = [pixels[i]!, pixels[i + 1]!, pixels[i + 2]!];
+    widest = Math.max(widest, Math.max(r, g, b) - Math.min(r, g, b));
+  }
+  return widest;
+}, (await page.screenshot()).toString("base64"));
 
 // The frame the skyline viewer shows the drawing in, and the translate that places the
 // drawing's layer inside it, read from the file the viewer loads. Landmarks are drawn in
@@ -535,17 +549,13 @@ describe("full-screen 3D skyline", () => {
     // mapped building. The pressed button names the view; the bar carries no view label. The
     // plan holds every footprint and whole label above the bar, wide, on a phone, and on a
     // landscape phone, where the bar leaves the least height.
-    // Ground plan alone is drawn in greys, its scene and its names.
     expect(await page.locator("#view-label").count()).toBe(0);
     expect(await page.locator('[data-view="skyline"]').getAttribute("aria-pressed")).toBe("true");
     expect(await page.locator(".study-annotations span").count(), "startup leaves unused building labels unprepared").toBe(0);
-    const filters = () => page.evaluate(() => [...document.querySelectorAll("#building, .study-annotations")].map((element) => getComputedStyle(element).filter));
-    expect(await filters()).toEqual(["none", "none"]);
     for (const view of ["top", "heights"]) {
       await page.locator(`[data-view="${view}"]`).click();
       await settle(page);
       expect(await page.evaluate(() => [window.__buildingStudy!.projection, window.__buildingStudy!.activeView])).toEqual(["orthographic", view]);
-      expect(await filters()).toEqual(view === "top" ? ["grayscale(1)", "grayscale(1)"] : ["none", "none"]);
       expect(await page.locator(`[data-view="${view}"]`).getAttribute("aria-pressed")).toBe("true");
       expect(await page.locator(".study-annotations").isVisible()).toBe(true);
       expect(await page.locator(".study-annotations span:not([hidden])").count()).toBe(geographicBuildings.length);
@@ -581,6 +591,18 @@ describe("full-screen 3D skyline", () => {
       expect(await button.getAttribute("aria-pressed")).toBe(pressed);
       expect((await picture()).equals(before), `${id} restores the ground`).toBe(true);
     }
+    // Every view is drawn in greys with no filter to make it so: the buildings, the streets,
+    // the footprints and the names over them.
+    const filters = () => page.evaluate(() => [...document.querySelectorAll("#building, .study-annotations")].map((element) => getComputedStyle(element).filter));
+    await page.locator("#footprints").click();
+    for (const view of ["skyline", "top", "heights"]) {
+      await page.locator(`[data-view="${view}"]`).click();
+      await settle(page);
+      expect(await filters(), `${view} unfiltered`).toEqual(["none", "none"]);
+      expect(await chroma(page), `${view} in greys`).toBe(0);
+    }
+    await page.locator("#footprints").click();
+    await settle(page);
     // Escape inside the bar folds the toolbar back behind the star and returns focus to it.
     // The folding groups take no focus, so Tab from the star does not land in them.
     await page.locator("#wireframe").focus();
