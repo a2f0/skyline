@@ -138,7 +138,15 @@ button:disabled { cursor: default; opacity: 0.35; }
 .control-bar { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "views menu display"; align-items: center; gap: 5px 12px; padding: 5px max(12px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); border-top: 1px solid #292929; background: #080808; }
 .control-bar .button-group { gap: 4px; }
 .control-bar .camera-views { grid-area: views; justify-self: start; --fold: inset(0 0 0 100%); }
-.control-bar .model-display { grid-area: display; justify-self: end; --fold: inset(0 100% 0 0); }
+.control-bar .model-display { grid-area: display; justify-self: end; justify-content: end; --fold: inset(0 100% 0 0); }
+.celebration-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: end; gap: 4px; flex-basis: 100%; }
+.celebration-caption { margin-right: 4px; color: #888; font-size: 10px; }
+.control-bar .celebration-controls button { display: grid; place-items: center; width: 36px; height: 36px; padding: 4px; }
+.celebration-controls svg { width: 25px; height: 25px; fill: currentColor; }
+.celebration-controls .logo-line { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.celebration-controls .logo-cut { fill: none; stroke: #080808; stroke-width: 2; }
+.celebration-controls text { font: bold 15px Georgia, serif; }
+.celebration-controls button[aria-pressed="true"] { color: #fff; border-color: #aaa; box-shadow: inset 0 -2px #eee; }
 .control-bar:not(.open) { row-gap: 0; }
 .control-bar:not(.open) .button-group { display: none; }
 .control-bar button { padding: 5px 8px; }
@@ -147,13 +155,22 @@ button:disabled { cursor: default; opacity: 0.35; }
 .control-bar .menu-toggle:hover { color: #fff; background: #ffffff14; }
 .menu-toggle svg { width: 20px; height: 20px; fill: currentColor; transition: rotate 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
 .menu-toggle[aria-expanded="true"] svg { rotate: 30deg; }
-@media (max-width: 1259px) {
+/* At desktop widths the badges share the display row, so opening the controls
+   keeps the canvas height unchanged. Smaller screens retain 36px touch targets. */
+@media (min-width: 1440px) {
+  .celebration-controls { flex-basis: auto; flex-wrap: nowrap; }
+  .celebration-caption { display: none; }
+  .control-bar .celebration-controls button { width: 28px; height: 28px; padding: 2px; }
+  .celebration-controls svg { width: 20px; height: 20px; }
+}
+@media (max-width: 1439px) {
   .control-bar { grid-template-columns: auto auto; grid-template-areas: "menu menu" "views display"; justify-content: space-between; }
   .control-bar .menu-toggle { justify-self: center; }
 }
 @media (max-width: 1023px) {
   .control-bar { grid-template-columns: minmax(0, 1fr); grid-template-areas: "menu" "views" "display"; }
   .control-bar .button-group { justify-self: center; justify-content: center; --fold: inset(0 50%); }
+  .celebration-controls { justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) {
   .menu-toggle svg { transition: none; }

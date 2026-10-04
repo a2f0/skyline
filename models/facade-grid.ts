@@ -132,6 +132,8 @@ export function chainPier(kit: Builder, target: BatchData, plan: Plan, chain: Ch
 // column cuts, and its ends through every row cut, so it closes edge for edge. A cell is
 // painted by its bay, the columns at or before its start, so a cell a joint splits keeps
 // one colour.
+// `paint` runs immediately before its front quad appends six vertices to target.
+// Blue Cross records that vertex offset to address individual window lights.
 export function chainSkin(kit: Builder, target: BatchData, plan: Plan, chain: Chain, k0: number, k1: number, s0: number, s1: number,
   columns: number[], rows: number[], back: number, front: number, paint: (bay: number, row: number) => THREE.Color, sides: THREE.Color,
   y: (real: number) => number = (real) => real) {

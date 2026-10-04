@@ -1,5 +1,10 @@
 # Chicago Skyline
 
+The 3D toolbar's **lights** badges toggle celebratory window messages on the
+existing Blue Cross and Blue Shield Tower: Bulls, Cubs, White Sox, Bears,
+Blackhawks, Pride, and Thanksgiving. Select a badge again to turn it off.
+See [the display research and reconstruction limits](docs/celebration-lighting.md).
+
 ## Package imports
 
 The repository also builds the `chicago-skyline` ESM package: a complete embeddable

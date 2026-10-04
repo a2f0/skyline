@@ -25,9 +25,11 @@
       </div>
       <div class="scene-notes" id="scene-notes">
         <p class="hint" id="camera-hint">Drag to orbit · scroll or pinch to zoom<br />Arrow keys rotate · + / − zoom · Home resets</p>
+        <p id="celebration-status" aria-hidden="true" hidden></p>
         <p class="attribution">Streets and footprints <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></p>
       </div>
       <p class="visually-hidden" id="motion-status" role="status">Camera moves only when you interact or start the turntable.</p>
+      <p class="visually-hidden" id="celebration-announcement" role="status"></p>
       <noscript><style>#loading { display: none; }</style><p class="loading">Enable JavaScript to explore the 3D skyline.</p></noscript>
       <dialog class="detail-panel" id="building-detail" aria-label="Building detail">
         <button type="button" class="detail-close" id="detail-close" aria-label="Close building detail" title="Close (Esc)">×</button>
@@ -53,6 +55,30 @@
         <button type="button" id="wireframe" aria-pressed="false">wireframe</button>
         <button type="button" id="turntable" aria-pressed="false" aria-describedby="motion-status">turntable</button>
         <button type="button" id="show-original" title="Compare with the original skyline SVG" hidden>show original</button>
+        <div class="celebration-controls" id="celebration-controls" role="group" aria-label="Celebratory window lighting">
+          <span class="celebration-caption">lights</span>
+          <button type="button" data-celebration="bulls" aria-label="Bulls lighting" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M7 12C3 12 2 8 3 4c2 4 4 4 7 5l6-2 6 2c3-1 5-1 7-5 1 4 0 8-4 8l-2 10-4 5h-6l-4-5Z"/><path class="logo-cut" d="m9 15 5 2m9-2-5 2m-4 6h4"/></svg>
+          </button>
+          <button type="button" data-celebration="cubs" aria-label="Cubs lighting" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle class="logo-line" cx="16" cy="16" r="13"/><path d="M24 10a10 10 0 1 0 0 12l-4-3a5 5 0 1 1 0-6Z"/></svg>
+          </button>
+          <button type="button" data-celebration="sox" aria-label="White Sox lighting" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><text x="2" y="13">S</text><text x="11" y="22">O</text><text x="21" y="30">X</text></svg>
+          </button>
+          <button type="button" data-celebration="bears" aria-label="Bears lighting" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="m3 16 5-8 11-2 10 5-7 3-4-3-7 2-2 3 2 3 7 2 4-3 7 3-10 5-11-2Z"/></svg>
+          </button>
+          <button type="button" data-celebration="hawks" aria-label="Blackhawks lighting" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path class="logo-line" d="M10 5h12v7c0 5-3 7-6 7s-6-2-6-7ZM10 7H5v4c0 4 3 5 6 5m11-9h5v4c0 4-3 5-6 5m-5 3v6m-6 2h12"/></svg>
+          </button>
+          <button type="button" data-celebration="pride" aria-label="Pride lighting" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 27 5 16C-3 5 10 0 16 9 22 0 35 5 27 16Z"/></svg>
+          </button>
+          <button type="button" data-celebration="thanks" aria-label="Thanksgiving lighting" aria-pressed="false">
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path class="logo-line" d="M8 27 24 4M12 21C2 21 3 12 3 12c7 0 10 4 9 9Zm5-7C8 14 10 6 10 6c6 0 9 4 7 8Zm-3 4c3-6 10-5 13-3-2 6-8 9-13 3Zm6-9c0-5 5-7 8-7 1 6-2 10-8 7Z"/></svg>
+          </button>
+        </div>
       </div>
     </footer>
     <div class="tooltip" id="tooltip" aria-hidden="true" hidden></div>

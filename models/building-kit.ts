@@ -1,4 +1,5 @@
 import * as THREE from "../vendor/three-r186.js";
+import type { WindowIllumination } from "./window-illumination.js";
 
 // Shared geometry for fitted skyline models. A plan is a list of runs, straight or
 // arced, counterclockwise from above, so each run's outward normal is to its right.
@@ -135,6 +136,7 @@ export interface BuildingModel {
   building: THREE.Group;
   height: number;
   triangleCount: number;
+  illumination?: WindowIllumination;
   setHighlighted(highlighted: boolean): void;
   setWireframe(enabled: boolean): void;
 }
