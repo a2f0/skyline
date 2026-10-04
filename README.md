@@ -2,8 +2,9 @@
 
 The 3D toolbar's **lights** badges toggle celebratory window messages on the
 existing Blue Cross and Blue Shield Tower: Bulls, Cubs, White Sox, Bears,
-Blackhawks, Pride, and Thanksgiving. Select a badge again to turn it off.
-See [the display research and reconstruction limits](docs/celebration-lighting.md).
+Blackhawks, and Thanksgiving. Select a badge again to turn it off, or right-click
+the tower to choose a message or turn its lights off from the building menu.
+See [the display research and reconstruction limits](https://github.com/a2f0/skyline/blob/main/docs/celebration-lighting.md).
 
 ## Package imports
 

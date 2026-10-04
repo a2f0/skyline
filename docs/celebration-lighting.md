@@ -1,12 +1,20 @@
 # Celebratory window lighting
 
-The full-screen 3D skyline's toolbar offers seven monochrome badges. Open the
+The full-screen 3D skyline's toolbar offers six monochrome badges. Open the
 star, then select a badge to illuminate the south face of the existing Blue
 Cross and Blue Shield Tower. Select it again to turn the message off, or select
 another badge to replace it. The selected badge is pressed, and the scene note
 names the message and building. Camera views, zoom, hover, wireframe, reduced
 motion and the original-artwork comparison continue to work. Returning from the
 original artwork retains the message in the existing 3D frame.
+
+Right-click the Blue Cross tower, or long-press where the browser supports a
+context menu, to choose the same messages or **Lights off**. The checked menu
+choice and toolbar badge reflect the same state. Selecting the current message
+also turns it off. Arrow keys cycle through the detail link and lighting choices;
+Home/End jump to the first/last item, Enter/Space activate a lighting choice, and
+Escape/Tab close the menu. Other buildings retain their detail link. This works
+both in the main viewer and on the standalone 3D page.
 
 ## Research and scope
 
@@ -21,7 +29,6 @@ of documented messages on the current model, not exact historic window plans.
 | White Sox | SOX PRIDE | [Los Angeles Times, December 15, 2013](https://www.latimes.com/nation/la-na-hometown-chicago-20131215-story.html) records the 2005 championship message. Its placement is adapted to today's taller tower. |
 | Bears | BEAR DOWN | [AFP's verification, January 21, 2026](https://factcheck.afp.com/doc.afp.com.93EM7ZQ) identifies the authentic tower message and links the Bears' photographs and older examples. |
 | Blackhawks | HAWKS WIN | [The 2010 championship skyline photograph](https://en.wikipedia.org/wiki/333_South_Wabash) identifies this wording on Blue Cross, with GO HAWKS on Smurfit-Stone and the team emblem on CNA. |
-| Pride | PRIDE | [ABC7's staff interview](https://abc7chicago.com/amp/videoClip/6652666/) records this wording. Colored architectural accents are omitted under Skyline's grayscale policy. |
 | Thanksgiving | GIVE THANKS | [ABC7, November 23, 2022](https://abc7chicago.com/amp/post/blue-cross-shield-of-illinois-building-chicago-skyline-give-thanks/12487512/) documents the message and five-floor letters. |
 
 [BCBSIL's own account](https://www.bcbsil.com/newsroom/category/company-news/chicago-building-lighting-messages)
@@ -29,10 +36,24 @@ links the staff interview explaining how office lights and window shades form
 the messages. White window light fits Skyline's grayscale palette. The toolbar
 badges are locally drawn symbols, not downloaded official team artwork.
 
-Other researched buildings: the existing Crain Communications / Smurfit-Stone
-model has a glazed sloping crown suitable for a future separately fitted
-display. Its messages require mapping over both slopes and their central gap;
-they are not implemented here. CNA's [documented Cubs display](https://loews.com/investors/news/news-details/2015/CNA-Lights-Up-Chicago-Skyline-To-Celebrate-Chicago-Cubs-10-20-2015/default.aspx)
+## Other buildings already in this skyline
+
+The follow-up research was matched against `geographicBuildings`, rather than
+against Chicago's entire skyline. The following are research findings, not new
+lighting presets. Achievability is an assessment of the existing model geometry;
+it does not establish an exact historic lamp or shade plan.
+
+| Existing building | Evidence | Achievability and remaining work |
+| --- | --- | --- |
+| Crain Communications / Smurfit-Stone | A [photographer's GO CUBS image](https://metroscap.com/chicago--framed-pictures/3080/go-cubs-in-the-smurfit-stone-building-at-night.php/) and the [June 10, 2010 GO HAWKS panorama](https://commons.wikimedia.org/wiki/File:Chicago_Grant_Park_night_pano_(Blue_Cross_Blue_Shield_Tower_%22Hawks_Win%22).jpg) document words on the sloping crown. [The building history](https://en.wikipedia.org/wiki/Crain_Communications_Building) also reports GO BEARS, GO SOX and VOTE 2008; those are secondary-source leads. | Strongest next candidate for words. Both glazed roof planes and the central slot already exist in `crain-geographic.ts`. A display needs its own mapping over the two offset slopes, respecting mullions and the gap; the vertical Blue Cross window mask cannot simply be reused. |
+| Sheraton Grand Chicago Riverwalk | [The Sun-Times' April 27, 2021 interview with hotel engineers](https://chicago.suntimes.com/2021/4/27/22404573/closed-by-covid-19-hotel-overlooking-riverwalk-sends-message-of-hope-through-window-designs) documents room lights forming changing designs, including an **XO inside a heart** for Valentine's Day. This establishes illuminated symbols and lettering, not a sports slogan or the word HOPE. | Existing room-window geometry makes a small symbol or XO plausible. Match the photographed facade and room grid first, then map individual panes. No need to add a building. |
+| One Prudential Plaza | [James Iska's March 28, 2014 first-person account](https://jamesiska.blogspot.com/2014/03/the-prudential-building.html) describes historic crosses and later sports/cause messages made with shades and lights on Chicago's south facade. It does not give an exact sports phrase or a dated photograph of one. | The existing model has individual south-facing window bays, so a window mask is plausible. Locate a dated image and verify wording before defining a preset. Evidence is weaker than for Crain and Sheraton. |
+
+Targeted searches for Aon, Kemper, Two Prudential, Hyatt Regency and Swissôtel
+did not establish another reproducible word display. Aon/Stanley Cup blog
+references remain unverified and are not enough to assign a preset. This is a
+bounded search, not a claim that these buildings have never displayed messages.
+CNA's [documented Cubs display](https://loews.com/investors/news/news-details/2015/CNA-Lights-Up-Chicago-Skyline-To-Celebrate-Chicago-Cubs-10-20-2015/default.aspx)
 is outside the current modeled inventory. Boston's Prudential Tower results
 are unrelated to Chicago's Prudential buildings and were excluded.
 

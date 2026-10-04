@@ -133,6 +133,94 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 60_000 });
 
+  test("building lighting menus share toolbar state, support keyboard and touch, and fit short screens", async () => {
+    for (const embedded of [false, true]) {
+      const page = await browser.newPage({ viewport: embedded ? { width: 390, height: 844 } : { width: 1440, height: 900 }, hasTouch: embedded, reducedMotion: "reduce" });
+      watch(page);
+      await page.goto(`${origin}/${embedded ? "index.html" : "skyline-3d.html"}`);
+      const scene = embedded ? await openScene(page) : page;
+      await scene.waitForFunction(() => window.__buildingStudy?.ready);
+      expect(await scene.locator("[data-celebration=pride]").count()).toBe(0);
+      expect(await scene.locator("[data-celebration]").count()).toBe(6);
+      const record = geographicBuildings.find(({ id }) => id === "building-blue-cross-blue-shield")!;
+      const { center } = footprintMetrics(record.footprint.coordinates);
+      const open = async () => {
+        const [u, v] = await scene.evaluate(([id, point]) => window.__buildingStudy!.projectPoint(id, [...point]), [record.id, [center[0], record.height * 0.75, -center[1]]] as const);
+        if (embedded) {
+          // Deliver the browser's long-press sequence in frame coordinates.
+          await scene.evaluate(([u, v]) => {
+            const canvas = document.querySelector("#building")!, box = canvas.getBoundingClientRect();
+            const at = { clientX: box.x + u * box.width, clientY: box.y + v * box.height, bubbles: true, cancelable: true };
+            canvas.dispatchEvent(new PointerEvent("pointerdown", { ...at, pointerType: "touch", pointerId: 2 }));
+            canvas.dispatchEvent(new MouseEvent("contextmenu", at));
+            canvas.dispatchEvent(new PointerEvent("pointerup", { ...at, pointerType: "touch", pointerId: 2 }));
+          }, [u, v] as const);
+        } else {
+          const box = (await scene.locator("#building").boundingBox())!;
+          await page.mouse.click(box.x + u * box.width, box.y + v * box.height, { button: "right" });
+        }
+        expect(await scene.locator("#building-menu-title").textContent()).toBe(record.name);
+        expect(await scene.locator("#building-menu").isVisible()).toBe(true);
+      };
+      const active = () => scene.evaluate(() => window.__buildingStudy!.illuminations[0]!.active);
+      const focused = () => scene.evaluate(() => document.activeElement?.getAttribute("data-lighting") ?? document.activeElement?.id);
+      await open();
+      expect(await scene.locator('[role="menuitemradio"][aria-checked="true"]').getAttribute("data-lighting")).toBe("off");
+      expect(await scene.locator('[role="menuitemradio"]').count()).toBe(7);
+      await page.keyboard.press("End");
+      expect(await focused()).toBe("thanks");
+      await page.keyboard.press("ArrowDown");
+      expect(await focused()).toBe("building-detail-link");
+      await page.keyboard.press("ArrowUp");
+      expect(await focused()).toBe("thanks");
+      await page.keyboard.press("Home");
+      await page.keyboard.press("ArrowDown");
+      await page.keyboard.press("ArrowDown");
+      expect(await focused()).toBe("bulls");
+      await page.keyboard.press("Enter");
+      expect(await active()).toBe("bulls");
+      expect(await scene.locator("[data-celebration=bulls]").getAttribute("aria-pressed")).toBe("true");
+      expect(await focused()).toBe("building");
+      expect(await scene.locator("#building-menu").isHidden()).toBe(true);
+      await open();
+      await scene.locator("[data-lighting=bulls]").press("Space");
+      expect(await active()).toBeNull();
+      for (const preset of celebrations) {
+        await open();
+        const choice = scene.locator(`[data-lighting=${preset.id}]`);
+        expect(await choice.textContent()).toContain(preset.lines.join(" "));
+        if (embedded) await choice.tap(); else await choice.click();
+        expect(await active()).toBe(preset.id);
+        expect(await scene.locator("#celebration-announcement").textContent()).toContain(preset.lines.join(" "));
+      }
+      // A toolbar change is checked on the next menu opening, even with the toolbar folded.
+      await scene.locator("#menu-toggle").click();
+      await scene.locator("[data-celebration=cubs]").click();
+      await scene.locator("#menu-toggle").click();
+      await open();
+      expect(await scene.locator('[role="menuitemradio"][aria-checked="true"]').getAttribute("data-lighting")).toBe("cubs");
+      await settle(scene);
+      await page.screenshot({ path: `/tmp/skyline-lighting-menu-${embedded ? "touch" : "desktop"}.png` });
+      await scene.locator("[data-lighting=off]").click();
+      expect(await active()).toBeNull();
+      expect(await scene.locator('[data-celebration][aria-pressed="true"]').count()).toBe(0);
+      if (!embedded) {
+        await page.setViewportSize({ width: 844, height: 220 });
+        await settle(scene);
+        await open();
+        const menuBox = (await scene.locator("#building-menu").boundingBox())!;
+        expect(menuBox.y).toBeGreaterThanOrEqual(4);
+        expect(menuBox.y + menuBox.height).toBeLessThanOrEqual(216);
+        await page.keyboard.press("End");
+        const last = (await scene.locator("[data-lighting=thanks]").boundingBox())!;
+        expect(last.y + last.height).toBeLessThanOrEqual(menuBox.y + menuBox.height);
+        await page.keyboard.press("Space");
+        expect(await active()).toBe("thanks");
+      }
+      await page.close();
+    }
+  }, { timeout: 60_000 });
+
   test("celebration buttons fit on touch screens and survive original-artwork comparison", async () => {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, reducedMotion: "reduce" });
     watch(page);
@@ -840,6 +928,8 @@ describe("full-screen 3D skyline", () => {
     expect(await menu.isVisible()).toBe(true);
     expect(await scene.locator("#building-menu-title").textContent()).toBe("Aon Center");
     expect(await scene.locator('#building-menu [role="menuitem"]').allTextContents()).toEqual(["building detail"]);
+    expect(await scene.locator("#building-lighting-menu").isHidden()).toBe(true);
+    expect(await scene.locator('[role="menuitemradio"]').count()).toBe(0);
     expect(await scene.locator("#building-detail-link").getAttribute("href")).toBe("building-detail.html?building=layer3");
     expect(await focused(scene)).toBe("building-detail-link");
     const box = (await menu.boundingBox())!;

@@ -70,7 +70,7 @@ const lit = illumination.active === 'cubs' && illumination.litWindows > 0;
 illumination.set(null);
 const view: StudyView = skyline.drawingView;
 console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
-  lights: lit && illumination.active === null && illumination.litWindows === 0 && celebrations.length === 7 && typeof createWindowIllumination === 'function',
+  lights: lit && illumination.active === null && illumination.litWindows === 0 && celebrations.length === 6 && typeof createWindowIllumination === 'function',
   hostEngine: building.building instanceof Group && skyline.models.every(model => model.building instanceof Group),
   models: skyline.models.length, records: geographicBuildings.length, triangles: building.triangleCount, align: view.align }));
 `);
