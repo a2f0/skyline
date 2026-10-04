@@ -1,0 +1,4 @@
+interface:
+  display_name: "Building Fidelity"
+  short_description: "Research and refine existing geographic buildings"
+  default_prompt: "Use $building-fidelity to rank existing skyline fidelity gaps, research one, and improve its geographic model with tracked sources."

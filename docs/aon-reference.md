@@ -44,12 +44,14 @@ that the descriptions, the drawing's fifteen strips per face, and the photograph
 count. In the photograph, the south face's lit top spans 246 pixels at a 3.03 m bay
 pitch, and the dark notch beside it about 52. Fifteen bays predict 243 pixels, and a
 6.7 m notch predicts 57. The mapped outline's notches run about 1.5 m deeper, leaving
-its faces 42.5 m, room for fourteen bays.
+its faces about 42.5 m. The geographic model now preserves the observed fifteen
+openings by fitting their spacing to those faces; this supersedes the former
+fourteen-bay approximation (see the October 4 research entry below).
 
 | Feature | Mapped | Clean plan |
 | --- | --- | --- |
 | Outline | 59.2 × 60.3 m, faces within 1° of the grid | 59.15 m square |
-| Main face | 42.5 m, fourteen bays of 3.04 m | 45.72 m, fifteen bays of 3.048 m |
+| Main face | About 42.5 m, fifteen bays of about 2.85 m | 45.72 m, fifteen bays of 3.048 m |
 | Corner notch | 7.7–8.9 m along each face: chamfer, square step, chamfer | 6.715 m: 1.9 m chamfer legs, 2.9 m step |
 | Rooftop enclosure | Part 284775635, 31.6 × 32.8 m, centred | 32 m square, centred |
 
@@ -146,3 +148,74 @@ there, and includes the enclosure and antenna, as photographs show them.
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-04: fifteen bays on the geographic model (FID-AON-001)
+
+Selected from the [fidelity queue](building-fidelity.md): the mapped model's
+fourteen-bay approximation contradicted the fifteen openings already recorded
+for the clean model. This affects the full height of four visible facades.
+
+### New evidence
+
+All inputs below were opened on **2026-10-04**. No third-party image or PDF is
+redistributed; the viewer continues to load only local geometry.
+
+| Source | Locator and date | Observation and confidence | Decision |
+| --- | --- | --- | --- |
+| [Aon Center, Suite 1300 leasing plan](https://www.aoncenter.info/pdf/Suite1300.pdf), tenant portal; Telos Group / Jones Lang LaSalle | Page 1, four outer walls labeled Lake, Stetson, Columbus, Randolph. Drawing/publication date unknown. | **Observed, high confidence:** counting triangular perimeter piers gives 16 per face and 15 intervening openings on each of four faces. Interior partitions are not facade bays. The sheet has no exterior dimension string establishing metre spacing. | Fix the shared generator's count at 15, independently of map trace length. Do not derive survey dimensions from this leasing diagram. |
+| [Chicago Architecture Center, Aon Center](https://www.architecture.org/online-resources/buildings-of-chicago/aon-center/), photograph credited to Eric Allix Rogers | Second gallery photograph, [direct image](https://images.architecture.org/api/v1/image/assets%2Fe61abde79d954ddab2b6092044c4b5a1%2F78b478f8953c4a9f9966504317833c6d), 994 × 1500 px; capture date unknown | **Observed, high confidence:** 15 dark slots between the solid corner strips on each of the two visible faces. Counted just below the cap; on the left face slot centres are approximately x = 257, 269, 281, 293, 305, 317, 329, 341, 354, 366, 378, 391, 403, 415, 428 px. These are counting aids, not dimensional measurements. | Corroborates the leasing plan's count and the existing panorama audit. |
+| [WJE, Amoco Building (Aon Center)](https://www.wje.com/assets/pdfs/projects/Amoco_Building.pdf), recladding engineer | Page 1, Background and Solution; publication date unknown | **Documented:** white Mt. Airy granite replaced deteriorated marble while preserving the facade's appearance. Does not specify bay count or pitch. | Retain granite piers; no material or dimensional change inferred from this report. |
+
+Inspected binary identities (SHA-256):
+
+- Suite 1300 PDF: `c35427cc9da0ab31f45c99814bd49ed832e68e5236c0bc1fb1bbc2f2f03023cb`.
+- Rogers photograph: `14131c1578024088291343d4752aae5b519eca3e8d6ee63769a3648f6f6d11f3`.
+
+### Resolution and remaining uncertainty
+
+At base commit `6e3067635b8204e49c1d72011eea549e84d5c79f`,
+`buildAonTower` rounded each mapped face length by a nominal 3.048 m module,
+producing 14 bays. The new `aonLevels.baysPerFace` preserves the observed 15.
+The clean drawing-fit model already had 15, so its bay positions and camera fit
+remain the same. In both forms the window ribbons now stop at the end piers'
+centres; otherwise glass can peek past their V-shaped edges as two tiny extra
+slots. The raycast scan exposed this while exercising the skill.
+
+This correction represents the established facade, consistent with the 2013
+panorama audit. Unknown dates on the new plan and photo do not establish a
+later renovation. The geographic faces remain about 42.5–43 m wide because
+their mapped notches are deeper than the clean plan. Fifteen bays therefore
+have about 2.85 m pitch, **an approximation**, not the nominal 10 ft dimension.
+FID-AON-002 remains open for dimensioned evidence before changing the plan.
+Heights, placement, ground vertices, rooftop enclosure and building inventory
+are unchanged. The geographic factory is used by the 3D skyline, geographic
+study and building-detail page.
+
+### Acceptance and validation
+
+The added geography regression scans all four street faces at an office-window
+height, counting **15 separate visible glass intervals**, each separated by a
+projecting granite pier. Its source count and geographic endpoints are recorded
+independently of model exports. Existing tests retain the 340 m shaft, 346.3 m
+enclosure, 362.5 m tip, solid notches and exact ground coordinates. The full
+repository check also covers closed meshes, coplanar faces, the original SVG
+fit, hover, occlusion, reduced motion and local-only loading.
+
+The focused Aon tests and strict typecheck pass. Running the new scan against
+base geometry fails (14 full slots plus two corner slivers on the first face);
+it passes with 15 intervals on all four corrected faces. Both skill copies
+pass the skill-creator validator and a recursive byte comparison.
+
+These repository-generated renders use `building-detail.html?building=layer3`,
+a 1000 × 1000 viewport, device scale 1, reduced motion, and the front-view button,
+with the canvas captured after two animation frames. The baseline is the pinned
+base above; the second image includes the count and end-pier corrections.
+
+| Before | After |
+| --- | --- |
+| ![Aon geographic model before the correction](fidelity/aon-before.png) | ![Aon geographic model with fifteen bays](fidelity/aon-after.png) |
+
+The front, side and rear detail views, geographic skyline and ground plan were
+visually inspected. The finer facade rhythm is visible in detail; no new
+silhouette or placement change was observed. Browser renders reported no page
+errors. Full shipping check results are recorded in the PR.

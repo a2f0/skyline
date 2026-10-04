@@ -92,6 +92,13 @@ Use `bun run agent-tool` for shared CLI commands in Skyline.
 Merge through `bun scripts/merge-pr.ts <reviewed-head> <base-branch>
 <reviewed-base-sha>` instead of invoking the generic merge command directly.
 
+`building-fidelity` is a Skyline-owned skill, outside the managed manifest.
+Keep its regular-file copies in `.agents/skills/building-fidelity` and
+`.claude/skills/building-fidelity` identical; check with `diff -ru` between those
+directories after editing. Its ongoing research queue is
+`docs/building-fidelity.md`, with evidence in each building's reference audit.
+It refines existing geographic buildings, not the building inventory.
+
 `CLAUDE.md` imports this policy for Claude Code. Skyline's wrapper currently
 supports same-repository PRs whose remote and local feature branch names match.
 
