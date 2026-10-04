@@ -278,6 +278,12 @@ describe("full-screen 3D skyline", () => {
       await scene.locator("[data-celebration=bulls]").click();
       expect(await states()).toEqual({ "building-crain-communications": null, "building-blue-cross-blue-shield": "bulls" });
       expect(await scene.locator("[data-celebration=bulls]").getAttribute("aria-pressed")).toBe("true");
+      await openCrain();
+      await scene.locator("[data-lighting=hawks]").click();
+      expect(await states()).toEqual({ "building-crain-communications": "hawks", "building-blue-cross-blue-shield": "bulls" });
+      await scene.locator("[data-celebration=bulls]").click();
+      expect(await states()).toEqual({ "building-crain-communications": "hawks", "building-blue-cross-blue-shield": null });
+      expect(await scene.locator("[data-celebration=hawks]").getAttribute("aria-pressed")).toBe("mixed");
       expect(await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).toEqual(camera);
       await page.close();
     }
@@ -315,7 +321,8 @@ describe("full-screen 3D skyline", () => {
       };
       render();
     });
-    await page.screenshot({ path: "/tmp/crain-crown-lamps-before.png" });
+    const captureDirectory = process.env["SKYLINE_CRAIN_CAPTURE_DIR"];
+    if (captureDirectory) await page.screenshot({ path: path.join(captureDirectory, "crain-crown-lamps-before.png") });
     await page.evaluate(() => window.__crainLightingTest!.outline(false));
     const baseline = await page.screenshot();
     const bright = async (png: Buffer) => page.evaluate(async (data) => {
@@ -340,7 +347,7 @@ describe("full-screen 3D skyline", () => {
     expect(await page.screenshot()).toEqual(active);
     expect(await chroma(page)).toBe(0);
     await page.evaluate(() => window.__crainLightingTest!.outline(true));
-    await page.screenshot({ path: "/tmp/crain-crown-lamps-after.png" });
+    if (captureDirectory) await page.screenshot({ path: path.join(captureDirectory, "crain-crown-lamps-after.png") });
     await page.evaluate(() => { window.__crainLightingTest!.set(null); window.__crainLightingTest!.outline(false); });
     expect(await page.screenshot()).toEqual(baseline);
     expect(shaderErrors).toEqual([]);

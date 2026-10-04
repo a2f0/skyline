@@ -66,10 +66,12 @@ export function createCrainIllumination(
   geometry.setAttribute("crownSurface", surface);
 
   const masks = new Map(crainCelebrations.map((preset) => {
+    if (preset.lines.length !== panels.length) throw new Error(`Crain display needs one word per roof half: ${preset.id}`);
     const pixels = new Uint8Array(atlasWidth * atlasHeight);
     let count = 0;
     preset.lines.forEach((word, side) => {
       const panel = panels[side]!, rows = windowWord(word);
+      if (rows[0]!.length > columns) throw new Error(`Crain word exceeds the lamp atlas: ${word}`);
       const left = Math.floor((columns - rows[0]!.length) / 2);
       rows.forEach((row, down) => [...row].forEach((pixel, x) => {
         if (pixel !== "1") return;
@@ -100,7 +102,7 @@ export function createCrainIllumination(
       .replace("#include <begin_vertex>", "#include <begin_vertex>\nvCrownSurface = crownSurface;");
     shader.fragmentShader = `uniform float crownEnabled;\nvarying float vCrownSurface;\n${shader.fragmentShader}`
       .replace("#include <emissivemap_fragment>", `
-        vec2 lampCell = fract(vEmissiveMapUv * vec2(64.0, 8.0)) - 0.5;
+        vec2 lampCell = fract(vEmissiveMapUv * vec2(${atlasWidth.toFixed(1)}, ${atlasHeight.toFixed(1)})) - 0.5;
         float panelStart = (vCrownSurface - 1.0) * 0.5;
         float onPanel = step(0.5, vCrownSurface) * step(panelStart, vEmissiveMapUv.x) * step(vEmissiveMapUv.x, panelStart + 0.5);
         float lamp = texture2D(emissiveMap, vEmissiveMapUv).r;

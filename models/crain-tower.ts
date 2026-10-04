@@ -382,6 +382,8 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
         const [left, right] = [clipLine(volume.corners, side(-barReach), direction), clipLine(volume.corners, side(barReach), direction)];
         // The geographic crown follows the observed grid to the edge; the
         // drawing-fit copies retain their original half-module end snapping.
+        // Geographic ends rely on the building-kit coplanar-overlap check to
+        // catch any end face meeting a crossing bar after grid/inset changes.
         for (const [a0, a1] of left) for (const [b0, b1] of right) {
           const t0 = form.grid.edgeInset === undefined ? (Math.ceil((Math.max(a0, b0) + inset) / spacing - 0.5) + 0.5) * spacing : Math.max(a0, b0) + form.grid.edgeInset;
           const t1 = form.grid.edgeInset === undefined ? (Math.floor((Math.min(a1, b1) - inset) / spacing - 0.5) + 0.5) * spacing : Math.min(a1, b1) - form.grid.edgeInset;

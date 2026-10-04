@@ -75,7 +75,8 @@ for (const button of celebrationButtons) {
   button.disabled = displays.length === 0;
   button.addEventListener("click", () => {
     const next = button.getAttribute("aria-pressed") === "true" ? null : preset.id;
-    setCelebration(illuminated, next);
+    const targets = next === null ? illuminated.filter((model) => model.illumination!.active === preset.id) : illuminated;
+    setCelebration(targets, next);
   });
 }
 // The control bar's ground toggles, each pressed while what it toggles shows.

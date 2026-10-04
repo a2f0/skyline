@@ -322,6 +322,10 @@ dimensions still need stronger dimensional evidence.
   camera detects lamp pixels with the perimeter hidden, so a broken lamp shader
   cannot pass through the outline alone. Hover/wireframe changes preserve the
   display, off restores the rendered baseline exactly, and all pixels are gray.
+- Independent review exposed a toolbar edge case: turning off Bulls on Blue
+  Cross also cleared a different message selected on Crain. The added desktop
+  and touch regression failed against that behavior and passes with the repair;
+  turning off a badge now preserves other celebrations.
 - Building-detail captures use reduced motion at 1000 × 1000 with matching
   front, quarter and side presets. Skyline captures retain placement and
   occlusion. The close lamp comparison uses the same orthographic camera for

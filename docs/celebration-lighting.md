@@ -3,7 +3,7 @@
 The full-screen 3D skyline's toolbar offers six monochrome badges. Open the
 star, then select a badge to illuminate the existing Blue Cross and Blue Shield
 Tower and Crain Communications Building where each supports that celebration.
-Select it again to turn the messages off, or select another badge to replace
+Select it again to turn off buildings showing that celebration, or select another badge to replace
 them. A building without that preset turns off. The selected badge is pressed, and the scene note
 names the message and building. Camera views, zoom, hover, wireframe, reduced
 motion and the original-artwork comparison continue to work. Returning from the
