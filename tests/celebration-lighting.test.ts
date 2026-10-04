@@ -6,6 +6,41 @@ import { geographicBuildings } from "../models/skyline-geography-data.js";
 import { createGeographicBuilding } from "../models/skyline-geography.js";
 
 describe("celebratory window lighting", () => {
+  test("PRIDE reads left to right and top to bottom on the physical south facade", () => {
+    const model = createGeographicBuilding(geographicBuildings.find(({ id }) => id === "building-blue-cross-blue-shield")!);
+    model.illumination!.set("pride");
+    const geometry = (model.building.getObjectByName("Blue Cross · glass, spandrels and bands") as THREE.Mesh).geometry;
+    const positions = geometry.getAttribute("position"), normals = geometry.getAttribute("normal");
+    const colors = geometry.getAttribute("color"), light = geometry.getAttribute("windowLight");
+    const panes: { west: number; east: number; y: number; lit: boolean }[] = [];
+    for (let vertex = 0; vertex < positions.count; vertex += 6) {
+      if (normals.getZ(vertex) < 0.9 || Math.abs(colors.getX(vertex) - 0.018) > 1e-6) continue;
+      const xs = Array.from({ length: 6 }, (_, offset) => positions.getX(vertex + offset));
+      const ys = Array.from({ length: 6 }, (_, offset) => positions.getY(vertex + offset));
+      panes.push({ west: Math.min(...xs), east: Math.max(...xs), y: (Math.min(...ys) + Math.max(...ys)) / 2, lit: light.getX(vertex) > 0 });
+    }
+    const west = Math.min(...panes.map((pane) => pane.west)), east = Math.max(...panes.map((pane) => pane.east));
+    const columns = Math.round((east - west) / blueCrossLevels.module), pitch = (east - west) / columns;
+    const lit = panes.filter((pane) => pane.lit);
+    const levels = [...new Set(lit.map((pane) => pane.y))].sort((a, b) => b - a);
+    expect(levels.length).toBe(5);
+    // Independent readable fixture, recovered from real x/y positions rather
+    // than the controller's logical column/floor addressing.
+    const expected = [
+      "11110 11110 11111 11110 11111",
+      "10001 10001 00100 10001 10000",
+      "11110 11110 00100 10001 11110",
+      "10000 10010 00100 10001 10000",
+      "10000 10001 11111 11110 11111",
+    ].map((row) => row.replaceAll(" ", "0"));
+    const left = Math.floor((columns - expected[0]!.length) / 2);
+    levels.forEach((height, row) => {
+      const pixels = Array.from({ length: columns }, () => "0");
+      lit.filter((pane) => pane.y === height).forEach((pane) => { pixels[Math.floor(((pane.west + pane.east) / 2 - west) / pitch)] = "1"; });
+      expect(pixels.join("")).toBe("0".repeat(left) + expected[row]! + "0".repeat(columns - left - expected[row]!.length));
+    });
+  });
+
   test("lights only real south office panes, retains geometry, and restores every color", () => {
     const model = createGeographicBuilding(geographicBuildings.find(({ id }) => id === "building-blue-cross-blue-shield")!);
     const wall = model.building.getObjectByName("Blue Cross · glass, spandrels and bands") as THREE.Mesh;

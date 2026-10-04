@@ -37,6 +37,9 @@ const zones: [number, number, number][] = [
   [h.lobbyTop, h.bands[0][0], h.floors[0]], [h.bands[0][1], h.bands[1][0], h.floors[1]],
   [h.bands[1][1], h.bands[2][0], h.floors[2]], [h.bands[2][1], h.occupied, h.floors[3]],
 ];
+// Center five-floor words in the three upper office zones, ordered from the top.
+const messageTopFloors = zones.map(([, , count], zone) => h.floors.slice(0, zone).reduce((sum, floors) => sum + floors, 0)
+  + Math.floor((count + 5) / 2) - 1).reverse().slice(0, 3);
 export const blueCrossFloors = [...zones.flatMap(([from, to, count]) => Array.from({ length: count }, (_, i) => from + (to - from) * i / count)), h.occupied];
 const spandrelBelow = 0.3, spandrelAbove = 0.9;
 
@@ -232,7 +235,7 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
 
   const model = kit.finish({ height: h.top, outlines: [shell, mullions], opacity: 0.16 });
   const glass = model.building.getObjectByName(wall.name) as THREE.Mesh<THREE.BufferGeometry, THREE.MeshToonMaterial>;
-  model.illumination = createWindowIllumination(glass, windows, windowColumns);
+  model.illumination = createWindowIllumination(glass, windows, windowColumns, messageTopFloors);
   model.building.position.set(offset[0], 0, offset[1]);
   model.building.userData["geography"] = record;
   model.building.userData["geographicDetail"] = { levels: h, source: "docs/blue-cross-reference.md" };

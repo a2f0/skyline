@@ -15,7 +15,7 @@ export interface WindowIllumination {
 
 // Reuse the actual glass triangles. The emission mask changes neither the
 // silhouette nor depth/hover ownership, and needs no overlay or extra draw call.
-export function createWindowIllumination(mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshToonMaterial>, cells: readonly WindowCell[], columns: number): WindowIllumination {
+export function createWindowIllumination(mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshToonMaterial>, cells: readonly WindowCell[], columns: number, lineTopFloors: readonly number[]): WindowIllumination {
   const geometry = mesh.geometry, colors = geometry.getAttribute("color");
   const original = new Float32Array(colors.array);
   const emission = new THREE.Float32BufferAttribute(new Float32Array(colors.count), 1);
@@ -34,8 +34,8 @@ export function createWindowIllumination(mesh: THREE.Mesh<THREE.BufferGeometry, 
       const rows = windowWord(word), width = rows[0]!.length;
       if (width > columns - 2) throw new Error(`${word} does not fit the facade`);
       const left = Math.floor((columns - width) / 2);
-      // Keep every letter within one occupied zone, clear of mechanical bands.
-      const top = [41, 32, 21][line]!;
+      const top = lineTopFloors[line];
+      if (top === undefined) throw new Error(`No facade zone for message line ${line + 1}`);
       rows.forEach((row, down) => [...row].forEach((pixel, across) => {
         if (pixel === "1") lit.add(`${left + across}:${top - down}`);
       }));

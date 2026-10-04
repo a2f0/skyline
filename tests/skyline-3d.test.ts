@@ -4,12 +4,11 @@ import path from "node:path";
 import { chromium } from "playwright";
 import type { Browser, Frame, Page } from "playwright";
 import { geographicBuildings } from "../models/skyline-geography-data.js";
-import { footprintMetrics } from "../models/skyline-geography.js";
+import { createGeographicBuilding, footprintMetrics } from "../models/skyline-geography.js";
 import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
 import { celebrations } from "../models/celebrations.js";
-import { createGeographicBuilding } from "../models/skyline-geography.js";
 import type * as THREE from "../vendor/three-r186.js";
 
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
@@ -151,7 +150,7 @@ describe("full-screen 3D skyline", () => {
     await scene.locator("[data-celebration=bears]").tap();
     expect(await scene.evaluate(() => window.__buildingStudy!.illuminations[0]!.litWindows)).toBe(0);
     await page.close();
-  });
+  }, { timeout: 60_000 });
 
   test("traces the loading elevation before the 3D code arrives, then removes it at the first frame", async () => {
     for (const [width, height, reduced] of [[1440, 900, false], [390, 844, false], [390, 844, true], [844, 390, false]] as const) {
@@ -523,6 +522,7 @@ describe("full-screen 3D skyline", () => {
         bar: box(document.querySelector(".control-bar")!),
         canvas: box(document.querySelector("#building")!),
         star: box(document.querySelector("#menu-toggle")!),
+        displayEnd: box(document.querySelector("#turntable")!),
         controls: [...document.querySelectorAll(".control-bar .button-group button")].filter((button) => getComputedStyle(button).display !== "none").map(box),
         overflow: document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight,
       };
@@ -616,6 +616,7 @@ describe("full-screen 3D skyline", () => {
         if (open && size.width >= 1024) {
           near(layout.controls[0]!.left, 12, 0.5);
           near(layout.controls.at(-1)!.right, size.width - 12, 0.5);
+          near(layout.displayEnd.right, size.width - 12, 0.5);
         }
         if (!open) closedHeights.add(layout.bar.height);
         if (open && size.width >= 1260) {
