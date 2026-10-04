@@ -10,7 +10,8 @@ Research and model changes belong in the same reviewable branch.
 Last triage: **2026-10-04**. The registry contains 34 buildings. This first pass
 compared the source and audits for Aon, Kemper, Swissôtel, Blue Cross, River
 Plaza, and Millennium Park Plaza; fresh external research concentrated on Aon.
-Other buildings are not yet reassessed. Existing detailed facades are not a
+A subsequent pass researched Crain against the architect’s photographs and
+owner’s leasing plans. Other buildings are not yet reassessed. Existing detailed facades are not a
 claim of survey accuracy. This is a curated queue, not a score for all 34.
 
 High priority means a visible discrepancy with usable evidence. Medium means a
@@ -21,6 +22,10 @@ stronger evidence and bounded implementation.
 | ID | Building / registry ID | Opportunity and rationale | Priority | Status | Assessed | Evidence / next action |
 | --- | --- | --- | --- | --- | --- | --- |
 | FID-AON-001 | Aon Center / `layer3` | Mapped model had 14 window slots per face; source plan and photograph show 15. Repeated full-height detail makes this conspicuous in close views. | High | implemented | 2026-10-04 | [Dated evidence and validation](aon-reference.md#2026-10-04-fifteen-bays-on-the-geographic-model-fid-aon-001). Retain the count independently of map notch depth. |
+| FID-CRAIN-001 | Crain / `building-crain-communications` | Crown used office glazing through its metal tips and mechanical bands. Added two louver bands, three crown shadow strips and solid tips from architect photographs. | High | implemented | 2026-10-04 | [Evidence, estimates and validation](crain-reference.md#2026-10-04--crown-detail-and-roof-grid-fid-crain-001-fid-crain-002). Counts are observed; elevations remain approximate. |
+| FID-CRAIN-002 | Crain / `building-crain-communications` | Roof grid followed street axes instead of downslope mullions and level crossbars. | High | implemented | 2026-10-04 | [Architect’s aerial photograph and acceptance checks](crain-reference.md#2026-10-04--crown-detail-and-roof-grid-fid-crain-001-fid-crain-002). Geographic orientation corrected; original drawing fit retained. |
+| FID-CRAIN-003 | Crain / `building-crain-communications` | Crown band heights, roof-grid spacing, blade pitch and opening interiors still estimated. | Medium | open | 2026-10-04 | [Remaining uncertainties](crain-reference.md#validation-and-remaining-opportunities). Obtain a dimensioned crown elevation or dated rectifiable photographs; distinguish observed counts from absolute dimensions before refining. |
+| FID-CRAIN-004 | Crain / `building-crain-communications` | Stainless-steel trim, aluminum joints and original lobby details remain simplified. | Low | open | 2026-10-04 | [Architect’s material account](crain-reference.md#new-evidence) establishes materials but not their dimensions. Seek detail drawings and dated close views before adding relief. |
 | FID-AON-002 | Aon Center / `layer3` | Mapped notches shorten main faces; 15 bays now have about 2.85 m pitch rather than nominal 3.048 m. | Medium | open | 2026-10-04 | [Plan discrepancy](aon-reference.md#plan) and the new leasing plan below it. Obtain dimensioned exterior plans, distinguish grade from upper-floor geometry, and assess notch depth before changing coordinates. |
 | FID-KEM-001 | Kemper / `building-kemper` | Facade and crown rhythm still extrapolated from the drawing at estimated 3.1 m bay spacing. | Medium | open | 2026-10-04 | [Current estimates](kemper-geographic-reference.md#plan-and-detail-choices). Find owner elevations or count bays in rectifiable photographs of two faces; distinguish ordinary floors from crown slots. |
 | FID-SWI-001 | Swissôtel / `building-swissotel` | 45 modeled facade rows versus the audit's published 43 floors and approximate photo count of 46 rows. | Medium | open | 2026-10-04 | [Conflicting counts](swissotel-reference.md#heights). Seek elevations or dated close photographs; separate occupied floors, mechanical rows, and the Upper Wacker datum before changing pitch. |

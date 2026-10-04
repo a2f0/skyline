@@ -1,6 +1,6 @@
 import { polygonOf } from "./building-kit.js";
 import type { BuildingModel, Plan, Vec2 } from "./building-kit.js";
-import { buildCrainTower, crainMainRoof } from "./crain-tower.js";
+import { buildCrainTower, crainFloors, crainMainRoof } from "./crain-tower.js";
 import type { GeoBuilding, GeoPart } from "./skyline-geography-data.js";
 
 // Crain Communications Building at 150 North Michigan Avenue: the geographic layout's
@@ -24,11 +24,17 @@ export const crainGeographicLevels = Object.freeze({
   floors: 41,
 });
 const h = crainGeographicLevels;
+const angle = h.bearing * Math.PI / 180;
+const downhill: Vec2 = [Math.sin(angle), -Math.cos(angle)];
+// One-based facade rows above the lobby, not occupied floor numbers.
+const crownBand = (row: number): readonly [number, number] => {
+  const level = crainFloors.lobbyTop + (row - 1) * crainFloors.pitch;
+  return [level + crainFloors.sill, level + crainFloors.head];
+};
 
 // Height falls along the downhill bearing from the part's highest corner.
 function roofOf(corners: Vec2[]): (point: Vec2) => number {
-  const angle = h.bearing * Math.PI / 180;
-  const along = ([x, z]: Vec2) => x * Math.sin(angle) - z * Math.cos(angle);
+  const along = ([x, z]: Vec2) => x * downhill[0] + z * downhill[1];
   const top = Math.min(...corners.map(along));
   return (point: Vec2) => h.tip - h.fall * (along(point) - top);
 }
@@ -41,16 +47,24 @@ export function createCrainGeographicBuilding(record: GeoBuilding, projectPlan: 
       ? { corners: outline, roof: roofOf(outline), glazed: true }
       : { corners: outline, roof: () => part.top, glazed: false };
   });
-  // The roof grid follows the mapped south face, from its south-west corner.
+  // Epstein's exterior photographs show downslope mullions and level crossbars,
+  // rather than the drawing model's grid aligned with the street axes.
   const south = polygonOf(projectPlan(record.footprint.coordinates));
   const southWest = south.reduce((best, p) => (p[1] - p[0] > best[1] - best[0] ? p : best));
-  const southEast = south.reduce((best, p) => (p[1] + p[0] > best[1] + best[0] ? p : best));
-  const length = Math.hypot(southEast[0] - southWest[0], southEast[1] - southWest[1]);
   const model = buildCrainTower({
     name: record.name,
     id: record.id,
     base: 0,
-    grid: { origin: southWest, axis: [(southEast[0] - southWest[0]) / length, (southEast[1] - southWest[1]) / length] },
+    grid: { origin: southWest, axis: downhill },
+    // Two louver bands beneath the slot, three dark crown strips, then a solid
+    // aluminum tip. Counts are observed; elevations follow the estimated 3.5 m
+    // story rhythm. See the dated evidence and uncertainties in the audit.
+    crown: {
+      officeTop: crownBand(40)[0],
+      louvers: [crownBand(40), crownBand(41)],
+      // Continue the rhythm as virtual rows, not additional occupied floors.
+      shadowStrips: [crownBand(43), crownBand(44), crownBand(45)],
+    },
     volumes,
   });
   model.building.position.set(offset[0], 0, offset[1]);
