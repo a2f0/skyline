@@ -159,6 +159,20 @@ objects use the consuming application's engine, so they can join its existing
 scene without bundling a second engine. The caller owns rendering, controls,
 resource disposal, and OpenStreetMap attribution in this mode.
 
+Geographic Blue Cross and Crain models expose an optional `illumination`
+controller. Its read-only `presets` list gives that building's supported IDs,
+labels, wording and adaptation flag. Call `set(id)` to replace its message or
+`set(null)` to turn it off, then render your scene. An unsupported ID throws
+without changing the current display. `active` reports the selection; the
+legacy `litWindows` name counts illuminated cells (office panes on Blue Cross,
+lamp pixels on Crain). Each instance has its own state.
+
+Crain uses a small generated `DataTexture` on its roof material's `emissiveMap`;
+it needs no DOM, downloaded image or extra mesh. Dispose the glass material to
+dispose its lamp texture as well. The original drawing-fit Crain factory has no
+celebration controller; use the model from `createGeographicSkyline()` or
+`createGeographicBuilding()` for these displays.
+
 `chicago-skyline/models/building-kit` exposes the same plan runs and mesh builder
 used by this repository, for adding buildings. Coordinate and model assumptions
 are in [the geography notes](skyline-geography.md). Asset paths are also available

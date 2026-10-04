@@ -149,6 +149,7 @@ button:disabled { cursor: default; opacity: 0.35; }
 .celebration-controls .logo-cut { fill: none; stroke: #080808; stroke-width: 2; }
 .celebration-controls text { font: bold 15px Georgia, serif; }
 .celebration-controls button[aria-pressed="true"] { color: #fff; border-color: #aaa; box-shadow: inset 0 -2px #eee; }
+.celebration-controls button[aria-pressed="mixed"] { color: #eee; border-color: #aaa; border-style: dashed; }
 .control-bar:not(.open) { row-gap: 0; }
 .control-bar:not(.open) .button-group { display: none; }
 .control-bar button { padding: 5px 8px; }

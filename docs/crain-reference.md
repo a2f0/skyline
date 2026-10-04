@@ -241,3 +241,97 @@ spacing, blade pitch and the internal framing visible through the strips.
 **FID-CRAIN-004 remains open:** research stainless-steel trim, aluminum panel
 joints and the original lobby treatment with detail photographs and drawings.
 Do not infer those dimensions from a source that only names the materials.
+
+## 2026-10-04 — Crown lamps and mullion ends (FID-CRAIN-005, FID-CRAIN-006)
+
+This follow-up assessed **Crain only**, adding its documented sports displays
+to the existing geographic model. Comparing the close render against the
+photographs also exposed prematurely shortened roof mullions. The mapped
+footprint, roof slopes, peaks, slot, estimated glazing pitch and crown bands
+retain the earlier reconstruction; the two original drawing-fit copies retain
+their former mesh data. This is a reconstruction of the 2010/2016 celebration
+appearance, not evidence of a new building renovation.
+
+### Inputs and observations
+
+All inputs below were opened and inspected on **2026-10-04**. Reference images
+remain outside the repository; the committed comparisons are original renders.
+
+| Input / locator | Date and evidence | Decision supported |
+| --- | --- | --- |
+| Daniel Schwen, Wikimedia Commons, [Crain GO HAWKS crop](https://commons.wikimedia.org/wiki/File:Chicago_Grant_Park_night_pano_(Smurfit-Stone_Building_%22Go_Hawks%22).jpg), [649 × 925 original](https://upload.wikimedia.org/wikipedia/commons/a/a0/Chicago_Grant_Park_night_pano_%28Smurfit-Stone_Building_%22Go_Hawks%22%29.jpg) | Photograph dated 2010-06-10; primary photographic evidence. Words near image coordinates GO (269–302, 238–260), HAWKS (350–438, 244–270), approximately ±5 px. | Observed GO on the southwest roof half and HAWKS on the northeast half, below the open slot, with an illuminated diamond perimeter. The words do not use the office windows below the crown. |
+| Metroscap / The Metroscap Collection, [GO CUBS photograph page](https://metroscap.com/chicago--framed-pictures/3080/go-cubs-in-the-smurfit-stone-building-at-night.php/), [1360 × 1360 displayed image](https://metroscap.com/framed-prints/framed-chicago-skyline-black-white-square-3080-1360.webp) | Listed in the site's 2016 Cubs World Series collection; exact capture date and individual photographer credit unknown. Primary photographic evidence; viewed with its watermark intact. | GO at approximately (447–526, 370–417), CUBS at (621–779, 375–430). Individual bright lamps, the split between the words, grid occlusion and the luminous outline are visible. Glazing members continue close to the perimeter rather than ending halfway through the last bay. |
+| Epstein, [Top 100 Projects #1](https://www.epsteinglobal.com/news/epsteins-top-100-projects-1-crain-communications-building), roof image slider 09 linked in the previous entry | Published 2022-07-12; image capture date unknown. Reopened and inspected; architect/engineer primary source. | Corroborates the continuous downslope and cross-slope roof grid near its edges and describes the illuminated apex. It does not establish a new grid spacing or trim dimension. |
+| Wikipedia, [Crain Communications Building, History](https://en.wikipedia.org/wiki/Crain_Communications_Building) | Undated secondary account, opened on the access date. | Reports GO BEARS and GO SOX. Those presets use the photographed two-word arrangement; their original lamp placement is not established. VOTE 2008 remains outside the supported sports presets. |
+
+SHA-256 of the inspected versions:
+
+- GO HAWKS original: `4867fef6b5e722c1477b7b33a0385f3df356beefc125804d8afcb7c7e84e3d7a`.
+- GO CUBS displayed image: `85a5d27c4a3d421fc796739ed50734873eb4224e81422144dca3d27233993d8f`.
+- Epstein slider 09: `811795154f35e7beff85aedef7e0a98143caf034c137d846b38fa578f3d32b19`, unchanged from the preceding pass.
+
+### Model decisions and uncertainty
+
+For **FID-CRAIN-005**, use the existing sloped-glass triangles as the display
+surface. A locally generated 64 × 8 single-channel atlas carries two compact
+five-row lamp words. Each roof half gets its own mapping and its own geometric
+containment checks. The slot, slab edges, undersides, vertical walls and
+mullions do not receive the lamp texture. Existing depth testing lets the
+mullions occlude lamps. The perimeter's existing mesh adds neutral emission
+while a display is selected; switching off restores its previous shading.
+Hover uses a separate emission term.
+
+The letters occupy **148.6–151.8 m**, just below the existing 152.5 m slot-floor
+datum. Estimated lamp pitches are **0.42 m across × 0.64 m vertically**. Word
+centres start at each half's width at the row's middle and move **2 m toward
+the central seam**. These are visual placement estimates: compare the letter
+height to the already reconstructed roughly 67 m roof drop and place the row
+below the slot, using the photographs' proportions. Perspective, glare and
+unknown camera calibration permit several metres of placement uncertainty;
+this is not a recovered electrical plan or a newly measured roof elevation.
+The five-row alphabet reconstructs lettering without claiming exact bulb counts.
+
+For **FID-CRAIN-006**, extend the geographic bars to their clipped roof-edge
+limits plus **0.1 m end inset**, retaining the existing **0.3 m side clearance**
+and bar width. This replaces half-module snapping, which left roughly metre-
+scale bare margins and staggered ends. The endpoint inset is inferred, not a
+surveyed trim dimension. The shared generator's optional `grid.edgeInset`
+preserves the previous construction when omitted by the clean/original models.
+The added lengths and three formerly omitted short bars add 36 triangles to
+the geographic model (44,624 → 44,660); the lighting adds none.
+
+FID-CRAIN-003 and FID-CRAIN-004 remain open. The closer images suggest a denser
+real glazing grid, but this pass does not claim a rectified count or measured
+module. The existing spacing, band elevations, opening interiors and trim
+dimensions still need stronger dimensional evidence.
+
+### Acceptance and observed validation
+
+- Read GO HAWKS back from physical roof coordinates, independently of the
+  logical lamp addresses: GO is left, HAWKS is right, both read top to bottom,
+  below the slot floor on southeast-facing glass. Every lit cell fits its roof.
+- At least 85% of roof-grid endpoints must lie within 0.7 m in plan of a roof
+  edge. The new test passes; removing `edgeInset` to restore the previous grid
+  makes it fail at about 2.2%.
+- All 11 focused Crain building-kit checks passed, including closed geometry,
+  winding, coplanar-overlap checks, glass under every bar and original drawing
+  sills. The six lighting unit checks passed, including independent instances,
+  unsupported-preset rejection, unchanged lighting geometry and texture disposal.
+- Browser checks passed for all four Crain messages, independent building
+  menus, partial toolbar state, touch and keyboard controls. A fixed close
+  camera detects lamp pixels with the perimeter hidden, so a broken lamp shader
+  cannot pass through the outline alone. Hover/wireframe changes preserve the
+  display, off restores the rendered baseline exactly, and all pixels are gray.
+- Independent review exposed a toolbar edge case: turning off Bulls on Blue
+  Cross also cleared a different message selected on Crain. The added desktop
+  and touch regression failed against that behavior and passes with the repair;
+  turning off a badge now preserves other celebrations.
+- Building-detail captures use reduced motion at 1000 × 1000 with matching
+  front, quarter and side presets. Skyline captures retain placement and
+  occlusion. The close lamp comparison uses the same orthographic camera for
+  off/on. Full shipping validation is recorded separately in the timing log.
+
+| Comparison | Before / off | After / on |
+| --- | --- | --- |
+| Geographic roof-grid ends, matching detail camera | [Before](fidelity/crain-grid-ends-before.png) | [After](fidelity/crain-grid-ends-after.png) |
+| Lamp display and outline, matching close camera | [Off](fidelity/crain-lamps-off.png) | [GO HAWKS](fidelity/crain-lamps-on.png) |

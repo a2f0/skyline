@@ -42,34 +42,41 @@ const viewer = createBuildingStudy({
   enablePan: true,
   minimumCameraHeight: 1,
 });
-// All presets use the documented south-facing window billboard. A selected
-// logo toggles off; another replaces it, so two messages never overlap.
+// A toolbar badge applies one celebration across the skyline, using each
+// building's own supported wording. Context menus change only their building.
 const illuminated = models.filter((model) => model.illumination);
 const celebrationStatus = document.querySelector<HTMLElement>("#celebration-status")!;
 const celebrationAnnouncement = document.querySelector<HTMLElement>("#celebration-announcement")!;
 const celebrationButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-celebration]")];
 function setCelebration(targets: readonly BuildingModel[], next: CelebrationId | null) {
-  targets.forEach((model) => model.illumination!.set(next));
+  targets.forEach((model) => model.illumination!.set(model.illumination!.presets.some(({ id }) => id === next) ? next : null));
   for (const button of celebrationButtons) {
-    const active = illuminated.filter((model) => model.illumination!.active === button.dataset["celebration"]).length;
-    button.setAttribute("aria-pressed", active === 0 ? "false" : active === illuminated.length ? "true" : "mixed");
+    const eligible = illuminated.filter((model) => model.illumination!.presets.some(({ id }) => id === button.dataset["celebration"]));
+    const active = eligible.filter((model) => model.illumination!.active === button.dataset["celebration"]).length;
+    button.setAttribute("aria-pressed", active === 0 ? "false" : active === eligible.length ? "true" : "mixed");
   }
-  const preset = celebrations.find(({ id }) => id === next);
-  const names = targets.map((model) => model.building.userData["geography"]?.name ?? model.building.name).join(", ");
   celebrationStatus.hidden = false;
-  celebrationStatus.textContent = preset ? `${preset.lines.join(" ")} · ${names}${preset.adapted ? " · adapted tribute" : ""}` : `Celebratory lights off · ${names}`;
+  celebrationStatus.textContent = targets.map((model) => {
+    const preset = model.illumination!.presets.find(({ id }) => id === model.illumination!.active);
+    const name = model.building.userData["geography"]?.name ?? model.building.name;
+    return preset ? `${preset.lines.join(" ")} · ${name}${preset.adapted ? " · adapted tribute" : ""}` : `Celebratory lights off · ${name}`;
+  }).join("; ");
   celebrationAnnouncement.textContent = celebrationStatus.textContent;
   viewer.requestRender();
 }
 for (const button of celebrationButtons) {
   const preset = celebrations.find(({ id }) => id === button.dataset["celebration"]);
   if (!preset) throw new Error(`Unknown toolbar celebration: ${button.dataset["celebration"]}`);
-  const message = preset.lines.join(" ");
-  button.title = `${preset.label}: ${message}${preset.adapted ? " (adapted tribute)" : ""} · Blue Cross and Blue Shield Tower · click again to turn off`;
-  button.disabled = illuminated.length === 0;
+  const displays = illuminated.flatMap((model) => {
+    const message = model.illumination!.presets.find(({ id }) => id === preset.id);
+    return message ? [`${message.lines.join(" ")}${message.adapted ? " (adapted tribute)" : ""} · ${model.building.userData["geography"]?.name ?? model.building.name}`] : [];
+  });
+  button.title = `${preset.label}: ${displays.join("; ")} · click to light all; click again to turn off`;
+  button.disabled = displays.length === 0;
   button.addEventListener("click", () => {
     const next = button.getAttribute("aria-pressed") === "true" ? null : preset.id;
-    setCelebration(illuminated, next);
+    const targets = next === null ? illuminated.filter((model) => model.illumination!.active === preset.id) : illuminated;
+    setCelebration(targets, next);
   });
 }
 // The control bar's ground toggles, each pressed while what it toggles shows.
@@ -188,7 +195,7 @@ function openMenu(building: BuildingModel, x: number, y: number) {
   if (building.illumination) {
     const choices = [
       { id: null, label: "Lights off", title: "Turn off this building's celebratory lights" },
-      ...celebrations.map((preset) => ({
+      ...building.illumination.presets.map((preset) => ({
         id: preset.id,
         label: `${preset.label} · ${preset.lines.join(" ")}${preset.adapted ? " (adapted)" : ""}`,
         title: `${preset.label} lighting${preset.adapted ? " · adapted tribute" : ""} · select again to turn off`,
@@ -210,8 +217,8 @@ function openMenu(building: BuildingModel, x: number, y: number) {
       lightingMenu.append(button);
     }
   }
-  menu.scrollTop = 0;
   menu.hidden = false;
+  menu.scrollTop = 0;
   // At the pointer, turned back from the window's right and bottom edges.
   const { width, height } = menu.getBoundingClientRect();
   menu.style.left = `${Math.max(4, x + width > innerWidth - 4 ? x - width : x)}px`;

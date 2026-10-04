@@ -1,6 +1,6 @@
 import * as THREE from "../vendor/three-r186.js";
 import { celebrations, windowWord } from "./celebrations.js";
-import type { CelebrationId } from "./celebrations.js";
+import type { Celebration, CelebrationId } from "./celebrations.js";
 
 export interface WindowCell {
   vertex: number;
@@ -8,6 +8,7 @@ export interface WindowCell {
   floor: number;
 }
 export interface WindowIllumination {
+  readonly presets: readonly Celebration[];
   readonly active: CelebrationId | null;
   readonly litWindows: number;
   set(active: CelebrationId | null): void;
@@ -46,6 +47,7 @@ export function createWindowIllumination(geometry: THREE.BufferGeometry, materia
     return [preset.id, lit] as const;
   }));
   return {
+    presets: celebrations,
     get active() { return active; },
     get litWindows() { return litWindows; },
     set(next) {
