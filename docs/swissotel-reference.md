@@ -67,7 +67,7 @@ the strip is not settled as the Swissôtel; see the [label audit](building-label
   - A coping at the roof.
 - **Roof:** flat.
 
-Colours follow the drawing's greys, cooled toward the glass's blue-green.
+Colours follow the drawing's greys.
 
 Omitted:
 

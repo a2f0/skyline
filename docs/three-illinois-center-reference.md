@@ -93,7 +93,7 @@ its label; see the [label audit](building-labels.md).
   - The penthouse, the spandrels' bronze between the mullions.
 - **Roof:** flat.
 
-Colours follow the drawing's greys, warmed toward the photographs' bronze.
+Colours follow the drawing's greys.
 
 Omitted:
 

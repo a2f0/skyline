@@ -26,12 +26,12 @@ const pitch = h.roof / h.floors;
 
 // The skins' colours: the window tones, and the brick and the slots' spandrels, which no window
 // shares.
-export const hyattWestPalette = Object.freeze({ glass: [0x202020, 0x242424, 0x282828, 0x1d1d1d], lit: 0x7a6a5a, dim: 0x4a4a4a, brick: 0x3e3a38, spandrel: 0x2e2c2b });
+export const hyattWestPalette = Object.freeze({ glass: [0x202020, 0x242424, 0x282828, 0x1d1d1d], lit: 0x6d6d6d, dim: 0x4a4a4a, brick: 0x3b3b3b, spandrel: 0x2c2c2c });
 const palette = hyattWestPalette;
 const color = (hex: number) => new THREE.Color(hex);
 const glassTones = palette.glass.map(color);
 const litGlass = color(palette.lit), dimGlass = color(palette.dim), brick = color(palette.brick), spandrel = color(palette.spandrel);
-const core = color(0x2a2826), roofing = color(0x353331);
+const core = color(0x282828), roofing = color(0x333333);
 function paneColor(row: number, bay: number, wall: number): THREE.Color {
   const hash = (Math.imul(row + 43, 0x9e3779b1) ^ Math.imul(bay + 19, 0x85ebca77) ^ Math.imul(wall + 7, 0xc2b2ae3d)) >>> 0;
   const value = hash % 101;

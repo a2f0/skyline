@@ -30,13 +30,13 @@ const floor = (n: number) => (n < 2 ? 0 : h.lobby + (n - 2) * h.pitch);
 
 // The skins' colours: the window tones, and the mullions and spandrels, which no window
 // shares.
-export const threeIllinoisPalette = Object.freeze({ glass: [0x1e1b18, 0x221e1b, 0x26221e, 0x1b1815], lit: 0x7a6e5e, dim: 0x4a4540, mullion: 0x3a3029, spandrel: 0x2e2621 });
+export const threeIllinoisPalette = Object.freeze({ glass: [0x1b1b1b, 0x1f1f1f, 0x232323, 0x181818], lit: 0x707070, dim: 0x464646, mullion: 0x323232, spandrel: 0x282828 });
 const palette = threeIllinoisPalette;
 const color = (hex: number) => new THREE.Color(hex);
 const glassTones = palette.glass.map(color);
 const litGlass = color(palette.lit), dimGlass = color(palette.dim);
 const mullion = color(palette.mullion), spandrel = color(palette.spandrel);
-const core = color(0x1a1714), roofing = color(0x2e2a26);
+const core = color(0x171717), roofing = color(0x2b2b2b);
 function paneColor(row: number, bay: number, wall: number): THREE.Color {
   const hash = (Math.imul(row + 61, 0x9e3779b1) ^ Math.imul(bay + 29, 0x85ebca77) ^ Math.imul(wall + 83, 0xc2b2ae3d)) >>> 0;
   const value = hash % 101;
