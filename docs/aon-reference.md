@@ -210,6 +210,10 @@ These repository-generated renders use `building-detail.html?building=layer3`,
 a 1000 × 1000 viewport, device scale 1, reduced motion, and the front-view button,
 with the canvas captured after two animation frames. The baseline is the pinned
 base above; the second image includes the count and end-pier corrections.
+The shipping base subsequently advanced to
+`cf1b8adac420cd23c1c2fdc51913325401314c38` (grayscale corrections). Comparing
+the two base trees confirms that neither Aon's geometry nor its registry record
+changed, so the baseline remains valid for this facade comparison.
 
 | Before | After |
 | --- | --- |
@@ -218,4 +222,18 @@ base above; the second image includes the count and end-pier corrections.
 The front, side and rear detail views, geographic skyline and ground plan were
 visually inspected. The finer facade rhythm is visible in detail; no new
 silhouette or placement change was observed. Browser renders reported no page
-errors. Full shipping check results are recorded in the PR.
+errors.
+
+Shipping validation on 2026-10-04:
+
+| Check | Result |
+| --- | --- |
+| `SKYLINE_BASE_SHA=cf1b8adac420cd23c1c2fdc51913325401314c38 bun run check` | **PASS**, 1085.4 s. Includes geometry, package, hooks, grayscale, original fit, geographic raycasts and all browser suites. The earlier run against `6e30676…` was intentionally stopped when the base advanced. |
+| `bun test tests/building-fidelity-skill.test.ts` | **PASS**. Added during review; run separately after wiring it into the runner, whose full run was already in progress. Future full runs include this step. |
+| `bun test tests/skyline-geography.test.ts --test-name-pattern 'Aon'` and `bun run typecheck` | **PASS** after the review changes: mesh-only raycasts and an explicit 60 s timeout. The full run also exercised the repaired geography test. |
+| Both skill-creator validators and `diff -ru` on the skill directories | **PASS**. |
+| `bun run agents:check` and the full run's `tests/git-hooks.test.ts` | **PASS** with the unlisted local skill present. Inspection of the pinned `agent-tool` installer confirms it enumerates bundled skill names; it does not prune unrelated directories. |
+
+Review repairs also added the automatic copy invariant and clarified that the
+older baseline image has unchanged Aon geometry relative to the shipping base.
+FID-AON-001 is implemented; FID-AON-002 remains open.

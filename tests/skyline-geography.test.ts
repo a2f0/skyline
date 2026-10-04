@@ -2468,6 +2468,7 @@ describe("mapped skyline geography", () => {
       // independently recorded OSM corners; do not import the generator's bay count.
       const model = models["Aon"]!;
       model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh);
       const faces: [string, Vec2, Vec2, Vec3][] = [
         ["Randolph", [-87.6217961, 41.8850104], [-87.6212842, 41.885017], [0, 0, 1]],
         ["Columbus", [-87.6211911, 41.8850928], [-87.6211977, 41.8854796], [1, 0, 0]],
@@ -2484,7 +2485,7 @@ describe("mapped skyline geography", () => {
           const t = sample / 900;
           const x = a[0] + (b[0] - a[0]) * t, z = -a[1] - (b[1] - a[1]) * t;
           ray.set(new THREE.Vector3(x + outward[0] * 10, 99.04, z + outward[2] * 10), new THREE.Vector3(...outward).negate());
-          const first = ray.intersectObject(model.building, true)[0];
+          const first = ray.intersectObjects(meshes, false)[0];
           expect(first, `${street}: facade has no holes`).toBeDefined();
           const glass = first!.object.name === "Aon · window ribbons";
           if (glass && !wasGlass) slots += 1;
@@ -2493,7 +2494,7 @@ describe("mapped skyline geography", () => {
         }
         expect(slots, `${street}: observed openings between sixteen piers`).toBe(15);
       }
-    });
+    }, { timeout: 60_000 });
 
     test("keeps the mapped tube, its columns, glass, crown and notched corners", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Aon")!;

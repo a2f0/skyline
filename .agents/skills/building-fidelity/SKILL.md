@@ -90,4 +90,5 @@ user's requested shipping workflow when given.
 This repository owns identical regular-file copies in
 `.agents/skills/building-fidelity` and `.claude/skills/building-fidelity`.
 Update both and verify with `diff -ru` between those directories. They are not
-managed by `agent-tool`.
+managed by `agent-tool`. The full check also compares both copies with
+`tests/building-fidelity-skill.test.ts`.

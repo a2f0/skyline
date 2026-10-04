@@ -33,6 +33,7 @@ async function main() {
   await suite("check-coauthors.test.ts");
   await suite("git-hooks.test.ts");
   await suite("timings.test.ts");
+  await suite("building-fidelity-skill.test.ts");
   await suite("merge-pr.test.ts");
   await suite("verify-deploy.test.ts");
   await suite("grayscale.test.ts");

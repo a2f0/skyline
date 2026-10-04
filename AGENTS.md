@@ -97,7 +97,8 @@ Merge through `bun scripts/merge-pr.ts <reviewed-head> <base-branch>
 `building-fidelity` is a Skyline-owned skill, outside the managed manifest.
 Keep its regular-file copies in `.agents/skills/building-fidelity` and
 `.claude/skills/building-fidelity` identical; check with `diff -ru` between those
-directories after editing. Its ongoing research queue is
+directories after editing; `tests/building-fidelity-skill.test.ts` also checks
+this in `bun run check`. Its ongoing research queue is
 `docs/building-fidelity.md`, with evidence in each building's reference audit.
 It refines existing geographic buildings, not the building inventory.
 
