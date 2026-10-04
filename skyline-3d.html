@@ -72,9 +72,6 @@
           <button type="button" data-celebration="hawks" aria-label="Blackhawks lighting" aria-pressed="false">
             <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path class="logo-line" d="M10 5h12v7c0 5-3 7-6 7s-6-2-6-7ZM10 7H5v4c0 4 3 5 6 5m11-9h5v4c0 4-3 5-6 5m-5 3v6m-6 2h12"/></svg>
           </button>
-          <button type="button" data-celebration="pride" aria-label="Pride lighting" aria-pressed="false">
-            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 27 5 16C-3 5 10 0 16 9 22 0 35 5 27 16Z"/></svg>
-          </button>
           <button type="button" data-celebration="thanks" aria-label="Thanksgiving lighting" aria-pressed="false">
             <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path class="logo-line" d="M8 27 24 4M12 21C2 21 3 12 3 12c7 0 10 4 9 9Zm5-7C8 14 10 6 10 6c6 0 9 4 7 8Zm-3 4c3-6 10-5 13-3-2 6-8 9-13 3Zm6-9c0-5 5-7 8-7 1 6-2 10-8 7Z"/></svg>
           </button>
@@ -86,6 +83,7 @@
       <p class="context-menu-title" id="building-menu-title"></p>
       <div role="menu" aria-labelledby="building-menu-title">
         <a role="menuitem" id="building-detail-link" href="building-detail.html">building detail</a>
+        <div id="building-lighting-menu" role="group" aria-label="Celebratory window lighting" hidden></div>
       </div>
     </div>
     <!-- The loader is compiled into dist/; opened from the sources, say how to build it. -->

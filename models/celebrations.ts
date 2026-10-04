@@ -7,7 +7,6 @@ export const celebrations = [
   { id: "sox", label: "White Sox", lines: ["SOX", "PRIDE"], adapted: false },
   { id: "bears", label: "Bears", lines: ["BEAR", "DOWN"], adapted: false },
   { id: "hawks", label: "Blackhawks", lines: ["HAWKS", "WIN"], adapted: false },
-  { id: "pride", label: "Pride", lines: ["PRIDE"], adapted: false },
   { id: "thanks", label: "Thanksgiving", lines: ["GIVE", "THANKS"], adapted: false },
 ] as const;
 export type Celebration = typeof celebrations[number];

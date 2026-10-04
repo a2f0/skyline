@@ -6,9 +6,9 @@ import { geographicBuildings } from "../models/skyline-geography-data.js";
 import { createGeographicBuilding } from "../models/skyline-geography.js";
 
 describe("celebratory window lighting", () => {
-  test("PRIDE reads left to right and top to bottom on the physical south facade", () => {
+  test("the lower word of SOX PRIDE reads left to right on the physical south facade", () => {
     const model = createGeographicBuilding(geographicBuildings.find(({ id }) => id === "building-blue-cross-blue-shield")!);
-    model.illumination!.set("pride");
+    model.illumination!.set("sox");
     const geometry = (model.building.getObjectByName("Blue Cross · glass, spandrels and bands") as THREE.Mesh).geometry;
     const positions = geometry.getAttribute("position"), normals = geometry.getAttribute("normal");
     const colors = geometry.getAttribute("color"), light = geometry.getAttribute("windowLight");
@@ -22,8 +22,9 @@ describe("celebratory window lighting", () => {
     const west = Math.min(...panes.map((pane) => pane.west)), east = Math.max(...panes.map((pane) => pane.east));
     const columns = Math.round((east - west) / blueCrossLevels.module), pitch = (east - west) / columns;
     const lit = panes.filter((pane) => pane.lit);
-    const levels = [...new Set(lit.map((pane) => pane.y))].sort((a, b) => b - a);
-    expect(levels.length).toBe(5);
+    const allLevels = [...new Set(lit.map((pane) => pane.y))].sort((a, b) => b - a);
+    expect(allLevels.length).toBe(10);
+    const levels = allLevels.slice(5);
     // Independent readable fixture, recovered from real x/y positions rather
     // than the controller's logical column/floor addressing.
     const expected = [

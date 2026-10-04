@@ -2,7 +2,7 @@ import { createBuildingStudy } from "./study-viewer.js";
 import { createGeographicSkyline } from "./skyline-scene.js";
 import { createGeographicRoads } from "./models/skyline-geography.js";
 import type { BuildingModel } from "./models/building-kit.js";
-import { celebrations } from "./models/celebrations.js";
+import { celebrations, type CelebrationId } from "./models/celebrations.js";
 
 // The skyline viewer's full-screen 3D mode: every mapped building, seen through the
 // drawing's own camera and framed as index.html frames the drawing, so each tower stands
@@ -48,6 +48,19 @@ const illuminated = models.filter((model) => model.illumination);
 const celebrationStatus = document.querySelector<HTMLElement>("#celebration-status")!;
 const celebrationAnnouncement = document.querySelector<HTMLElement>("#celebration-announcement")!;
 const celebrationButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-celebration]")];
+function setCelebration(targets: readonly BuildingModel[], next: CelebrationId | null) {
+  targets.forEach((model) => model.illumination!.set(next));
+  for (const button of celebrationButtons) {
+    const active = illuminated.filter((model) => model.illumination!.active === button.dataset["celebration"]).length;
+    button.setAttribute("aria-pressed", active === 0 ? "false" : active === illuminated.length ? "true" : "mixed");
+  }
+  const preset = celebrations.find(({ id }) => id === next);
+  const names = targets.map((model) => model.building.userData["geography"]?.name ?? model.building.name).join(", ");
+  celebrationStatus.hidden = false;
+  celebrationStatus.textContent = preset ? `${preset.lines.join(" ")} · ${names}${preset.adapted ? " · adapted tribute" : ""}` : `Celebratory lights off · ${names}`;
+  celebrationAnnouncement.textContent = celebrationStatus.textContent;
+  viewer.requestRender();
+}
 for (const button of celebrationButtons) {
   const preset = celebrations.find(({ id }) => id === button.dataset["celebration"]);
   if (!preset) throw new Error(`Unknown toolbar celebration: ${button.dataset["celebration"]}`);
@@ -56,12 +69,7 @@ for (const button of celebrationButtons) {
   button.disabled = illuminated.length === 0;
   button.addEventListener("click", () => {
     const next = button.getAttribute("aria-pressed") === "true" ? null : preset.id;
-    illuminated.forEach((model) => model.illumination!.set(next));
-    celebrationButtons.forEach((other) => other.setAttribute("aria-pressed", String(other.dataset["celebration"] === next)));
-    celebrationStatus.hidden = false;
-    celebrationStatus.textContent = next ? `${message} · Blue Cross and Blue Shield Tower${preset.adapted ? " · adapted tribute" : ""}` : "Celebratory lights off";
-    celebrationAnnouncement.textContent = celebrationStatus.textContent;
-    viewer.requestRender();
+    setCelebration(illuminated, next);
   });
 }
 // The control bar's ground toggles, each pressed while what it toggles shows.
@@ -160,13 +168,14 @@ bar.addEventListener("keydown", (event) => {
 
 // Right-clicking a building, or a long press on it where the browser raises a context menu
 // for one, as Chrome on Android does, opens its context menu at the pointer: the building's
-// name over one item, which floats the building's detail over the skyline. A right-drag still pans, so the menu opens only for a press that stays put: on
+// name over its detail link and available lighting choices. A right-drag still pans, so the menu opens only for a press that stays put: on
 // its release where the menu event comes with the press, as on macOS. Escape, Tab, a press
 // elsewhere, the wheel, or a resize closes it.
 const canvas = document.querySelector<HTMLCanvasElement>("#building")!;
 const menu = document.querySelector<HTMLElement>("#building-menu")!;
 const menuTitle = document.querySelector<HTMLElement>("#building-menu-title")!;
 const detailLink = document.querySelector<HTMLAnchorElement>("#building-detail-link")!;
+const lightingMenu = document.querySelector<HTMLElement>("#building-lighting-menu")!;
 let menuBuilding = "";
 let press: { x: number; y: number; mouse: boolean; down: boolean; moved: boolean } | null = null;
 let pendingMenu: { building: BuildingModel; x: number; y: number } | null = null;
@@ -174,6 +183,34 @@ function openMenu(building: BuildingModel, x: number, y: number) {
   menuBuilding = building.building.userData["buildingId"];
   menuTitle.textContent = building.building.userData["geography"]?.name ?? building.building.name;
   detailLink.href = `building-detail.html?building=${encodeURIComponent(menuBuilding)}`;
+  lightingMenu.replaceChildren();
+  lightingMenu.hidden = !building.illumination;
+  if (building.illumination) {
+    const choices = [
+      { id: null, label: "Lights off", title: "Turn off this building's celebratory lights" },
+      ...celebrations.map((preset) => ({
+        id: preset.id,
+        label: `${preset.label} · ${preset.lines.join(" ")}${preset.adapted ? " (adapted)" : ""}`,
+        title: `${preset.label} lighting${preset.adapted ? " · adapted tribute" : ""} · select again to turn off`,
+      })),
+    ];
+    for (const choice of choices) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.setAttribute("role", "menuitemradio");
+      button.setAttribute("aria-checked", String(building.illumination.active === choice.id));
+      button.tabIndex = -1;
+      button.dataset["lighting"] = choice.id ?? "off";
+      button.textContent = choice.label;
+      button.title = choice.title;
+      button.addEventListener("click", () => {
+        setCelebration([building], building.illumination!.active === choice.id ? null : choice.id);
+        closeMenu();
+      });
+      lightingMenu.append(button);
+    }
+  }
+  menu.scrollTop = 0;
   menu.hidden = false;
   // At the pointer, turned back from the window's right and bottom edges.
   const { width, height } = menu.getBoundingClientRect();
@@ -221,7 +258,11 @@ menu.addEventListener("keydown", (event) => {
     closeMenu();
   } else if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
     event.preventDefault();
-    detailLink.focus();
+    const items = [...menu.querySelectorAll<HTMLElement>('[role="menuitem"], [role="menuitemradio"]')];
+    const index = items.findIndex((item) => item === document.activeElement);
+    const next = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1
+      : (index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+    items[next]?.focus();
   }
 });
 detailLink.addEventListener("click", (event) => {
