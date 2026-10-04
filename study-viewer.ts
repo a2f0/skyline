@@ -1,5 +1,6 @@
 import * as THREE from "./vendor/three-r186.js";
 import type { BuildingModel, Vec3 } from "./models/building-kit.js";
+import type { CelebrationId } from "./models/celebrations.js";
 import type { FitBox, PlatformOptions, ShadowCameraOptions, StudyView, StudyLayout, StudyLabel } from "./study-types.js";
 export type { FitBox, PlatformOptions, ShadowCameraOptions, StudyView, StudyLayout, StudyLabel } from "./study-types.js";
 
@@ -13,7 +14,7 @@ export interface BuildingStudyApi {
   modelName: string;
   modelNames: string[];
   triangleCount: number;
-  illuminations: { building: string; active: string | null; litWindows: number }[];
+  illuminations: { building: string; active: CelebrationId | null; litWindows: number }[];
   layout: string;
   projection: "orthographic" | "perspective";
   zoom: number;

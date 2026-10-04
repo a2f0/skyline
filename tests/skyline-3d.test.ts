@@ -67,6 +67,7 @@ describe("full-screen 3D skyline", () => {
     page.on("console", (message) => { if (message.type() === "error") shaderErrors.push(message.text()); });
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
+    expect(await page.locator("#celebration-announcement").evaluate((element) => getComputedStyle(element).display)).not.toBe("none");
     await page.locator("#menu-toggle").click();
     await page.mouse.move(1, 1);
     await settle(page);
@@ -94,6 +95,7 @@ describe("full-screen 3D skyline", () => {
       expect(await page.locator("[data-celebration][aria-pressed=true]").count()).toBe(1);
       expect(await button.getAttribute("aria-pressed")).toBe("true");
       expect(await page.locator("#celebration-status").textContent()).toContain(preset.lines.join(" "));
+      expect(await page.locator("#celebration-announcement").textContent()).toContain(preset.lines.join(" "));
       expect(await bright(await snapshot()), preset.id).toBeGreaterThan(unlit + 20);
       expect(await page.evaluate(() => window.__buildingStudy!.illuminations[0]!.active)).toBe(preset.id);
     }
@@ -149,6 +151,14 @@ describe("full-screen 3D skyline", () => {
     expect(await scene.evaluate(() => window.__buildingStudy!.illuminations[0]!.active)).toBe("bears");
     await scene.locator("[data-celebration=bears]").tap();
     expect(await scene.evaluate(() => window.__buildingStudy!.illuminations[0]!.litWindows)).toBe(0);
+    // Even with the original-artwork shortcut, wide screens keep one toolbar
+    // row and the same viewport when opening or closing the controls.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await settle(scene);
+    const expanded = await scene.locator(".control-bar").boundingBox();
+    await scene.locator("#menu-toggle").tap();
+    await settle(scene);
+    expect((await scene.locator(".control-bar").boundingBox())!.height).toBe(expanded!.height);
     await page.close();
   }, { timeout: 60_000 });
 
@@ -515,7 +525,7 @@ describe("full-screen 3D skyline", () => {
     // one-row height at every size, with the star in the middle. Open, every control shows
     // inside it, including either side of each of its breakpoints, and the star stays put.
     const sizes = [...viewports.map(({ options }) => options.viewport!), { width: 2400, height: 700 }, { width: 844, height: 390 },
-      ...[1260, 1259, 1024, 1023, 601, 600].map((width) => ({ width, height: 768 }))];
+      ...[1440, 1439, 1260, 1259, 1024, 1023, 601, 600].map((width) => ({ width, height: 768 }))];
     const measure = () => page.evaluate(() => {
       const box = (element: Element) => element.getBoundingClientRect().toJSON() as DOMRect;
       return {
@@ -616,12 +626,10 @@ describe("full-screen 3D skyline", () => {
         if (open && size.width >= 1024) {
           near(layout.controls[0]!.left, 12, 0.5);
           near(layout.controls.at(-1)!.right, size.width - 12, 0.5);
-          near(layout.displayEnd.right, size.width - 12, 0.5);
+          if (size.width < 1440) near(layout.displayEnd.right, size.width - 12, 0.5);
         }
         if (!open) closedHeights.add(layout.bar.height);
-        if (open && size.width >= 1260) {
-          expect(layout.bar.height, `the lighting badges fit in a second row ${at}`).toBeLessThanOrEqual([...closedHeights][0]! + 40);
-        }
+        if (open && size.width >= 1440) expect(layout.bar.height, `one row ${at}, as tall as the closed bar`).toBe([...closedHeights][0]!);
         expect(layout.overflow, `the page does not scroll ${at}`).toBe(false);
       }
       if (!open) expect([...closedHeights], "the closed bar is one height at every size").toEqual([39]);

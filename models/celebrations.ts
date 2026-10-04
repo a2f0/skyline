@@ -1,5 +1,6 @@
 // Documented Chicago window displays, adapted to the modeled south facade.
 // Sources and the limits of each reconstruction: docs/celebration-lighting.md.
+// `adapted` identifies unverified wording; all window placements are reconstructed.
 export const celebrations = [
   { id: "bulls", label: "Bulls", lines: ["GO", "BULLS"], adapted: true },
   { id: "cubs", label: "Cubs", lines: ["GO", "CUBS", "GO"], adapted: false },

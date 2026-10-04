@@ -15,19 +15,20 @@ export interface WindowIllumination {
 
 // Reuse the actual glass triangles. The emission mask changes neither the
 // silhouette nor depth/hover ownership, and needs no overlay or extra draw call.
-export function createWindowIllumination(mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshToonMaterial>, cells: readonly WindowCell[], columns: number, lineTopFloors: readonly number[]): WindowIllumination {
-  const geometry = mesh.geometry, colors = geometry.getAttribute("color");
+export function createWindowIllumination(geometry: THREE.BufferGeometry, material: THREE.MeshToonMaterial, cells: readonly WindowCell[], columns: number, lineTopFloors: readonly number[]): WindowIllumination {
+  const colors = geometry.getAttribute("color");
   const original = new Float32Array(colors.array);
   const emission = new THREE.Float32BufferAttribute(new Float32Array(colors.count), 1);
   geometry.setAttribute("windowLight", emission);
-  mesh.material.onBeforeCompile = (shader) => {
+  material.onBeforeCompile = (shader) => {
     shader.vertexShader = `attribute float windowLight;\nvarying float vWindowLight;\n${shader.vertexShader}`
       .replace("#include <begin_vertex>", "#include <begin_vertex>\nvWindowLight = windowLight;");
     shader.fragmentShader = `varying float vWindowLight;\n${shader.fragmentShader}`
       .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(vWindowLight);");
   };
-  mesh.material.customProgramCacheKey = () => "skyline-window-illumination-v1";
+  material.customProgramCacheKey = () => "skyline-window-illumination-v1";
   let active: CelebrationId | null = null, litWindows = 0;
+  const available = new Set(cells.map((cell) => `${cell.column}:${cell.floor}`));
   const masks = new Map(celebrations.map((preset) => {
     const lit = new Set<string>();
     preset.lines.forEach((word, line) => {
@@ -41,7 +42,6 @@ export function createWindowIllumination(mesh: THREE.Mesh<THREE.BufferGeometry, 
       }));
     });
     // Refuse a layout which silently drops letters into missing window cells.
-    const available = new Set(cells.map((cell) => `${cell.column}:${cell.floor}`));
     for (const key of lit) if (!available.has(key)) throw new Error(`Missing celebration window: ${key}`);
     return [preset.id, lit] as const;
   }));

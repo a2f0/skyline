@@ -46,9 +46,11 @@ const viewer = createBuildingStudy({
 // logo toggles off; another replaces it, so two messages never overlap.
 const illuminated = models.filter((model) => model.illumination);
 const celebrationStatus = document.querySelector<HTMLElement>("#celebration-status")!;
+const celebrationAnnouncement = document.querySelector<HTMLElement>("#celebration-announcement")!;
 const celebrationButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-celebration]")];
 for (const button of celebrationButtons) {
-  const preset = celebrations.find(({ id }) => id === button.dataset["celebration"])!;
+  const preset = celebrations.find(({ id }) => id === button.dataset["celebration"]);
+  if (!preset) throw new Error(`Unknown toolbar celebration: ${button.dataset["celebration"]}`);
   const message = preset.lines.join(" ");
   button.title = `${preset.label}: ${message}${preset.adapted ? " (adapted tribute)" : ""} · Blue Cross and Blue Shield Tower · click again to turn off`;
   button.disabled = illuminated.length === 0;
@@ -58,6 +60,7 @@ for (const button of celebrationButtons) {
     celebrationButtons.forEach((other) => other.setAttribute("aria-pressed", String(other.dataset["celebration"] === next)));
     celebrationStatus.hidden = false;
     celebrationStatus.textContent = next ? `${message} · Blue Cross and Blue Shield Tower${preset.adapted ? " · adapted tribute" : ""}` : "Celebratory lights off";
+    celebrationAnnouncement.textContent = celebrationStatus.textContent;
     viewer.requestRender();
   });
 }

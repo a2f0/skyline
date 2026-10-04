@@ -25,10 +25,11 @@
       </div>
       <div class="scene-notes" id="scene-notes">
         <p class="hint" id="camera-hint">Drag to orbit · scroll or pinch to zoom<br />Arrow keys rotate · + / − zoom · Home resets</p>
-        <p id="celebration-status" role="status" hidden></p>
+        <p id="celebration-status" aria-hidden="true" hidden></p>
         <p class="attribution">Streets and footprints <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></p>
       </div>
       <p class="visually-hidden" id="motion-status" role="status">Camera moves only when you interact or start the turntable.</p>
+      <p class="visually-hidden" id="celebration-announcement" role="status"></p>
       <noscript><style>#loading { display: none; }</style><p class="loading">Enable JavaScript to explore the 3D skyline.</p></noscript>
       <dialog class="detail-panel" id="building-detail" aria-label="Building detail">
         <button type="button" class="detail-close" id="detail-close" aria-label="Close building detail" title="Close (Esc)">×</button>

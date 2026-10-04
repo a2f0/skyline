@@ -234,8 +234,9 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
   });
 
   const model = kit.finish({ height: h.top, outlines: [shell, mullions], opacity: 0.16 });
-  const glass = model.building.getObjectByName(wall.name) as THREE.Mesh<THREE.BufferGeometry, THREE.MeshToonMaterial>;
-  model.illumination = createWindowIllumination(glass, windows, windowColumns, messageTopFloors);
+  const glass = model.building.getObjectByName(wall.name);
+  if (!(glass instanceof THREE.Mesh) || !(glass.material instanceof THREE.MeshToonMaterial)) throw new Error("Blue Cross window lighting requires its glass mesh and toon material");
+  model.illumination = createWindowIllumination(glass.geometry, glass.material, windows, windowColumns, messageTopFloors);
   model.building.position.set(offset[0], 0, offset[1]);
   model.building.userData["geography"] = record;
   model.building.userData["geographicDetail"] = { levels: h, source: "docs/blue-cross-reference.md" };

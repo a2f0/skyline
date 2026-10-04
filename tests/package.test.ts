@@ -39,7 +39,7 @@ describe("published Skyline package", () => {
     const files = packed.files.map(({ path: file }) => file);
     expect(files.every((file) => /^(lib\/|site\/|docs\/(package|skyline-geography)\.md$|NOTICE\.md$|README\.md$|package\.json$)/.test(file))).toBe(true);
     for (const file of await publishedFiles()) expect(files).toContain(`site/${file}`);
-    for (const file of ["lib/skyline-package.d.ts", "lib/skyline-scene.d.ts", "lib/package-assets.d.ts", "lib/models/building-kit.d.ts", "lib/vendor/three-r186.d.ts", "site/vendor/THREE-LICENSE.txt", "NOTICE.md"]) expect(files).toContain(file);
+    for (const file of ["lib/skyline-package.d.ts", "lib/skyline-scene.d.ts", "lib/package-assets.d.ts", "lib/models/building-kit.d.ts", "lib/models/window-illumination.d.ts", "lib/models/celebrations.d.ts", "lib/vendor/three-r186.d.ts", "site/vendor/THREE-LICENSE.txt", "NOTICE.md"]) expect(files).toContain(file);
     expect(files.some((file) => /\.secrets|terraform|scripts\/|tests\/|skyline\.jpg|skyline\.svg$/.test(file))).toBe(false);
     const metadata = JSON.parse(await readFile(path.join(installed, "package.json"), "utf8")) as { private?: boolean; scripts: Record<string, string> };
     expect(metadata.private).not.toBe(true);
@@ -54,6 +54,9 @@ import type { BuildingModel, SkylineInstance, StudyView } from 'chicago-skyline'
 import { createGeographicSkyline } from 'chicago-skyline/scene';
 import { createCrainBuilding } from 'chicago-skyline/models/crain-communications';
 import { geographicBuildings } from 'chicago-skyline/models/skyline-geography-data';
+import { celebrations } from 'chicago-skyline/models/celebrations';
+import { createWindowIllumination } from 'chicago-skyline/models/window-illumination';
+import type { WindowIllumination } from 'chicago-skyline/models/window-illumination';
 import { copySkylineAssets } from 'chicago-skyline/build';
 import { Group } from 'three';
 export function mount(container: HTMLElement): SkylineInstance {
@@ -61,8 +64,13 @@ export function mount(container: HTMLElement): SkylineInstance {
 }
 const building: BuildingModel = createCrainBuilding();
 const skyline = createGeographicSkyline();
+const illumination: WindowIllumination = skyline.models.find(model => model.illumination)!.illumination!;
+illumination.set('cubs');
+const lit = illumination.active === 'cubs' && illumination.litWindows > 0;
+illumination.set(null);
 const view: StudyView = skyline.drawingView;
 console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
+  lights: lit && illumination.active === null && illumination.litWindows === 0 && celebrations.length === 7 && typeof createWindowIllumination === 'function',
   hostEngine: building.building instanceof Group && skyline.models.every(model => model.building instanceof Group),
   models: skyline.models.length, records: geographicBuildings.length, triangles: building.triangleCount, align: view.align }));
 `);
@@ -72,13 +80,14 @@ console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
     }));
     execFileSync(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", path.join(consumer, "tsconfig.json")], { encoding: "utf8" });
     const output = execFileSync("node", [path.join(consumer, "compiled/entry.js")], { cwd: consumer, encoding: "utf8" });
-    const result = JSON.parse(output) as { dom: string; copy: string; hostEngine: boolean; models: number; records: number; triangles: number; align: string };
+    const result = JSON.parse(output) as { dom: string; copy: string; hostEngine: boolean; models: number; records: number; triangles: number; align: string; lights: boolean };
     expect(result.dom).toBe("undefined");
     expect(result.copy).toBe("function");
     expect(result.hostEngine).toBe(true);
     expect(result.models).toBe(result.records);
     expect(result.triangles).toBeGreaterThan(0);
     expect(result.align).toBe("bottom");
+    expect(result.lights).toBe(true);
   }, { timeout: 60_000 });
 
   test("builds a GitHub source install with only the host's compiler and types", async () => {

@@ -155,7 +155,15 @@ button:disabled { cursor: default; opacity: 0.35; }
 .control-bar .menu-toggle:hover { color: #fff; background: #ffffff14; }
 .menu-toggle svg { width: 20px; height: 20px; fill: currentColor; transition: rotate 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
 .menu-toggle[aria-expanded="true"] svg { rotate: 30deg; }
-@media (max-width: 1259px) {
+/* At desktop widths the badges share the display row, so opening the controls
+   keeps the canvas height unchanged. Smaller screens retain 36px touch targets. */
+@media (min-width: 1440px) {
+  .celebration-controls { flex-basis: auto; flex-wrap: nowrap; }
+  .celebration-caption { display: none; }
+  .control-bar .celebration-controls button { width: 28px; height: 28px; padding: 2px; }
+  .celebration-controls svg { width: 20px; height: 20px; }
+}
+@media (max-width: 1439px) {
   .control-bar { grid-template-columns: auto auto; grid-template-areas: "menu menu" "views display"; justify-content: space-between; }
   .control-bar .menu-toggle { justify-self: center; }
 }
