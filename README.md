@@ -1,9 +1,11 @@
 # Chicago Skyline
 
-The 3D toolbar's **lights** badges toggle celebratory window messages on the
-existing Blue Cross and Blue Shield Tower: Bulls, Cubs, White Sox, Bears,
-Blackhawks, and Thanksgiving. Select a badge again to turn it off, or right-click
-the tower to choose a message or turn its lights off from the building menu.
+The 3D toolbar's **lights** badges toggle celebratory messages on the existing
+Blue Cross and Blue Shield Tower and Crain Communications Building. Crain's
+sloping crown supports Cubs, White Sox, Bears, and Blackhawks; Blue Cross also
+supports Bulls and Thanksgiving. Select a badge again to turn it off, or
+right-click either tower to control its lights independently. A dashed badge
+means only some of the buildings supporting that celebration are lit.
 See [the display research and reconstruction limits](https://github.com/a2f0/skyline/blob/main/docs/celebration-lighting.md).
 
 ## Package imports

@@ -30,7 +30,7 @@ export interface CrainForm {
   // The real height at the model's y = 0.
   base: number;
   // The roof grid's axes: its origin and the direction of the first axis in plan.
-  grid: { origin: Vec2; axis: Vec2 };
+  grid: { origin: Vec2; axis: Vec2; edgeInset?: number };
   // Geographic crown research: exposed outer walls have plant louvers and three
   // dark strips below solid metal tips. Omit to retain the drawing fit.
   crown?: { officeTop: number; louvers: readonly (readonly [number, number])[]; shadowStrips: readonly (readonly [number, number])[] };
@@ -380,11 +380,11 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
         // running nearly parallel to an edge cannot lean out over it.
         const side = (offset: number): Vec2 => [start[0] + normal[0] * offset, start[1] + normal[1] * offset];
         const [left, right] = [clipLine(volume.corners, side(-barReach), direction), clipLine(volume.corners, side(barReach), direction)];
-        // Each end stops midway between two crossing bars, so no end face can come to rest
-        // against a crossing bar's side.
+        // The geographic crown follows the observed grid to the edge; the
+        // drawing-fit copies retain their original half-module end snapping.
         for (const [a0, a1] of left) for (const [b0, b1] of right) {
-          const t0 = (Math.ceil((Math.max(a0, b0) + inset) / spacing - 0.5) + 0.5) * spacing;
-          const t1 = (Math.floor((Math.min(a1, b1) - inset) / spacing - 0.5) + 0.5) * spacing;
+          const t0 = form.grid.edgeInset === undefined ? (Math.ceil((Math.max(a0, b0) + inset) / spacing - 0.5) + 0.5) * spacing : Math.max(a0, b0) + form.grid.edgeInset;
+          const t1 = form.grid.edgeInset === undefined ? (Math.floor((Math.min(a1, b1) - inset) / spacing - 0.5) + 0.5) * spacing : Math.min(a1, b1) - form.grid.edgeInset;
           if (t1 - t0 < spacing - 1e-9) continue;
           const p0: Vec2 = [start[0] + direction[0] * t0, start[1] + direction[1] * t0];
           const p1: Vec2 = [start[0] + direction[0] * t1, start[1] + direction[1] * t1];

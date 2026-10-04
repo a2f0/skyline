@@ -1,4 +1,6 @@
+import * as THREE from "../vendor/three-r186.js";
 import { polygonOf } from "./building-kit.js";
+import { createCrainIllumination } from "./crain-illumination.js";
 import type { BuildingModel, Plan, Vec2 } from "./building-kit.js";
 import { buildCrainTower, crainFloors, crainMainRoof } from "./crain-tower.js";
 import type { GeoBuilding, GeoPart } from "./skyline-geography-data.js";
@@ -55,7 +57,7 @@ export function createCrainGeographicBuilding(record: GeoBuilding, projectPlan: 
     name: record.name,
     id: record.id,
     base: 0,
-    grid: { origin: southWest, axis: downhill },
+    grid: { origin: southWest, axis: downhill, edgeInset: 0.1 },
     // Two louver bands beneath the slot, three dark crown strips, then a solid
     // aluminum tip. Counts are observed; elevations follow the estimated 3.5 m
     // story rhythm. See the dated evidence and uncertainties in the audit.
@@ -70,5 +72,10 @@ export function createCrainGeographicBuilding(record: GeoBuilding, projectPlan: 
   model.building.position.set(offset[0], 0, offset[1]);
   model.building.userData["geography"] = record;
   model.building.userData["geographicDetail"] = { levels: h, floors: h.floors, source: "docs/crain-reference.md" };
+  const glass = model.building.getObjectByName("Crain · sloped glazing");
+  const outline = model.building.getObjectByName("Crain · diamond outline lights");
+  if (!(glass instanceof THREE.Mesh) || !(glass.material instanceof THREE.MeshToonMaterial)
+    || !(outline instanceof THREE.Mesh) || !(outline.material instanceof THREE.MeshToonMaterial)) throw new Error("Crain crown meshes missing");
+  model.illumination = createCrainIllumination(glass, outline.material, volumes, downhill);
   return model;
 }
