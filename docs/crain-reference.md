@@ -143,3 +143,91 @@ corners are therefore held to the geometry, not to the drawing.
 - `tests/building-study.test.ts` loads the solo study within its triangle budget.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-04 — Crown detail and roof grid (FID-CRAIN-001, FID-CRAIN-002)
+
+This pass reassessed the existing `building-crain-communications` geographic
+model. Its office-window treatment continued into the tips, its mechanical
+bands looked like ordinary glazing, and the roof grid followed the street
+axes. The mapped footprint, roof planes, 177.4 m peaks and 152.5 m slot floor
+remain the earlier reconstruction. No building was added.
+
+### New evidence
+
+All sources below were accessed **2026-10-04**. Third-party images and PDFs
+were inspected locally but are not redistributed or requested at runtime.
+
+| Input and locator | Date / confidence | Observation and use |
+| --- | --- | --- |
+| Epstein, [“Epstein's Top 100 Projects: #1: Crain Communications Building”](https://www.epsteinglobal.com/news/epsteins-top-100-projects-1-crain-communications-building), curtain-wall paragraph and exterior slider photographs | Published 2022-07-12; photo capture dates unknown. Architect/engineer primary account. | Documents aluminum, stainless steel and reflective glass. The omitted steel detailing needs better dimensional evidence; this pass does not assign it a speculative width. |
+| Epstein, [exterior slider 04](https://epstein-site.transforms.svdcdn.com/production/Crain-Communications-Building-Image-Slider-04.jpg?w=1440&h=948&auto=compress%2Cformat&fit=crop&dm=1657633014&s=0039f47f7069bda6c61639d1ea40c473), rear crown close view | Observed, high confidence in counts; inferred heights. | On the broad right exterior face, count two horizontal louver bands below the slot's top, three dark strips in the projecting crown, then uninterrupted metal to the point. The slot-facing wall remains glazed. |
+| Epstein, [exterior slider 09](https://epstein-site.transforms.svdcdn.com/production/Crain-Communications-Building-Image-Slider-09.jpg?w=1440&h=948&auto=compress%2Cformat&fit=crop&dm=1657632987&s=b4ded0559d06c309b075ba89d350361d), aerial view of both roof halves; corroborated by slider 01 | Observed orientation; exact module unresolved. | Roof mullions follow the fall and crossbars follow level contours. This supersedes the earlier street-aligned grid assumption for the geographic model. |
+| The Diamond / R2 Companies, [leasing page](https://www.thediamondchicago.com/leasing/), [suite 800 plan, p. 1](https://www.thediamondchicago.com/wp-content/uploads/2025/03/150NMA_800_18144-SF.pdf) and [floor 38 plan, p. 1](https://www.thediamondchicago.com/wp-content/uploads/2025/02/150-N.-Michigan-Ave.-38th-Floor-MKG.pdf) | Drawing dates unknown; URLs place uploads in 2025. Inspected, not dimensional support for this correction. | Interior plans expose the indented outline but supply no crown elevation or dimensioned glazing schedule. They do not resolve the facade module or absolute plant-floor heights. |
+
+The inspected 1440 × 948 image versions have SHA-256
+`5064a688cf829a614c76614c621e1451549c0424dfe539870bec087dec0bd0cf`
+(slider 04) and
+`811795154f35e7beff85aedef7e0a98143caf034c137d846b38fa578f3d32b19`
+(slider 09). The plan hashes are
+`f8d9546eb994531badc8088f6c0c32994a35f52d4021f94bcd5b1f151eb43ce2`
+(suite 800) and
+`f24947e995cc1dc63490fd0f60a46a1731d9d6e7f91347bfd9d66016c8959ca1`
+(floor 38). MTH's previously cited project page returned HTTP 403 during this
+pass; it is not new supporting evidence.
+
+### Interpretation and model decision
+
+These are details of the original crown configuration shown in the architect's
+retrospective, rather than a current lobby renovation. The precise capture
+dates remain unknown. The 2013 panorama's fitted geometry and the two clean
+study copies retain their previous mesh data.
+
+For **FID-CRAIN-001**, count bands from the slot floor and locate them on the
+existing 3.5 m story rhythm. This is an approximate alignment, not a measured
+elevation: allow about one story of vertical uncertainty until an elevation is
+available. Geographic exterior walls now have louvers at 144.40–146.05 m and
+147.90–149.55 m, three dark recess bands at 154.90–156.55 m,
+158.40–160.05 m and 161.90–163.55 m, and solid aluminum above them. The bands
+clip beneath each sloped edge; diagonal slot walls keep their glazing. Louver
+blades have estimated 0.22 m pitch and 0.05 m relief, enough to distinguish
+the vents in close views. Dark closed recesses stand in for the visible crown
+openings: internal trusses and through-views are still omitted.
+
+For **FID-CRAIN-002**, orient the geographic roof grid along the existing 133°
+downhill bearing and its perpendicular. Keep the earlier estimated 3.048 m
+plan spacing and 0.16 m bar width; neither is established by this orientation
+observation. The shared generator accepts optional crown details, so the
+original drawing fit does not change.
+
+Falsifiable acceptance: north and west crown probes encounter two separate
+vent bands with blades in front of their backing, exactly three dark strips
+above the slot datum, and metal at 165, 169 and 172 m. Roof bars include both
+constant-height crossbars and members following the roof's 1.225 fall.
+Existing peak, slot, notch, footprint and original-sill tests must still pass.
+
+### Validation and remaining opportunities
+
+- Strict typecheck passed. The three Crain geographic tests passed, including
+  new raycast and roof-grid checks. Against the base model the two new tests
+  fail, while the existing diamond/slot/footprint test passes.
+- All 11 focused Crain building-kit checks passed: winding, coplanar-overlap
+  checks, covered omissions, grid containment and original drawing sills,
+  plus closed-mesh checks for the clean copies.
+- Before/after mesh digests for both clean Crain copies are identical to the
+  base. Building-detail captures at 1000 × 1000 with reduced motion used the
+  same front, quarter and side presets, then 18 right-arrow steps from side
+  for the rear. Geographic skyline captures confirm placement and occlusion.
+  Browser capture completed without page errors. Full shipping checks are
+  additionally required and their run is recorded in the PR and timing log.
+
+| View | Before | After |
+| --- | --- | --- |
+| Roof grid | [Quarter view](fidelity/crain-quarter-before.png) | [Quarter view](fidelity/crain-quarter-after.png) |
+| Crown bands and metal tip | [Rear view](fidelity/crain-rear-before.png) | [Rear view](fidelity/crain-rear-after.png) |
+
+**FID-CRAIN-003 remains open:** obtain a dimensioned crown elevation or
+rectifiable dated photographs to resolve absolute band heights, roof-grid
+spacing, blade pitch and the internal framing visible through the strips.
+**FID-CRAIN-004 remains open:** research stainless-steel trim, aluminum panel
+joints and the original lobby treatment with detail photographs and drawings.
+Do not infer those dimensions from a source that only names the materials.

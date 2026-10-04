@@ -346,6 +346,59 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Crain", () => {
+    test("distinguishes the two plant bands, three crown recesses and solid tips in Epstein's photographs", () => {
+      const model = models["Crain"]!;
+      model.building.updateMatrixWorld(true);
+      const ray = new THREE.Raycaster();
+      const hit = (point: Vec3, direction: Vec3) => {
+        ray.set(new THREE.Vector3(...point), new THREE.Vector3(...direction));
+        return ray.intersectObject(model.building, true).find((found) => (found.object as THREE.Mesh).isMesh)!;
+      };
+      // Just in from each peak on the north and west exterior faces. Counts are
+      // observed in Epstein slider 04; heights are approximate on the 3.5 m grid.
+      const north = projectGround([-87.62518, 41.885029]), west = projectGround([-87.625208, 41.88494]);
+      for (const [point, direction] of [[[north[0], 0, -north[1] - 30], [0, 0, 1]], [[west[0] - 30, 0, -west[1]], [1, 0, 0]]] as [Vec3, Vec3][]) {
+        const at = (height: number) => hit([point[0], height, point[2]], direction);
+        expect(at(142).object.name).toBe("Crain · ribbon glazing");
+        for (const height of [145.1, 148.6]) {
+          expect(at(height).object.name).toBe("Crain · mechanical louvers");
+          const backing = at(height), blade = at(height + 0.1);
+          expect(blade.object.name).toBe("Crain · louver blades");
+          near(backing.distance - blade.distance, 0.05, 0.002);
+        }
+        expect(at(152).object.name).toBe("Crain · aluminum spandrels");
+        const bands: number[] = [];
+        let previous = "";
+        for (let height = 153; height < 173; height += 0.1) {
+          const name = at(height).object.name;
+          if (name === "Crain · crown recesses" && name !== previous) bands.push(height);
+          previous = name;
+        }
+        expect(bands).toHaveLength(3);
+        for (const height of [165, 169, 172]) expect(at(height).object.name).toBe("Crain · aluminum spandrels");
+      }
+    });
+
+    test("runs the roof grid downhill and along level contours as photographed", () => {
+      const model = models["Crain"]!;
+      const grid = model.building.children.find((child) => child.name === "Crain · glazing grid") as THREE.Mesh;
+      const positions = grid.geometry.getAttribute("position");
+      let level = 0, downhill = 0;
+      for (let i = 0; i < positions.count; i += 3) {
+        for (const [a, b] of [[i, i + 1], [i + 1, i + 2], [i + 2, i]] as const) {
+          const dx = positions.getX(b) - positions.getX(a), dz = positions.getZ(b) - positions.getZ(a), dy = positions.getY(b) - positions.getY(a);
+          if (Math.hypot(dx, dz) < 1) continue;
+          // Triangle diagonals include the 16 cm bar width; use the long edges
+          // whose slope is either exactly level or the photographed roof's fall.
+          const slope = Math.abs(dy) / Math.hypot(dx, dz);
+          if (slope < 0.0001) level += 1;
+          else if (Math.abs(slope - 1.225) < 0.0001) downhill += 1;
+        }
+      }
+      expect(level, "crossbars follow a constant roof height").toBeGreaterThan(20);
+      expect(downhill, "mullions follow the steepest descent").toBeGreaterThan(20);
+    });
+
     test("keeps the photographed diamond, the open slot, the notches and the banded wall", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Crain")!;
       const model = models["Crain"]!;

@@ -41,16 +41,24 @@ export function createCrainGeographicBuilding(record: GeoBuilding, projectPlan: 
       ? { corners: outline, roof: roofOf(outline), glazed: true }
       : { corners: outline, roof: () => part.top, glazed: false };
   });
-  // The roof grid follows the mapped south face, from its south-west corner.
+  // Epstein's exterior photographs show downslope mullions and level crossbars,
+  // rather than the drawing model's grid aligned with the street axes.
   const south = polygonOf(projectPlan(record.footprint.coordinates));
   const southWest = south.reduce((best, p) => (p[1] - p[0] > best[1] - best[0] ? p : best));
-  const southEast = south.reduce((best, p) => (p[1] + p[0] > best[1] + best[0] ? p : best));
-  const length = Math.hypot(southEast[0] - southWest[0], southEast[1] - southWest[1]);
+  const angle = h.bearing * Math.PI / 180;
   const model = buildCrainTower({
     name: record.name,
     id: record.id,
     base: 0,
-    grid: { origin: southWest, axis: [(southEast[0] - southWest[0]) / length, (southEast[1] - southWest[1]) / length] },
+    grid: { origin: southWest, axis: [Math.sin(angle), -Math.cos(angle)] },
+    // Two louver bands beneath the slot, three dark crown strips, then a solid
+    // aluminum tip. Counts are observed; elevations follow the estimated 3.5 m
+    // story rhythm. See the dated evidence and uncertainties in the audit.
+    crown: {
+      officeTop: 144.4,
+      louvers: [[144.4, 146.05], [147.9, 149.55]],
+      recesses: [[154.9, 156.55], [158.4, 160.05], [161.9, 163.55]],
+    },
     volumes,
   });
   model.building.position.set(offset[0], 0, offset[1]);

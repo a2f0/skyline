@@ -31,6 +31,9 @@ export interface CrainForm {
   base: number;
   // The roof grid's axes: its origin and the direction of the first axis in plan.
   grid: { origin: Vec2; axis: Vec2 };
+  // Geographic crown research: exposed outer walls have plant louvers and three
+  // recessed strips below solid metal tips. Omit to retain the drawing fit.
+  crown?: { officeTop: number; louvers: readonly (readonly [number, number])[]; recesses: readonly (readonly [number, number])[] };
 }
 
 // The curtain wall's rhythm. The drawing and the photograph both give a 3.5 m band pitch,
@@ -103,6 +106,11 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
   const lights = kit.batch("Crain · diamond outline lights", kit.material(0xf0f0f0));
   const coping = kit.batch("Crain · coping", kit.material(0x5c5c5c));
   const deck = kit.batch("Crain · slot floor", kit.material(0x4a4a4a));
+  const vents = form.crown ? kit.batch("Crain · mechanical louvers", kit.material(0xffffff, { vertexColors: true })) : ribbons;
+  const blades = form.crown ? kit.batch("Crain · louver blades", kit.material(0xffffff, { vertexColors: true })) : ribbons;
+  const recesses = form.crown ? kit.batch("Crain · crown recesses", kit.material(0xffffff, { vertexColors: true })) : ribbons;
+  const ventTone = new THREE.Color(0x303030), bladeTone = new THREE.Color(0x696969), recessTone = new THREE.Color(0x252525);
+  type Surface = "glass" | "vent" | "blade" | "recess";
   const base = form.base;
   const volumes = form.volumes.map((volume) => {
     const corners = orient(volume.corners);
@@ -176,24 +184,27 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
   // A closed box on a run between two heights that each vary linearly along it. Its front is
   // cut into panes and mullions on the curtain wall's module, counted from the run's start so
   // mullions line up from floor to floor.
-  const strip = (run: Run, from: number, to: number, b0: number, b1: number, t0: number, t1: number, row: number, wall: number) => {
-    const back = 0.02, front = 0.08, n = run.normal(0), tangent: Vec2 = [n[1], -n[0]];
+  const strip = (run: Run, from: number, to: number, b0: number, b1: number, t0: number, t1: number, row: number, wall: number, surface: Surface) => {
+    const target = surface === "glass" ? ribbons : surface === "vent" ? vents : surface === "blade" ? blades : recesses;
+    const back = surface === "blade" ? 0.045 : 0.02, front = surface === "blade" ? 0.13 : 0.08;
+    const n = run.normal(0), tangent: Vec2 = [n[1], -n[0]];
     const at = (s: number, depth: number, h: number): Vec3 => { const p = run.at(s, depth); return [p[0], y(h), p[1]]; };
     const bottom = (s: number) => b0 + (b1 - b0) * (s - from) / (to - from), top = (s: number) => t0 + (t1 - t0) * (s - from) / (to - from);
     const outward: Vec3 = [n[0], 0, n[1]];
     const cuts = [from];
     const module = crainFloors.module, half = 0.035;
-    for (let k = Math.ceil((from + half) / module); k * module < to - half; k += 1) cuts.push(k * module - half, k * module + half);
+    if (surface !== "blade") for (let k = Math.ceil((from + half) / module); k * module < to - half; k += 1) cuts.push(k * module - half, k * module + half);
     cuts.push(to);
     for (let i = 0; i + 1 < cuts.length; i += 1) {
       const sa = cuts[i]!, sb = cuts[i + 1]!;
       if (sb - sa < 1e-6) continue;
       const mullion = i % 2 === 1;
-      const color = mullion ? mullionTone : paneColor(row, Math.floor((sa + sb) / 2 / module), wall);
-      kit.quad(ribbons, [at(sa, front, bottom(sa)), at(sb, front, bottom(sb)), at(sb, front, top(sb)), at(sa, front, top(sa))], [outward], color);
+      const color = mullion ? mullionTone : surface === "glass" ? paneColor(row, Math.floor((sa + sb) / 2 / module), wall)
+        : surface === "vent" ? ventTone : surface === "blade" ? bladeTone : recessTone;
+      kit.quad(target, [at(sa, front, bottom(sa)), at(sb, front, bottom(sb)), at(sb, front, top(sb)), at(sa, front, top(sa))], [outward], color);
     }
     const dark = paneTones[0]!;
-    kit.quad(ribbons, [at(to, back, b1), at(from, back, b0), at(from, back, t0), at(to, back, t1)], [[-n[0], 0, -n[1]]], dark);
+    kit.quad(target, [at(to, back, b1), at(from, back, b0), at(from, back, t0), at(to, back, t1)], [[-n[0], 0, -n[1]]], dark);
     // The top and bottom fan out from a back corner through every cut on the front, so each
     // pane's edge meets its partner and the strip closes without T-junctions.
     const ends = cuts.filter((s, i) => i === 0 || s - cuts[i - 1]! >= 1e-6);
@@ -201,13 +212,13 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
       const hinge = at(from, back, h0), front0 = at(from, front, h0);
       const normal = faceNormal(hinge, at(to, back, h1), front0);
       const facing: Vec3 = (normal[1] > 0) === up ? normal : [-normal[0], -normal[1], -normal[2]];
-      for (let i = 0; i + 1 < ends.length; i += 1) kit.triangle(ribbons, [hinge, at(ends[i]!, front, height(ends[i]!)), at(ends[i + 1]!, front, height(ends[i + 1]!))], [facing, facing, facing], dark);
-      kit.triangle(ribbons, [hinge, at(to, front, h1), at(to, back, h1)], [facing, facing, facing], dark);
+      for (let i = 0; i + 1 < ends.length; i += 1) kit.triangle(target, [hinge, at(ends[i]!, front, height(ends[i]!)), at(ends[i + 1]!, front, height(ends[i + 1]!))], [facing, facing, facing], dark);
+      kit.triangle(target, [hinge, at(to, front, h1), at(to, back, h1)], [facing, facing, facing], dark);
     };
     fan(top, t0, t1, true);
     fan(bottom, b0, b1, false);
-    kit.quad(ribbons, [at(from, front, b0), at(from, back, b0), at(from, back, t0), at(from, front, t0)], [[-tangent[0], 0, -tangent[1]]], dark);
-    kit.quad(ribbons, [at(to, back, b1), at(to, front, b1), at(to, front, t1), at(to, back, t1)], [[tangent[0], 0, tangent[1]]], dark);
+    kit.quad(target, [at(from, front, b0), at(from, back, b0), at(from, back, t0), at(from, front, t0)], [[-tangent[0], 0, -tangent[1]]], dark);
+    kit.quad(target, [at(to, back, b1), at(to, front, b1), at(to, front, t1), at(to, back, t1)], [[tangent[0], 0, tangent[1]]], dark);
   };
 
   // Ribbons stop this far under the roof edge, below the deepest fascia hung there, so the
@@ -216,7 +227,7 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
   // One ribbon on one wall: between the band's sill and head, under the roof, and above any
   // neighbour. The bounds are linear along the run, so splitting it where one bound overtakes
   // another leaves pieces whose bottom and top are each a single linear function.
-  const ribbon = (run: Run, clear: [number, number], roof: (s: number) => number, cover: ((s: number) => number) | null, g0: number, g1: number, row: number, wall: number) => {
+  const ribbon = (run: Run, clear: [number, number], roof: (s: number) => number, cover: ((s: number) => number) | null, g0: number, g1: number, row: number, wall: number, surface: Surface = "glass") => {
     const least = 0.05;
     const from = clear[0], to = run.length - clear[1];
     if (to - from < 0.3) return;
@@ -240,7 +251,7 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
       if (ha < least) sa += (sb - sa) * (least - ha) / (hb - ha);
       else if (hb < least) sb -= (sb - sa) * (least - hb) / (ha - hb);
       if (sb - sa < 0.12) continue;
-      strip(run, sa, sb, low(sa), low(sb), high(sa), high(sb), row, wall);
+      strip(run, sa, sb, low(sa), low(sb), high(sa), high(sb), row, wall, surface);
     }
   };
 
@@ -311,19 +322,32 @@ export function buildCrainTower(form: CrainForm): BuildingModel {
         // ribbons never overlap there.
         const first = piece === 0, last = piece === all.length - 1;
         const clear: [number, number] = [cornerClearance(first ? startTurn : 0), cornerClearance(last ? endTurn : 0)];
+        const n = run.normal(0), outer = Math.max(Math.abs(n[0]), Math.abs(n[1])) > 0.95;
+        const crown = volume.glazed && outer ? form.crown : undefined;
         // Ribbons: the lobby's tall storefront, then one per floor up to the roof.
         ribbon(run, clear, roof, cover, crainFloors.lobbyGlass[0], crainFloors.lobbyGlass[1], 0, wall);
         const peak = Math.max(roof(0), roof(run.length));
         for (let row = 1; crainFloors.lobbyTop + (row - 1) * crainFloors.pitch + crainFloors.sill < peak; row += 1) {
           const level = crainFloors.lobbyTop + (row - 1) * crainFloors.pitch;
+          if (crown && (level + crainFloors.head > crown.officeTop || crown.louvers.some(([lo, hi]) => level + crainFloors.sill < hi && level + crainFloors.head > lo))) continue;
           ribbon(run, clear, roof, cover, level + crainFloors.sill, level + crainFloors.head, row, wall);
+        }
+        if (crown) {
+          for (const [lo, hi] of crown.louvers) {
+            ribbon(run, clear, roof, cover, lo, hi, 0, wall, "vent");
+            // Slim closed blades seated in the dark backing. Extra end clearance
+            // accommodates their 5 cm relief at corners and collinear map joints.
+            const bladeClear: [number, number] = [clear[0] + 0.1, clear[1] + 0.1];
+            for (let bottom = lo + 0.12; bottom + 0.07 < hi; bottom += 0.22) ribbon(run, bladeClear, (s) => roof(s) - 0.04, cover, bottom, bottom + 0.07, 0, wall, "blade");
+          }
+          for (const [lo, hi] of crown.recesses) ribbon(run, clear, roof, cover, lo, hi, 0, wall, "recess");
         }
         // Roof edges: only where this volume stands above its neighbour. The lit outline runs
         // along the four faces; the diagonal edges of the split, the notches, and the slot
         // take a dark coping. Each run's fascia is a few millimetres wider and deeper than the
         // last, so where two overlap at a corner no faces share a plane.
         if (cover && Math.max(cover(0) - roof(0), cover(run.length) - roof(run.length)) > -0.5) return;
-        const n = run.normal(0), lit = volume.glazed && Math.max(Math.abs(n[0]), Math.abs(n[1])) > 0.95;
+        const lit = volume.glazed && outer;
         const step = 0.004 * index, width = (lit ? 0.42 : 0.3) + step;
         // A sloped roof's fascia carries on past a convex corner, downhill only so none rises
         // above the peaks. Otherwise it stops short: across a straight joint or into a concave
