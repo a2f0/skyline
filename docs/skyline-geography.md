@@ -481,10 +481,10 @@ zero plane does not recover absolute roof elevations above sea level.
 
 ## Streets and validation
 
-In the skyline study, gold lines are mapped street **centerlines**, with no implied road
+In the skyline study, grey lines are mapped street **centerlines**, with no implied road
 or sidewalk width. Tunnels, negative OSM layers and names containing “Lower” are
 excluded. Retained upper/surface roads are flattened to the ground; bridge
-heights, curbs, the river and surrounding buildings are absent. The gold lines are
+heights, curbs, the river and surrounding buildings are absent. The centerlines are
 cut to the 100 m grid, which runs from 850 m south of Crain, past Jackson, to 650 m north,
 so every mapped building stands among them. The grid and mapped footprints help inspect
 whether the street arrangement fits. The full-screen 3D skyline draws the same ways as grey

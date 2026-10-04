@@ -39,7 +39,7 @@ button:disabled { cursor: default; opacity: 0.35; }
 .skyline-study .reference { height: clamp(440px, 67vh, 850px); border-right: 0; border-top: 1px solid #292929; }
 .skyline-study .reference img { left: 0; transform: none; width: 100%; height: calc(100% - 44px); padding: 0; }
 .layout-controls { display: flex; gap: 24px; align-items: center; padding: 0 0 18px; }
-.layout-controls p { color: #a2b5b8; font-size: 11px; line-height: 1.7; max-width: 85ch; margin: 0; }
+.layout-controls p { color: #b1b1b1; font-size: 11px; line-height: 1.7; max-width: 85ch; margin: 0; }
 .layout-controls .button-group { flex-shrink: 0; }
 .geographic-details { margin-top: 20px; border-top: 1px solid #292929; padding-top: 16px; color: #999; font-size: 11px; line-height: 1.8; }
 .geographic-details summary { color: #ddd; cursor: pointer; }
@@ -48,11 +48,11 @@ button:disabled { cursor: default; opacity: 0.35; }
 .dimension-table { width: 100%; border-collapse: collapse; font-size: 10px; text-align: left; }
 .dimension-table th, .dimension-table td { padding: 12px; vertical-align: top; border-bottom: 1px solid #292929; }
 .dimension-table thead th { color: #ccc; font-weight: 400; }
-.dimension-table tbody th { color: #bdd3d7; font-weight: 400; min-width: 135px; }
+.dimension-table tbody th { color: #cfcfcf; font-weight: 400; min-width: 135px; }
 .dimension-table td:not(:last-child) { white-space: nowrap; }
 .dimension-table td:last-child { min-width: 240px; max-width: 370px; }
 .study-annotations { position: absolute; inset: 0 0 44px; pointer-events: none; overflow: hidden; }
-.study-annotations span { position: absolute; transform: translate(-50%, -100%); margin-top: -10px; padding: 3px 5px; color: #d0e5e8; background: #0a1113d9; font-size: 9px; white-space: nowrap; }
+.study-annotations span { position: absolute; transform: translate(-50%, -100%); margin-top: -10px; padding: 3px 5px; color: #e1e1e1; background: #101010d9; font-size: 9px; white-space: nowrap; }
 .study-annotations [data-placement="below"] { transform: translate(-50%, 0); margin-top: 12px; }
 .study-annotations [data-placement="right"] { transform: translate(0, -50%); margin-top: 0; margin-left: 14px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
@@ -129,9 +129,6 @@ button:disabled { cursor: default; opacity: 0.35; }
 .scene-notes .attribution { margin-left: auto; }
 .scene-notes a { pointer-events: auto; }
 .skyline-3d:has(#menu-toggle[aria-expanded="false"]) .scene-notes { display: none; }
-/* Its ground plan is drawn in greys: the scene, whose few coloured roofs and outlines lose
-   their colour, and the building names over it. */
-.skyline-3d:has([data-view="top"][aria-pressed="true"]) :is(canvas, .study-annotations) { filter: grayscale(1); }
 /* The skyline study's toolbar, folded behind a muted grey six-pointed star, white under the
    pointer, in the middle of the bar. Pressing the star opens it outward, camera views to the bar's left edge and model
    display to its right edge, each group sliding out from the star as skyline-3d.ts clips it
