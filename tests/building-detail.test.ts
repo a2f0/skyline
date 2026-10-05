@@ -4,7 +4,7 @@ import type { Browser, Page } from "playwright";
 import { geographicBuildings } from "../models/skyline-geography-data.js";
 import { footprintMetrics } from "../models/skyline-geography.js";
 
-// Run against the local static server; see README.md. The detail page is what the skyline
+// Run against the local static server; see docs/development.md. The detail page is what the skyline
 // viewer floats over its 3D skyline from a building's context menu; the full-screen 3D
 // skyline suite opens it from there.
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";

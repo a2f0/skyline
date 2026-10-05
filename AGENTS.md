@@ -66,10 +66,14 @@ faces (z-fighting) across a fitted model's meshes. Drawing measurements live in
 `tests/skyline-landmarks.ts` and the shared fidelity maths in
 `tests/study-fidelity.ts`. The unshipped `scripts/measure-group.ts`,
 `reference-svg.ts`, `fidelity-report.ts`, and `render-study.ts` cover
-measuring, fitting, and review; README's "Adding a building to the skyline
-study" gives the loop, and `docs/adding-a-building.md` the long form: the
-drawing's projection, the platform datum, how the fit is found, and the
-traps that cost time.
+measuring, fitting, and review; `docs/adding-a-building.md` gives the loop
+and the long form: the drawing's projection, the platform datum, how the fit
+is found, and the traps that cost time.
+
+Keep `README.md` a short overview. Topic documentation lives in `docs/`,
+indexed by `docs/README.md`; add new pages there. Building reference audits
+stay at `docs/<name>-reference.md`, because model sources and building records
+cite those paths.
 
 PR workflows come from the commit-pinned `a2f0/agent-tool` dev dependency.
 `bun run agents:sync` installs managed regular-file copies in `.agents/skills`
@@ -100,7 +104,8 @@ Keep its regular-file copies in `.agents/skills/building-fidelity` and
 directories after editing; `tests/building-fidelity-skill.test.ts` also checks
 this in `bun run check`. Its ongoing research queue is
 `docs/building-fidelity.md`, with evidence in each building's reference audit.
-It refines existing geographic buildings, not the building inventory.
+It refines existing geographic buildings, not the building inventory; research
+for buildings the layout lacks belongs in `docs/unmodelled-buildings.md`.
 
 `CLAUDE.md` imports this policy for Claude Code. Skyline's wrapper currently
 supports same-repository PRs whose remote and local feature branch names match.

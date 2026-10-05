@@ -15,7 +15,8 @@ root, not this skill directory.
 
 Revisit open opportunities and inspect existing geometry and renders for
 missing or inaccurate massing, setbacks, roofs, bays, materials, and relief.
-Compare the model with its audit; a dense window grid is not evidence of
+Compare the model with its audit and with the tags of every mapped part of its
+building, not only the parts it uses; a dense window grid is not evidence of
 accuracy. Rank specific discrepancies by visible impact, strength of obtainable
 evidence, and implementation scope. Prefer a well-supported correction over
 invented detail. State which buildings were assessed; do not imply an exhaustive
@@ -25,6 +26,9 @@ Honor a requested building or research-only scope. Otherwise select a tractable
 existing building and explain the choice. Do not identify new silhouettes,
 add building records, or extend the SVG artwork. Research can refine parts of
 an existing building, but a changed mapped footprint needs specific evidence.
+An omitted part of an existing building's mapped complex is a fidelity gap;
+record leads about separate buildings the layout lacks in
+`docs/unmodelled-buildings.md` instead of the queue.
 
 ## Gather and retain evidence
 

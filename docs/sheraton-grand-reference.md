@@ -19,7 +19,9 @@ construction drawings.
     32 levels;
   - [1269924309](https://www.openstreetmap.org/way/1269924309), a block in the inner corner
     between the arms, 33 levels;
-  - low parts, three to five levels, under the rest of the outline.
+  - low parts, three to five levels, under the rest of the outline. *Corrected on 2026-10-05:
+    not all the other parts are low. Part 1269924305, 28 levels, is a wing running east from the
+    east arm; see [below](#2026-10-05--the-28-level-east-wing-fid-sher-001).*
 
   They were retrieved through the
   [map API](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6250,41.8860,-87.6050,41.8980)
@@ -102,6 +104,8 @@ Omitted:
   roof;
 - the stepped crown under each drum, which the drums' 12.2 m takes in;
 - the published tip, 50 cm over the corner drum;
+- the 28-level east wing, part 1269924305, and the 29-level part 1269924304 at its east end
+  (FID-SHER-001, below);
 - the low parts under the rest of the complex's outline;
 - the drums' openness, the signs and the entrances.
 
@@ -123,5 +127,35 @@ Omitted:
   - the exact mapped L at grade.
 
   Every mesh is closed.
+
+## 2026-10-05 — the 28-level east wing (FID-SHER-001)
+
+[#72](https://github.com/a2f0/skyline/issues/72) found that the September audit's "low parts"
+were not all low. Checked again here through the OpenStreetMap API on October 5, 2026:
+
+- [Relation 17432075](https://www.openstreetmap.org/relation/17432075), version 1, "Sheraton Grand
+  Chicago", type building: the outline 188171430 and eleven parts, among them 592122464 and
+  1269924305–1269924309 above.
+- [Way 1269924305](https://www.openstreetmap.org/way/1269924305), version 1 of 2024-04-05: a
+  relation part tagged 28 levels, about 50.4 m east to west by 22.9 m north to south. It starts
+  about 7.5 m inside the L's east edge and runs some 43 m past it, continuing the east arm,
+  from about 4 m south of the L's south edge to 18 m north of it.
+- [Way 1269924304](https://www.openstreetmap.org/way/1269924304), version 1 of 2024-04-05: tagged
+  29 levels, about 14.7 m square, inside the east end of 1269924305. It is not a member of the
+  relation.
+- The relation's other parts are tagged 4 to 6 levels: 1269924295, 1269924299, 1269924300,
+  1269924302 and 1269924303. These are the low parts the September list meant.
+
+Extents are the bounding boxes of each way's nodes in local metres, about a metre's uncertainty,
+and are a map's tags rather than a survey. The model omits both tall parts. #72's rasterisation
+through the skyline camera, on an Overpass snapshot of 2026-07-24 at 3.5 m a level, put them from
+7,684 to 8,080 layer units, about 217 thousand square units in front of the current scene and 151
+of those above the skyline, mostly at the frame's right edge.
+
+Not yet established: whether the 2013 photograph or the reference photographs show a wing of this
+height and form, its date, its facade, and its roof. At the arms' 2.67 m floors, 28 levels would
+stand about 75 m; that is an inference, not a measurement. Next: confirm the wing in the
+photographs and, if it stood in 2013, model it with the arms' precast and window rows to its
+photographed height, or record why it stays omitted.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.

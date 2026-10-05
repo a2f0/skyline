@@ -1,15 +1,70 @@
 # Adding a building to the skyline study
 
-README's [Adding a building](../README.md#adding-a-building-to-the-skyline-study) gives the loop in
-seven steps. This is the long companion to it: what the drawing actually is, how
-the fit is found, and the traps that cost real time while fitting the buildings. Read the
-README steps for what to do; read this for why, and for what will bite.
+Each fitted building follows one loop: measure, model, fit, verify. [The loop in
+brief](#the-loop-in-brief) gives it in seven steps. The rest of this page is the long companion to
+them: what the drawing actually is, how the fit is found, and the traps that cost real time while
+fitting the buildings. Read the steps for what to do; read the rest for why, and for what will
+bite. Once a building is in the layout, the [fidelity queue](building-fidelity.md) tracks what is
+left to improve; [Buildings not yet modelled](unmodelled-buildings.md) lists the candidates.
 
 Two models are worked examples. `models/heritage-at-millennium-park.ts` was built by hand and later
 rebuilt on the kit. `models/one-prudential-plaza.ts` was the first built on the kit from the start,
 and most of what follows was learned doing it. Crain, Aon, and One Prudential have since been
 rebuilt as the real buildings, each a shared generator placing a copy from the drawing's datum up
 at one uniform scale; the lessons below held through that too.
+
+## The loop in brief
+
+The scripts below are development tools; `scripts/build-site.ts` does not ship them, and each
+prints its options with `--help`.
+
+1. **Measure the group.** `bun scripts/measure-group.ts <group-id>` accepts a group id or a
+   `data-building-id`. It writes every shape's id, fill, layer-space bounds, and flattened vertices
+   as JSON, with aligned crops of the drawing and the source photo. Layer space is the group
+   parent's space, which equals `skyline.svg`'s root; all drawing points use it.
+2. **Extend the reference and framing.** Add the group to `reference.groups` in
+   `tests/skyline-landmarks.ts`, update its `viewBox`, `title`, and `description`, and run
+   `bun scripts/reference-svg.ts`; the check runs it with `--check`. If an in-group overlay needs
+   source gradients or clips, list their ids in `reference.defs`. In `skyline-study.ts`, import and
+   place the model and add it to `createBuildingStudy`'s `models`. A building outside the current
+   viewBox means reframing, not a local edit: keep the viewBox and `fit` aspects aligned, then
+   recheck `target`, `platform`, light coverage, and `clippingMargin` along with every existing
+   landmark.
+3. **Write the model with the kit.** `models/building-kit.ts` has plan runs (`line`, `arc`,
+   `bulge`, and `rectangle`, with `station`, `along`, and `evenly`) and a builder whose `panel`,
+   `ledge`, `band`, `box`, `slab`, and `prism` write analytic normals and whose `finish` returns the
+   standard model API. Plans run counterclockwise from above, and `prism` throws otherwise; a
+   `closed` band wraps a whole roof. Solids are closed by default. Omit a face only where another
+   surface covers it, by name (`omit: ["top"]`) with a comment; a band standing on a wall names
+   `omit: ["back"]`, because the wall's own facets already close it. An unknown name throws. The
+   Node suite checks each cover, except a floor on the ground at y = 0, which the camera never sees
+   from below, and fails on any same-facing coplanar faces, in one batch or across batches. Export
+   the features the drawing pins down, derived from the constants the geometry uses.
+4. **Add the spec.** In `tests/skyline-landmarks.ts`, add the model to `models` and a `fitted`
+   entry; the comment above `fitted` lists every field: feature landmarks with their drawing
+   points, drawn columns with the batch that must stand proud, sight-line gaps, and tolerances.
+   Landmark names share one namespace across buildings, so keep them unique. The skyline and
+   geometry suites pick the entry up. Building-specific checks, such as ordering or Heritage's left
+   silhouette bound, belong in `tests/skyline-study.test.ts`; the optional `silhouette` only feeds
+   such a check. That test also holds the scene to its explicit triangle budget, so raise that
+   bound deliberately if the new model needs more.
+5. **Fit with the fidelity report.** `bun scripts/fidelity-report.ts` prints every landmark error,
+   column residual in layer units, sight-line gap, projected silhouette, and triangle count at the
+   five layouts the test checks, from the code the test asserts with. `--json <file>` also writes
+   the raw numbers, and `--root` measures another checkout, such as an archive of `main`, for a
+   before-and-after comparison.
+6. **Check renders.** `bun scripts/render-study.ts --building <id>` writes the standard stills to
+   `/tmp/skyline-renders`: skyline, wireframe, three-quarter, side, zoomed, four elevated orbits,
+   full pages, a reference overlay, and close-ups. Look for holes, z-fighting, and anything outside
+   the drawn silhouette.
+7. **Run the check** with `bun run check`. After deploying, `bun run verify:deploy` confirms the new
+   model is served byte for byte; `scripts/deploy.sh` runs it for you.
+
+A building for the geographic layout alone also needs its record in
+`models/skyline-geography-data.ts`, a `models/<name>-geographic.ts` module that
+`models/skyline-geography.ts` dispatches to, a reference audit in `docs/`, and a row in [Modelled
+buildings](buildings.md); after it lands, refresh the loading outline with
+`bun scripts/skyline-loading.ts`.
 
 ## What the drawing is, and is not
 
@@ -40,7 +95,7 @@ copy therefore starts at that datum, fitted with its placement, rather than at g
 Two consequences. **Never fit to drawn base corners** — they are below the platform plane, so no
 placement reaches them; an early attempt that included them drove the depth to 86 m and the rotation
 to 30° buying nothing, because the residual was unsatisfiable. And **state the datum wherever a
-height appears**, in the model header and the README, or a copy that starts 40 m up reads as 40 m
+height appears**, in the model header and its audit, or a copy that starts 40 m up reads as 40 m
 short against any published height.
 
 **Check a published height against the photograph before trusting it.** One Prudential's published
