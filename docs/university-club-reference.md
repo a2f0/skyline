@@ -1,6 +1,6 @@
 # University Club of Chicago: reference audit
 
-`models/university-club-geographic.ts` builds the University Club of Chicago, 76 East
+`src/models/university-club-geographic.ts` builds the University Club of Chicago, 76 East
 Monroe Street, for the geographic layout only. The drawing shows it left of Willoughby
 Tower, behind the Monroe Building, outside the excerpt the original layout is fitted to,
 so the original layout has no model of it. The model is a reconstruction from

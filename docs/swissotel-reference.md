@@ -1,6 +1,6 @@
 # Swissôtel Chicago: reference audit
 
-`models/swissotel-geographic.ts` builds Swissôtel Chicago, 323 East Wacker Drive, for the
+`src/models/swissotel-geographic.ts` builds Swissôtel Chicago, 323 East Wacker Drive, for the
 geographic layout only. From the geographic camera it stands mostly behind The Buckingham.
 Its west corner rises between Three Illinois Center's roof and The Buckingham, closing the
 seam where those two models' corners meet. That is outside the excerpt the original layout

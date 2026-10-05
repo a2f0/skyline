@@ -127,9 +127,10 @@ describe("deploy verification", () => {
 
   test("derives the forbidden set instead of listing it", async () => {
     const derived = await forbiddenPaths(["index.html", "models/a.js"], {
-      tracked: ["index.html", "models/a.js", "scripts/secrets.sh", "README.md", ""],
+      tracked: ["src/index.html", "src/models/a.js", "src/models/a.ts", "src/skyline.jpg", "scripts/secrets.sh", "README.md", ""],
       secrets: [".secrets/root.env", ".secrets/nested/deep.env"],
     });
-    expect(derived).toEqual([".secrets/nested/deep.env", ".secrets/root.env", "README.md", "scripts/secrets.sh"]);
+    // Sources under src/ are probed at the site root, where the build would have put them.
+    expect(derived).toEqual([".secrets/nested/deep.env", ".secrets/root.env", "README.md", "models/a.ts", "scripts/secrets.sh", "skyline.jpg"]);
   });
 });

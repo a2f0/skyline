@@ -7,8 +7,8 @@ fitting the buildings. Read the steps for what to do; read the rest for why, and
 bite. Once a building is in the layout, the [fidelity queue](building-fidelity.md) tracks what is
 left to improve; [Buildings not yet modelled](unmodelled-buildings.md) lists the candidates.
 
-Two models are worked examples. `models/heritage-at-millennium-park.ts` was built by hand and later
-rebuilt on the kit. `models/one-prudential-plaza.ts` was the first built on the kit from the start,
+Two models are worked examples. `src/models/heritage-at-millennium-park.ts` was built by hand and later
+rebuilt on the kit. `src/models/one-prudential-plaza.ts` was the first built on the kit from the start,
 and most of what follows was learned doing it. Crain, Aon, and One Prudential have since been
 rebuilt as the real buildings, each a shared generator placing a copy from the drawing's datum up
 at one uniform scale; the lessons below held through that too.
@@ -30,7 +30,7 @@ prints its options with `--help`.
    viewBox means reframing, not a local edit: keep the viewBox and `fit` aspects aligned, then
    recheck `target`, `platform`, light coverage, and `clippingMargin` along with every existing
    landmark.
-3. **Write the model with the kit.** `models/building-kit.ts` has plan runs (`line`, `arc`,
+3. **Write the model with the kit.** `src/models/building-kit.ts` has plan runs (`line`, `arc`,
    `bulge`, and `rectangle`, with `station`, `along`, and `evenly`) and a builder whose `panel`,
    `ledge`, `band`, `box`, `slab`, and `prism` write analytic normals and whose `finish` returns the
    standard model API. Plans run counterclockwise from above, and `prism` throws otherwise; a
@@ -61,8 +61,8 @@ prints its options with `--help`.
    model is served byte for byte; `scripts/deploy.sh` runs it for you.
 
 A building for the geographic layout alone also needs its record in
-`models/skyline-geography-data.ts`, a `models/<name>-geographic.ts` module that
-`models/skyline-geography.ts` dispatches to, a reference audit in `docs/`, and a row in [Modelled
+`src/models/skyline-geography-data.ts`, a `src/models/<name>-geographic.ts` module that
+`src/models/skyline-geography.ts` dispatches to, a reference audit in `docs/`, and a row in [Modelled
 buildings](buildings.md); after it lands, refresh the loading outline with
 `bun scripts/skyline-loading.ts`.
 
@@ -107,7 +107,7 @@ models took 183.2 m as the roof: the fitted one put its 170 m down to the drawin
 the geographic one stood its roof at 181.2 m under a 2 m penthouse.
 
 **Layer space is the group parent's space**, equal to `skyline.svg`'s root and to
-`models/skyline-reference.svg`'s viewBox, which is why the fidelity maths map drawing points
+`src/models/skyline-reference.svg`'s viewBox, which is why the fidelity maths map drawing points
 straight through it. Every drawing point in the spec uses it — not `skyline-animated.svg`'s root
 space, which the `skyline-position` translate offsets, and not screen space. Mixing spaces
 produces errors that look like a bad fit rather than a unit error.
@@ -162,7 +162,7 @@ perspective, so the fitted copies' points move slightly in layer space as well. 
 that failed were raised just above their new worst, and every quoted worst error was measured
 again.
 
-The geographic layout has its own frame, `models/skyline-panorama.svg`, which already takes in
+The geographic layout has its own frame, `src/models/skyline-panorama.svg`, which already takes in
 every building the drawing shows. A building added to that layout needs no reframe.
 
 Measured that way, reframing is a trade rather than a free win. Adding One Prudential improved the
@@ -180,7 +180,7 @@ it, causing shadows to stop partway up the tower. Aon's top also crossed the lig
 the skyline scene moves `lightPosition` back along the same direction. The skyline suite checks
 every building and platform vertex in the actual shadow camera; the solo study retains its preset.
 
-`models/skyline-reference.svg` is generated and byte-compared. Edit `reference.viewBox`, `title`,
+`src/models/skyline-reference.svg` is generated and byte-compared. Edit `reference.viewBox`, `title`,
 `description`, `groups`, or source definition ids in `defs` and then run `bun scripts/reference-svg.ts`, or `bun run check` fails
 early. Note that `reference-svg.ts` matches a group by its `id` attribute **only** — the same
 string that works for `measure-group.ts` may not work here.
@@ -289,7 +289,7 @@ which is what it is for. The rest of this list is the same family of mistake.
 - **Piers and ribs belong between bays.** Centring a pier on a window column buries the window.
 - **Clamp end piers inside their face, or mitre them.** One that straddles the corner where two
   faces meet overlaps the other face's end pier, same-facing and coplanar. One Prudential's corner
-  piers now meet on the corner's bisector, as `mitredBox` in `models/facade-grid.ts` builds them.
+  piers now meet on the corner's bisector, as `mitredBox` in `src/models/facade-grid.ts` builds them.
 - **Skip buried detail by its foot, not its head.** A row whose top clears an abutting volume can
   still be 89% inside it.
 - **Close hand-raised geometry by hand.** Bare `quad`/`triangle` bypass the kit's face recording, so

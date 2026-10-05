@@ -1,6 +1,6 @@
 # 340 on the Park: reference audit
 
-`models/on-the-park-geographic.ts` builds 340 on the Park, 340 East Randolph Street, for
+`src/models/on-the-park-geographic.ts` builds 340 on the Park, 340 East Randolph Street, for
 the geographic layout only. The drawing shows it right of the Blue Cross and Blue Shield
 Tower, outside the excerpt the original layout is fitted to, so the original layout has no
 model of it. The [building audit](building-labels.md) settles the drawn group's identity:

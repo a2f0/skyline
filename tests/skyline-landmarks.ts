@@ -1,7 +1,7 @@
 // Drawing measurements for the skyline study, shared by tests/skyline-study.test.ts and the
 // scripts in scripts/. Drawing points are in the source SVG's layer space, the space of
 // each building group's parent.
-import type { Vec3 } from "../models/building-kit.js";
+import type { Vec3 } from "../src/models/building-kit.js";
 
 const heritage = "building-heritage-at-millennium-park", kemper = "building-kemper";
 const crain = "building-crain-communications", michigan = "building-michigan-plaza-south-tower";
@@ -24,8 +24,8 @@ interface Reference {
 }
 
 const reference: Reference = {
-  path: "models/skyline-reference.svg",
-  source: "skyline-animated.svg",
+  path: "src/models/skyline-reference.svg",
+  source: "src/skyline-animated.svg",
   // The centered expansion clears Trump's spire while retaining the prior frame centre.
   // Its aspect stays aligned with skyline-study.js's fit dimensions.
   viewBox: "1074.238 -154.834 4430 3535.05",
@@ -40,8 +40,8 @@ const reference: Reference = {
 // the reference's and about the same centre, widened to the drawing's leftmost and
 // rightmost buildings. Its camera is the reference's, so every landmark lands where it did.
 const panorama: Reference = {
-  path: "models/skyline-panorama.svg",
-  source: "skyline-animated.svg",
+  path: "src/models/skyline-panorama.svg",
+  source: "src/skyline-animated.svg",
   viewBox: "-1400 -154.834 9378.476 3535.05",
   title: "Chicago's skyline from the Adler Planetarium's lakefront: every building the drawing shows",
   description: "Unmodified building groups from skyline-animated.svg, preserving their positions, transforms, and draw order, including those the geographic layout does not model yet.",

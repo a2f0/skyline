@@ -1,6 +1,6 @@
 # Six North Michigan: reference audit
 
-`models/six-north-michigan-geographic.ts` builds Six North Michigan, the Montgomery Ward
+`src/models/six-north-michigan-geographic.ts` builds Six North Michigan, the Montgomery Ward
 Building, 6 North Michigan Avenue, for the geographic layout only. The drawing shows it
 right of Willoughby Tower, outside the excerpt the original layout is fitted to, so the
 original layout has no model of it. The model is a reconstruction from published data,

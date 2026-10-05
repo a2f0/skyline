@@ -1,9 +1,14 @@
 # Working on Skyline
 
-This is a static site in TypeScript. Sources live as `.ts`; the browser module
+This is a static site in TypeScript. The site's pages, styles, drawings, and
+modules live in `src/`, with building models in `src/models/` and the vendored
+Three.js in `src/vendor/`; keep the root to repository configuration, and
+`docs/development.md` maps the layout. Sources live as `.ts`; the browser module
 graph (`study-loader.ts`, `study-viewer.ts`, `skyline-study.ts`,
-`skyline-comparison.ts`, `skyline-3d.ts`, `building-study.ts`, `building-detail.ts`, and `models/*.ts`) compiles to
-`dist/` with tsc, which is the only build step, and `dist/` is gitignored.
+`skyline-comparison.ts`, `skyline-3d.ts`, `building-study.ts`, `building-detail.ts`, and `models/*.ts`, all
+under `src/`) compiles to `dist/` with tsc, which is the only build step, and
+`dist/` is gitignored. Each keeps its path within `src/` in `dist/`, so page URLs
+and the package layout do not name `src/`.
 `bun run build:site` builds it; `bun run check` builds before the browser suites.
 The strictest `@tsconfig/strictest` rules apply everywhere; `bun run typecheck`
 runs `tsc --noEmit`. Serve the built `dist/` over HTTP for WebGL and the 3D
@@ -11,7 +16,7 @@ study. `skyline-animated.svg` owns the building labels and paint groups consumed
 by `skyline-webgl.html`. Preserve path geometry and draw order when changing
 hover ownership; see `docs/building-labels.md`. The original comparison artwork
 is separate. Every colour is a grey, with equal red, green and blue; only the
-photograph `skyline.jpg` keeps its colour, and `tests/grayscale.test.ts` refuses
+photograph `src/skyline.jpg` keeps its colour, and `tests/grayscale.test.ts` refuses
 any other.
 
 `bun run build:package` additionally emits ESM and declarations to `lib/` and
@@ -51,15 +56,15 @@ Node, because its deployment step stops silently after the asset upload under
 Bun's runtime, and it authenticates with its own stored credentials
 (`wrangler login`).
 The staged set is the allowlist in `scripts/build-site.ts`, because the
-repository root holds `.secrets/` and assets the site never requests. Add new
-top-level runtime files there or they will not ship. Top-level `.ts` files in
-`models/` ship automatically as compiled `.js`, and their `.svg` excerpts ship
-as-is; nested directories and other file types do not. `terraform/` owns only
-the custom-domain binding. Terraform credentials live in the gitignored
+repository holds `.secrets/` and, in `src/`, assets the site never requests. Add
+new top-level runtime files in `src/` there or they will not ship. Top-level
+`.ts` files in `src/models/` ship automatically as compiled `.js`, and their
+`.svg` excerpts ship as-is; nested directories and other file types do not.
+`terraform/` owns only the custom-domain binding. Terraform credentials live in the gitignored
 `.secrets/root.env`; content deploys use Wrangler's own stored credentials, and
 neither is ever committed.
 
-Fitted skyline models build on `models/building-kit.ts`: plan runs and a builder
+Fitted skyline models build on `src/models/building-kit.ts`: plan runs and a builder
 whose solids are closed unless a call names a face another surface covers.
 `tests/building-kit.test.ts` checks those covers and fails on same-facing coplanar
 faces (z-fighting) across a fitted model's meshes. Drawing measurements live in

@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
-import { buildSite, dist, root } from "./build-site.js";
+import { buildSite, dist, root, src } from "./build-site.js";
 
 export async function buildPackage() {
   const lib = path.join(root, "lib"), site = path.join(root, "site");
@@ -14,7 +14,7 @@ export async function buildPackage() {
   await rm(lib, { recursive: true, force: true });
   await rm(site, { recursive: true, force: true });
   const compiler = path.join(path.dirname(createRequire(import.meta.url).resolve("typescript/package.json")), "bin/tsc");
-  execFileSync(process.execPath, [compiler, "-p", path.join(root, "tsconfig.package.json")], { cwd: root, stdio: "inherit" });
+  execFileSync(process.execPath, [compiler, "-p", path.join(src, "tsconfig.package.json")], { cwd: root, stdio: "inherit" });
   await mkdir(path.join(lib, "vendor"), { recursive: true });
   // Preserve all source geometry and import paths while sharing the host's
   // engine. This is a new package shim, not a modification of the vendor bundle.

@@ -1,6 +1,6 @@
 # Millennium Park Plaza: reference audit
 
-`models/millennium-park-plaza-geographic.ts` builds Millennium Park Plaza, 151–155 North
+`src/models/millennium-park-plaza-geographic.ts` builds Millennium Park Plaza, 151–155 North
 Michigan Avenue, for the geographic layout only. The drawing shows it in front of Michigan
 Plaza as its group `michigan-plaza-front-tall`, which the original audit left
 unidentified. The geographic camera names it; see the

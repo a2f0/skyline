@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright";
 import type { Browser, Page } from "playwright";
-import { geographicBuildings } from "../models/skyline-geography-data.js";
-import { footprintMetrics } from "../models/skyline-geography.js";
+import { geographicBuildings } from "../src/models/skyline-geography-data.js";
+import { footprintMetrics } from "../src/models/skyline-geography.js";
 
 // Run against the local static server; see docs/development.md. The detail page is what the skyline
 // viewer floats over its 3D skyline from a building's context menu; the full-screen 3D

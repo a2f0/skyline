@@ -20,12 +20,13 @@ bun run deploy
 `bun run deploy` compiles the browser modules into `dist/` via `scripts/build-site.ts` and then
 runs `wrangler deploy`. There is still no bundler and no transformation beyond tsc's per-file emit.
 
-The staged set is an allowlist, not an ignore list: the repository root holds `.secrets/`, test
-fixtures, and the 18MB `skyline.jpg` source photograph that the site never requests, so only files
-named in `scripts/build-site.ts` reach Cloudflare. Every top-level `models/*.ts` ships
-automatically as compiled `.js` and its `.svg` excerpt ships as-is; nested directories and other
-file types do not. New top-level runtime files must be added to the list, and the script fails
-rather than publishing if a listed file has been renamed away.
+The staged set is an allowlist, not an ignore list: the repository holds `.secrets/`, test
+fixtures, and, in `src/` beside the pages, the 18MB `src/skyline.jpg` source photograph that the
+site never requests, so only files named in `scripts/build-site.ts` reach Cloudflare. Each keeps
+its path within `src/`, so `src/index.html` is served at `/index.html`. Every top-level
+`src/models/*.ts` ships automatically as compiled `.js` and its `.svg` excerpt ships as-is; nested
+directories and other file types do not. New top-level runtime files in `src/` must be added to the
+list, and the script fails rather than publishing if a listed file has been renamed away.
 
 ## Verification
 

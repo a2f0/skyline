@@ -42,7 +42,7 @@ stronger evidence and bounded implementation.
 | FID-SHER-001 | Sheraton Grand / `building-buckingham-east` | The relation's 28-level part 1269924305, a wing about 50 × 23 m continuing the east arm, and a 29-level part inside its east end are omitted; the audit had called all other parts low. Projected mostly at the frame's right edge. | Medium | open | 2026-10-05 | [Map tags, extents and open questions](sheraton-grand-reference.md#2026-10-05--the-28-level-east-wing-fid-sher-001). Confirm the wing, its date and its height in photographs; model it with the arms' precast rows if it stood in 2013, or record why it stays omitted. |
 | FID-BCBS-001 | Blue Cross / `building-blue-cross-blue-shield` | North lobby projection lacks facade detail. | Low | open | 2026-10-04 | [Omitted detail](blue-cross-reference.md#model). Find owner/architect north-elevation inputs with lobby dimensions before refining this existing part. |
 
-Verify registry IDs against `models/skyline-geography-data.ts` before starting.
+Verify registry IDs against `src/models/skyline-geography-data.ts` before starting.
 River Plaza's frame and rooftop box were inspected; no new bounded correction
 was established in this pass, so no speculative task was added for it.
 

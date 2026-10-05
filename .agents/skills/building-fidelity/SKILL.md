@@ -6,9 +6,9 @@ description: Find, research, and improve fidelity gaps in Skyline's existing geo
 # Building Fidelity
 
 Improve buildings already in `geographicBuildings` in
-`models/skyline-geography-data.ts`. Read repository policy, then
+`src/models/skyline-geography-data.ts`. Read repository policy, then
 `docs/building-fidelity.md`, the selected building's reference audit, and its
-factory in `models/skyline-geography.ts`. Paths here are relative to the repo
+factory in `src/models/skyline-geography.ts`. Paths here are relative to the repo
 root, not this skill directory.
 
 ## Find the next useful improvement

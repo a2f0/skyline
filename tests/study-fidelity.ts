@@ -2,7 +2,7 @@
 // scripts/fidelity-report.js so both compute the same numbers. measureStudy runs inside
 // the study page: Playwright sends its source, so it must not use anything outside itself.
 import type { BrowserContextOptions } from "playwright";
-import type { Vec3 } from "../models/building-kit.js";
+import type { Vec3 } from "../src/models/building-kit.js";
 import type { FittedSpec, Landmark, ModelsEntry } from "./skyline-landmarks.js";
 
 // The layouts the skyline test checks, in its order and with its page options. Its phone
@@ -70,7 +70,7 @@ function checkSpec({ fitted, models }: { fitted: FittedSpec[]; models: ModelsEnt
 // Projects every landmark and fitted feature against the reference drawing. With
 // `report`, it also measures each model's silhouette and triangles.
 async function measureStudy({ landmarks, landmarkTolerance, fitted, models, report = false }: MeasureArgs): Promise<MeasureResult> {
-  const THREE = await import("./vendor/three-r186.js" as unknown as "../vendor/three-r186.js");
+  const THREE = await import("./vendor/three-r186.js" as unknown as "../src/vendor/three-r186.js");
   const source = await (await fetch((document.querySelector(".reference img") as HTMLImageElement).src)).text();
   const viewBox = (new DOMParser().parseFromString(source, "image/svg+xml").documentElement as unknown as SVGSVGElement).viewBox.baseVal;
   // Fit the reference to the canvas, accounting for the differently sized source pane in

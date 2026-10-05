@@ -3,7 +3,7 @@ import { pathToFileURL } from "node:url";
 import path from "node:path";
 import { chromium } from "playwright";
 import type { Browser, Page } from "playwright";
-import type { Vec3 } from "../models/building-kit.js";
+import type { Vec3 } from "../src/models/building-kit.js";
 import { heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, fitted } from "./skyline-landmarks.js";
 import { viewports, checkSpec, measureStudy, above } from "./study-fidelity.js";
 import type { MeasureResult } from "./study-fidelity.js";

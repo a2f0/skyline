@@ -1,12 +1,12 @@
 # Aon Center: reference audit
 
-Two models share one tower. `models/aon-tower.ts` builds it from an outline and the
+Two models share one tower. `src/models/aon-tower.ts` builds it from an outline and the
 heights below; the rest supply those:
 
 | Model | Factory | Plan | Used by |
 | --- | --- | --- | --- |
-| Skyline copy | `createAonCenterBuilding` in `models/aon-center.ts` | Clean 59.15 m square, from the drawing's datum up | Original layout of `skyline-study.html` |
-| Geographic | `createAonGeographicBuilding` in `models/aon-geographic.ts` | The mapped outline and rooftop part, exactly | Geographic layout |
+| Skyline copy | `createAonCenterBuilding` in `src/models/aon-center.ts` | Clean 59.15 m square, from the drawing's datum up | Original layout of `skyline-study.html` |
+| Geographic | `createAonGeographicBuilding` in `src/models/aon-geographic.ts` | The mapped outline and rooftop part, exactly | Geographic layout |
 
 Both are reconstructions from published data and photographs, not a survey or
 construction drawings.
@@ -15,7 +15,7 @@ construction drawings.
 
 - [OpenStreetMap ground outline 64388609](https://www.openstreetmap.org/way/64388609)
   and rooftop part 284775635. The local coordinate snapshot and attribution remain in
-  `models/skyline-geography-data.ts` and [the geographic audit](skyline-geography.md).
+  `src/models/skyline-geography-data.ts` and [the geographic audit](skyline-geography.md).
 - [Council on Tall Buildings and Urban Habitat / Skyscraper Center](https://www.skyscrapercenter.com/building/aon-center/339):
   346.3 m architectural height and a 362.5 m antenna tip.
 - [Wikipedia](https://en.wikipedia.org/wiki/Aon_Center_(Chicago)): 83 floors, a tubular

@@ -12,8 +12,8 @@ To regenerate from the repository root (Node.js required):
 
 ```sh
 npm install --prefix /tmp/skyline-3d-tools --no-audit --no-fund --ignore-scripts three@0.186.0 esbuild@0.28.2
-NODE_PATH=/tmp/skyline-3d-tools/node_modules /tmp/skyline-3d-tools/node_modules/.bin/esbuild vendor/three-entry.js --bundle --format=esm --minify --legal-comments=inline --outfile=vendor/three-r186.js
-cp /tmp/skyline-3d-tools/node_modules/three/LICENSE vendor/THREE-LICENSE.txt
+NODE_PATH=/tmp/skyline-3d-tools/node_modules /tmp/skyline-3d-tools/node_modules/.bin/esbuild src/vendor/three-entry.js --bundle --format=esm --minify --legal-comments=inline --outfile=src/vendor/three-r186.js
+cp /tmp/skyline-3d-tools/node_modules/three/LICENSE src/vendor/THREE-LICENSE.txt
 ```
 
 No installation or build step is required to view the checked-in study.

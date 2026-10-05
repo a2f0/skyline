@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import * as THREE from "../vendor/three-r186.js";
-import { celebrations } from "../models/celebrations.js";
-import { blueCrossLevels } from "../models/blue-cross-geographic.js";
-import { geographicBuildings } from "../models/skyline-geography-data.js";
-import { createGeographicBuilding } from "../models/skyline-geography.js";
+import * as THREE from "../src/vendor/three-r186.js";
+import { celebrations } from "../src/models/celebrations.js";
+import { blueCrossLevels } from "../src/models/blue-cross-geographic.js";
+import { geographicBuildings } from "../src/models/skyline-geography-data.js";
+import { createGeographicBuilding } from "../src/models/skyline-geography.js";
 
 describe("celebratory window lighting", () => {
   test("the lower word of SOX PRIDE reads left to right on the physical south facade", () => {

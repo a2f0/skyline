@@ -1,6 +1,6 @@
 # Monroe Building: reference audit
 
-`models/monroe-geographic.ts` builds the Monroe Building, 104 South Michigan Avenue, for
+`src/models/monroe-geographic.ts` builds the Monroe Building, 104 South Michigan Avenue, for
 the geographic layout only. The drawing shows it left of the University Club, across
 Monroe Street, outside the excerpt the original layout is fitted to, so the original
 layout has no model of it. The model is a reconstruction from OpenStreetMap, published

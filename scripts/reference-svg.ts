@@ -1,7 +1,7 @@
-// Regenerates models/skyline-reference.svg and models/skyline-panorama.svg from their source
-// groups in skyline-animated.svg. Groups keep document order and their nested transforms;
-// whitespace inside each tag is collapsed, and each viewBox, title, and description come from
-// tests/skyline-landmarks.js.
+// Regenerates src/models/skyline-reference.svg and src/models/skyline-panorama.svg from their
+// source groups in src/skyline-animated.svg. Groups keep document order and their nested
+// transforms; whitespace inside each tag is collapsed, and each viewBox, title, and description
+// come from tests/skyline-landmarks.js.
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { command } from "./lib/command.js";

@@ -1,6 +1,6 @@
 # The Buckingham: reference audit
 
-`models/buckingham-geographic.ts` builds The Buckingham, 360 East Randolph Street, for the
+`src/models/buckingham-geographic.ts` builds The Buckingham, 360 East Randolph Street, for the
 geographic layout only. The drawing shows it right of 340 on the Park, outside the excerpt
 the original layout is fitted to, so the original layout has no model of it. The
 [building audit](building-labels.md) names the drawn group. Projected through the

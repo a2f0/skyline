@@ -1,6 +1,6 @@
 # Two Illinois Center and River Plaza: reference audit
 
-`models/two-illinois-center-geographic.ts` and `models/river-plaza-geographic.ts` build Two
+`src/models/two-illinois-center-geographic.ts` and `src/models/river-plaza-geographic.ts` build Two
 Illinois Center, 233 North Michigan Avenue, and River Plaza, 405 North Wabash Avenue, for the
 geographic layout only. The drawing's `office-west-of-aon` group paints one building in the
 gap between Two Prudential Plaza and Aon Center; through the geographic camera it is two.

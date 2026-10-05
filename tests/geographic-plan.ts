@@ -2,8 +2,8 @@
 // and the full-screen 3D skyline suite, whose pages show the same plan view.
 import { expect } from "bun:test";
 import type { Frame, Page } from "playwright";
-import { geographicBuildings } from "../models/skyline-geography-data.js";
-import { footprintMetrics, projectGround } from "../models/skyline-geography.js";
+import { geographicBuildings } from "../src/models/skyline-geography-data.js";
+import { footprintMetrics, projectGround } from "../src/models/skyline-geography.js";
 
 // In the ground plan, every mapped footprint projects inside the canvas, and its centre
 // inside the band where the viewer shows a building's label.

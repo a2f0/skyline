@@ -1,12 +1,12 @@
 # Two Prudential Plaza: reference audit
 
-Two models share one tower. `models/two-prudential-tower.ts` builds it from a plan frame and
+Two models share one tower. `src/models/two-prudential-tower.ts` builds it from a plan frame and
 the heights below; the rest supply those:
 
 | Model | Factory | Plan | Used by |
 | --- | --- | --- | --- |
-| Skyline copy | `createTwoPrudentialPlazaBuilding` in `models/two-prudential-plaza.ts` | The mapped plan squared, from the drawing's datum up, with the drawing's tier points | Original layout of `skyline-study.html` |
-| Geographic | `createTwoPrudentialGeographicBuilding` in `models/two-prudential-geographic.ts` | The core on the mapped outline, the lobby on it exactly | Geographic layout |
+| Skyline copy | `createTwoPrudentialPlazaBuilding` in `src/models/two-prudential-plaza.ts` | The mapped plan squared, from the drawing's datum up, with the drawing's tier points | Original layout of `skyline-study.html` |
+| Geographic | `createTwoPrudentialGeographicBuilding` in `src/models/two-prudential-geographic.ts` | The core on the mapped outline, the lobby on it exactly | Geographic layout |
 
 Both are reconstructions from published data and photographs, not a survey or construction
 drawings. They replace an earlier pass that kept the drawing's proportions. That pass had
@@ -22,7 +22,7 @@ The photographs show none of these.
 
 - [OpenStreetMap way 64388666](https://www.openstreetmap.org/way/64388666), version 11:
   the outline, 64 levels, height 303, and no building parts. The local coordinate snapshot
-  and attribution remain in `models/skyline-geography-data.ts` and
+  and attribution remain in `src/models/skyline-geography-data.ts` and
   [the geographic audit](skyline-geography.md).
 - [Council on Tall Buildings and Urban Habitat / Skyscraper Center](https://www.skyscrapercenter.com/building/two-prudential-plaza/489):
   303.3 m architectural height, 64 floors.

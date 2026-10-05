@@ -1,6 +1,6 @@
 # Peoples Gas Building: reference audit
 
-`models/peoples-gas-geographic.ts` builds the Peoples Gas Building, 122 South Michigan
+`src/models/peoples-gas-geographic.ts` builds the Peoples Gas Building, 122 South Michigan
 Avenue, for the geographic layout only. The drawing shows it between the Lake View Building
 and Adams Street, with 200 South Michigan, the Borg-Warner Building, before its Adams front.
 That is outside the excerpt the original layout is fitted to, so the original layout has

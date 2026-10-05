@@ -1,6 +1,6 @@
 # Michigan Boulevard Building: reference audit
 
-`models/michigan-boulevard-geographic.ts` builds the Michigan Boulevard Building, 30 North
+`src/models/michigan-boulevard-geographic.ts` builds the Michigan Boulevard Building, 30 North
 Michigan Avenue, for the geographic layout only. The drawing shows its Michigan front and,
 above 20 North Michigan, its south wall, right of Six North Michigan's tower. That is
 outside the excerpt the original layout is fitted to, so the original layout has no model

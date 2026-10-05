@@ -1,13 +1,13 @@
 # Crain Communications Building: reference audit
 
-Three models share one tower. `models/crain-tower.ts` builds it from plan
+Three models share one tower. `src/models/crain-tower.ts` builds it from plan
 outlines and roof planes; the rest supply those:
 
 | Model | Factory | Plan | Used by |
 | --- | --- | --- | --- |
-| Solo | `createCrainBuilding` in `models/crain-communications.ts` | Clean version of the mapped outline | `building-study.html` |
+| Solo | `createCrainBuilding` in `src/models/crain-communications.ts` | Clean version of the mapped outline | `building-study.html` |
 | Skyline copy | `createCrainSkylineBuilding`, same module | Same, from the drawing's datum up | Original layout of `skyline-study.html` |
-| Geographic | `createCrainGeographicBuilding` in `models/crain-geographic.ts` | The three mapped parts, exactly | Geographic layout |
+| Geographic | `createCrainGeographicBuilding` in `src/models/crain-geographic.ts` | The three mapped parts, exactly | Geographic layout |
 
 All three are reconstructions from published data and one photograph, not a survey or
 construction drawings.
@@ -16,7 +16,7 @@ construction drawings.
 
 - [OpenStreetMap ground outline 210671717](https://www.openstreetmap.org/way/210671717)
   and parts 284816227, 284816228 and 284816229. The local coordinate snapshot and
-  attribution remain in `models/skyline-geography-data.ts` and
+  attribution remain in `src/models/skyline-geography-data.ts` and
   [the geographic audit](skyline-geography.md).
 - [Council on Tall Buildings and Urban Habitat / Skyscraper Center](https://www.skyscrapercenter.com/building/150-north-michigan-avenue/2441):
   177.4 m architectural height and tip, 41 floors, all-concrete structure, A. Epstein

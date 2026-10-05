@@ -1,6 +1,6 @@
 # Willoughby Tower: reference audit
 
-`models/willoughby-tower-geographic.ts` builds Willoughby Tower, 8 South Michigan Avenue,
+`src/models/willoughby-tower-geographic.ts` builds Willoughby Tower, 8 South Michigan Avenue,
 for the geographic layout only. The drawing shows it left of Six North Michigan, outside the
 excerpt the original layout is fitted to, so the original layout has no model of it. The
 model is a reconstruction from published data, OpenStreetMap, the drawing and photographs,

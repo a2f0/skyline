@@ -1,9 +1,9 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "moduleDetection": "legacy",
     "noEmit": false,
-    "outDir": "dist",
+    "outDir": "../dist",
     "rootDir": "."
   },
   "include": [

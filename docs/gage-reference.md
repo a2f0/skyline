@@ -1,6 +1,6 @@
 # Gage Building: reference audit
 
-`models/gage-geographic.ts` builds the Gage Building, 18 South Michigan Avenue, for the
+`src/models/gage-geographic.ts` builds the Gage Building, 18 South Michigan Avenue, for the
 geographic layout only. The drawing shows its Michigan front and, above its lower
 neighbours at 24 and 30 South Michigan, its south wall, between the University Club and
 Willoughby Tower. That is outside the excerpt the original layout is fitted to, so the

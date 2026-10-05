@@ -10,7 +10,7 @@
 // can drift off the lakefront walk for a fraction of a layer unit.
 import { command } from "./lib/command.js";
 import { geographicLandmarks, reference } from "../tests/skyline-landmarks.js";
-import type { Vec3 } from "../models/building-kit.js";
+import type { Vec3 } from "../src/models/building-kit.js";
 
 const usage = `Usage: bun scripts/fit-geographic-camera.ts [--height meters] [--eye east,south]
   Prints the geographic skyline camera fitted to the drawing, with its eye held --height

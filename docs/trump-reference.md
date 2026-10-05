@@ -1,12 +1,12 @@
 # Trump International Hotel and Tower: reference audit
 
-Two models share one tower. `models/trump-tower.ts` builds it from outlines and the
+Two models share one tower. `src/models/trump-tower.ts` builds it from outlines and the
 heights below; the rest supply those:
 
 | Model | Factory | Plan | Used by |
 | --- | --- | --- | --- |
-| Skyline copy | `createTrumpInternationalTowerBuilding` in `models/trump-international-tower.ts` | The mapped shaft and crown, from the drawing's datum up | Original layout of `skyline-study.html` |
-| Geographic | `createTrumpGeographicBuilding` in `models/trump-geographic.ts` | The mapped podium, tiers, shaft, and crown, exactly | Geographic layout |
+| Skyline copy | `createTrumpInternationalTowerBuilding` in `src/models/trump-international-tower.ts` | The mapped shaft and crown, from the drawing's datum up | Original layout of `skyline-study.html` |
+| Geographic | `createTrumpGeographicBuilding` in `src/models/trump-geographic.ts` | The mapped podium, tiers, shaft, and crown, exactly | Geographic layout |
 
 Both are reconstructions from published data and one photograph, not a survey or
 construction drawings.
@@ -20,7 +20,7 @@ construction drawings.
   - 188356529, 284773992, and 284773991, the spire's sections, to 380, 400 and 423.2 m.
 
   The local coordinate snapshot and attribution remain in
-  `models/skyline-geography-data.ts` and [the geographic audit](skyline-geography.md).
+  `src/models/skyline-geography-data.ts` and [the geographic audit](skyline-geography.md).
 - [Council on Tall Buildings and Urban Habitat / Skyscraper Center](https://www.skyscrapercenter.com/building/trump-international-hotel-tower/203):
   423.2 m architectural height, 98 floors.
 - [Wikipedia](https://en.wikipedia.org/wiki/Trump_International_Hotel_and_Tower_(Chicago)):
