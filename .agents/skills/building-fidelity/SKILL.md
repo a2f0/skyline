@@ -81,8 +81,10 @@ limits, in the audit; leave unvalidated work open.
 Update `docs/building-fidelity.md` in the same change: stable ID, existing
 building ID, specific gap, priority/rationale, status, last assessed date,
 evidence link, and next action. Use `open`, `researching`, `ready`, `implemented`,
-or `blocked` (with missing evidence). Close only the corrected gap, retaining
-remaining uncertainties as separate opportunities. Every pass should leave
+`blocked` (with missing evidence), or `withdrawn` (removed by the owner's
+decision; keep the row and evidence, and reinstate only on request). Close
+only the corrected gap, retaining remaining uncertainties as separate
+opportunities. Every pass should leave
 next useful research discoverable. This is a maintained queue on invocation,
 not an automatic schedule or authorization to deploy or ship; follow the
 user's requested shipping workflow when given.

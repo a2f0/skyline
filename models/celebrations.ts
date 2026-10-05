@@ -17,15 +17,6 @@ export interface Celebration {
   readonly adapted: boolean;
 }
 
-// Crain uses lamps behind the sloping crown, GO on the southwest half and
-// the team on the northeast half. See the dated audit in crain-reference.md.
-export const crainCelebrations: readonly Celebration[] = [
-  { id: "cubs", label: "Cubs", lines: ["GO", "CUBS"], adapted: false },
-  { id: "sox", label: "White Sox", lines: ["GO", "SOX"], adapted: false },
-  { id: "bears", label: "Bears", lines: ["GO", "BEARS"], adapted: false },
-  { id: "hawks", label: "Blackhawks", lines: ["GO", "HAWKS"], adapted: false },
-];
-
 // Five floors per letter, with a dark window between letters. These are compact
 // reconstructions, not claims to reproduce an electrician's original shade plan.
 const letters: Record<string, readonly string[]> = {

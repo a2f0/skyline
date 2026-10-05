@@ -1,18 +1,15 @@
 # Celebratory window lighting
 
 The full-screen 3D skyline's toolbar offers six monochrome badges. Open the
-star, then select a badge to illuminate the existing Blue Cross and Blue Shield
-Tower and Crain Communications Building where each supports that celebration.
-Select it again to turn off buildings showing that celebration, or select another badge to replace
-them. A building without that preset turns off. The selected badge is pressed, and the scene note
+star, then select a badge to illuminate the south face of the existing Blue
+Cross and Blue Shield Tower. Select it again to turn the message off, or select
+another badge to replace it. The selected badge is pressed, and the scene note
 names the message and building. Camera views, zoom, hover, wireframe, reduced
 motion and the original-artwork comparison continue to work. Returning from the
 original artwork retains the message in the existing 3D frame.
 
-Right-click either tower, or long-press where the browser supports a
-context menu, to choose its supported messages or **Lights off** independently.
-A dashed, partially pressed toolbar badge means only some supporting buildings
-are showing that celebration; clicking it lights all supporting buildings. The checked menu
+Right-click the Blue Cross tower, or long-press where the browser supports a
+context menu, to choose the same messages or **Lights off**. The checked menu
 choice and toolbar badge reflect the same state. Selecting the current message
 also turns it off. Arrow keys cycle through the detail link and lighting choices;
 Home/End jump to the first/last item, Enter/Space activate a lighting choice, and
@@ -21,9 +18,9 @@ both in the main viewer and on the standalone 3D page.
 
 ## Research and scope
 
-Research checked October 4, 2026. These displays use two existing buildings,
+Research checked October 4, 2026. These displays use one existing building,
 with no additions to the skyline inventory. These are reconstructions of
-documented messages, not exact historic lamp or shade plans.
+documented messages, not exact historic shade plans.
 
 ### Blue Cross and Blue Shield Tower
 
@@ -41,23 +38,6 @@ links the staff interview explaining how office lights and window shades form
 the messages. White window light fits Skyline's grayscale palette. The toolbar
 badges are locally drawn symbols, not downloaded official team artwork.
 
-### Crain Communications / Smurfit-Stone
-
-| Badge | Crown message | Evidence |
-| --- | --- | --- |
-| Cubs | GO CUBS | [Metroscap's photograph](https://metroscap.com/chicago--framed-pictures/3080/go-cubs-in-the-smurfit-stone-building-at-night.php/), in its 2016 Cubs collection; exact capture date unknown. |
-| Blackhawks | GO HAWKS | [Daniel Schwen's June 10, 2010 photograph](https://commons.wikimedia.org/wiki/File:Chicago_Grant_Park_night_pano_(Smurfit-Stone_Building_%22Go_Hawks%22).jpg). |
-| White Sox | GO SOX | [The building history](https://en.wikipedia.org/wiki/Crain_Communications_Building) reports this wording; secondary evidence, with placement adapted from the photographed Cubs/Hawks arrangement. |
-| Bears | GO BEARS | The same building history reports this wording; the exact historic lamp layout has not been established. |
-
-Crain's small lamps sit on its two sloping glass halves: GO on the southwest
-half, the team name on the northeast half. The active display also illuminates
-the diamond's outer outline. Zoom in for the small crown lettering. Bulls and
-Thanksgiving remain exclusive to Blue Cross. VOTE 2008 is retained as a
-historical research lead, outside the current celebration controls. See the
-[dated Crain audit](crain-reference.md#2026-10-04--crown-lamps-and-mullion-ends-fid-crain-005-fid-crain-006)
-for sources, estimates, rendering comparisons and acceptance checks.
-
 ## Other buildings already in this skyline
 
 The follow-up research was matched against `geographicBuildings`, rather than
@@ -67,6 +47,7 @@ it does not establish an exact historic lamp or shade plan.
 
 | Existing building | Evidence | Achievability and remaining work |
 | --- | --- | --- |
+| Crain Communications / Smurfit-Stone | A [photographer's GO CUBS image](https://metroscap.com/chicago--framed-pictures/3080/go-cubs-in-the-smurfit-stone-building-at-night.php/) and [Daniel Schwen's June 10, 2010 GO HAWKS photograph](https://commons.wikimedia.org/wiki/File:Chicago_Grant_Park_night_pano_(Smurfit-Stone_Building_%22Go_Hawks%22).jpg) document lamp words on the sloping crown. [The building history](https://en.wikipedia.org/wiki/Crain_Communications_Building) also reports GO BEARS, GO SOX and VOTE 2008; those are secondary-source leads. | A crown-lamp reconstruction of GO CUBS, GO SOX, GO BEARS and GO HAWKS shipped on October 4, 2026 and was removed on October 5, 2026 at the owner's request, because its appearance on this tower was not wanted. Reinstate only on request; the [dated Crain audit](crain-reference.md#2026-10-05--crown-lamps-withdrawn-fid-crain-005) records the removal and keeps the earlier sources and placement estimates. |
 | Sheraton Grand Chicago Riverwalk | [The Sun-Times' April 27, 2021 interview with hotel engineers](https://chicago.suntimes.com/2021/4/27/22404573/closed-by-covid-19-hotel-overlooking-riverwalk-sends-message-of-hope-through-window-designs) documents room lights forming changing designs, including an **XO inside a heart** for Valentine's Day. This establishes illuminated symbols and lettering, not a sports slogan or the word HOPE. | Existing room-window geometry makes a small symbol or XO plausible. Match the photographed facade and room grid first, then map individual panes. No need to add a building. |
 | One Prudential Plaza | [James Iska's March 28, 2014 first-person account](https://jamesiska.blogspot.com/2014/03/the-prudential-building.html) describes historic crosses and later sports/cause messages made with shades and lights on Chicago's south facade. It does not give an exact sports phrase or a dated photograph of one. | The existing model has individual south-facing window bays, so a window mask is plausible. Locate a dated image and verify wording before defining a preset. Evidence is weaker than for Crain and Sheraton. |
 
@@ -96,12 +77,6 @@ vertex colors exactly. Depth testing, raycast ownership, building placement and
 the original SVG remain those of the existing scene. The model's optional
 `illumination` controller is also usable by package consumers.
 
-`models/crain-illumination.ts` uses a generated 64 × 8 single-channel lamp map
-on the existing sloped-glass triangles. Roof-specific UVs respect both offset
-planes; only their upward faces emit, and each half is isolated in the atlas.
-Every lit cell's four corners are checked against its roof polygon. The grid
-occludes the lamps normally. A separate emission term illuminates the existing
-outline mesh, independent of hover. Switching off clears the map and outline
-emission without rebuilding geometry; the owning glass material disposes the
-map. No external asset or animation loop is added. Each controller's `presets`
-list supplies the building-specific wording to the toolbar and context menu.
+Each controller's `presets` list supplies the building-specific wording to the
+toolbar and context menu. The toolbar applies a badge to every model with a
+controller that supports it; today that is Blue Cross alone.

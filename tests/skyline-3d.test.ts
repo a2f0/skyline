@@ -8,14 +8,8 @@ import { createGeographicBuilding, footprintMetrics } from "../models/skyline-ge
 import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
-import { celebrations, crainCelebrations, type CelebrationId } from "../models/celebrations.js";
+import { celebrations } from "../models/celebrations.js";
 import type * as THREE from "../vendor/three-r186.js";
-
-declare global {
-  interface Window {
-    __crainLightingTest?: { set(id: CelebrationId | null): void; outline(visible: boolean): void; highlight(on: boolean): void; wireframe(on: boolean): void };
-  }
-}
 
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
 const settle = (page: Page | Frame) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -227,130 +221,21 @@ describe("full-screen 3D skyline", () => {
     }
   }, { timeout: 60_000 });
 
-  test("Crain's menu controls its own messages and the toolbar represents partial selections", async () => {
-    for (const touch of [false, true]) {
-      const page = await browser.newPage({ viewport: touch ? { width: 390, height: 844 } : { width: 1440, height: 900 }, hasTouch: touch, reducedMotion: "reduce" });
-      watch(page);
-      await page.goto(`${origin}/${touch ? "index.html" : "skyline-3d.html"}`);
-      const scene = touch ? await openScene(page) : page;
-      await scene.waitForFunction(() => window.__buildingStudy?.ready);
-      await scene.locator("#menu-toggle").click();
-      const camera = await scene.evaluate(() => window.__buildingStudy!.cameraPosition);
-      const states = () => scene.evaluate(() => Object.fromEntries(window.__buildingStudy!.illuminations.map(({ building, active }) => [building, active])));
-      const openCrain = async () => {
-        await scene.evaluate((touch) => {
-          const canvas = document.querySelector("#building")!, box = canvas.getBoundingClientRect();
-          const [u, v] = window.__buildingStudy!.projectPoint("building-crain-communications", [0, 145, 0]);
-          const at = { clientX: box.x + u * box.width, clientY: box.y + v * box.height, bubbles: true, cancelable: true };
-          if (touch) canvas.dispatchEvent(new PointerEvent("pointerdown", { ...at, pointerType: "touch", pointerId: 2 }));
-          canvas.dispatchEvent(new MouseEvent("contextmenu", at));
-          if (touch) canvas.dispatchEvent(new PointerEvent("pointerup", { ...at, pointerType: "touch", pointerId: 2 }));
-        }, touch);
-        expect(await scene.locator("#building-menu-title").textContent()).toBe("Crain Communications Building");
-      };
-      await scene.locator("[data-celebration=cubs]").click();
-      expect(await states()).toEqual({ "building-crain-communications": "cubs", "building-blue-cross-blue-shield": "cubs" });
-      expect(await scene.locator("#celebration-status").textContent()).toContain("GO CUBS · Crain");
-      expect(await scene.locator("#celebration-status").textContent()).toContain("GO CUBS GO · Blue Cross");
-      for (const preset of crainCelebrations) {
-        await openCrain();
-        expect(await scene.locator("[data-lighting]").evaluateAll((items) => items.map((item) => (item as HTMLElement).dataset["lighting"]))).toEqual(["off", "cubs", "sox", "bears", "hawks"]);
-        expect(await scene.locator(`[data-lighting=${preset.id}]`).textContent()).toContain(preset.lines.join(" "));
-        if (preset.id === "cubs") await page.keyboard.press("Escape");
-        else if (touch) await scene.locator(`[data-lighting=${preset.id}]`).tap();
-        else await scene.locator(`[data-lighting=${preset.id}]`).click();
-        expect(await states()).toEqual({ "building-crain-communications": preset.id, "building-blue-cross-blue-shield": "cubs" });
-      }
-      expect(await scene.locator("[data-celebration=cubs]").getAttribute("aria-pressed")).toBe("mixed");
-      expect(await scene.locator("[data-celebration=hawks]").getAttribute("aria-pressed")).toBe("mixed");
-      expect(await scene.locator("[data-celebration=hawks]").evaluate((button) => getComputedStyle(button).borderStyle)).toBe("dashed");
-      await openCrain();
-      expect(await scene.locator('[data-lighting=hawks]').getAttribute("aria-checked")).toBe("true");
-      await scene.locator("[data-lighting=off]").click();
-      expect(await states()).toEqual({ "building-crain-communications": null, "building-blue-cross-blue-shield": "cubs" });
-      expect(await scene.locator("#celebration-status").textContent()).toBe("Celebratory lights off · Crain Communications Building");
-      await scene.locator("[data-celebration=cubs]").click();
-      expect(await states()).toEqual({ "building-crain-communications": "cubs", "building-blue-cross-blue-shield": "cubs" });
-      expect(await scene.locator("[data-celebration=cubs]").getAttribute("aria-pressed")).toBe("true");
-      await scene.locator("[data-celebration=cubs]").click();
-      expect(Object.values(await states())).toEqual([null, null]);
-      await scene.locator("[data-celebration=hawks]").click();
-      await scene.locator("[data-celebration=bulls]").click();
-      expect(await states()).toEqual({ "building-crain-communications": null, "building-blue-cross-blue-shield": "bulls" });
-      expect(await scene.locator("[data-celebration=bulls]").getAttribute("aria-pressed")).toBe("true");
-      await openCrain();
-      await scene.locator("[data-lighting=hawks]").click();
-      expect(await states()).toEqual({ "building-crain-communications": "hawks", "building-blue-cross-blue-shield": "bulls" });
-      await scene.locator("[data-celebration=bulls]").click();
-      expect(await states()).toEqual({ "building-crain-communications": "hawks", "building-blue-cross-blue-shield": null });
-      expect(await scene.locator("[data-celebration=hawks]").getAttribute("aria-pressed")).toBe("mixed");
-      expect(await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).toEqual(camera);
-      await page.close();
-    }
-  }, { timeout: 60_000 });
-
-  test("Crain's lamps render on the glass independently of the outline and restore exactly", async () => {
-    const page = await browser.newPage({ viewport: { width: 1000, height: 1000 }, reducedMotion: "reduce" });
+  test("Crain's building menu offers no celebratory lighting", async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
     watch(page);
-    const shaderErrors: string[] = [];
-    page.on("console", (message) => { if (message.type() === "error") shaderErrors.push(message.text()); });
-    await page.goto(`${origin}/building-detail.html?building=building-crain-communications`);
+    await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
-    // A fixed close camera makes individual bulbs measurable. Use the same
-    // shipped factory and shaders, with the perimeter hidden for pixel checks
-    // so it cannot disguise a broken text shader by itself getting brighter.
-    await page.evaluate(async () => {
-      const engine = await import(new URL("vendor/three-r186.js", location.href).href) as typeof import("../vendor/three-r186.js");
-      const geo = await import(new URL("models/skyline-geography.js", location.href).href) as typeof import("../models/skyline-geography.js");
-      const data = await import(new URL("models/skyline-geography-data.js", location.href).href) as typeof import("../models/skyline-geography-data.js");
-      const model = geo.createGeographicBuilding(data.geographicBuildings.find(({ id }) => id === "building-crain-communications")!);
-      const scene = new engine.Scene(); scene.background = new engine.Color(0x111111); scene.add(model.building);
-      scene.add(new engine.AmbientLight(0xffffff, 0.5));
-      const light = new engine.DirectionalLight(0xffffff, 1); light.position.set(-100, 250, 200); scene.add(light);
-      const camera = new engine.OrthographicCamera(-50, 50, 50, -50, 1, 1000);
-      camera.position.set(117, 246, 109); camera.lookAt(0, 145, 0);
-      const renderer = new engine.WebGLRenderer({ antialias: true }); renderer.setSize(1000, 1000);
-      document.body.className = ""; document.body.style.cssText = "margin:0;padding:0";
-      document.body.replaceChildren(renderer.domElement);
-      const render = () => renderer.render(scene, camera);
-      window.__crainLightingTest = {
-        set(id) { model.illumination!.set(id); render(); },
-        outline(visible) { model.building.getObjectByName("Crain · diamond outline lights")!.visible = visible; render(); },
-        highlight(on) { model.setHighlighted(on); render(); },
-        wireframe(on) { model.setWireframe(on); render(); },
-      };
-      render();
-    });
-    const captureDirectory = process.env["SKYLINE_CRAIN_CAPTURE_DIR"];
-    if (captureDirectory) await page.screenshot({ path: path.join(captureDirectory, "crain-crown-lamps-before.png") });
-    await page.evaluate(() => window.__crainLightingTest!.outline(false));
-    const baseline = await page.screenshot();
-    const bright = async (png: Buffer) => page.evaluate(async (data) => {
-      const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
-      const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
-      context.drawImage(bitmap, 0, 0);
-      const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height).data;
-      let count = 0;
-      for (let i = 0; i < pixels.length; i += 4) if (pixels[i]! > 240) count += 1;
-      return count;
-    }, png.toString("base64"));
-    const unlit = await bright(baseline);
-    for (const preset of crainCelebrations) {
-      await page.evaluate((id) => window.__crainLightingTest!.set(id), preset.id);
-      expect(await bright(await page.screenshot()), preset.id).toBeGreaterThan(unlit + 200);
-    }
-    const active = await page.screenshot();
+    expect(await page.evaluate(() => window.__buildingStudy!.illuminations.map(({ building }) => building))).toEqual(["building-blue-cross-blue-shield"]);
     await page.evaluate(() => {
-      window.__crainLightingTest!.highlight(true); window.__crainLightingTest!.highlight(false);
-      window.__crainLightingTest!.wireframe(true); window.__crainLightingTest!.wireframe(false);
+      const canvas = document.querySelector("#building")!, box = canvas.getBoundingClientRect();
+      const [u, v] = window.__buildingStudy!.projectPoint("building-crain-communications", [0, 145, 0]);
+      canvas.dispatchEvent(new MouseEvent("contextmenu", { clientX: box.x + u * box.width, clientY: box.y + v * box.height, bubbles: true, cancelable: true }));
     });
-    expect(await page.screenshot()).toEqual(active);
-    expect(await chroma(page)).toBe(0);
-    await page.evaluate(() => window.__crainLightingTest!.outline(true));
-    if (captureDirectory) await page.screenshot({ path: path.join(captureDirectory, "crain-crown-lamps-after.png") });
-    await page.evaluate(() => { window.__crainLightingTest!.set(null); window.__crainLightingTest!.outline(false); });
-    expect(await page.screenshot()).toEqual(baseline);
-    expect(shaderErrors).toEqual([]);
+    expect(await page.locator("#building-menu-title").textContent()).toBe("Crain Communications Building");
+    expect(await page.locator("#building-menu").isVisible()).toBe(true);
+    expect(await page.locator("#building-lighting-menu").isHidden()).toBe(true);
+    expect(await page.locator("[data-lighting]").count()).toBe(0);
     await page.close();
   }, { timeout: 60_000 });
 

@@ -39,7 +39,7 @@ describe("published Skyline package", () => {
     const files = packed.files.map(({ path: file }) => file);
     expect(files.every((file) => /^(lib\/|site\/|docs\/(package|skyline-geography)\.md$|NOTICE\.md$|README\.md$|package\.json$)/.test(file))).toBe(true);
     for (const file of await publishedFiles()) expect(files).toContain(`site/${file}`);
-    for (const file of ["lib/skyline-package.d.ts", "lib/skyline-scene.d.ts", "lib/package-assets.d.ts", "lib/models/building-kit.d.ts", "lib/models/window-illumination.d.ts", "lib/models/crain-illumination.d.ts", "lib/models/celebrations.d.ts", "lib/vendor/three-r186.d.ts", "site/vendor/THREE-LICENSE.txt", "NOTICE.md"]) expect(files).toContain(file);
+    for (const file of ["lib/skyline-package.d.ts", "lib/skyline-scene.d.ts", "lib/package-assets.d.ts", "lib/models/building-kit.d.ts", "lib/models/window-illumination.d.ts", "lib/models/celebrations.d.ts", "lib/vendor/three-r186.d.ts", "site/vendor/THREE-LICENSE.txt", "NOTICE.md"]) expect(files).toContain(file);
     expect(files.some((file) => /\.secrets|terraform|scripts\/|tests\/|skyline\.jpg|skyline\.svg$/.test(file))).toBe(false);
     const metadata = JSON.parse(await readFile(path.join(installed, "package.json"), "utf8")) as { private?: boolean; scripts: Record<string, string> };
     expect(metadata.private).not.toBe(true);
@@ -66,7 +66,7 @@ const building: BuildingModel = createCrainBuilding();
 const skyline = createGeographicSkyline();
 const illumination: WindowIllumination = skyline.models.find(model => model.illumination)!.illumination!;
 illumination.set('cubs');
-const lit = illumination.active === 'cubs' && illumination.litWindows > 0 && illumination.presets.some(preset => preset.id === 'cubs') && skyline.models.filter(model => model.illumination).length === 2;
+const lit = illumination.active === 'cubs' && illumination.litWindows > 0 && illumination.presets.some(preset => preset.id === 'cubs') && skyline.models.filter(model => model.illumination).length === 1;
 illumination.set(null);
 const view: StudyView = skyline.drawingView;
 console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,

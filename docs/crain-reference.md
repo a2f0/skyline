@@ -335,3 +335,29 @@ dimensions still need stronger dimensional evidence.
 | --- | --- | --- |
 | Geographic roof-grid ends, matching detail camera | [Before](fidelity/crain-grid-ends-before.png) | [After](fidelity/crain-grid-ends-after.png) |
 | Lamp display and outline, matching close camera | [Off](fidelity/crain-lamps-off.png) | [GO HAWKS](fidelity/crain-lamps-on.png) |
+
+## 2026-10-05 — Crown lamps withdrawn (FID-CRAIN-005)
+
+The owner asked to remove GO CUBS and the other sports messages from Crain,
+because their appearance on this tower was not wanted, and to keep the
+celebrations on Blue Cross for now. This is a product decision, not new
+evidence: the photographs, hashes and placement estimates above stay as the
+record should the displays return.
+
+- Removed the crown lamp controller, its lamp map and shader hooks on the
+  sloped glass, and the outline emission during celebrations. The geographic
+  model no longer has an `illumination` controller, so the toolbar and
+  Crain's building menu no longer offer messages for it. The diamond outline
+  keeps its diffuse paint at all times, as before FID-CRAIN-005.
+- **FID-CRAIN-006 is retained:** the roof-grid bars still continue to the
+  perimeter with the 0.1 m end inset. Its regression moved to the Crain
+  geometry tests. The lighting added no triangles, so the geographic model
+  stays at 44,660.
+- A unit check confirms Blue Cross alone carries a celebration controller and
+  Crain's glass and outline keep the stock toon program with no lamp map. A
+  browser check opens Crain's building menu and finds no lighting choices.
+- Reinstate only on the owner's request. The removed implementation is in
+  the Git history of #98.
+
+The [lamp comparison images](fidelity/crain-lamps-on.png) above show the
+withdrawn display, not the current model.
