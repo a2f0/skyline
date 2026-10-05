@@ -13,7 +13,8 @@ Plaza, and Millennium Park Plaza; fresh external research concentrated on Aon.
 A subsequent pass researched Crain against the architect’s photographs and
 owner’s leasing plans. The crown-lighting follow-up assessed Crain again using
 celebration photographs, one dated 2010-06-10, correcting its shortened roof-grid ends and
-reconstructing its lamp displays. Other buildings are not yet reassessed. Existing detailed facades are not a
+reconstructing its lamp displays; those displays were withdrawn on 2026-10-05 at the owner's
+request, keeping the roof-grid correction. Other buildings are not yet reassessed. Existing detailed facades are not a
 claim of survey accuracy. This is a curated queue, not a score for all 34.
 
 High priority means a visible discrepancy with usable evidence. Medium means a
@@ -28,7 +29,7 @@ stronger evidence and bounded implementation.
 | FID-CRAIN-002 | Crain / `building-crain-communications` | Roof grid followed street axes instead of downslope mullions and level crossbars. | High | implemented | 2026-10-04 | [Architect’s aerial photograph and acceptance checks](crain-reference.md#2026-10-04--crown-detail-and-roof-grid-fid-crain-001-fid-crain-002). Geographic orientation corrected; original drawing fit retained. |
 | FID-CRAIN-003 | Crain / `building-crain-communications` | Crown band heights, roof-grid spacing, blade pitch and opening interiors still estimated. | Medium | open | 2026-10-04 | [Remaining uncertainties](crain-reference.md#validation-and-remaining-opportunities). Obtain a dimensioned crown elevation or dated rectifiable photographs; distinguish observed counts from absolute dimensions before refining. |
 | FID-CRAIN-004 | Crain / `building-crain-communications` | Stainless-steel trim, aluminum joints and original lobby details remain simplified. | Low | open | 2026-10-04 | [Architect’s material account](crain-reference.md#new-evidence) establishes materials but not their dimensions. Seek detail drawings and dated close views before adding relief. |
-| FID-CRAIN-005 | Crain / `building-crain-communications` | Documented crown messages were absent; outline lights were only diffuse paint. Added separate lamp words on the two glass halves and independent outline emission during celebrations. | High | implemented | 2026-10-04 | [Photographs, placement estimates and checks](crain-reference.md#2026-10-04--crown-lamps-and-mullion-ends-fid-crain-005-fid-crain-006). Exact lamp count and historic wiring plans remain unknown; retain the reconstruction label. |
+| FID-CRAIN-005 | Crain / `building-crain-communications` | Documented crown messages were absent; outline lights were only diffuse paint. Lamp words on the two glass halves and outline emission during celebrations were added, then removed because the owner did not want their appearance on this tower. | High | withdrawn | 2026-10-05 | [Photographs, placement estimates and removal note](crain-reference.md#2026-10-05--crown-lamps-withdrawn-fid-crain-005). Reinstate only on the owner's request; exact lamp count and historic wiring plans remain unknown. |
 | FID-CRAIN-006 | Crain / `building-crain-communications` | Geographic roof-grid bars stopped midway through bays, leaving conspicuous blank borders absent in the reference photos. Extend the bars toward the perimeter within the existing roof surfaces. | High | implemented | 2026-10-04 | [Evidence and before/after views](crain-reference.md#2026-10-04--crown-lamps-and-mullion-ends-fid-crain-005-fid-crain-006). End clearances remain approximate; grid spacing stays under FID-CRAIN-003. |
 | FID-AON-002 | Aon Center / `layer3` | Mapped notches shorten main faces; 15 bays now have about 2.85 m pitch rather than nominal 3.048 m. | Medium | open | 2026-10-04 | [Plan discrepancy](aon-reference.md#plan) and the new leasing plan below it. Obtain dimensioned exterior plans, distinguish grade from upper-floor geometry, and assess notch depth before changing coordinates. |
 | FID-KEM-001 | Kemper / `building-kemper` | Facade and crown rhythm still extrapolated from the drawing at estimated 3.1 m bay spacing. | Medium | open | 2026-10-04 | [Current estimates](kemper-geographic-reference.md#plan-and-detail-choices). Find owner elevations or count bays in rectifiable photographs of two faces; distinguish ordinary floors from crown slots. |
@@ -51,5 +52,6 @@ source as inspected. Keep unsolved details open even after another gap is fixed.
 
 Statuses: `open` needs research; `researching` is active; `ready` has sufficient
 evidence for a bounded change; `implemented` has geometry and validation;
-`blocked` names the specific missing evidence. Revisit on skill invocation or
+`blocked` names the specific missing evidence; `withdrawn` was removed by the
+owner's decision, with its evidence retained. Revisit on skill invocation or
 when new evidence arrives. No background schedule is installed.

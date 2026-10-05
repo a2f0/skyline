@@ -400,6 +400,41 @@ describe("mapped skyline geography", () => {
       expect(downhill, "mullions follow the steepest descent").toBeGreaterThan(20);
     });
 
+    test("continues the roof mullions to the perimeter instead of stopping mid-pane", () => {
+      const record = geographicBuildings.find(({ id }) => id === "building-crain-communications")!;
+      const edges = record.parts.filter((part) => part.roofSlope).flatMap((part) => part.coordinates.map((a, i) => {
+        const b = part.coordinates[(i + 1) % part.coordinates.length]!;
+        const pa = projectGround(a), pb = projectGround(b);
+        return [new THREE.Vector2(pa[0], -pa[1]), new THREE.Vector2(pb[0], -pb[1])] as const;
+      }));
+      const bars = (models["Crain"]!.building.getObjectByName("Crain · glazing grid") as THREE.Mesh).geometry.getAttribute("position");
+      let nearEdge = 0, ends = 0;
+      // Each closed bar is twelve triangles. Infer its long axis from its top
+      // quad, then measure the two end centres against the actual mapped edges.
+      for (let i = 0; i < bars.count; i += 36) {
+        const corners = Array.from({ length: 6 }, (_, offset) => new THREE.Vector2(bars.getX(i + offset), bars.getZ(i + offset)));
+        const a = corners[0]!;
+        const chord = corners.reduce((longest, point) => point.distanceTo(a) > longest.distanceTo(a) ? point : longest, a).clone().sub(a).normalize();
+        const lo = Math.min(...corners.map((point) => point.dot(chord))), hi = Math.max(...corners.map((point) => point.dot(chord)));
+        for (const end of [lo, hi]) {
+          const cluster = corners.filter((point) => Math.abs(point.dot(chord) - end) < 0.2);
+          const center = cluster.reduce((sum, point) => sum.add(point), new THREE.Vector2()).divideScalar(cluster.length);
+          const gap = Math.min(...edges.map(([p, q]) => {
+            const edge = q.clone().sub(p), length = edge.lengthSq();
+            if (length === 0) return Infinity;
+            const t = Math.max(0, Math.min(1, center.clone().sub(p).dot(edge) / length));
+            return center.distanceTo(p.clone().addScaledVector(edge, t));
+          }));
+          if (gap < 0.7) nearEdge += 1;
+          ends += 1;
+        }
+      }
+      // Reference photographs show a nearly continuous glass grid up to the
+      // edge lights. Exact trim dimensions remain estimated; allow 0.7 m.
+      expect(ends).toBeGreaterThan(50);
+      expect(nearEdge / ends).toBeGreaterThan(0.85);
+    });
+
     test("keeps the photographed diamond, the open slot, the notches and the banded wall", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Crain")!;
       const model = models["Crain"]!;
