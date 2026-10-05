@@ -10,11 +10,11 @@
     "types": ["bun"]
   },
   "include": [
-    "*.ts",
-    "models/*.ts",
+    "src/*.ts",
+    "src/models/*.ts",
     "scripts/*.ts",
     "scripts/lib/*.ts",
     "tests/*.ts",
-    "vendor/three-r186.d.ts"
+    "src/vendor/three-r186.d.ts"
   ]
 }

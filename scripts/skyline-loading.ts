@@ -2,10 +2,10 @@
 // when the skyline changes: the loading animation needs no JS, model imports or fetches.
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import * as THREE from "../vendor/three-r186.js";
-import { geographicBuildings } from "../models/skyline-geography-data.js";
-import { createGeographicBuilding } from "../models/skyline-geography.js";
-import { skylineAzimuth } from "../skyline-comparison.js";
+import * as THREE from "../src/vendor/three-r186.js";
+import { geographicBuildings } from "../src/models/skyline-geography-data.js";
+import { createGeographicBuilding } from "../src/models/skyline-geography.js";
+import { skylineAzimuth } from "../src/skyline-comparison.js";
 import { command } from "./lib/command.js";
 
 type Point = [number, number];
@@ -93,9 +93,9 @@ export function skylineTrace(buildings: THREE.Object3D[], azimuth: number): stri
         </svg>`;
 }
 
-if (import.meta.main) command("Usage: bun scripts/skyline-loading.ts [--check]\n  Refreshes the loading silhouette in skyline-3d.html from the mapped buildings.", { check: { type: "boolean" } }, ({ values, positionals }) => {
+if (import.meta.main) command("Usage: bun scripts/skyline-loading.ts [--check]\n  Refreshes the loading silhouette in src/skyline-3d.html from the mapped buildings.", { check: { type: "boolean" } }, ({ values, positionals }) => {
   if (positionals.length) throw new Error("This command takes only --check or --help.");
-  const filename = path.resolve(import.meta.dirname, "../skyline-3d.html");
+  const filename = path.resolve(import.meta.dirname, "../src/skyline-3d.html");
   const source = readFileSync(filename, "utf8");
   const marker = /(?<=<!-- skyline-loading:start -->)[\s\S]*?(?=<!-- skyline-loading:end -->)/;
   if (!marker.test(source)) throw new Error("skyline-3d.html is missing its loading silhouette markers.");

@@ -1,6 +1,6 @@
 # Three Illinois Center: reference audit
 
-`models/three-illinois-center-geographic.ts` builds Three Illinois Center, 303 East Wacker
+`src/models/three-illinois-center-geographic.ts` builds Three Illinois Center, 303 East Wacker
 Drive, for the geographic layout only. From the geographic camera, its east end stands in the
 gap between 340 on the Park and The Buckingham, where no model stood. The drawing's
 `buckingham-west` group paints an office tower there. That is outside the excerpt the

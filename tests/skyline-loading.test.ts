@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import * as THREE from "../vendor/three-r186.js";
+import * as THREE from "../src/vendor/three-r186.js";
 import { skylineTrace } from "../scripts/skyline-loading.js";
 
 function box(width: number, height: number, x = 0, z = 0) {

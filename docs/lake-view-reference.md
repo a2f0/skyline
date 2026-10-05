@@ -1,6 +1,6 @@
 # Lake View Building: reference audit
 
-`models/lake-view-geographic.ts` builds the Lake View Building, 116 South Michigan Avenue,
+`src/models/lake-view-geographic.ts` builds the Lake View Building, 116 South Michigan Avenue,
 for the geographic layout only. The drawing shows it between Peoples Gas and the MacLean
 Center, outside the excerpt the original layout is fitted to, so the original layout has
 no model of it. The model is a reconstruction from OpenStreetMap, published history, the

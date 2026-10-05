@@ -83,7 +83,7 @@ spire, and Two Prudential's outline at its inferred eave and 277 m peak, and wit
 Wabash's roof added, the RMS fell from 67 units to 30. The eye moved about 150 m
 north-west, from 45 m off the planetarium's centre to the walk.
 
-The view frames the panorama, `models/skyline-panorama.svg`: every building the
+The view frames the panorama, `src/models/skyline-panorama.svg`: every building the
 drawing shows, from the Railway Exchange Building on the left to the towers
 around The Buckingham on the right. Its frame is the reference excerpt's,
 widened about the same centre to x −1400 to 7978.5 in layer units, 2.65 times
@@ -118,7 +118,7 @@ a wider sixth, 1600×700, whose canvas fits the frame to its height.
 
 ## Coordinates and footprints
 
-`models/skyline-geography-data.ts` contains a local extract of
+`src/models/skyline-geography-data.ts` contains a local extract of
 [OpenStreetMap](https://www.openstreetmap.org/copyright), retrieved September 17,
 2026 through the [map API](https://api.openstreetmap.org/api/0.6/map?bbox=-87.628,41.882,-87.620,41.891).
 330 North Wabash's outline was added on September 27, 2026, from a
@@ -498,6 +498,6 @@ extents and top heights, mesh closure, constant orthographic scale with height,
 camera/zoom preservation when toggling, geographic hover, restoration of the
 original transforms and camera, local-only runtime requests, mobile overflow,
 reduced motion and idle rendering. Existing fidelity checks still run against
-the original layout. Top-level `models/*.ts` ships automatically as compiled
+the original layout. Top-level `src/models/*.ts` ships automatically as compiled
 `.js`, and its `.svg` excerpts ship as-is; `skyline-comparison.ts`
 is also explicitly included in the site's deployment allowlist.

@@ -1,6 +1,6 @@
 # Blue Cross and Blue Shield Tower: reference audit
 
-`models/blue-cross-geographic.ts` builds the Blue Cross and Blue Shield Tower, 300 East
+`src/models/blue-cross-geographic.ts` builds the Blue Cross and Blue Shield Tower, 300 East
 Randolph Street, for the geographic layout only. The drawing shows it right of Aon, outside
 the excerpt the original layout is fitted to, so the original layout has no model of it.
 The geographic layout frames the whole drawn skyline, where it stands. The model is a

@@ -5,6 +5,22 @@ tsc, the only build step; there is no bundler. `AGENTS.md` (imported by `CLAUDE.
 repository's policy for agents and holds the shipping rules; this page explains the tooling behind
 it.
 
+## Layout
+
+| Path | Holds |
+| --- | --- |
+| `src/` | The site: pages, styles, drawings, browser and package entry modules, and their build configs |
+| `src/models/` | Building models, the shared building kit, and the drawing excerpts they were fitted to |
+| `src/vendor/` | The vendored Three.js bundle, its declarations, and its license |
+| `scripts/` | Build, check, deploy, and measuring tools, and the Git hooks |
+| `tests/` | Unit and browser suites and the shared fidelity measurements |
+| `docs/` | Topic documentation, building reference audits, and fidelity evidence |
+| `terraform/` | The custom-domain binding |
+
+`src/` also keeps the drawing's sources, `skyline.svg` and the photograph `skyline.jpg` it links,
+which the site never requests. The root holds only repository configuration. Builds write
+`dist/` (the site), `lib/` and `site/` (the package); all three are gitignored.
+
 ## Setup
 
 Install Bun (pinned in `mise.toml`; `mise use` installs it), Google Chrome for the browser suites,
@@ -30,7 +46,7 @@ compiled site, closing the server afterward.
 Together they cover:
 
 - push-hook skill drift detection and the building-fidelity skill copies;
-- that `models/skyline-reference.svg` still regenerates from its source groups;
+- that `src/models/skyline-reference.svg` still regenerates from its source groups;
 - the building kit's closed solids and analytic normals, and each fitted model's covered
   omissions and freedom from same-facing coplanar faces across its meshes;
 - SVG/WebGL hover regions and illumination;
@@ -42,7 +58,7 @@ Together they cover:
 - independent building highlights and building occlusion, visible geometry at both zoom limits,
   camera views and orbit, wireframe, idle rendering, reduced motion, keyboard navigation, mobile
   touch, existing viewer modes, and failure messages;
-- that every colour is a grey, except the photograph `skyline.jpg`.
+- that every colour is a grey, except the photograph `src/skyline.jpg`.
 
 Screenshots are written to `/tmp/skyline-3d-*.png` and `/tmp/skyline-group-*.png`.
 
@@ -204,7 +220,7 @@ These directions were written for Inkscape 1.1 on macOS.
    selection.
 10. Save the image as `/tmp/skyline.svg` again.
 11. Change the `preserveAspectRatio` to `xMidYMin meet`.
-12. Move the file into its final location.
+12. Move the file into its final location in `src/`.
 
 `skyline-animated.svg` owns the building labels and paint groups the viewer and the WebGL prototype
 consume; preserve path geometry and draw order when changing hover ownership, as

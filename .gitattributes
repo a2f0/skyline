@@ -1,2 +1,2 @@
 # Preserve upstream shader whitespace and collapse the generated dependency in PRs.
-vendor/three-r186.js linguist-vendored linguist-generated -whitespace
+src/vendor/three-r186.js linguist-vendored linguist-generated -whitespace

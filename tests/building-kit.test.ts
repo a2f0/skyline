@@ -1,17 +1,17 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import * as THREE from "../vendor/three-r186.js";
-import * as kit from "../models/building-kit.js";
-import type { BatchData, Builder, BuildingModel, Omission, Plan, Vec2, Vec3 } from "../models/building-kit.js";
+import * as THREE from "../src/vendor/three-r186.js";
+import * as kit from "../src/models/building-kit.js";
+import type { BatchData, Builder, BuildingModel, Omission, Plan, Vec2, Vec3 } from "../src/models/building-kit.js";
 import { models, fitted, trump, twoPrudential } from "./skyline-landmarks.js";
-import { geographicBuildings } from "../models/skyline-geography-data.js";
-import { createGeographicBuilding } from "../models/skyline-geography.js";
+import { geographicBuildings } from "../src/models/skyline-geography-data.js";
+import { createGeographicBuilding } from "../src/models/skyline-geography.js";
 
 // Geometry checks under `bun test`, before the browser suites: the kit's solids are closed, arc
 // normals are analytic, and the fitted models hide no open faces or same-facing coplanar
 // surfaces (z-fighting) in or across their meshes.
-const load = (file: string) => import(pathToFileURL(path.resolve(import.meta.dirname, "..", file)).href);
+const load = (file: string) => import(pathToFileURL(path.resolve(import.meta.dirname, "../src", file)).href);
 const { line, arc, bulge, deg, rectangle } = kit;
 
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];

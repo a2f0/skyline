@@ -15,7 +15,7 @@ construction model.
   completed 1962, 41 floors, 522 ft (159 m) roof, marble-clad Modernism by
   Shaw, Metz and Associates. This matches OSM's 159 m height tag, which the
   comparison uses.
-- The repository's own fitted model, `models/kemper.ts`, which records the
+- The repository's own fitted model, `src/models/kemper.ts`, which records the
   drawing's facade vocabulary: window bays, raised mullions, a recessed dark
   crown band, light crown slots, and a projecting roof cap. The geographic
   model reuses that vocabulary at meter scale.

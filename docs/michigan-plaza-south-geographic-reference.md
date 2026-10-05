@@ -18,7 +18,7 @@ survey or a construction model.
   the south tower is the 44-story building modeled here. (The model covers only
   the south tower's mapped outline; the 25-story north tower is not part of the
   study.)
-- The repository's own fitted model, `models/michigan-plaza-south.ts`, which
+- The repository's own fitted model, `src/models/michigan-plaza-south.ts`, which
   records the drawing's dark curtain-wall grid: a dense array of recessed panes
   in dark surrounds, 24 and 23 columns on the two drawn faces. The geographic
   model reuses the pane vocabulary at meter scale.

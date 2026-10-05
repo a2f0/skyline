@@ -1,6 +1,6 @@
 # Hyatt Regency Chicago West Tower: reference audit
 
-`models/hyatt-west-tower-geographic.ts` builds the Hyatt Regency Chicago's West Tower, 151
+`src/models/hyatt-west-tower-geographic.ts` builds the Hyatt Regency Chicago's West Tower, 151
 East Wacker Drive, for the geographic layout only. From the geographic camera it stands
 between Aon Center and the Blue Cross and Blue Shield Tower. There the drawing's Blue Cross
 group paints a dark brown sliver, which no model filled. That is outside

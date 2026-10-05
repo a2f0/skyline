@@ -1,7 +1,7 @@
 // Drawing measurements for the skyline study, shared by tests/skyline-study.test.ts and the
 // scripts in scripts/. Drawing points are in the source SVG's layer space, the space of
 // each building group's parent.
-import type { Vec3 } from "../models/building-kit.js";
+import type { Vec3 } from "../src/models/building-kit.js";
 
 const heritage = "building-heritage-at-millennium-park", kemper = "building-kemper";
 const crain = "building-crain-communications", michigan = "building-michigan-plaza-south-tower";
@@ -13,6 +13,8 @@ const northWabash = "building-330-north-wabash";
 const aon = "layer3";
 
 // The excerpts the study shows under the scene; scripts/reference-svg.js regenerates them.
+// Paths are within src/, which the built site serves at its root, so they are also the URLs
+// the study pages and tests fetch.
 interface Reference {
   path: string;
   source: string;

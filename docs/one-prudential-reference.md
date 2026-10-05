@@ -1,12 +1,12 @@
 # One Prudential Plaza: reference audit
 
-Two models share one tower. `models/one-prudential-tower.ts` builds it from outlines and
+Two models share one tower. `src/models/one-prudential-tower.ts` builds it from outlines and
 the heights below; the rest supply those:
 
 | Model | Factory | Plan | Used by |
 | --- | --- | --- | --- |
-| Skyline copy | `createOnePrudentialPlazaBuilding` in `models/one-prudential-plaza.ts` | The mapped plan squared to the slab's grid, from the drawing's datum up | Original layout of `skyline-study.html` |
-| Geographic | `createOnePrudentialGeographicBuilding` in `models/one-prudential-geographic.ts` | The mapped tower, wing, and antenna parts, exactly | Geographic layout |
+| Skyline copy | `createOnePrudentialPlazaBuilding` in `src/models/one-prudential-plaza.ts` | The mapped plan squared to the slab's grid, from the drawing's datum up | Original layout of `skyline-study.html` |
+| Geographic | `createOnePrudentialGeographicBuilding` in `src/models/one-prudential-geographic.ts` | The mapped tower, wing, and antenna parts, exactly | Geographic layout |
 
 Both are reconstructions from published data and one photograph, not a survey or
 construction drawings.
@@ -17,7 +17,7 @@ construction drawings.
   and parts 685493609 (the tower: 41 levels, height 183), 685493610 (the east wing: ten
   levels, no height), 685493612 (the west wing: three levels, no height), and 685493614
   (the antenna: height 278). The local coordinate snapshot and attribution remain in
-  `models/skyline-geography-data.ts` and [the geographic audit](skyline-geography.md).
+  `src/models/skyline-geography-data.ts` and [the geographic audit](skyline-geography.md).
 - [Council on Tall Buildings and Urban Habitat / Skyscraper Center](https://www.skyscrapercenter.com/building/one-prudential-plaza/2190):
   183.2 m architectural height and a 278 m antenna tip.
 - [Wikipedia](https://en.wikipedia.org/wiki/One_Prudential_Plaza): completed 1955 to

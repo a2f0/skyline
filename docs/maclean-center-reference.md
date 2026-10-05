@@ -1,6 +1,6 @@
 # MacLean Center: reference audit
 
-`models/maclean-center-geographic.ts` builds the MacLean Center, 112 South Michigan Avenue,
+`src/models/maclean-center-geographic.ts` builds the MacLean Center, 112 South Michigan Avenue,
 for the geographic layout only. It was built as the Illinois Athletic Club and now belongs
 to the School of the Art Institute of Chicago. The drawing shows it between the Lake View
 and Monroe Buildings, outside the excerpt the original layout is fitted to, so the

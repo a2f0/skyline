@@ -195,7 +195,8 @@ command(usage, { out: { type: "string" }, padding: { type: "string", default: "0
   if (!Number.isFinite(padding) || padding < 0) throw new Error(`--padding takes a fraction of the group's size, not ${values["padding"]}.`);
   const name = key.replace(/^building-/, "");
   mkdirSync(out, { recursive: true });
-  const server = await startServer(path.join(import.meta.dirname, ".."));
+  // src/ holds the drawing, skyline.svg, and the photograph skyline.svg links beside it.
+  const server = await startServer(path.join(import.meta.dirname, "../src"));
   let browser: Browser | undefined;
   try {
     browser = await launch();

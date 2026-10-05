@@ -3,13 +3,13 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
 import type { Browser, Frame, Page } from "playwright";
-import { geographicBuildings } from "../models/skyline-geography-data.js";
-import { createGeographicBuilding, footprintMetrics } from "../models/skyline-geography.js";
+import { geographicBuildings } from "../src/models/skyline-geography-data.js";
+import { createGeographicBuilding, footprintMetrics } from "../src/models/skyline-geography.js";
 import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
-import { celebrations } from "../models/celebrations.js";
-import type * as THREE from "../vendor/three-r186.js";
+import { celebrations } from "../src/models/celebrations.js";
+import type * as THREE from "../src/vendor/three-r186.js";
 
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
 const settle = (page: Page | Frame) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -32,7 +32,7 @@ const chroma = async (page: Page) => page.evaluate(async (png) => {
 // The frame the skyline viewer shows the drawing in, and the translate that places the
 // drawing's layer inside it, read from the file the viewer loads. Landmarks are drawn in
 // layer units.
-const drawing = readFileSync(path.resolve(import.meta.dirname, "../skyline-animated.svg"), "utf8");
+const drawing = readFileSync(path.resolve(import.meta.dirname, "../src/skyline-animated.svg"), "utf8");
 const [boxX, boxY, boxWidth, boxHeight] = /viewBox="([^"]+)"/.exec(drawing)![1]!.split(/\s+/).map(Number) as [number, number, number, number];
 const [shiftX, shiftY] = /id="skyline-position" transform="translate\(([^,]+),([^)]+)\)"/.exec(drawing)!.slice(1).map(Number) as [number, number];
 

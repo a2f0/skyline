@@ -61,7 +61,7 @@ are unrelated to Chicago's Prudential buildings and were excluded.
 
 ## Implementation
 
-`models/celebrations.ts` defines the presets and five-floor pixel alphabet.
+`src/models/celebrations.ts` defines the presets and five-floor pixel alphabet.
 `blue-cross-geographic.ts` records the front triangles of each actual south
 office pane while building its curtain wall. That face is subdivided at every
 existing mullion, retaining the paired-pane colors when off. Words are centered
@@ -69,7 +69,7 @@ in window columns and each occupies five consecutive office rows, clear of the
 mechanical bands. Every lit cell must exist; construction fails for a clipped
 message rather than silently losing letters.
 
-`models/window-illumination.ts` adds an emission attribute to the existing wall
+`src/models/window-illumination.ts` adds an emission attribute to the existing wall
 mesh and darkens the message face's unlit office panes. It adds no geometry,
 textures, external requests, animation loop, or extra draw call. Hover emission
 is independent of the window mask. Turning the display off restores the saved

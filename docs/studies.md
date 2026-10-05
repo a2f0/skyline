@@ -6,7 +6,7 @@ Two study pages put 3D models beside the drawing they were fitted to. Both use
 framing, so more studies can reuse the same viewer. Serve the built `dist/` to open them (see the
 [README](../README.md#run-it-locally)).
 
-Three.js is vendored under its MIT license; see `vendor/README.md` for provenance and
+Three.js is vendored under its MIT license; see `src/vendor/README.md` for provenance and
 regeneration. The studies load entirely from the local server without API keys, paid services, or
 CDN access. Every model is authored locally from published data and the source photograph, with no
 external model, photographic texture, or map tiles.
@@ -31,9 +31,9 @@ floor, and a V-notch runs the full height at each end of the split. White alumin
 alternate with continuous ribbon windows on a 3.5 m floor pitch above a tall glazed lobby. The
 sloped glass carries a raised grid, the diamond's outer edges a lit outline, and the diagonal
 edges a dark coping. It uses grayscale toon materials, real perspective, depth testing,
-directional shadows, and raycast hover selection. `models/crain-tower.ts` builds it from a plan and
-roof planes, `models/crain-communications.ts` supplies the clean plan, and
-`models/crain-geographic.ts` the mapped one.
+directional shadows, and raycast hover selection. `src/models/crain-tower.ts` builds it from a plan and
+roof planes, `src/models/crain-communications.ts` supplies the clean plan, and
+`src/models/crain-geographic.ts` the mapped one.
 
 It is a reconstruction from published data, not a survey. The 177.4 m height comes from the
 [Skyscraper Center's building record](https://www.skyscrapercenter.com/building/150-north-michigan-avenue/2441).
@@ -41,7 +41,7 @@ The plan, the split, and the notches come from the mapped outline. The roof slop
 heights, the band pitch, and the spandrel-to-glass proportion are measured on the photograph the
 drawing was traced from; the [reference audit](crain-reference.md) records each source. The
 lobby's height, the window module, and the roof grid's spacing are estimates.
-`models/crain-reference.svg` is an excerpt of the existing `building-crain-communications` group,
+`src/models/crain-reference.svg` is an excerpt of the existing `building-crain-communications` group,
 with a padded viewBox and no third-party artwork.
 
 This study was the first experiment for [#4](https://github.com/a2f0/skyline/issues/4), the
@@ -68,7 +68,7 @@ local OpenStreetMap footprints and parts, with published overall heights. It ope
 view from the drawing's own camera: the source photograph's vantage on the lakefront by the Adler
 Planetarium, fitted to the mapped roofs and tips while the buildings stay where they are mapped.
 That view frames the whole drawn skyline, and the drawing under the scene becomes
-`models/skyline-panorama.svg`, every building the drawing shows. The page stacks the scene over
+`src/models/skyline-panorama.svg`, every building the drawing shows. The page stacks the scene over
 the drawing, each the page's full width, so both contain their frame at the same scale.
 
 **Ground plan** gives a north-up orthographic plan with street centerlines and a 100 m grid, and
@@ -120,32 +120,32 @@ Each audit records the sources, measurements, fit, and residuals.
 
 | Building | Model | Datum | Scale, turn | Batches, triangles | Audit |
 | --- | --- | ---: | --- | --- | --- |
-| Crain Communications | `models/crain-communications.ts` | 39.6 m | 1.276×, 4.86° | 7, 33,016 | [Crain](crain-reference.md) |
-| Trump International | `models/trump-international-tower.ts` | 40.7 m | 1.065×, 7.95° | 6, 29,108 | [Trump](trump-reference.md) |
-| One Prudential Plaza | `models/one-prudential-plaza.ts` | 40 m | 1.314×, 7.29° | 7, 19,430 | [One Prudential](one-prudential-reference.md) |
-| Two Prudential Plaza | `models/two-prudential-plaza.ts` | 35.4 m | 1.289×, 8.59° | 7, 37,368 | [Two Prudential](two-prudential-reference.md) |
-| Aon Center | `models/aon-center.ts` | 30.6 m | 1.329×, 10.2° | 6, 22,420 | [Aon](aon-reference.md) |
+| Crain Communications | `src/models/crain-communications.ts` | 39.6 m | 1.276×, 4.86° | 7, 33,016 | [Crain](crain-reference.md) |
+| Trump International | `src/models/trump-international-tower.ts` | 40.7 m | 1.065×, 7.95° | 6, 29,108 | [Trump](trump-reference.md) |
+| One Prudential Plaza | `src/models/one-prudential-plaza.ts` | 40 m | 1.314×, 7.29° | 7, 19,430 | [One Prudential](one-prudential-reference.md) |
+| Two Prudential Plaza | `src/models/two-prudential-plaza.ts` | 35.4 m | 1.289×, 8.59° | 7, 37,368 | [Two Prudential](two-prudential-reference.md) |
+| Aon Center | `src/models/aon-center.ts` | 30.6 m | 1.329×, 10.2° | 6, 22,420 | [Aon](aon-reference.md) |
 
 - **Crain** is the single-building study's tower, fitted to the drawn diamond and the twenty-nine
   sills its left face shows. The drawing simplifies the slot, widening it 45% beyond the
   photograph and flattening its foot, so the slot corners are held to the geometry rather than to
   the drawing.
-- **Trump** comes from `models/trump-tower.ts`: a curtain wall in 6 ft units between polished
+- **Trump** comes from `src/models/trump-tower.ts`: a curtain wall in 6 ft units between polished
   stainless mullions 23 cm proud, a brushed spandrel at every floor on the photograph's 3.214 m
   pitch. The photograph puts the main roof at 354.4 m, stepping down to 347.3 m over the
   north-east end, where the glazed crown rises to 364.9 m; the spire reaches the published 423.2 m
   tip. The copy's shaft runs straight down behind One Prudential, fitted to the drawn roof, step,
   crown, spire, fifty-two mullion lines, and floor rows.
-- **One Prudential** comes from `models/one-prudential-tower.ts`: a limestone slab of forty-one
+- **One Prudential** comes from `src/models/one-prudential-tower.ts`: a limestone slab of forty-one
   floors, piers one 2.35 m bay apart at the photograph's 3.93 m pitch, the observatory under the
   coping at the photographed 169.5 m roof, the sign penthouse to the published 183.2 m, WGN's
   mast to the published 278 m tip, and the east wing to the photographed 56.4 m. The drawn podium
   group is this wing.
-- **Two Prudential** comes from `models/two-prudential-tower.ts`: a 40.8 × 37.5 m limestone core,
+- **Two Prudential** comes from `src/models/two-prudential-tower.ts`: a 40.8 × 37.5 m limestone core,
   gables stepping from the corners' 229.3 m to 256 m, a stepped pyramid turned 45° to 280.2 m, and
   a spire to the published 303.3 m tip. It stands behind One Prudential's podium, with that
   overlap verified by raycast hover.
-- **Aon** comes from `models/aon-tower.ts`: granite V-shaped columns one 10 ft module apart,
+- **Aon** comes from `src/models/aon-tower.ts`: granite V-shaped columns one 10 ft module apart,
   fifteen bays to a face, dark glass on the photograph's 3.87 m pitch up to a granite cap, solid
   notched corners, a louvered enclosure, and an antenna.
 
@@ -156,13 +156,13 @@ podium silhouette bound. Aon later widened the frame and the inherited limits we
 
 ### Drawn models
 
-`models/kemper.ts` builds a closed rectangular tower, recessed crown, roof cap, window bays, and
-raised mullions in five mesh batches. `models/michigan-plaza-south.ts` adds a closed dark tower
+`src/models/kemper.ts` builds a closed rectangular tower, recessed crown, roof cap, window bays, and
+raised mullions in five mesh batches. `src/models/michigan-plaza-south.ts` adds a closed dark tower
 with a flat roof and a dense window grid on all four faces in four mesh batches.
 
-`models/heritage-at-millennium-park.ts` describes the Heritage at Millennium Park as plan runs,
+`src/models/heritage-at-millennium-park.ts` describes the Heritage at Millennium Park as plan runs,
 straight or arced, and maps every panel, band, and fin onto them with analytic normals from
-`models/building-kit.ts`, so the curved faces shade smoothly. The tower has a south stub, a flat
+`src/models/building-kit.ts`, so the curved faces shade smoothly. The tower has a south stub, a flat
 south face, a convex east bow with a 57 m radius, and a flat north strip along the bow's end
 tangent; a lower tier with a shallow concave face stands in front of it. Window panes, raised
 mullions, six-floor bands, and slab edges follow the drawing's floor pitch, and a dark balcony
@@ -187,13 +187,13 @@ The eight-building scene totals 170,215 triangles, within the 169,000–171,000 
 
 ### Reference excerpts
 
-`models/skyline-reference.svg` contains the unmodified `building-heritage-at-millennium-park`,
+`src/models/skyline-reference.svg` contains the unmodified `building-heritage-at-millennium-park`,
 `building-kemper`, `building-michigan-plaza-south-tower`, `building-crain-communications`,
 `building-trump-tower-only`, `building-one-prudential-plaza`, `building-two-prudential-plaza`,
 `building-prudential-plaza-podium`, and Aon's `layer3` groups from `skyline-animated.svg`,
 preserving their positions, nested transforms, and draw order. It also carries the source
 definitions used by Aon's in-group tonal overlays. Its padded viewBox matches the study's framing.
-`models/skyline-panorama.svg` carries all 38 of the drawing's building groups, identified and not,
+`src/models/skyline-panorama.svg` carries all 38 of the drawing's building groups, identified and not,
 in the geographic layout's wider frame; `bun scripts/reference-svg.ts` regenerates both.
 
 The unidentified historic facade in front of the Heritage and the three buildings in front of

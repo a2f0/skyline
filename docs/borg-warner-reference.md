@@ -1,6 +1,6 @@
 # Borg-Warner Building: reference audit
 
-`models/borg-warner-geographic.ts` builds the Borg-Warner Building, 200 South Michigan
+`src/models/borg-warner-geographic.ts` builds the Borg-Warner Building, 200 South Michigan
 Avenue, for the geographic layout only. The drawing shows it across Adams from Peoples Gas,
 before the Railway Exchange Building. That is outside the excerpt the original layout is
 fitted to, so the original layout has no model of it. The model is a reconstruction from

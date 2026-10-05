@@ -1,6 +1,6 @@
 # Edson Keith and Theodore Ascher Buildings: reference audit
 
-`models/keith-ascher-geographic.ts` builds the Gage Group's two lower buildings, the Edson
+`src/models/keith-ascher-geographic.ts` builds the Gage Group's two lower buildings, the Edson
 Keith Building at 24 South Michigan Avenue and the Theodore Ascher Building at 30 South
 Michigan Avenue, for the geographic layout only. The drawing shows the tops of their
 Michigan fronts under the Gage Building's south wall, between the University Club and the

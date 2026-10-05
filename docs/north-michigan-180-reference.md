@@ -1,6 +1,6 @@
 # 180 North Michigan Avenue: reference audit
 
-`models/north-michigan-180-geographic.ts` builds 180 North Michigan Avenue, the Harvester
+`src/models/north-michigan-180-geographic.ts` builds 180 North Michigan Avenue, the Harvester
 Building, for the geographic layout only. The drawing shows its south wall behind
 Millennium Park Plaza, which hides its Michigan front. That is outside the excerpt the
 original layout is fitted to, so the original layout has no model of it. The geographic

@@ -1,6 +1,6 @@
 # Sheraton Grand Chicago Riverwalk: reference audit
 
-`models/sheraton-grand-geographic.ts` builds the Sheraton Grand Chicago Riverwalk, 301 East
+`src/models/sheraton-grand-geographic.ts` builds the Sheraton Grand Chicago Riverwalk, 301 East
 North Water Street, for the geographic layout only. The drawing's `buckingham-east` group, right
 of The Buckingham, is its corner: a lit crown over a tower of windows. That is outside the
 excerpt the original layout is fitted to, so the original layout has no model of it. The model

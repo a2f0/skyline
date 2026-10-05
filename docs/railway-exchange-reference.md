@@ -1,6 +1,6 @@
 # Railway Exchange Building: reference audit
 
-`models/railway-exchange-geographic.ts` builds the Railway Exchange Building, 224 South
+`src/models/railway-exchange-geographic.ts` builds the Railway Exchange Building, 224 South
 Michigan Avenue, also called the Santa Fe Building, for the geographic layout only. The
 drawing shows it at Michigan and Jackson, left of the Borg-Warner Building, outside the
 excerpt the original layout is fitted to, so the original layout has no model of it. The

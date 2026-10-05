@@ -1,8 +1,8 @@
 # 330 North Wabash: reference audit
 
-`models/north-wabash-geographic.ts` builds 330 North Wabash, the former IBM Building and
+`src/models/north-wabash-geographic.ts` builds 330 North Wabash, the former IBM Building and
 now AMA Plaza, for the geographic layout only. The drawing models it, under the label
-Michigan Plaza South, in the original layout; that model is `models/michigan-plaza-south.ts`
+Michigan Plaza South, in the original layout; that model is `src/models/michigan-plaza-south.ts`
 and is unchanged. The geographic model is a reconstruction from published data and one
 photograph, not a survey or construction drawings.
 

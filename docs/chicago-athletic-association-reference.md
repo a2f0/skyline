@@ -1,6 +1,6 @@
 # Chicago Athletic Association: reference audit
 
-`models/chicago-athletic-association-geographic.ts` builds the Chicago Athletic Association,
+`src/models/chicago-athletic-association-geographic.ts` builds the Chicago Athletic Association,
 12 South Michigan Avenue, for the geographic layout only. The drawing paints its Michigan
 front in Willoughby Tower's group, below and left of the tower, right of the Gage Building;
 see the [Willoughby Tower audit](willoughby-tower-reference.md). That is outside the excerpt

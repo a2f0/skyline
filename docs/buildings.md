@@ -2,7 +2,7 @@
 
 The geographic layout models 34 buildings, each on its OpenStreetMap footprint and parts at a
 published height or, where none is published, a height read on the drawing. The registry is
-`geographicBuildings` in `models/skyline-geography-data.ts`; its ID opens the building alone at
+`geographicBuildings` in `src/models/skyline-geography-data.ts`; its ID opens the building alone at
 `building-detail.html?building=<id>`. Each building's reference audit records its sources,
 measurements, model choices, omissions, and verification, and the
 [fidelity queue](building-fidelity.md) tracks known gaps. [The geographic data

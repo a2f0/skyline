@@ -54,7 +54,9 @@ async function walk(directory: string, prefix: string): Promise<string[]> {
 // Everything the repository holds that the build does not publish, derived rather than listed.
 // A hand-kept list is a sample, and a sample cannot prove absence. `.secrets/` is gitignored, so it
 // never appears in `git ls-files` and needs its own walk; it is also the directory whose exposure
-// would matter most.
+// would matter most. The build publishes src/ at the site root, so a file under src/ is probed both
+// where a build would serve it and at its repository path, in case a deploy uploaded src/ itself:
+// src/skyline.jpg at /skyline.jpg and at /src/skyline.jpg.
 // git quotes any path outside plain ASCII ("docs/caf\303\251.md"), and a quoted literal probes a
 // URL that is not the file, which then reads as proven absent. -z emits raw bytes instead.
 export const parseTracked = (stdout: string) => stdout.split("\0").map((entry) => entry.trim()).filter(Boolean);
@@ -64,8 +66,9 @@ export async function forbiddenPaths(published: string[], deps: { tracked?: stri
     || parseTracked((await promisify(execFile)("git", ["ls-files", "-z"], { cwd: root, maxBuffer: 1 << 24 })).stdout);
   const secrets = deps.secrets || await walk(path.join(root, ".secrets"), ".secrets");
   const publishedSet = new Set(published);
-  return [...new Set([...listed, ...secrets])].map((entry) => entry.trim()).filter(Boolean)
-    .filter((entry) => !publishedSet.has(entry)).sort();
+  const candidates = [...listed, ...secrets].map((entry) => entry.trim()).filter(Boolean)
+    .flatMap((entry) => entry.startsWith("src/") ? [entry, entry.slice("src/".length)] : [entry]);
+  return [...new Set(candidates)].filter((entry) => !publishedSet.has(entry)).sort();
 }
 
 export interface RequestAnswer {
