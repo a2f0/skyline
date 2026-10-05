@@ -9,8 +9,9 @@ import { panorama, reference } from "../tests/skyline-landmarks.js";
 
 const excerpts = [reference, panorama];
 const usage = `Usage: bun scripts/reference-svg.ts [--check]
-  Rewrites ${excerpts.map(({ path: file }) => file).join(" and ")} from ${reference.source}. --check verifies them without writing.`;
-const root = path.resolve(import.meta.dirname, "..");
+  Rewrites ${excerpts.map(({ path: file }) => `src/${file}`).join(" and ")} from src/${reference.source}. --check verifies them without writing.`;
+// Excerpt paths are within src/, where the built site serves them.
+const src = path.resolve(import.meta.dirname, "../src");
 const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 // A group's raw text through its matching </g>, counting nested groups. The id must be the
@@ -28,7 +29,7 @@ function extract(source: string, id: string) {
 }
 
 function render(excerpt: typeof reference) {
-  const source = readFileSync(path.join(root, excerpt.source), "utf8");
+  const source = readFileSync(path.join(src, excerpt.source), "utf8");
   const groups = excerpt.groups.map((id) => extract(source, id)).sort((a, b) => a.index - b.index);
   const normalized = groups.map(({ text }) => text.replace(/<[^>]*>/g, (tag) => tag.replace(/\s+/g, " ")));
   const definitions = (excerpt.defs || []).map((id) => {
@@ -45,13 +46,13 @@ function render(excerpt: typeof reference) {
 command(usage, { check: { type: "boolean" } }, async ({ values, positionals }) => {
   if (positionals.length) throw new Error(usage);
   for (const excerpt of excerpts) {
-    const target = path.join(root, excerpt.path), svg = render(excerpt);
+    const target = path.join(src, excerpt.path), svg = render(excerpt);
     if (values["check"]) {
-      if (readFileSync(target, "utf8") !== svg) throw new Error(`${excerpt.path} is out of date; run bun scripts/reference-svg.ts.`);
-      console.log(`PASS: ${excerpt.path} matches its ${excerpt.groups.length} source groups.`);
+      if (readFileSync(target, "utf8") !== svg) throw new Error(`src/${excerpt.path} is out of date; run bun scripts/reference-svg.ts.`);
+      console.log(`PASS: src/${excerpt.path} matches its ${excerpt.groups.length} source groups.`);
     } else {
       writeFileSync(target, svg);
-      console.log(`Wrote ${excerpt.path} from ${excerpt.groups.length} groups.`);
+      console.log(`Wrote src/${excerpt.path} from ${excerpt.groups.length} groups.`);
     }
   }
 });

@@ -130,7 +130,20 @@ describe("deploy verification", () => {
       tracked: ["src/index.html", "src/models/a.js", "src/models/a.ts", "src/skyline.jpg", "scripts/secrets.sh", "README.md", ""],
       secrets: [".secrets/root.env", ".secrets/nested/deep.env"],
     });
-    // Sources under src/ are probed at the site root, where the build would have put them.
-    expect(derived).toEqual([".secrets/nested/deep.env", ".secrets/root.env", "README.md", "models/a.ts", "scripts/secrets.sh", "skyline.jpg"]);
+    // Sources under src/ are probed at their repository paths and at the site root, where a build
+    // would put them; only the published URLs are left out.
+    expect(derived).toEqual([".secrets/nested/deep.env", ".secrets/root.env", "README.md", "models/a.ts", "scripts/secrets.sh", "skyline.jpg",
+      "src/index.html", "src/models/a.js", "src/models/a.ts", "src/skyline.jpg"]);
+  });
+
+  test("catches a source served from an uploaded src/ or from the site root", async () => {
+    for (const leaked of ["src/skyline.jpg", "skyline.jpg"]) {
+      const origin = fakeOrigin({ "index.html": answer(200, "page"), [leaked]: answer(200, "photo") });
+      const result = await verifyDeploy({ origin: ORIGIN, attempts: 1, delay: 0, timeout: 50, deadline: 60000 }, {
+        request: origin.request, published: ["index.html"], tracked: ["src/index.html", "src/skyline.jpg"], secrets: [],
+        readLocal: async () => bytes("page"),
+      });
+      expect(result.failures).toEqual([`${leaked} answered 200 rather than proving it is not served`]);
+    }
   });
 });

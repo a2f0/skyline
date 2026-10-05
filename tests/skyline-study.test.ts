@@ -225,7 +225,12 @@ describe("eight-building skyline study", () => {
   test("matches the reference drawing and its SVG geometry at the desktop layout", async () => {
     await checkReferenceMatch(page);
     const preserved = await page.evaluate(async ({ groups, path, sourcePath }) => {
-      const parse = async (url: string) => new DOMParser().parseFromString(await (await fetch(url)).text(), "image/svg+xml");
+      // A failed fetch parses to a document with no paths, and two empty lists would match.
+      const parse = async (url: string) => {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`${url} answered ${response.status}`);
+        return new DOMParser().parseFromString(await response.text(), "image/svg+xml");
+      };
       const source = await parse(sourcePath), reference = await parse(path);
       const expected = source.querySelectorAll(groups.map((id: string) => `#${id} path`).join(", "));
       const actual = [...reference.querySelectorAll("path")];
@@ -234,7 +239,7 @@ describe("eight-building skyline study", () => {
         for (let node: Element | null = part; node && !node.classList.contains("interactive-building"); node = node.parentElement) chain.push(node.getAttribute("transform"));
         return JSON.stringify(chain);
       };
-      return actual.length === expected.length && actual.every((part, index) => part.id === expected[index]!.id && part.getAttribute("d") === expected[index]!.getAttribute("d") && transforms(part) === transforms(expected[index] as SVGPathElement));
+      return actual.length > 0 && actual.length === expected.length && actual.every((part, index) => part.id === expected[index]!.id && part.getAttribute("d") === expected[index]!.getAttribute("d") && transforms(part) === transforms(expected[index] as SVGPathElement));
     }, { groups: reference.groups, path: reference.path, sourcePath: reference.source });
     expect(preserved, "reference must preserve original path geometry, nested transforms, and draw order").toBe(true);
   }, { timeout: 180_000 });

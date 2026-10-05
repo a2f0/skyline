@@ -13,6 +13,8 @@ const northWabash = "building-330-north-wabash";
 const aon = "layer3";
 
 // The excerpts the study shows under the scene; scripts/reference-svg.js regenerates them.
+// Paths are within src/, which the built site serves at its root, so they are also the URLs
+// the study pages and tests fetch.
 interface Reference {
   path: string;
   source: string;
@@ -24,8 +26,8 @@ interface Reference {
 }
 
 const reference: Reference = {
-  path: "src/models/skyline-reference.svg",
-  source: "src/skyline-animated.svg",
+  path: "models/skyline-reference.svg",
+  source: "skyline-animated.svg",
   // The centered expansion clears Trump's spire while retaining the prior frame centre.
   // Its aspect stays aligned with skyline-study.js's fit dimensions.
   viewBox: "1074.238 -154.834 4430 3535.05",
@@ -40,8 +42,8 @@ const reference: Reference = {
 // the reference's and about the same centre, widened to the drawing's leftmost and
 // rightmost buildings. Its camera is the reference's, so every landmark lands where it did.
 const panorama: Reference = {
-  path: "src/models/skyline-panorama.svg",
-  source: "src/skyline-animated.svg",
+  path: "models/skyline-panorama.svg",
+  source: "skyline-animated.svg",
   viewBox: "-1400 -154.834 9378.476 3535.05",
   title: "Chicago's skyline from the Adler Planetarium's lakefront: every building the drawing shows",
   description: "Unmodified building groups from skyline-animated.svg, preserving their positions, transforms, and draw order, including those the geographic layout does not model yet.",
