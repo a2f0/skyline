@@ -11,7 +11,7 @@ load_deploy_secrets() {
 
   if [[ ! -f "$env_file" ]]; then
     echo "ERROR: $env_file not found." >&2
-    echo "       See the Deploying section of README.md for the variables it needs." >&2
+    echo "       See docs/deploying.md for the variables it needs." >&2
     return 1
   fi
 

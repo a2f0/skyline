@@ -5,7 +5,7 @@ import { chromium } from "playwright";
 import type { Browser, Page } from "playwright";
 
 
-// Run against the local static server; see README.md. Chrome's real WebGL
+// Run against the local static server; see docs/development.md. Chrome's real WebGL
 // renderer catches shader, mesh, picking, and layout problems syntax checks miss.
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
 const position = (page: Page) => page.evaluate(() => window.__buildingStudy!.cameraPosition);

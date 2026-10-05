@@ -1,20 +1,24 @@
 # Building fidelity opportunities
 
 This queue improves **existing geographic buildings**. It does not discover or
-add buildings. Use `$building-fidelity` in Codex or `/building-fidelity` in
+add buildings; [Buildings not yet modelled](unmodelled-buildings.md) keeps that
+research. Use `$building-fidelity` in Codex or `/building-fidelity` in
 Claude Code; the repository carries the same skill in both skill directories.
 Research and model changes belong in the same reviewable branch.
 
 ## Coverage and priorities
 
-Last triage: **2026-10-04**. The registry contains 34 buildings. This first pass
+Last triage: **2026-10-05**. The registry contains 34 buildings. This first pass
 compared the source and audits for Aon, Kemper, Swissôtel, Blue Cross, River
 Plaza, and Millennium Park Plaza; fresh external research concentrated on Aon.
 A subsequent pass researched Crain against the architect’s photographs and
 owner’s leasing plans. The crown-lighting follow-up assessed Crain again using
 celebration photographs, one dated 2010-06-10, correcting its shortened roof-grid ends and
 reconstructing its lamp displays; those displays were withdrawn on 2026-10-05 at the owner's
-request, keeping the roof-grid correction. Other buildings are not yet reassessed. Existing detailed facades are not a
+request, keeping the roof-grid correction. On 2026-10-05 the building-inventory issues #63 and #72
+were closed and harvested: their one gap in an existing building, the Sheraton Grand's omitted
+28-level wing, became FID-SHER-001 after its map tags were rechecked; the rest moved to
+[Buildings not yet modelled](unmodelled-buildings.md). Other buildings are not yet reassessed. Existing detailed facades are not a
 claim of survey accuracy. This is a curated queue, not a score for all 34.
 
 High priority means a visible discrepancy with usable evidence. Medium means a
@@ -35,6 +39,7 @@ stronger evidence and bounded implementation.
 | FID-KEM-001 | Kemper / `building-kemper` | Facade and crown rhythm still extrapolated from the drawing at estimated 3.1 m bay spacing. | Medium | open | 2026-10-04 | [Current estimates](kemper-geographic-reference.md#plan-and-detail-choices). Find owner elevations or count bays in rectifiable photographs of two faces; distinguish ordinary floors from crown slots. |
 | FID-SWI-001 | Swissôtel / `building-swissotel` | 45 modeled facade rows versus the audit's published 43 floors and approximate photo count of 46 rows. | Medium | open | 2026-10-04 | [Conflicting counts](swissotel-reference.md#heights). Seek elevations or dated close photographs; separate occupied floors, mechanical rows, and the Upper Wacker datum before changing pitch. |
 | FID-MPP-001 | Millennium Park Plaza / `building-michigan-plaza-front-tall` | Long faces use a generic 3 m window grid beyond what the panorama shows. | Medium | open | 2026-10-04 | [Current model limits](millennium-park-plaza-reference.md#model). Locate dated east/west elevations or photographs, count bays and distinguish the seven office floors from apartments. |
+| FID-SHER-001 | Sheraton Grand / `building-buckingham-east` | The relation's 28-level part 1269924305, a wing about 50 × 23 m continuing the east arm, and a 29-level part inside its east end are omitted; the audit had called all other parts low. Projected mostly at the frame's right edge. | Medium | open | 2026-10-05 | [Map tags, extents and open questions](sheraton-grand-reference.md#2026-10-05--the-28-level-east-wing-fid-sher-001). Confirm the wing, its date and its height in photographs; model it with the arms' precast rows if it stood in 2013, or record why it stays omitted. |
 | FID-BCBS-001 | Blue Cross / `building-blue-cross-blue-shield` | North lobby projection lacks facade detail. | Low | open | 2026-10-04 | [Omitted detail](blue-cross-reference.md#model). Find owner/architect north-elevation inputs with lobby dimensions before refining this existing part. |
 
 Verify registry IDs against `models/skyline-geography-data.ts` before starting.
