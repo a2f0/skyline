@@ -3,5 +3,6 @@
   "subject": { "maxLength": 72 },
   "merge": { "requireChecks": false, "requiredChecks": [] },
   "review": { "timeoutMs": 1200000 },
+  "versions": { "packages": ["."] },
   "pr": { "rejectClaudeBranding": true }
 }

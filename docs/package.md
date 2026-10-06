@@ -1,9 +1,20 @@
 # Using Skyline as a package
 
-`chicago-skyline` provides the complete viewer and separate Three.js scene/building
+`@a2f0/skyline` provides the complete viewer and separate Three.js scene/building
 modules. Package builds emit ordinary ESM JavaScript and TypeScript declarations;
-tarball consumers do not compile repository sources or run installation scripts. Browser
-code and Node/Bun build helpers have separate entrypoints.
+consumers of the published package do not compile repository sources or run installation
+scripts. Browser code and Node/Bun build helpers have separate entrypoints.
+
+## Install from npm
+
+```sh
+bun add --exact @a2f0/skyline
+# or
+npm install --save-exact @a2f0/skyline
+```
+
+Every merge to `main` publishes a new version (see [Releases](#releases)), each with npm
+provenance linking it to the commit and workflow run that built it.
 
 ## Build and pack
 
@@ -18,11 +29,11 @@ bun pm pack --destination /tmp
 ```
 
 `prepack` builds the package automatically. The result is
-`/tmp/chicago-skyline-0.1.0.tgz`. To try it before publishing, install that tarball
-in the consuming application:
+`/tmp/a2f0-skyline-<version>.tgz`, named for the version in `package.json`. To try it
+before publishing, install that tarball in the consuming application:
 
 ```sh
-bun add /tmp/chicago-skyline-0.1.0.tgz
+bun add /tmp/a2f0-skyline-<version>.tgz
 ```
 
 The tarball includes `lib/` (ESM and declarations), `site/` (the complete static
@@ -46,7 +57,7 @@ prepare the same artifacts:
 ```json
 {
   "scripts": {
-    "postinstall": "bun node_modules/chicago-skyline/scripts/build-package.ts"
+    "postinstall": "bun node_modules/@a2f0/skyline/scripts/build-package.ts"
   }
 }
 ```
@@ -63,7 +74,7 @@ same entrypoints, declarations, and complete viewer assets.
 Import the build helper from a Node 22+ or Bun build script:
 
 ```ts
-import { copySkylineAssets } from 'chicago-skyline/build';
+import { copySkylineAssets } from '@a2f0/skyline/build';
 
 await copySkylineAssets('./public/skyline');
 ```
@@ -83,7 +94,7 @@ that application's Git history.
 ## Mount the complete viewer
 
 ```ts
-import { mountSkyline } from 'chicago-skyline';
+import { mountSkyline } from '@a2f0/skyline';
 
 const skyline = mountSkyline(container, {
   assetsUrl: '/skyline/',
@@ -111,7 +122,7 @@ For the existing React route in `devopsrockstars`, an effect owns this lifecycle
 
 ```tsx
 import React, { useEffect, useRef } from 'react';
-import { mountSkyline } from 'chicago-skyline';
+import { mountSkyline } from '@a2f0/skyline';
 
 export default function Skyline() {
   const container = useRef<HTMLDivElement>(null);
@@ -127,7 +138,7 @@ export default function Skyline() {
 ```
 
 Keep the host's header, footer, sizing, and stacking in that application. Importing
-`chicago-skyline` loads only the small mounting helper; scene geometry loads inside
+`@a2f0/skyline` loads only the small mounting helper; scene geometry loads inside
 the viewer when it boots. The cleanup also supports React Strict Mode's remounts.
 
 ## Import a scene or a building
@@ -138,9 +149,9 @@ complete iframe viewer does not need this peer; scene/model imports do.
 
 ```ts
 import { Group } from 'three';
-import { createGeographicSkyline, skylineAzimuth } from 'chicago-skyline/scene';
-import { createCrainBuilding } from 'chicago-skyline/models/crain-communications';
-import type { BuildingModel, StudyView } from 'chicago-skyline';
+import { createGeographicSkyline, skylineAzimuth } from '@a2f0/skyline/scene';
+import { createCrainBuilding } from '@a2f0/skyline/models/crain-communications';
+import type { BuildingModel, StudyView } from '@a2f0/skyline';
 
 const skyline = createGeographicSkyline();
 const group = new Group();
@@ -154,7 +165,7 @@ const view: StudyView = skyline.drawingView;
 The scene factory returns models, ground, camera/framing settings, drawing view,
 comparison views, and labels. Importing a module does not construct the scene.
 Create it when needed. Individual building modules remain available under
-`chicago-skyline/models/<filename>`, without the `.js` extension. Their Three.js
+`@a2f0/skyline/models/<filename>`, without the `.js` extension. Their Three.js
 objects use the consuming application's engine, so they can join its existing
 scene without bundling a second engine. The caller owns rendering, controls,
 resource disposal, and OpenStreetMap attribution in this mode.
@@ -168,28 +179,44 @@ the selection and `litWindows` counts illuminated office panes. Each instance
 has its own state. Use the model from `createGeographicSkyline()` or
 `createGeographicBuilding()` for these displays.
 
-`chicago-skyline/models/building-kit` exposes the same plan runs and mesh builder
+`@a2f0/skyline/models/building-kit` exposes the same plan runs and mesh builder
 used by this repository, for adding buildings. Coordinate and model assumptions
 are in [the geography notes](skyline-geography.md). Asset paths are also available
-through `chicago-skyline/assets/<path>` for build tooling that resolves package
+through `@a2f0/skyline/assets/<path>` for build tooling that resolves package
 files directly; bundlers do not automatically copy that directory.
 
-## Publish later
+## Releases
 
-The initial metadata keeps the existing name `chicago-skyline`, at version `0.1.0`.
-No registry publication is performed by the preparation workflow. Confirm the
-intended registry, package name/version, and project license before publishing;
-metadata currently uses `UNLICENSED` and preserves the third-party notices in
-[NOTICE.md](../NOTICE.md).
+ship-pr bumps the `package.json` patch version on every merge (see
+[the PR workflow](development.md#pr-workflow)), and the
+[publish workflow](../.github/workflows/npm-publish.yml) publishes each version newer than
+npm's `latest` with [trusted publishing](https://docs.npmjs.com/trusted-publishers) and
+provenance. No npm token is stored: the publish job runs in the `npm` environment, which
+only `main` can deploy to, and npm's trusted publisher names that environment and
+`npm-publish.yml`. A deliberate major or minor bump in a PR is kept. Runs never overlap,
+and when merges land together only the newest pending run starts, so intermediate
+versions can be skipped on npm.
+
+The workflow installs, typechecks, runs the package suite (`bun run check:package`) in the
+runner's Google Chrome, and packs the tarball, all without publish rights; the publish job
+receives only that tarball and runs `npm publish --ignore-scripts`. The merged commit has
+already passed the full `bun run check`.
+
+npm adds a trusted publisher only to a package that already exists, so the first version
+is published by hand from an up-to-date `main`. Until then the workflow fails with that
+instruction rather than attempting a publish npm would reject:
 
 ```sh
-npm publish --dry-run
-# When ready to publish:
-npm publish
+npm login
+npm publish   # prepublishOnly runs bun run check; prepack builds lib/ and site/
 ```
 
-`prepublishOnly` runs the full repository check and `prepack` builds the artifacts.
-Building requires this repository's Bun/TypeScript tools; consuming the tarball
-requires neither Bun nor build scripts. This package is ESM; it has no CommonJS
-entrypoint. The standalone site's `bun run build:site` and deployment flow remain
-separate from packaging.
+Then, in the package's settings on npmjs.com, add a GitHub Actions trusted publisher for
+repository `a2f0/skyline`, workflow `npm-publish.yml`, and environment `npm`, and re-run
+the workflow; it reports the version as already published.
+
+The package is ESM only, with no CommonJS entrypoint. Building requires this repository's
+Bun/TypeScript tools; consuming the published package requires neither Bun nor build
+scripts. Metadata uses `UNLICENSED` and preserves the third-party notices in
+[NOTICE.md](../NOTICE.md). The standalone site's `bun run build:site` and Cloudflare
+deployment flow remain separate from packaging.

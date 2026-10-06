@@ -18,13 +18,17 @@ Review committed changes with `agent-tool review claude`, `agent-tool review cod
 or `agent-tool review opencode`. Optional effort is `low`, `medium`, `high`,
 `xhigh`, or `max`. For a local or non-GitHub repository, add `--base <commit-or-ref>`.
 For a coordinated GitHub review, pin the fetched base using
-`AGENT_TOOL_REVIEW_BASE_REF` and `AGENT_TOOL_REVIEW_BASE_OID`; fetch from the
-repository that owns the PR, which can differ from the checkout's origin.
+`AGENT_TOOL_REVIEW_BASE_REF`, the base branch name such as `main` (not a
+remote-tracking ref like `origin/main`), and `AGENT_TOOL_REVIEW_BASE_OID`, its
+fetched commit. Fetch from the repository that owns the PR, which can differ
+from the checkout's origin.
 
 Record the exact base and HEAD before reviewing. The tool reviews raw committed
 files and excludes worktree edits. A zero exit means a complete review was
 returned; it does not mean the findings are non-blocking. Read the final
-`VERDICT: BLOCKER|MAJOR|MINOR|SUGGESTION|CLEAN` and the findings.
+`VERDICT: BLOCKER|MAJOR|MINOR|SUGGESTION|CLEAN` and the findings. A reviewer
+that labels findings `[P0]` through `[P3]` uses the same scale: `[P0]` and
+`[P1]` are BLOCKER and MAJOR, `[P2]` and `[P3]` are MINOR and SUGGESTION.
 
 If a CLI is unavailable, out of credits, or returns an unusable review, try another
 available reviewer and disclose the fallback. Do not silently convert a failed

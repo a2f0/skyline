@@ -31,10 +31,11 @@ WebGL and the 3D pages need it.
 
 ## Package
 
-The repository also builds `chicago-skyline`, an ESM package with the complete embeddable viewer,
-reusable Three.js scenes and building models, and TypeScript declarations. Run
-`bun run build:package` or `bun pm pack`; [the package guide](docs/package.md) covers asset
-copying, mounting, imports, and publishing.
+The repository also builds [`@a2f0/skyline`](https://www.npmjs.com/package/@a2f0/skyline), an ESM
+package with the complete embeddable viewer, reusable Three.js scenes and building models, and
+TypeScript declarations. Every merge to `main` publishes a new version to npm; run
+`bun run build:package` or `bun pm pack` to build it locally. [The package guide](docs/package.md)
+covers installing, asset copying, mounting, imports, and releases.
 
 ## Development
 

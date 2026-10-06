@@ -1,5 +1,5 @@
 {
-  "name": "chicago-skyline",
+  "name": "@a2f0/skyline",
   "version": "0.1.0",
   "description": "Interactive Chicago skyline viewer and reusable Three.js building models",
   "license": "UNLICENSED",
@@ -7,6 +7,7 @@
     "type": "git",
     "url": "git+https://github.com/a2f0/skyline.git"
   },
+  "publishConfig": { "access": "public" },
   "type": "module",
   "sideEffects": ["./site/**/*.js"],
   "files": ["lib/", "site/", "NOTICE.md", "docs/package.md", "docs/skyline-geography.md"],
@@ -54,9 +55,9 @@
     "verify:deploy": "bun scripts/verify-deploy.ts"
   },
   "devDependencies": {
+    "@a2f0/agent-tool": "0.1.4",
     "@tsconfig/strictest": "^2.0.8",
     "@types/bun": "^1.4.2",
-    "agent-tool": "github:a2f0/agent-tool#dfae8d2caca5710eb69717b3f441ec5256bf1f48",
     "three": "0.186.0",
     "playwright": "1.63.0",
     "typescript": "^7.0.2",

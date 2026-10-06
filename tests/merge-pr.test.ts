@@ -1,11 +1,21 @@
 import { describe, expect, test } from "bun:test";
+import { existsSync } from "node:fs";
 import { mergeErrorMessage, mergePr, type Runner } from "../scripts/merge-pr.js";
 
 const head = "a".repeat(40), base = "b".repeat(40), merged = "c".repeat(40);
-function fixture(options: { dirty?: boolean; changedHead?: boolean; staleBase?: boolean; prBase?: string; prHead?: string; state?: string; confirmed?: boolean; message?: string; ancestor?: boolean; branch?: string; draft?: boolean; prState?: string; mergeable?: string; mergedNumber?: number; repo?: string; title?: string; mergeFailure?: boolean } = {}) {
-  let called = false;
+function fixture(options: { dirty?: boolean; changedHead?: boolean; staleBase?: boolean; prBase?: string; prHead?: string; state?: string; confirmed?: boolean; message?: string; ancestor?: boolean; branch?: string; draft?: boolean; prState?: string; mergeable?: string; mergedNumber?: number; repo?: string; title?: string; mergeFailure?: boolean; staleVersion?: boolean } = {}) {
+  let called = false, versionsChecked = false;
   const run: Runner = (file, args) => {
     if (file === process.execPath) {
+      // Both calls go to the installed shared tool, not a path that has moved.
+      expect(existsSync(args[0]!)).toBe(true);
+      if (args[1] === "versions") {
+        expect(args.slice(1)).toEqual(["versions", "check", base]);
+        versionsChecked = true;
+        if (options.staleVersion) throw new Error("Version needs a bump");
+        return "";
+      }
+      expect(versionsChecked).toBe(true);
       expect(args.slice(1)).toEqual(["pr", "merge", options.title ?? "chore: change", head, "main"]);
       called = true;
       if (options.mergeFailure) throw Object.assign(new Error("Shared merge failed"), { stderr: null });
@@ -31,13 +41,14 @@ function fixture(options: { dirty?: boolean; changedHead?: boolean; staleBase?: 
     if (args[1]?.includes("/commits/")) return options.message ?? "chore: change (#123)";
     throw new Error(`Unexpected fixture command: ${file} ${args.join(" ")}`);
   };
-  return { run, called: () => called };
+  return { run, called: () => called, versionsChecked: () => versionsChecked };
 }
 
 describe("Skyline merge guards around the shared tool", () => {
   test("delegates the reviewed head and verifies the landed subject", () => {
     const f = fixture();
     expect(mergePr([head, "main", base], f.run)).toBe(merged);
+    expect(f.versionsChecked()).toBe(true);
     expect(f.called()).toBe(true);
   });
   for (const [name, options, message] of [
@@ -54,6 +65,7 @@ describe("Skyline merge guards around the shared tool", () => {
     ["base branch checkout", { branch: "main" }, "feature branch"],
     ["detached checkout", { branch: "" }, "feature branch"],
     ["invalid repository identity", { repo: "unknown" }, "resolve the repository"],
+    ["package version not prepared against the base", { staleVersion: true }, "Version needs a bump"],
   ] as const) {
     test(`refuses ${name} before invoking the shared merge`, () => {
       const f = fixture(options);

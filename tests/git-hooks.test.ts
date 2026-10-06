@@ -61,8 +61,8 @@ beforeAll(() => {
   }
   cpSync(path.join(root, ".agent-tool-skills.json"), path.join(repo, ".agent-tool-skills.json"));
   cpSync(path.join(root, "agent-tool.json"), path.join(repo, "agent-tool.json"));
-  mkdirSync(path.join(repo, "node_modules"));
-  symlinkSync(path.join(root, "node_modules/agent-tool"), path.join(repo, "node_modules/agent-tool"));
+  mkdirSync(path.join(repo, "node_modules/@a2f0"), { recursive: true });
+  symlinkSync(path.join(root, "node_modules/@a2f0/agent-tool"), path.join(repo, "node_modules/@a2f0/agent-tool"));
   writeFileSync(path.join(repo, ".gitignore"), "node_modules/\n");
   writeFileSync(path.join(repo, "file.txt"), "seed");
   git(["add", "-A"]);
@@ -318,7 +318,7 @@ describe("the installed pre-push hook", () => {
   }, 60_000);
   test("explains how to install a missing shared tool", () => {
     const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
-    const installed = path.join(repo, "node_modules/agent-tool");
+    const installed = path.join(repo, "node_modules/@a2f0/agent-tool");
     try {
       execFileSync("git", ["init", "--bare", "--quiet", remote], { stdio: "ignore" });
       rmSync(installed);
@@ -327,7 +327,7 @@ describe("the installed pre-push hook", () => {
       expect(push.output).toContain("Run bun install --ignore-scripts");
       expect(push.output).not.toContain("agent attribution");
     } finally {
-      symlinkSync(path.join(root, "node_modules/agent-tool"), installed);
+      symlinkSync(path.join(root, "node_modules/@a2f0/agent-tool"), installed);
       rmSync(remote, { recursive: true, force: true });
     }
   }, 60_000);

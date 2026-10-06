@@ -4,7 +4,8 @@ The site is live at [skyline.devopsrockstars.com](https://skyline.devopsrockstar
 the `devopsrockstars-skyline-prod` Cloudflare Worker as static assets. There is no server-side
 code: the Worker has no `main`, so Cloudflare answers every request from the uploaded files. This
 matches how the rest of the `devopsrockstars.com` zone is served — each host is a Worker with a
-custom domain, not a Pages project or an S3 bucket. Deploys are manual.
+custom domain, not a Pages project or an S3 bucket. Deploys are manual. The npm package is
+released separately and automatically on every merge; see [Releases](package.md#releases).
 
 ## Publishing content
 

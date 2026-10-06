@@ -178,17 +178,18 @@ are there to catch a mistake rather than to defeat an intent.
 
 ## PR workflow
 
-The commit-pinned [a2f0/agent-tool](https://github.com/a2f0/agent-tool) dev dependency supplies the
-`ship-pr`, `open-pr`, `cross-agent-review`, `squash-merge`, and `reset` skills. Invoke `$ship-pr` in
-Codex or `/ship-pr` in Claude Code to commit, independently review and repair, open or resume the
-PR, squash-merge the reviewed commit, and return to updated `main`; `$open-pr` or `/open-pr` stops
-with an open PR. Requested report-only reviews or keeping the feature branch are honoured.
+The [`@a2f0/agent-tool`](https://github.com/a2f0/agent-tool) dev dependency, pinned to an exact npm
+version, supplies the `ship-pr`, `open-pr`, `cross-agent-review`, `squash-merge`, and `reset`
+skills. Invoke `$ship-pr` in Codex or `/ship-pr` in Claude Code to commit, independently review
+and repair, open or resume the PR, squash-merge the reviewed commit, and return to updated `main`;
+`$open-pr` or `/open-pr` stops with an open PR. Requested report-only reviews or keeping the
+feature branch are honoured.
 
 `bun run agents:sync` installs the package's skills as regular files in both `.agents/skills` and
 `.claude/skills`, tracked by `.agent-tool-skills.json`; do not edit those copies. `bun run
 agents:check` verifies them without changing anything, and the full check and the installed push
 hook include that gate. If a new skill does not appear, restart the agent session. For an upgrade,
-update the `agent-tool` commit pin, run `bun install --ignore-scripts` and `bun run agents:sync`,
+update the `@a2f0/agent-tool` version, run `bun install --ignore-scripts` and `bun run agents:sync`,
 then commit `package.json`, `bun.lock`, both skill directories, and the manifest together.
 `building-fidelity` is Skyline's own skill, outside that manifest; see the
 [fidelity queue](building-fidelity.md).
@@ -196,9 +197,17 @@ then commit `package.json`, `bun.lock`, both skill directories, and the manifest
 `bun run agent-tool doctor` checks reviewer CLI compatibility; `bun run agent-tool config show`
 displays the effective policy from `agent-tool.json`. The shared tool owns review isolation, PR
 creation, CI enforcement, and the merge mutation; repository hooks retain the attribution policy.
+
+Every shipped PR bumps the package version, because every merge releases the package to npm
+([Releases](package.md#releases)). `agent-tool.json` versions the root package, so ship-pr runs
+`bun run agent-tool versions prepare <base-sha>` against the pinned base after each integration or
+repair and before each review. It commits `package.json` one patch past the base as
+`chore: bump package versions`; a deliberate minor or major bump in the PR is kept.
+
 Merges go through `bun scripts/merge-pr.ts <reviewed-head> <base-branch> <reviewed-base-sha>`, a
-thin wrapper that enforces checkout, head, base, ancestry, and immediate merge readiness, calls
-the shared merge CLI with the PR title, then confirms the PR merged with its subject-only message;
+thin wrapper that enforces checkout, head, base, ancestry, immediate merge readiness, and the
+prepared version (`agent-tool versions check` against the reviewed base). It calls the shared
+merge CLI with the PR title, then confirms the PR merged with its subject-only message;
 `tests/merge-pr.test.ts` covers those guards. `AGENTS.md` gives the full shipping sequence,
 including base-freshness checks and branch cleanup.
 

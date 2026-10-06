@@ -22,7 +22,7 @@ describe("published Skyline package", () => {
     await buildPackage();
     temporary = await mkdtemp(path.join(os.tmpdir(), "skyline-package-test-"));
     consumer = path.join(temporary, "consumer");
-    installed = path.join(consumer, "node_modules/chicago-skyline");
+    installed = path.join(consumer, "node_modules/@a2f0/skyline");
     await mkdir(installed, { recursive: true });
     const output = execFileSync("npm", ["pack", "--ignore-scripts", "--json", "--pack-destination", temporary], { cwd: root, encoding: "utf8" });
     packed = (JSON.parse(output) as PackResult[])[0]!;
@@ -41,23 +41,26 @@ describe("published Skyline package", () => {
     for (const file of await publishedFiles()) expect(files).toContain(`site/${file}`);
     for (const file of ["lib/skyline-package.d.ts", "lib/skyline-scene.d.ts", "lib/package-assets.d.ts", "lib/models/building-kit.d.ts", "lib/models/window-illumination.d.ts", "lib/models/celebrations.d.ts", "lib/vendor/three-r186.d.ts", "site/vendor/THREE-LICENSE.txt", "NOTICE.md"]) expect(files).toContain(file);
     expect(files.some((file) => /\.secrets|terraform|scripts\/|tests\/|skyline\.jpg|skyline\.svg$/.test(file))).toBe(false);
-    const metadata = JSON.parse(await readFile(path.join(installed, "package.json"), "utf8")) as { private?: boolean; scripts: Record<string, string> };
+    const metadata = JSON.parse(await readFile(path.join(installed, "package.json"), "utf8")) as { name: string; private?: boolean; publishConfig?: { access?: string }; scripts: Record<string, string> };
+    expect(metadata.name).toBe("@a2f0/skyline");
     expect(metadata.private).not.toBe(true);
+    // npm publishes a scoped package as restricted unless told otherwise.
+    expect(metadata.publishConfig?.access).toBe("public");
     expect(metadata.scripts["postinstall"]).toBeUndefined();
     expect(metadata.scripts["prepare"]).toBeUndefined();
   });
 
   test("imports in Node without a DOM and resolves strict consumer types using the host engine", async () => {
     await writeFile(path.join(consumer, "entry.ts"), `
-import { mountSkyline } from 'chicago-skyline';
-import type { BuildingModel, SkylineInstance, StudyView } from 'chicago-skyline';
-import { createGeographicSkyline } from 'chicago-skyline/scene';
-import { createCrainBuilding } from 'chicago-skyline/models/crain-communications';
-import { geographicBuildings } from 'chicago-skyline/models/skyline-geography-data';
-import { celebrations } from 'chicago-skyline/models/celebrations';
-import { createWindowIllumination } from 'chicago-skyline/models/window-illumination';
-import type { WindowIllumination } from 'chicago-skyline/models/window-illumination';
-import { copySkylineAssets } from 'chicago-skyline/build';
+import { mountSkyline } from '@a2f0/skyline';
+import type { BuildingModel, SkylineInstance, StudyView } from '@a2f0/skyline';
+import { createGeographicSkyline } from '@a2f0/skyline/scene';
+import { createCrainBuilding } from '@a2f0/skyline/models/crain-communications';
+import { geographicBuildings } from '@a2f0/skyline/models/skyline-geography-data';
+import { celebrations } from '@a2f0/skyline/models/celebrations';
+import { createWindowIllumination } from '@a2f0/skyline/models/window-illumination';
+import type { WindowIllumination } from '@a2f0/skyline/models/window-illumination';
+import { copySkylineAssets } from '@a2f0/skyline/build';
 import { Group } from 'three';
 export function mount(container: HTMLElement): SkylineInstance {
   return mountSkyline(container, { assetsUrl: '/static/skyline/' });
@@ -92,7 +95,7 @@ console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
 
   test("builds a GitHub source install with only the host's compiler and types", async () => {
     const host = path.join(temporary, "github-consumer");
-    const source = path.join(host, "node_modules/.bun/chicago-skyline@github/node_modules/chicago-skyline");
+    const source = path.join(host, "node_modules/.bun/@a2f0+skyline@github/node_modules/@a2f0/skyline");
     const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8" }).split("\0").filter(Boolean);
     for (const file of tracked) {
       const destination = path.join(source, file);
@@ -122,12 +125,12 @@ console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
 
   test("the complete viewer's entrypoints import without the optional Three.js peer", async () => {
     const withoutPeer = path.join(temporary, "without-peer");
-    const packageDirectory = path.join(withoutPeer, "node_modules/chicago-skyline");
+    const packageDirectory = path.join(withoutPeer, "node_modules/@a2f0/skyline");
     await mkdir(packageDirectory, { recursive: true });
     execFileSync("tar", ["-xzf", path.join(temporary, packed.filename), "--strip-components=1", "-C", packageDirectory]);
     const output = execFileSync("node", ["--input-type=module", "--eval", `
-import { mountSkyline } from 'chicago-skyline';
-import { copySkylineAssets } from 'chicago-skyline/build';
+import { mountSkyline } from '@a2f0/skyline';
+import { copySkylineAssets } from '@a2f0/skyline/build';
 let missingPeer = false;
 try { await import('three'); } catch (error) { missingPeer = error.code === 'ERR_MODULE_NOT_FOUND'; }
 console.log(JSON.stringify({ mount: typeof mountSkyline, copy: typeof copySkylineAssets, missingPeer }));
@@ -141,7 +144,7 @@ console.log(JSON.stringify({ mount: typeof mountSkyline, copy: typeof copySkylin
     const { copySkylineAssets } = await import(pathToFileURL(path.join(installed, "lib/package-assets.js")).href) as { copySkylineAssets(destination: string): Promise<void> };
     await copySkylineAssets(path.join(publicDirectory, "nested/skyline"));
     await writeFile(path.join(consumer, "browser.ts"), `
-import { mountSkyline } from 'chicago-skyline';
+import { mountSkyline } from '@a2f0/skyline';
 let skyline;
 window.mountFixture = (navigation = false) => {
   skyline?.destroy();
