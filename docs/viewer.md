@@ -44,6 +44,11 @@ window at least 1260 px wide; narrower windows put the groups under the star, at
 row or centred in a row each, and the scene stands on the taller bar while it is open. Reduced
 motion opens and closes it at once, and a window resized mid-fold settles the fold at once.
 
+The bar starts closed. `?controls=open` on the viewer's address, or on `skyline-3d.html` itself,
+starts it open from its first frame instead, with no fold, and the star folds it as usual; any
+other value leaves it closed. A small inline script after the bar sets this before the scene's
+code arrives, and the package's `mountSkyline` passes its `controls` option this way.
+
 Drag to orbit, shift-drag or use two fingers to pan, and scroll or pinch to zoom: in to a tenth of
 a view's framed distance, or out to four times it, where the whole mapped city sits small in the
 frame. The orthographic views zoom from a quarter to 24×. Hovering names a building and its

@@ -146,9 +146,9 @@ console.log(JSON.stringify({ mount: typeof mountSkyline, copy: typeof copySkylin
     await writeFile(path.join(consumer, "browser.ts"), `
 import { mountSkyline } from '@a2f0/skyline';
 let skyline;
-window.mountFixture = (navigation = false) => {
+window.mountFixture = (options = {}) => {
   skyline?.destroy();
-  skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/nested/skyline', navigation });
+  skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/nested/skyline', ...options });
 };
 window.destroyFixture = () => skyline.destroy();
 window.mountFixture();
@@ -190,7 +190,16 @@ window.mountFixture();
           expect(frame.isDetached()).toBe(true);
           expect(scene.isDetached()).toBe(true);
           expect(await page.locator("#host > iframe").count()).toBe(1);
-          await page.evaluate(() => (window as unknown as { mountFixture(navigation: boolean): void }).mountFixture(true));
+          // The host can start the scene's control bar open; it starts closed above.
+          await page.evaluate(() => (window as unknown as { mountFixture(options: object): void }).mountFixture({ controls: "open" }));
+          const opened = (await (await page.locator("#host > iframe").elementHandle())!.contentFrame())!;
+          const openedScene = (await (await opened.locator("#skyline-3d-scene").elementHandle())!.contentFrame())!;
+          await openedScene.waitForFunction(() => window.__buildingStudy?.ready);
+          expect(await openedScene.locator("#menu-toggle").getAttribute("aria-expanded")).toBe("true");
+          expect(await openedScene.locator("#camera-views").isVisible()).toBe(true);
+          expect(await page.evaluate(() => { try { (window as unknown as { mountFixture(options: object): void }).mountFixture({ controls: "wide" }); return ""; } catch (error) { return String(error); } }))
+            .toBe('TypeError: Skyline controls must be "open" or "closed".');
+          await page.evaluate(() => (window as unknown as { mountFixture(options: object): void }).mountFixture({ navigation: true }));
           const standalone = (await (await page.locator("#host > iframe").elementHandle())!.contentFrame())!;
           await standalone.locator(".controls").waitFor({ state: "visible" });
           expect(await standalone.locator("#fullscreen").isVisible()).toBe(true);
