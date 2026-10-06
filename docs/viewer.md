@@ -69,10 +69,10 @@ heights. Open, the bar holds the study's toolbar:
 - **wireframe** shows the triangles, and **turntable** circles the city about the camera's pivot;
 - the **lights** badges, described [below](#celebratory-lights).
 
-The pressed camera button names the view, so the bar has no separate view label. A small credit
-in the scene's corner links OpenStreetMap's copyright page for the streets and footprints, beside
-the hint while the controls are open. Reduced motion pauses dragging and the turntable, as in the
-studies, and leaves the view buttons.
+The pressed camera button names the view, so the bar has no separate view label. A small credit in
+the scene's corner links OpenStreetMap's copyright page for the streets and footprints, beside the
+hint while the controls are open. Reduced motion pauses dragging and leaves out the turntable
+button, as in the studies, and leaves the view buttons.
 
 The page shares `study-viewer.ts`, `study.css`, and `study-loader.ts` with the
 [studies](studies.md), and `skyline-3d.ts` holds only its settings: `createGeographicSkyline` in

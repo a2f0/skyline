@@ -76,7 +76,8 @@ for (const button of celebrationButtons) {
     return message ? [`${message.lines.join(" ")}${message.adapted ? " (adapted tribute)" : ""} · ${model.building.userData["geography"]?.name ?? model.building.name}`] : [];
   });
   button.title = `${preset.label}: ${displays.join("; ")} · click to light all; click again to turn off`;
-  button.disabled = displays.length === 0;
+  // A badge no mapped building can display is left out rather than greyed out.
+  button.hidden = displays.length === 0;
   button.addEventListener("click", () => {
     const next = button.getAttribute("aria-pressed") === "true" ? null : preset.id;
     const targets = next === null ? illuminated.filter((model) => model.illumination!.active === preset.id) : illuminated;

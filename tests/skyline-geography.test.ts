@@ -2958,7 +2958,7 @@ describe("geographic layout in the study", () => {
   test("respects reduced motion and stays idle on mobile", async () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.locator('[data-layout="geographic"]').click();
-    expect(await page.locator("#turntable").isDisabled()).toBe(true);
+    expect(await page.locator("#turntable").isHidden()).toBe(true);
     expect(await page.evaluate(() => window.__buildingStudy!.turning)).toBe(false);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.locator("#building").scrollIntoViewIfNeeded();
