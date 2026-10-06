@@ -44,8 +44,10 @@ window at least 1260 px wide; narrower windows put the groups under the star, at
 row or centred in a row each, and the scene stands on the taller bar while it is open. Reduced
 motion opens and closes it at once, and a window resized mid-fold settles the fold at once.
 
-Drag to orbit, shift-drag or use two fingers to pan, and scroll or pinch to zoom; hovering names a
-building and its heights. Open, the bar holds the study's toolbar:
+Drag to orbit, shift-drag or use two fingers to pan, and scroll or pinch to zoom: in to a tenth of
+a view's framed distance, or out to four times it, where the whole mapped city sits small in the
+frame. The orthographic views zoom from a quarter to 24×. Hovering names a building and its
+heights. Open, the bar holds the study's toolbar:
 
 - **skyline view** and **reset view** (or `Home`) return to the drawing's camera;
 - **three-quarter** and **side** step to the study's presets;

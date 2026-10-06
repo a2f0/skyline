@@ -9,6 +9,7 @@ import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
 import { celebrations } from "../src/models/celebrations.js";
+import { createGeographicSkyline } from "../src/skyline-scene.js";
 import type * as THREE from "../src/vendor/three-r186.js";
 
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
@@ -451,6 +452,39 @@ describe("full-screen 3D skyline", () => {
       expect(await page.evaluate(() => window.__buildingStudy!.activeView)).toBeNull();
       await page.close();
     }
+  }, { timeout: 180_000 });
+
+  test("zooms out to four times the skyline's distance, with every building still in frame", async () => {
+    const { drawingView } = createGeographicSkyline();
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    watch(page);
+    await page.goto(`${origin}/skyline-3d.html`);
+    await page.waitForFunction(() => window.__buildingStudy?.ready);
+    // Each building's whole rendered extent, footprint to roof, not only a point on it.
+    const inFrame = async (label: string) => {
+      await settle(page);
+      const outside: string[] = [];
+      for (const { id } of geographicBuildings) {
+        const [left, top, right, bottom] = await page.evaluate((building) => window.__buildingStudy!.screenBounds(building), id);
+        if (!(left > 0 && top > 0 && right < 1 && bottom < 1)) outside.push(`${id} spans ${[left, top, right, bottom].map((value) => value.toFixed(3)).join(", ")}`);
+      }
+      expect(outside, `every building stays in frame zoomed out in ${label}`).toEqual([]);
+    };
+    // Each "-" pulls back a ninth; thirty presses run well past the limit, which holds.
+    await page.locator("canvas").focus();
+    for (let index = 0; index < 30; index += 1) await page.keyboard.press("-");
+    const eye = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
+    const target = drawingView.target!;
+    near(Math.hypot(eye[0]! - target[0], eye[1]! - target[1], eye[2]! - target[2]) / drawingView.distance!, 4, 1e-6);
+    expect(eye[1]! >= 0.999, "the zoomed-out eye stays above ground").toBe(true);
+    await inFrame("the skyline view");
+    // Ground plan zooms its orthographic frame instead, to the same quarter scale.
+    await page.evaluate(() => document.querySelector<HTMLElement>('[data-view="top"]')!.click());
+    await page.locator("canvas").focus();
+    for (let index = 0; index < 30; index += 1) await page.keyboard.press("-");
+    near(await page.evaluate(() => window.__buildingStudy!.zoom), 0.25, 1e-9);
+    await inFrame("ground plan");
+    await page.close();
   }, { timeout: 180_000 });
 
   test("opens the skyline viewer on the 3D skyline over its stars, and keeps an orbit while hidden", async () => {

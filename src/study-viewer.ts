@@ -23,6 +23,8 @@ export interface BuildingStudyApi {
   selectedBuilding: string | null;
   shadowBounds: { min: number[]; max: number[] };
   projectPoint(buildingId: string, coordinates: number[]): [number, number];
+  // A building's rendered extent, left, top, right, bottom, in projectPoint's frame units.
+  screenBounds(buildingId: string): [number, number, number, number];
   cameraPosition: number[];
   highlighted: boolean;
   turning: boolean;
@@ -91,7 +93,11 @@ interface BuildingStudyOptions {
   near?: number;
   far?: number;
   clippingMargin?: number | null;
+  // The zoom range: how near and how far the eye may come, as fractions of the fitted
+  // distance, and the matching orthographic zooms.
   minimumDistanceRatio?: number;
+  maximumDistanceRatio?: number;
+  minimumZoom?: number;
   maximumZoom?: number;
   enablePan?: boolean;
   target?: Vec3;
@@ -124,6 +130,8 @@ export function createBuildingStudy({
   far = 2000,
   clippingMargin = null,
   minimumDistanceRatio = 0.48,
+  maximumDistanceRatio = 2,
+  minimumZoom = 0.5,
   maximumZoom = 4,
   enablePan = false,
   target = [0, 85, 0],
@@ -352,7 +360,7 @@ export function createBuildingStudy({
     // A preset may look up further than free orbiting allows; OrbitControls
     // would otherwise clamp it on its first update.
     controls.maxPolarAngle = Math.max(Math.PI * 0.52, view.polar);
-    controls.minZoom = 0.5;
+    controls.minZoom = minimumZoom;
     controls.maxZoom = maximumZoom;
     camera.zoom = 1;
     setGroundShadows(name !== "top");
@@ -394,7 +402,7 @@ export function createBuildingStudy({
       controls.panSpeed = 1;
     } else shiftLens(width, height, aspect);
     controls.minDistance = fittedDistance * minimumDistanceRatio;
-    controls.maxDistance = fittedDistance * 2;
+    controls.maxDistance = fittedDistance * maximumDistanceRatio;
     updateClipping();
     camera.updateProjectionMatrix();
     if (activeView) positionView(activeView);
@@ -666,6 +674,26 @@ export function createBuildingStudy({
       const model = models.find((entry) => entry.building.userData["buildingId"] === buildingId)!;
       const point = model.building.localToWorld(new THREE.Vector3(...coordinates)).project(camera);
       return [(point.x + 1) / 2, (1 - point.y) / 2];
+    },
+    screenBounds(buildingId) {
+      // Every vertex, since geographic models carry their placement in their geometry.
+      const model = models.find((entry) => entry.building.userData["buildingId"] === buildingId)!;
+      const bounds: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
+      const point = new THREE.Vector3();
+      camera.updateMatrixWorld();
+      model.building.updateMatrixWorld(true);
+      model.building.traverse((child) => {
+        const mesh = child as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        const positions = mesh.geometry.getAttribute("position");
+        for (let i = 0; i < positions.count; i += 1) {
+          point.fromBufferAttribute(positions, i).applyMatrix4(mesh.matrixWorld).project(camera);
+          const u = (point.x + 1) / 2, v = (1 - point.y) / 2;
+          bounds[0] = Math.min(bounds[0], u); bounds[1] = Math.min(bounds[1], v);
+          bounds[2] = Math.max(bounds[2], u); bounds[3] = Math.max(bounds[3], v);
+        }
+      });
+      return bounds;
     },
     get cameraPosition() { return camera.position.toArray(); },
     get highlighted() { return Boolean(selectedModel); },
