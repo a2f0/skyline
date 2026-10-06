@@ -341,7 +341,12 @@ describe("eight-building skyline study", () => {
     const stopped = await cameraPosition(page);
     await page.waitForTimeout(250);
     expect(await cameraPosition(page)).toEqual(stopped);
-    expect(await page.locator("#turntable").isDisabled()).toBe(true);
+    expect(await page.locator("#turntable").isHidden()).toBe(true);
+    // The turntable comes back as soon as motion is allowed again; the media change
+    // reaches the page asynchronously, so wait for it.
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.locator("#turntable").waitFor({ state: "visible" });
+    expect(await page.locator("#turntable").isVisible()).toBe(true);
   }, { timeout: 180_000 });
 
   test("matches the drawing at the tablet and tall layouts", async () => {

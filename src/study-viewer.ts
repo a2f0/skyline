@@ -607,7 +607,8 @@ export function createBuildingStudy({
 
   function updateMotionPreference() {
     controls.enabled = !reducedMotion.matches;
-    turntableButton.disabled = reducedMotion.matches;
+    // Under reduced motion the turntable cannot run, so its button goes rather than greying out.
+    turntableButton.hidden = reducedMotion.matches;
     if (reducedMotion.matches) setTurning(false);
     updateMotionStatus();
     updateCameraHint();

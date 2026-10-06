@@ -992,9 +992,9 @@ describe("full-screen 3D skyline", () => {
     // The star opens the controls at once under reduced motion, with nothing to animate.
     await scene.locator("#menu-toggle").tap();
     expect(await scene.evaluate(() => [document.getAnimations().length, getComputedStyle(document.querySelector(".camera-views")!).display])).toEqual([0, "flex"]);
-    // Reduced motion stops dragging and the turntable; the view buttons still move the camera
-    // at once, as the hint says.
-    expect(await scene.locator("#turntable").isDisabled()).toBe(true);
+    // Reduced motion stops dragging and leaves out the turntable; the view buttons still move
+    // the camera at once, as the hint says.
+    expect(await scene.locator("#turntable").isHidden()).toBe(true);
     expect(await scene.locator("#camera-hint").textContent()).toContain("Use the view buttons to inspect");
     const eye = await scene.evaluate(() => window.__buildingStudy!.cameraPosition);
     for (const view of ["quarter", "side"]) {

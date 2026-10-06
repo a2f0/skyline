@@ -147,7 +147,7 @@ describe("building detail", () => {
     watch(page);
     await openDetail(page, "layer3");
     expect(await page.evaluate(() => [window.__buildingStudy!.turning, window.__buildingStudy!.activeView])).toEqual([false, "quarter"]);
-    expect([await page.locator("#turntable").isDisabled(), await page.locator("#turntable").getAttribute("aria-pressed")]).toEqual([true, "false"]);
+    expect([await page.locator("#turntable").isHidden(), await page.locator("#turntable").getAttribute("aria-pressed")]).toEqual([true, "false"]);
     expect(await page.locator("#motion-status").textContent()).toStartWith("Reduced motion:");
     const idle = await page.evaluate(() => window.__buildingStudy!.renderCount);
     await page.waitForTimeout(300);

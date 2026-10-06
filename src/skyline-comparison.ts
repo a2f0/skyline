@@ -74,7 +74,8 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
   const streetButton = document.querySelector<HTMLButtonElement>("#streets")!;
   function onLayoutChange(name: string) {
     const geographic = name === "geographic";
-    streetButton.disabled = !geographic;
+    // Only the geographic layout maps streets; elsewhere the toggle is left out.
+    streetButton.hidden = !geographic;
     document.querySelector<HTMLElement>("#layout-status")!.textContent = geographic
       ? "Geographic layout · mapped footprints and published heights, or heights read on the drawing where none is published, with detailed facades on all thirty-four buildings. Skyline view: the drawing’s camera, on the lakefront by the Adler Planetarium. Light grey outlines: mapped ground coverage. Grey lines: street centerlines. Grid: 100 m."
       : "Original layout · proportions and spacing fitted to the drawing. Use ground plan or height comparison, then toggle layouts to compare at the same camera scale.";

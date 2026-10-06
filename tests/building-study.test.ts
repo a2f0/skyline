@@ -85,7 +85,7 @@ describe("single-building study", () => {
     const stopped = await position(page);
     await page.waitForTimeout(300);
     expect(await position(page), "reduced motion should stop a running turntable").toEqual(stopped);
-    expect(await page.locator("#turntable").isDisabled()).toBe(true);
+    expect(await page.locator("#turntable").isHidden()).toBe(true);
     await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
     await page.mouse.down();
     await page.mouse.move(bounds.x + bounds.width / 2 + 100, bounds.y + bounds.height / 2, { steps: 5 });

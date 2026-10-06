@@ -19,10 +19,10 @@ Communications Building model beside its existing SVG illustration.
 Drag to orbit, scroll or pinch to zoom, and hover to illuminate the building and display its name.
 Front, three-quarter, and side buttons make the shape easy to compare. **Wireframe** exposes the
 triangles; **turntable** opts into a slow rotation. Focus the canvas and use arrow keys to rotate,
-`+` / `−` to zoom, or `Home` to reset. Reduced motion disables drag movement and the turntable;
-view buttons and keyboard controls remain available as immediate changes. The renderer only draws
-when the view changes, except while the turntable is running, and suspends rendering in a hidden
-tab. **Back to skyline** returns to the viewer.
+`+` / `−` to zoom, or `Home` to reset. Reduced motion disables drag movement and leaves out the
+turntable button; view buttons and keyboard controls remain available as immediate changes. The
+renderer only draws when the view changes, except while the turntable is running, and suspends
+rendering in a hidden tab. **Back to skyline** returns to the viewer.
 
 The model is the tower as built, on a squared-up version of its OpenStreetMap plan: two prisms
 split along the north-west to south-east diagonal, each under a glazed roof falling toward
