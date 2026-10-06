@@ -2873,7 +2873,7 @@ describe("geographic layout in the study", () => {
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))
       .toEqual(["geographic", "orthographic", "top"]);
-    expect(await page.locator("#streets").isEnabled()).toBe(true);
+    expect(await page.locator("#streets").isVisible()).toBe(true);
     // In plan, an XY point at the roof and ground must have identical screen
     // coordinates; orthographic projection keeps equal distances at all heights.
     const plan = await page.evaluate(() => {
@@ -2937,6 +2937,10 @@ describe("geographic layout in the study", () => {
     for (const layout of ["original", "geographic"]) {
       await page.locator(`[data-layout="${layout}"]`).click();
       expect(await page.evaluate(() => window.__buildingStudy!.groundShadows), "toggle preserves ground shadows in an elevated custom view").toBe(true);
+      // Only the geographic layout maps streets, so its toggle is left out of the original one.
+      const geographic = layout === "geographic";
+      await page.locator("#streets").waitFor({ state: geographic ? "visible" : "hidden" });
+      expect(await page.locator("#streets").isVisible(), `streets toggle in the ${layout} layout`).toBe(geographic);
     }
     // The geographic platform and every building stay inside the light's shadow camera.
     const shadowBounds = await page.evaluate(() => window.__buildingStudy!.shadowBounds);
@@ -2958,6 +2962,7 @@ describe("geographic layout in the study", () => {
   test("respects reduced motion and stays idle on mobile", async () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.locator('[data-layout="geographic"]').click();
+    await page.locator("#turntable").waitFor({ state: "hidden" });
     expect(await page.locator("#turntable").isHidden()).toBe(true);
     expect(await page.evaluate(() => window.__buildingStudy!.turning)).toBe(false);
     await page.setViewportSize({ width: 390, height: 844 });
