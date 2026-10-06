@@ -460,11 +460,13 @@ describe("full-screen 3D skyline", () => {
     watch(page);
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
+    // Each building's whole rendered extent, footprint to roof, not only a point on it.
     const inFrame = async (label: string) => {
+      await settle(page);
       const outside: string[] = [];
       for (const { id } of geographicBuildings) {
-        const [u, v] = await page.evaluate((building) => window.__buildingStudy!.projectPoint(building, [0, 0, 0]), id);
-        if (!(u > 0 && u < 1 && v > 0 && v < 1)) outside.push(`${id} at ${u.toFixed(3)}, ${v.toFixed(3)}`);
+        const [left, top, right, bottom] = await page.evaluate((building) => window.__buildingStudy!.screenBounds(building), id);
+        if (!(left > 0 && top > 0 && right < 1 && bottom < 1)) outside.push(`${id} spans ${[left, top, right, bottom].map((value) => value.toFixed(3)).join(", ")}`);
       }
       expect(outside, `every building stays in frame zoomed out in ${label}`).toEqual([]);
     };

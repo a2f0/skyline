@@ -23,6 +23,8 @@ export interface BuildingStudyApi {
   selectedBuilding: string | null;
   shadowBounds: { min: number[]; max: number[] };
   projectPoint(buildingId: string, coordinates: number[]): [number, number];
+  // A building's rendered extent, left, top, right, bottom, in projectPoint's frame units.
+  screenBounds(buildingId: string): [number, number, number, number];
   cameraPosition: number[];
   highlighted: boolean;
   turning: boolean;
@@ -672,6 +674,26 @@ export function createBuildingStudy({
       const model = models.find((entry) => entry.building.userData["buildingId"] === buildingId)!;
       const point = model.building.localToWorld(new THREE.Vector3(...coordinates)).project(camera);
       return [(point.x + 1) / 2, (1 - point.y) / 2];
+    },
+    screenBounds(buildingId) {
+      // Every vertex, since geographic models carry their placement in their geometry.
+      const model = models.find((entry) => entry.building.userData["buildingId"] === buildingId)!;
+      const bounds: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
+      const point = new THREE.Vector3();
+      camera.updateMatrixWorld();
+      model.building.updateMatrixWorld(true);
+      model.building.traverse((child) => {
+        const mesh = child as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        const positions = mesh.geometry.getAttribute("position");
+        for (let i = 0; i < positions.count; i += 1) {
+          point.fromBufferAttribute(positions, i).applyMatrix4(mesh.matrixWorld).project(camera);
+          const u = (point.x + 1) / 2, v = (1 - point.y) / 2;
+          bounds[0] = Math.min(bounds[0], u); bounds[1] = Math.min(bounds[1], v);
+          bounds[2] = Math.max(bounds[2], u); bounds[3] = Math.max(bounds[3], v);
+        }
+      });
+      return bounds;
     },
     get cameraPosition() { return camera.position.toArray(); },
     get highlighted() { return Boolean(selectedModel); },
