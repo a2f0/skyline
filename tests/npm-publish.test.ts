@@ -38,21 +38,38 @@ describe("npm publish decision", () => {
 });
 
 interface Step { uses?: string; run?: string; with?: Record<string, unknown> }
-interface Job { permissions?: Record<string, string>; environment?: string; steps: Step[] }
-interface Workflow { permissions: Record<string, string>; jobs: Record<string, Job> }
+interface Job { permissions?: Record<string, string>; environment?: string; needs?: string; if?: string; steps: Step[] }
+interface Workflow { permissions: Record<string, string>; concurrency: { group: string; "cancel-in-progress": boolean }; jobs: Record<string, Job> }
 
 describe("the publish workflow", () => {
   const workflow = Bun.YAML.parse(readFileSync(path.join(root, ".github/workflows/npm-publish.yml"), "utf8")) as Workflow;
-  const { check, publish } = workflow.jobs as { check: Job; publish: Job };
+  const { test: tests, pack, publish } = workflow.jobs as { test: Job; pack: Job; publish: Job };
 
   test("gives only the publish job, in the npm environment, the token npm accepts", () => {
     expect(workflow.permissions).toEqual({});
-    expect(check.permissions).toEqual({ contents: "read" });
+    expect(Object.keys(workflow.jobs)).toEqual(["test", "pack", "publish"]);
+    expect(tests.permissions).toEqual({ contents: "read" });
+    expect(pack.permissions).toEqual({ contents: "read" });
     expect(publish.permissions).toEqual({ "id-token": "write" });
     expect(publish.environment).toBe("npm");
   });
 
-  test("publishes the checked tarball without running repository code", () => {
+  test("runs the full suite before packing, and packs only on main", () => {
+    expect(tests.if).toBeUndefined();
+    expect(tests.steps.map((step) => step.run).filter(Boolean)).toEqual([
+      "bun install --frozen-lockfile --ignore-scripts", "bun run check",
+    ]);
+    expect(pack.needs).toBe("test");
+    expect(pack.if).toBe("github.ref == 'refs/heads/main'");
+    expect(publish.needs).toBe("pack");
+    expect(publish.if).toBe("needs.pack.outputs.publish == 'true'");
+  });
+
+  test("queues runs per ref, so a branch's test run never displaces a pending publish", () => {
+    expect(workflow.concurrency).toEqual({ group: "${{ github.workflow }}-${{ github.ref }}", "cancel-in-progress": false });
+  });
+
+  test("publishes the packed tarball without running repository code", () => {
     // The trusted publisher's token must never be reachable from a checkout,
     // an install, or a package script. Without ./, npm reads the tarball path
     // as a GitHub owner/repo shorthand and tries to clone it.
@@ -63,8 +80,10 @@ describe("the publish workflow", () => {
 
   test("builds with the Bun version mise.toml pins", () => {
     const pinned = /^bun = "([^"]+)"$/m.exec(readFileSync(path.join(root, "mise.toml"), "utf8"))?.[1];
-    const setup = check.steps.find((step) => step.uses?.startsWith("oven-sh/setup-bun@"));
     expect(pinned).toBeDefined();
-    expect(setup?.with?.["bun-version"]).toBe(pinned);
+    for (const job of [tests, pack]) {
+      const setup = job.steps.find((step) => step.uses?.startsWith("oven-sh/setup-bun@"));
+      expect(setup?.with?.["bun-version"]).toBe(pinned);
+    }
   });
 });
