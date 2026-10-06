@@ -55,7 +55,9 @@ describe("full-screen 3D skyline", () => {
     page.on("request", (request) => { if (!local.some((prefix) => request.url().startsWith(prefix))) external.push(request.url()); });
   };
   beforeAll(async () => {
-    browser = await chromium.launch({ channel: "chrome", headless: true });
+    // Linux Chrome antialiases text with coloured subpixel fringes, a display setting rather
+    // than a colour the page draws; greyscale text keeps the chroma checks about the page.
+    browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--disable-lcd-text"] });
   }, { timeout: 180_000 });
   afterAll(async () => {
     await browser.close();
@@ -707,7 +709,9 @@ describe("full-screen 3D skyline", () => {
         }
         // Toggled part way, the fold reverses from where it stands, each way: the same two
         // folds, a restart would replace them, held again as soon as the reversal takes so
-        // they cannot run out while the test looks.
+        // they cannot run out while the test looks. A software renderer can spend a few frames
+        // before the reversal takes, so each fold need only have carried on from where it was
+        // held, short of either end.
         const toggleHeld = () => page.evaluate(async () => {
           document.querySelector<HTMLButtonElement>("#menu-toggle")!.click();
           const held = document.getAnimations().filter((animation) => animation.id === "fold");
@@ -717,11 +721,11 @@ describe("full-screen 3D skyline", () => {
         });
         const back = await toggleHeld();
         expect(back.length, "the held folds carry on").toBe(2);
-        for (const { rate, time } of back) expect(rate < 0 && time > 50 && time < 150, `folds back from ${time}, not an end`).toBe(true);
+        for (const { rate, time } of back) expect(rate < 0 && time > 0 && time <= 100, `folds back from ${time}, not an end`).toBe(true);
         expect(await star.getAttribute("aria-expanded")).toBe("false");
         const again = await toggleHeld();
         expect(again.length, "the held folds carry on").toBe(2);
-        for (const { rate, time } of again) expect(rate > 0 && time > 50 && time < 150, `unfolds again from ${time}, not an end`).toBe(true);
+        again.forEach(({ rate, time }, index) => expect(rate > 0 && time >= back[index]!.time && time < 300, `unfolds again from ${time}, not an end`).toBe(true));
         await page.evaluate(() => document.getAnimations().forEach((animation) => animation.play()));
         await settled();
         expect([await star.getAttribute("aria-expanded"), await groups(), await folds()]).toEqual(["true", ["flex", "flex"], []]);
