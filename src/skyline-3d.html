@@ -79,20 +79,23 @@
       </div>
     </footer>
     <script>
-      // ?controls=open, on this page's address or on the viewer that frames it, starts the bar
-      // open from its first frame, with no fold; skyline-3d.ts folds it from there.
+      // Settings from this page's address, then from the viewer that frames it, applied before
+      // the bar's first frame. ?controls=open starts the bar open, with no fold; skyline-3d.ts
+      // folds it from there. ?attribution=hidden leaves out the OpenStreetMap credit.
       (() => {
-        let controls = new URLSearchParams(location.search).get("controls");
+        const settings = new URLSearchParams(location.search);
         try {
-          if (!controls && parent !== window && parent.document.querySelector("#skyline-3d-scene")?.contentWindow === window) {
-            controls = new URLSearchParams(parent.location.search).get("controls");
+          if (parent !== window && parent.document.querySelector("#skyline-3d-scene")?.contentWindow === window) {
+            for (const [key, value] of new URLSearchParams(parent.location.search)) if (!settings.has(key)) settings.set(key, value);
           }
         } catch { /* A scene embedded on another origin reads only its own address. */ }
-        if (controls !== "open") return;
-        const toggle = document.querySelector("#menu-toggle");
-        toggle.setAttribute("aria-expanded", "true");
-        toggle.title = "Hide the controls";
-        document.querySelector(".control-bar").classList.add("open");
+        if (settings.get("controls") === "open") {
+          const toggle = document.querySelector("#menu-toggle");
+          toggle.setAttribute("aria-expanded", "true");
+          toggle.title = "Hide the controls";
+          document.querySelector(".control-bar").classList.add("open");
+        }
+        if (settings.get("attribution") === "hidden") document.querySelector(".attribution").hidden = true;
       })();
     </script>
     <div class="tooltip" id="tooltip" aria-hidden="true" hidden></div>

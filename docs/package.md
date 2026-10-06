@@ -113,6 +113,11 @@ toolbar and study links so they do not overlap the host's navigation. Set
 loading silhouette, star controls, original comparison, and building details.
 The scene's control bar starts folded behind its star; set `controls: 'open'` to
 start it open, with no fold, from its first frame. Visitors can still fold it.
+Open, the bar shows the camera hint and the OpenStreetMap credit for the streets
+and footprints. Set `attribution: false` to leave the credit out. OpenStreetMap's
+[licence](https://www.openstreetmap.org/copyright) requires crediting its contributors
+wherever its data is shown, so do this only when the host page credits
+© OpenStreetMap contributors itself.
 A small independent **show original** button remains available until the first
 3D frame succeeds, and reappears if the graphics context is lost. The SVG stays
 reachable even if WebGL, the scene document, or its bootstrap script cannot load.
