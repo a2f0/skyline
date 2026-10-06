@@ -27,7 +27,7 @@ async function main() {
     if (baseSha) await run("git", ["diff", "--check", `${baseSha}...HEAD`]);
   });
   await timings.run("agents:check", () => run(process.execPath, ["run", "agents:check"]));
-  await timings.run("agent-tool:config", () => run(process.execPath, [path.join(root, "node_modules/agent-tool/src/index.ts"), "config", "show"]));
+  await timings.run("agent-tool:config", () => run(process.execPath, [path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts"), "config", "show"]));
   // The strictest-config typecheck over the whole repository.
   await timings.run("typecheck", () => run(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]));
   await suite("check-coauthors.test.ts");
@@ -35,6 +35,7 @@ async function main() {
   await suite("timings.test.ts");
   await suite("building-fidelity-skill.test.ts");
   await suite("merge-pr.test.ts");
+  await suite("npm-publish.test.ts");
   await suite("verify-deploy.test.ts");
   await suite("grayscale.test.ts");
   await timings.run("reference-svg", () => run(process.execPath, ["scripts/reference-svg.ts", "--check"]));

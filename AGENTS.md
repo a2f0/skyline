@@ -64,6 +64,15 @@ new top-level runtime files in `src/` there or they will not ship. Top-level
 `.secrets/root.env`; content deploys use Wrangler's own stored credentials, and
 neither is ever committed.
 
+Each merge also releases the package to npm as `@a2f0/skyline`:
+`.github/workflows/npm-publish.yml` publishes `package.json`'s version whenever
+it is newer than npm's latest, through npm trusted publishing from the `npm`
+environment, which only `main` can deploy to; no npm token is stored. It packs
+and checks the tarball without publish rights and hands only that file to the
+publish job. After a merge, verify the "Publish npm package" run for the merge
+commit and that npm lists the merged version; report a failed publish
+separately from the merge. `docs/package.md` covers releases.
+
 Fitted skyline models build on `src/models/building-kit.ts`: plan runs and a builder
 whose solids are closed unless a call names a face another surface covers.
 `tests/building-kit.test.ts` checks those covers and fails on same-facing coplanar
@@ -80,12 +89,13 @@ indexed by `docs/README.md`; add new pages there. Building reference audits
 stay at `docs/<name>-reference.md`, because model sources and building records
 cite those paths.
 
-PR workflows come from the commit-pinned `a2f0/agent-tool` dev dependency.
-`bun run agents:sync` installs managed regular-file copies in `.agents/skills`
-and `.claude/skills`; `.agent-tool-skills.json` records ownership. Do not edit
-those copies. Keep Skyline-specific policy here. To upgrade, update the package
-pin, run `bun install --ignore-scripts` and `bun run agents:sync`, then commit
-the dependency, lockfile, both skill directories, and manifest together.
+PR workflows come from the `@a2f0/agent-tool` dev dependency, pinned to an
+exact npm version. `bun run agents:sync` installs managed regular-file copies in
+`.agents/skills` and `.claude/skills`; `.agent-tool-skills.json` records
+ownership. Do not edit those copies. Keep Skyline-specific policy here. To
+upgrade, update the package version, run `bun install --ignore-scripts` and
+`bun run agents:sync`, then commit the dependency, lockfile, both skill
+directories, and manifest together.
 `bun run agents:check` checks drift without writing; the check runner and
 installed pre-push hook run it too. Reinstall hooks after changing their source.
 This gate checks the current checkout, not arbitrary pushed refs or every
@@ -119,8 +129,14 @@ supports same-repository PRs whose remote and local feature branch names match.
 branding in PR content, and gives each independent review 20 minutes. Poll
 review processes in short intervals so progress updates remain possible; a
 quiet output file is not failure, and an incomplete verdict is never clean.
-Skyline has no GitHub CI workflows, so `merge.requireChecks` is explicitly
-false; all reported checks must still pass. `gh pr checks --watch --fail-fast`
+Its `versions` policy versions the root package: each shipped PR carries
+`package.json` one patch past the pinned base, and a deliberate minor or major
+bump is kept. Run `bun run agent-tool versions prepare <pinned-base-sha>` after
+every integration or repair and before each review; it commits the bump as
+`chore: bump package versions`.
+Skyline has no pull-request CI (its only workflow publishes to npm from
+`main`), so `merge.requireChecks` is explicitly false; all reported checks must
+still pass. `gh pr checks --watch --fail-fast`
 reports "no checks reported" here; confirm an empty `statusCheckRollup` before
 treating that as expected, rather than ignoring failed or pending checks.
 `SKYLINE_BASE_SHA=<pinned-base-sha> bun run check` is required locally before
@@ -134,7 +150,8 @@ ancestor of HEAD, and verify a clean checkout and matching local/PR reviewed
 heads. Stop and refresh, validate, and review if any identity differs.
 Merge through Skyline's thin guard wrapper:
 `bun scripts/merge-pr.ts <reviewed-head> <base-branch> <reviewed-base-sha>`.
-It enforces checkout/head/base/ancestry and immediate merge readiness, delegates
+It enforces checkout/head/base/ancestry, immediate merge readiness, and the
+prepared version (`versions check` against the reviewed base), delegates
 CI and the subject-only squash to agent-tool, then verifies MERGED and the
 stored title with PR-number suffix before cleanup. `tests/merge-pr.test.ts`
 covers these project guards. The wrapper passes a nonempty title directly to
@@ -149,8 +166,9 @@ SHA and the squash's tree, then return to the updated default branch.
 Record the shipping start time and feature branch, then print this session's
 timings even after cleanup: `bun scripts/show-timings.ts --branch <branch>
 --since <start-iso>`. Include PR link, reviewer and fallback, repairs, validation,
-squash subject/SHA, checkout and branch cleanup, and the timing table in the
-shipping report. Deploys are manual; run them when requested.
+squash subject/SHA, the npm publish run and version, checkout and branch
+cleanup, and the timing table in the shipping report. Cloudflare deploys are
+manual; run them when requested.
 
 Independent reviews should cover correctness, hover/occlusion and coordinate
 handling, SVG/WebGL consistency, reduced motion, local asset loading,

@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
+const agentTool = path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts");
 export type Runner = (file: string, args: string[]) => string;
 const command: Runner = (file, args) => {
   if (file === process.execPath) {
@@ -62,8 +63,12 @@ export function mergePr(args: string[], run: Runner = command): string {
   // This is a live API read, not a potentially stale remote-tracking ref.
   const liveBase = run("gh", ["api", `repos/${repo}/git/ref/heads/${encodeURIComponent(base)}`, "--jq", ".object.sha"]);
   if (liveBase !== baseSha) throw new Error("Base advanced before merge; synchronize and re-review.");
+  // Every merge publishes package.json's version to npm, so it must be the one
+  // ship-pr prepared against this base: without it the merge releases nothing,
+  // or claims a version the base already shipped.
+  run(process.execPath, [agentTool, "versions", "check", baseSha]);
   cleanHead();
-  run(process.execPath, [path.join(root, "node_modules/agent-tool/src/index.ts"), "pr", "merge", pr.title, head, base]);
+  run(process.execPath, [agentTool, "pr", "merge", pr.title, head, base]);
   const merged = readPr();
   if (merged.number !== pr.number || merged.headRefOid !== head || merged.state !== "MERGED" || !merged.mergeCommit?.oid) {
     throw new Error("GitHub did not confirm the reviewed PR merged; inspect before cleanup.");

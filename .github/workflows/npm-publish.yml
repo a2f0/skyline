@@ -1,0 +1,98 @@
+name: Publish npm package
+
+# Publishes @a2f0/skyline with npm trusted publishing: npm exchanges the
+# publish job's GitHub OIDC token for a short-lived publish token and attaches
+# provenance, so no npm token or one-time password is stored anywhere. The
+# trusted publisher on npmjs.com names this file and the `npm` environment.
+# ship-pr bumps package.json's version on every merge. Adapted from agent-tool's
+# npm-publish.yml; this package is built, so the check job packs the tarball
+# and the publish job receives only that.
+on:
+  push:
+    branches: [main]
+    paths:
+      - package.json
+      - .github/workflows/npm-publish.yml
+  workflow_dispatch:
+
+permissions: {}
+
+# Publish one version at a time, and never cancel a publish in progress.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  # Dependencies, the build, and the tests run without id-token, so no code
+  # they execute can request the token npm exchanges for publish rights.
+  check:
+    name: Check @a2f0/skyline
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      publish: ${{ steps.decide.outputs.publish }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The version mise.toml pins; tests/npm-publish.test.ts keeps them equal.
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.11
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.21.0
+          package-manager-cache: false
+      # Publish only a version newer than npm's latest, so re-runs and
+      # out-of-order runs succeed without publishing.
+      - id: decide
+        run: bun scripts/npm-publish-decision.ts
+      - if: steps.decide.outputs.publish == 'true'
+        run: bun install --frozen-lockfile --ignore-scripts
+      - if: steps.decide.outputs.publish == 'true'
+        run: bun run typecheck
+      # Builds lib/ and site/, packs them, and drives the packed viewer in the
+      # runner's Google Chrome. The merge already passed the full `bun run check`.
+      - if: steps.decide.outputs.publish == 'true'
+        run: bun run check:package
+      - if: steps.decide.outputs.publish == 'true'
+        run: |
+          bun run build:package
+          mkdir -p "$RUNNER_TEMP/package"
+          npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/package"
+      - if: steps.decide.outputs.publish == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/package/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish @a2f0/skyline
+    needs: check
+    if: needs.check.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    # Restricted to main in the repository settings, so a workflow edited on
+    # another branch cannot obtain a token npm accepts.
+    environment: npm
+    permissions:
+      id-token: write
+    steps:
+      # Only the packed tarball, verified against its upload digest: nothing
+      # from the repository is checked out, installed, or run here.
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: npm-package
+          path: package
+      # Trusted publishing needs npm 11.5.1 or later; Node 24.21.0 ships 11.19.0.
+      # No registry-url: its .npmrc would point npm at an empty NODE_AUTH_TOKEN.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.21.0
+          package-manager-cache: false
+      # The ./ matters: npm reads a bare `package/<file>.tgz` as a GitHub
+      # owner/repo shorthand and tries to clone it.
+      - run: npm publish ./package/*.tgz --ignore-scripts
