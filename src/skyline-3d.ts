@@ -38,6 +38,10 @@ const viewer = createBuildingStudy({
   near: 10,
   far: 10000,
   minimumDistanceRatio: 0.1,
+  // Twice the viewer's default reach, so the whole mapped city sits well inside the frame
+  // from every view.
+  maximumDistanceRatio: 4,
+  minimumZoom: 0.25,
   maximumZoom: 24,
   enablePan: true,
   minimumCameraHeight: 1,

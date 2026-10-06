@@ -91,7 +91,11 @@ interface BuildingStudyOptions {
   near?: number;
   far?: number;
   clippingMargin?: number | null;
+  // The zoom range: how near and how far the eye may come, as fractions of the fitted
+  // distance, and the matching orthographic zooms.
   minimumDistanceRatio?: number;
+  maximumDistanceRatio?: number;
+  minimumZoom?: number;
   maximumZoom?: number;
   enablePan?: boolean;
   target?: Vec3;
@@ -124,6 +128,8 @@ export function createBuildingStudy({
   far = 2000,
   clippingMargin = null,
   minimumDistanceRatio = 0.48,
+  maximumDistanceRatio = 2,
+  minimumZoom = 0.5,
   maximumZoom = 4,
   enablePan = false,
   target = [0, 85, 0],
@@ -352,7 +358,7 @@ export function createBuildingStudy({
     // A preset may look up further than free orbiting allows; OrbitControls
     // would otherwise clamp it on its first update.
     controls.maxPolarAngle = Math.max(Math.PI * 0.52, view.polar);
-    controls.minZoom = 0.5;
+    controls.minZoom = minimumZoom;
     controls.maxZoom = maximumZoom;
     camera.zoom = 1;
     setGroundShadows(name !== "top");
@@ -394,7 +400,7 @@ export function createBuildingStudy({
       controls.panSpeed = 1;
     } else shiftLens(width, height, aspect);
     controls.minDistance = fittedDistance * minimumDistanceRatio;
-    controls.maxDistance = fittedDistance * 2;
+    controls.maxDistance = fittedDistance * maximumDistanceRatio;
     updateClipping();
     camera.updateProjectionMatrix();
     if (activeView) positionView(activeView);
