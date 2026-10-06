@@ -868,6 +868,47 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
+  test("starts with the controls open when its address or the viewer's asks, and folds them from there", async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    watch(page);
+    const state = (frame: Page | Frame) => frame.evaluate(() => ({
+      expanded: document.querySelector("#menu-toggle")!.getAttribute("aria-expanded"),
+      title: document.querySelector<HTMLButtonElement>("#menu-toggle")!.title,
+      groups: [...document.querySelectorAll(".control-bar .button-group")].map((element) => getComputedStyle(element).display),
+      hint: document.querySelector("#camera-hint")!.checkVisibility(),
+      folds: document.getAnimations().filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group")).length,
+    }));
+    const open = { expanded: "true", title: "Hide the controls", groups: ["flex", "flex"], hint: true, folds: 0 };
+    const closed = { expanded: "false", title: "Show the controls", groups: ["none", "none"], hint: false, folds: 0 };
+    // Open from the first frame the bar paints in, while the scene's code is still on its way,
+    // and still open, unfolded rather than folding in, once the scene is ready.
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => { release = resolve; });
+    await page.route("**/skyline-3d.js", async (route) => { await held; await route.continue(); });
+    await page.goto(`${origin}/skyline-3d.html?controls=open`, { waitUntil: "domcontentloaded" });
+    expect(await state(page)).toEqual(open);
+    release();
+    await page.waitForFunction(() => window.__buildingStudy?.ready);
+    await page.unroute("**/skyline-3d.js");
+    expect(await state(page)).toEqual(open);
+    // The star folds a bar that started open like any other.
+    await page.locator("#menu-toggle").click();
+    await page.waitForFunction(() => !document.querySelector(".control-bar")!.classList.contains("open"));
+    expect(await state(page)).toEqual(closed);
+    // Any other value, or none, leaves the bar closed.
+    for (const query of ["", "?controls=closed", "?controls=wide"]) {
+      await page.goto(`${origin}/skyline-3d.html${query}`);
+      await page.waitForFunction(() => window.__buildingStudy?.ready);
+      expect(await state(page), query).toEqual(closed);
+    }
+    // The viewer passes its own address's choice to the scene it frames.
+    await page.goto(`${origin}/index.html?controls=open`);
+    expect(await state(await openScene(page))).toEqual(open);
+    await page.goto(`${origin}/index.html`);
+    expect(await state(await openScene(page))).toEqual(closed);
+    await page.close();
+  }, { timeout: 120_000 });
+
   test("opens stacked groups in place and centred, and settles a fold the window resizes under", async () => {
     const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
     watch(page);

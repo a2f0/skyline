@@ -9,6 +9,8 @@ export interface SkylineOptions {
   title?: string;
   /** Show the standalone toolbar and study links. Hidden by default when embedded. */
   navigation?: boolean;
+  /** Start the 3D scene's control bar open, or folded behind its star. Closed by default. */
+  controls?: "open" | "closed";
 }
 
 export interface SkylineInstance {
@@ -23,7 +25,8 @@ export interface SkylineInstance {
  * this module never touches the DOM; call it after mounting a browser component.
  * The container controls placement and size. Destroy it when that component leaves.
  */
-export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", navigation = false }: SkylineOptions): SkylineInstance {
+export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", navigation = false, controls = "closed" }: SkylineOptions): SkylineInstance {
+  if (controls !== "open" && controls !== "closed") throw new TypeError('Skyline controls must be "open" or "closed".');
   const document = container.ownerDocument;
   const base = new URL(assetsUrl, document.baseURI);
   if (!/^(https?:)$/.test(base.protocol)) throw new TypeError("Skyline assets must be served over HTTP or HTTPS.");
@@ -34,6 +37,7 @@ export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Inter
   element.title = title;
   const viewerUrl = new URL("index.html", base);
   if (!navigation) viewerUrl.searchParams.set("embed", "1");
+  if (controls === "open") viewerUrl.searchParams.set("controls", "open");
   element.src = viewerUrl.href;
   element.allowFullscreen = true;
   element.style.cssText = "display:block;width:100%;height:100%;border:0";

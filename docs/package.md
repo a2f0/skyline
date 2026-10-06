@@ -111,6 +111,8 @@ controls from the application's header and CSS. Embedding hides the standalone
 toolbar and study links so they do not overlap the host's navigation. Set
 `navigation: true` to show them. It retains stars, the traced
 loading silhouette, star controls, original comparison, and building details.
+The scene's control bar starts folded behind its star; set `controls: 'open'` to
+start it open, with no fold, from its first frame. Visitors can still fold it.
 A small independent **show original** button remains available until the first
 3D frame succeeds, and reappears if the graphics context is lost. The SVG stays
 reachable even if WebGL, the scene document, or its bootstrap script cannot load.

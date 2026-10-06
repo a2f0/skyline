@@ -78,6 +78,23 @@
         </div>
       </div>
     </footer>
+    <script>
+      // ?controls=open, on this page's address or on the viewer that frames it, starts the bar
+      // open from its first frame, with no fold; skyline-3d.ts folds it from there.
+      (() => {
+        let controls = new URLSearchParams(location.search).get("controls");
+        try {
+          if (!controls && parent !== window && parent.document.querySelector("#skyline-3d-scene")?.contentWindow === window) {
+            controls = new URLSearchParams(parent.location.search).get("controls");
+          }
+        } catch { /* A scene embedded on another origin reads only its own address. */ }
+        if (controls !== "open") return;
+        const toggle = document.querySelector("#menu-toggle");
+        toggle.setAttribute("aria-expanded", "true");
+        toggle.title = "Hide the controls";
+        document.querySelector(".control-bar").classList.add("open");
+      })();
+    </script>
     <div class="tooltip" id="tooltip" aria-hidden="true" hidden></div>
     <div class="context-menu" id="building-menu" hidden>
       <p class="context-menu-title" id="building-menu-title"></p>
