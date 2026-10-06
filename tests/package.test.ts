@@ -197,6 +197,13 @@ window.mountFixture();
           await openedScene.waitForFunction(() => window.__buildingStudy?.ready);
           expect(await openedScene.locator("#menu-toggle").getAttribute("aria-expanded")).toBe("true");
           expect(await openedScene.locator("#camera-views").isVisible()).toBe(true);
+          expect(await openedScene.locator(".attribution").isVisible(), "the OpenStreetMap credit shows by default").toBe(true);
+          await page.evaluate(() => (window as unknown as { mountFixture(options: object): void }).mountFixture({ controls: "open", attribution: false }));
+          const uncredited = (await (await page.locator("#host > iframe").elementHandle())!.contentFrame())!;
+          const uncreditedScene = (await (await uncredited.locator("#skyline-3d-scene").elementHandle())!.contentFrame())!;
+          await uncreditedScene.waitForFunction(() => window.__buildingStudy?.ready);
+          expect(await uncreditedScene.locator(".attribution").isHidden()).toBe(true);
+          expect(await uncreditedScene.locator("#camera-hint").isVisible()).toBe(true);
           expect(await page.evaluate(() => { try { (window as unknown as { mountFixture(options: object): void }).mountFixture({ controls: "wide" }); return ""; } catch (error) { return String(error); } }))
             .toBe('TypeError: Skyline controls must be "open" or "closed".');
           await page.evaluate(() => (window as unknown as { mountFixture(options: object): void }).mountFixture({ navigation: true }));

@@ -909,6 +909,28 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 120_000 });
 
+  test("leaves out the OpenStreetMap credit only when its address or the viewer's asks", async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: "reduce" });
+    watch(page);
+    const notes = async (frame: Page | Frame) => ({ credit: await frame.locator(".attribution").isVisible(), hint: await frame.locator("#camera-hint").isVisible() });
+    // With the controls open, where the credit shows: only ?attribution=hidden leaves it out.
+    for (const [query, credit] of [["", true], ["&attribution=shown", true], ["&attribution=wide", true], ["&attribution=hidden", false]] as const) {
+      await page.goto(`${origin}/skyline-3d.html?controls=open${query}`);
+      await page.waitForFunction(() => window.__buildingStudy?.ready);
+      expect(await notes(page), query).toEqual({ credit, hint: true });
+    }
+    // Left out, it stays out when the controls fold and open again.
+    const star = page.locator("#menu-toggle");
+    await star.click();
+    expect(await notes(page)).toEqual({ credit: false, hint: false });
+    await star.click();
+    expect(await notes(page)).toEqual({ credit: false, hint: true });
+    // The viewer passes its own address's choice to the scene it frames.
+    await page.goto(`${origin}/index.html?controls=open&attribution=hidden`);
+    expect(await notes(await openScene(page))).toEqual({ credit: false, hint: true });
+    await page.close();
+  }, { timeout: 120_000 });
+
   test("opens stacked groups in place and centred, and settles a fold the window resizes under", async () => {
     const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
     watch(page);

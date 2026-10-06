@@ -11,6 +11,12 @@ export interface SkylineOptions {
   navigation?: boolean;
   /** Start the 3D scene's control bar open, or folded behind its star. Closed by default. */
   controls?: "open" | "closed";
+  /**
+   * Show the OpenStreetMap credit with the 3D scene's controls. Shown by default. OpenStreetMap's
+   * licence requires that credit wherever its data appears, so hide it only when the host page
+   * credits OpenStreetMap contributors itself.
+   */
+  attribution?: boolean;
 }
 
 export interface SkylineInstance {
@@ -25,7 +31,7 @@ export interface SkylineInstance {
  * this module never touches the DOM; call it after mounting a browser component.
  * The container controls placement and size. Destroy it when that component leaves.
  */
-export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", navigation = false, controls = "closed" }: SkylineOptions): SkylineInstance {
+export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", navigation = false, controls = "closed", attribution = true }: SkylineOptions): SkylineInstance {
   if (controls !== "open" && controls !== "closed") throw new TypeError('Skyline controls must be "open" or "closed".');
   const document = container.ownerDocument;
   const base = new URL(assetsUrl, document.baseURI);
@@ -38,6 +44,7 @@ export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Inter
   const viewerUrl = new URL("index.html", base);
   if (!navigation) viewerUrl.searchParams.set("embed", "1");
   if (controls === "open") viewerUrl.searchParams.set("controls", "open");
+  if (!attribution) viewerUrl.searchParams.set("attribution", "hidden");
   element.src = viewerUrl.href;
   element.allowFullscreen = true;
   element.style.cssText = "display:block;width:100%;height:100%;border:0";

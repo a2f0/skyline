@@ -46,8 +46,11 @@ motion opens and closes it at once, and a window resized mid-fold settles the fo
 
 The bar starts closed. `?controls=open` on the viewer's address, or on `skyline-3d.html` itself,
 starts it open from its first frame instead, with no fold, and the star folds it as usual; any
-other value leaves it closed. A small inline script after the bar sets this before the scene's
-code arrives, and the package's `mountSkyline` passes its `controls` option this way.
+other value leaves it closed. Open, the bar shows the camera hint and the OpenStreetMap credit;
+`?attribution=hidden` leaves the credit out, for a host page that credits OpenStreetMap
+contributors itself, as its licence requires. A small inline script after the bar applies both
+before the scene's code arrives, the scene's own address first, and the package's `mountSkyline`
+passes its `controls` and `attribution` options this way.
 
 Drag to orbit, shift-drag or use two fingers to pan, and scroll or pinch to zoom: in to a tenth of
 a view's framed distance, or out to four times it, where the whole mapped city sits small in the
