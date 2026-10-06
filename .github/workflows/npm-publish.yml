@@ -5,8 +5,8 @@ name: Publish npm package
 # provenance, so no npm token or one-time password is stored anywhere. The
 # trusted publisher on npmjs.com names this file and the `npm` environment.
 # ship-pr bumps package.json's version on every merge. Adapted from agent-tool's
-# npm-publish.yml; this package is built, so the check job packs the tarball
-# and the publish job receives only that.
+# npm-publish.yml; this package is built, so the test job runs the full suite,
+# the pack job packs the tarball, and the publish job receives only that.
 on:
   push:
     branches: [main]
@@ -17,16 +17,43 @@ on:
 
 permissions: {}
 
-# Publish one version at a time, and never cancel a publish in progress.
+# Publish one version at a time, and never cancel a publish in progress. Runs
+# queue per ref, so a test run dispatched on a branch never displaces a pending
+# publish from main.
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   # Dependencies, the build, and the tests run without id-token, so no code
   # they execute can request the token npm exchanges for publish rights.
-  check:
-    name: Check @a2f0/skyline
+  # Testing runs on any ref: dispatching the workflow on a branch tests it
+  # there, while packing and publishing stay on main.
+  test:
+    name: Test @a2f0/skyline
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The version mise.toml pins; tests/npm-publish.test.ts keeps them equal.
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.11
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.21.0
+          package-manager-cache: false
+      - run: bun install --frozen-lockfile --ignore-scripts
+      # Everything a merge must pass locally, including the package suite and
+      # the browser suites in the runner's Google Chrome.
+      - run: bun run check
+
+  pack:
+    name: Pack @a2f0/skyline
+    needs: test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -37,7 +64,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # The version mise.toml pins; tests/npm-publish.test.ts keeps them equal.
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.3.11
@@ -51,12 +77,8 @@ jobs:
         run: bun scripts/npm-publish-decision.ts
       - if: steps.decide.outputs.publish == 'true'
         run: bun install --frozen-lockfile --ignore-scripts
-      - if: steps.decide.outputs.publish == 'true'
-        run: bun run typecheck
-      # Builds lib/ and site/, packs them, and drives the packed viewer in the
-      # runner's Google Chrome. The merge already passed the full `bun run check`.
-      - if: steps.decide.outputs.publish == 'true'
-        run: bun run check:package
+      # Builds lib/ and site/ and packs them; the test job already drove a
+      # packed tarball through the package suite.
       - if: steps.decide.outputs.publish == 'true'
         run: |
           bun run build:package
@@ -72,8 +94,8 @@ jobs:
 
   publish:
     name: Publish @a2f0/skyline
-    needs: check
-    if: needs.check.outputs.publish == 'true'
+    needs: pack
+    if: needs.pack.outputs.publish == 'true'
     runs-on: ubuntu-latest
     # Restricted to main in the repository settings, so a workflow edited on
     # another branch cannot obtain a token npm accepts.

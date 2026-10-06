@@ -193,14 +193,16 @@ ship-pr bumps the `package.json` patch version on every merge (see
 npm's `latest` with [trusted publishing](https://docs.npmjs.com/trusted-publishers) and
 provenance. No npm token is stored: the publish job runs in the `npm` environment, which
 only `main` can deploy to, and npm's trusted publisher names that environment and
-`npm-publish.yml`. A deliberate major or minor bump in a PR is kept. Runs never overlap,
-and when merges land together only the newest pending run starts, so intermediate
+`npm-publish.yml`. A deliberate major or minor bump in a PR is kept. Runs on `main` never
+overlap, and when merges land together only the newest pending run starts, so intermediate
 versions can be skipped on npm.
 
-The workflow installs, typechecks, runs the package suite (`bun run check:package`) in the
-runner's Google Chrome, and packs the tarball, all without publish rights; the publish job
-receives only that tarball and runs `npm publish --ignore-scripts`. The merged commit has
-already passed the full `bun run check`.
+The workflow first runs the full `bun run check`, browser suites included, in the runner's
+Google Chrome. Only when that passes does it build and pack the tarball; both jobs run without
+publish rights, and the publish job receives only that tarball and runs
+`npm publish --ignore-scripts`. Dispatching the workflow on another branch
+(`gh workflow run npm-publish.yml --ref <branch>`) runs only the tests, in a queue of its own,
+so it never displaces a pending publish.
 
 npm adds a trusted publisher only to a package that already exists, so the first version
 is published by hand from an up-to-date `main`. Until then the workflow fails with that

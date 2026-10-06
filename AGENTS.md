@@ -67,11 +67,11 @@ neither is ever committed.
 Each merge also releases the package to npm as `@a2f0/skyline`:
 `.github/workflows/npm-publish.yml` publishes `package.json`'s version whenever
 it is newer than npm's latest, through npm trusted publishing from the `npm`
-environment, which only `main` can deploy to; no npm token is stored. It packs
-and checks the tarball without publish rights and hands only that file to the
-publish job. After a merge, verify the "Publish npm package" run for the merge
-commit and that npm lists the merged version; report a failed publish
-separately from the merge. `docs/package.md` covers releases.
+environment, which only `main` can deploy to; no npm token is stored. It runs
+the full `bun run check`, then packs the tarball, without publish rights, and
+hands only that file to the publish job. After a merge, verify the "Publish
+npm package" run for the merge commit and that npm lists the merged version;
+report a failed publish separately from the merge. `docs/package.md` covers releases.
 
 Fitted skyline models build on `src/models/building-kit.ts`: plan runs and a builder
 whose solids are closed unless a call names a face another surface covers.
