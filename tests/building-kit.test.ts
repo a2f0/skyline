@@ -26,6 +26,9 @@ interface Triangle {
   normals: Vec3[];
   normal: Vec3;
   offset: number;
+  // Bounds padded by the 2 mm plane tolerance; see `meet`.
+  min: Vec3;
+  max: Vec3;
   mesh?: string;
   id?: number;
 }
@@ -39,6 +42,8 @@ function trianglesOf({ positions, normals }: { positions: ArrayLike<number>; nor
       index: i / 9, points, area: length / 2,
       normals: [0, 3, 6].map((k) => [normals[i + k]!, normals[i + k + 1]!, normals[i + k + 2]!] as Vec3),
       normal: g.map((value) => value / (length || 1)) as Vec3, offset: dot(g, points[0]!) / (length || 1),
+      min: [0, 1, 2].map((axis) => Math.min(...points.map((p) => p[axis]!)) - 2e-3) as Vec3,
+      max: [0, 1, 2].map((axis) => Math.max(...points.map((p) => p[axis]!)) + 2e-3) as Vec3,
     });
   }
   return triangles;
@@ -85,6 +90,9 @@ function expectSound(label: string, triangles: Triangle[]) {
 
 // Within 2 mm of a plane, a surface would z-fight with it or close it.
 const onPlane = (triangle: Triangle, { normal, offset }: { normal: Vec3; offset: number }) => triangle.points.every((p) => Math.abs(dot(normal, p) - offset) < 2e-3);
+// Two triangles sharing area within that tolerance share points within 2 mm, so their padded
+// bounds meet. Most coplanar pairs on a facade are far apart, and this skips clipping them.
+const meet = (a: Triangle, b: Triangle) => [0, 1, 2].every((axis) => a.min[axis]! <= b.max[axis]! && b.min[axis]! <= a.max[axis]!);
 
 // Triangles bucketed by plane under both facings, so coplanar neighbors are cheap to find.
 // Tilting a plane by the 0.8° this allows moves its offset by up to 0.0142 per meter from
@@ -102,14 +110,20 @@ function planeIndex(triangles: Triangle[]) {
       cells.get(key)!.push(triangle);
     }
   }
-  return (normal: Vec3, offset: number) => {
-    const [a, b, c, d] = cell(normal, offset) as [number, number, number, number];
+  // Each cell's 81 neighbours, gathered once: a facade asks for the same cell per triangle.
+  const near = new Map<string, Triangle[]>();
+  const gather = ([a, b, c, d]: number[]) => {
     const found = new Set<Triangle>();
     for (let i = 0; i < 81; i += 1) {
       const step = [i % 3, Math.floor(i / 3) % 3, Math.floor(i / 9) % 3, Math.floor(i / 27)].map((value) => value - 1);
-      for (const triangle of cells.get([a + step[0]!, b + step[1]!, c + step[2]!, d + step[3]!].join()) || []) found.add(triangle);
+      for (const triangle of cells.get([a! + step[0]!, b! + step[1]!, c! + step[2]!, d! + step[3]!].join()) || []) found.add(triangle);
     }
-    return [...found].filter((triangle) => Math.abs(dot(triangle.normal, normal)) > 0.9999);
+    return [...found];
+  };
+  return (normal: Vec3, offset: number) => {
+    const at = cell(normal, offset), key = at.join();
+    if (!near.has(key)) near.set(key, gather(at));
+    return near.get(key)!.filter((triangle) => Math.abs(dot(triangle.normal, normal)) > 0.9999);
   };
 }
 
@@ -130,6 +144,20 @@ function overlapArea(a: Triangle, b: Triangle) {
     });
   }
   return polygon.length >= 3 ? Math.abs(signedArea(polygon)) : 0;
+}
+
+// Same-facing pairs of triangles, in or across the meshes, sharing area within 2 mm of either's
+// plane, as the two meshes and a corner of the first.
+function coplanarOverlaps(meshes: { name: string; triangles: Triangle[] }[]) {
+  const triangles = meshes.flatMap((mesh) => mesh.triangles.map((triangle) => ({ ...triangle, mesh: mesh.name })));
+  triangles.forEach((triangle, index) => { triangle.id = index; });
+  const lookup = planeIndex(triangles), overlaps: (string | Vec3 | undefined)[][] = [];
+  for (const a of triangles) {
+    for (const b of lookup(a.normal, a.offset)) {
+      if (b.id! > a.id! && dot(a.normal, b.normal) > 0 && meet(a, b) && (onPlane(b, a) || onPlane(a, b)) && overlapArea(a, b) > 1e-5) overlaps.push([a.mesh, b.mesh, a.points[0]!]);
+    }
+  }
+  return overlaps;
 }
 
 // The omitted face as triangles in its own plane, ear-clipped so a concave face works.
@@ -379,6 +407,26 @@ describe("omission coverage", () => {
   });
 });
 
+describe("coplanar overlap detection", () => {
+  // A unit right triangle in the horizontal plane at height y, facing up or down.
+  const tile = (x: number, y: number, z: number, facing: 1 | -1 = 1) => trianglesOf({
+    positions: facing > 0 ? [x, y, z, x, y, z + 1, x + 1, y, z] : [x, y, z, x + 1, y, z, x, y, z + 1],
+    normals: [0, facing, 0, 0, facing, 0, 0, facing, 0],
+  });
+  test("finds same-facing triangles sharing area in one plane, across meshes", () => {
+    expect(coplanarOverlaps([{ name: "a", triangles: tile(0, 5, 0) }, { name: "b", triangles: tile(0.5, 5, 0) }])).toEqual([["a", "b", [0, 5, 0]]]);
+  });
+  test("finds a pair within the 2 mm tolerance of each other's plane, far from the origin", () => {
+    expect(coplanarOverlaps([{ name: "a", triangles: tile(400, 5, 300) }, { name: "b", triangles: tile(400.5, 5.0015, 300) }]).length).toBe(1);
+  });
+  test("leaves neighbours, opposite facings, and parallel surfaces apart alone", () => {
+    expect(coplanarOverlaps([
+      { name: "a", triangles: tile(0, 5, 0) }, { name: "beside", triangles: tile(1, 5, 0) },
+      { name: "facing down", triangles: tile(0.2, 5, 0, -1) }, { name: "above", triangles: tile(0.2, 5.003, 0) },
+    ])).toEqual([]);
+  });
+});
+
 describe("fitted and geographic models", () => {
   const geographic: Record<string, string> = { "aon-geographic": "Aon", "blue-cross-geographic": "Blue Cross", "borg-warner-geographic": "Borg-Warner", "buckingham-geographic": "Buckingham", "chicago-athletic-association-geographic": "Athletic Association", "crain-geographic": "Crain", "gage-geographic": "Gage", "heritage-geographic": "Heritage", "hyatt-west-tower-geographic": "Hyatt West Tower", "keith-ascher-geographic": "Keith", "keith-ascher-geographic/ascher": "Ascher", "kemper-geographic": "Kemper", "lake-view-geographic": "Lake View", "maclean-center-geographic": "MacLean", "michigan-boulevard-geographic": "Michigan Boulevard", "michigan-plaza-south-geographic": "Michigan Plaza S", "millennium-park-plaza-geographic": "Millennium Park Plaza", "monroe-geographic": "Monroe", "north-michigan-180-geographic": "180 N Michigan", "north-wabash-geographic": "330 N Wabash", "on-the-park-geographic": "340 on the Park", "one-prudential-geographic": "One Prudential", "peoples-gas-geographic": "Peoples Gas", "railway-exchange-geographic": "Railway Exchange", "river-plaza-geographic": "River Plaza", "sheraton-grand-geographic": "Sheraton Grand", "six-north-michigan-geographic": "Six North", "swissotel-geographic": "Swissôtel", "three-illinois-center-geographic": "Three Illinois Center", "trump-geographic": "Trump", "two-illinois-center-geographic": "Two Illinois Center", "two-prudential-geographic": "Two Prudential", "university-club-geographic": "University Club", "willoughby-tower-geographic": "Willoughby" };
   const ids = [...fitted.map((entry) => entry.id), ...Object.keys(geographic)];
@@ -406,15 +454,7 @@ describe("fitted and geographic models", () => {
       // Materials are single-sided, so two same-facing surfaces in one plane z-fight whichever
       // batches they belong to. A pair counts when either lies within 2 mm of the other's plane:
       // a short facet can sit on a long face's plane while the long face's far end leaves the facet's.
-      const triangles = meshesOf(id).flatMap((mesh) => mesh.triangles.map((triangle) => ({ ...triangle, mesh: mesh.name })));
-      triangles.forEach((triangle, index) => { triangle.id = index; });
-      const lookup = planeIndex(triangles), overlaps: (string | Vec3 | undefined)[][] = [];
-      for (const a of triangles) {
-        for (const b of lookup(a.normal, a.offset)) {
-          if (b.id! > a.id! && dot(a.normal, b.normal) > 0 && (onPlane(b, a) || onPlane(a, b)) && overlapArea(a, b) > 1e-5) overlaps.push([a.mesh, b.mesh, a.points[0]!]);
-        }
-      }
-      expect(overlaps.slice(0, 3)).toEqual([]);
+      expect(coplanarOverlaps(meshesOf(id)).slice(0, 3)).toEqual([]);
     }, { timeout: 240_000 });
     test(`covers every omission in ${built[id]?.building.name || id}`, () => {
       const triangles = meshesOf(id).flatMap((mesh) => mesh.triangles);
