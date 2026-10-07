@@ -178,6 +178,16 @@ window.mountNested = () => {
   window.settled.nested = 'pending';
   skyline.ready.then(() => { window.settled.nested = 'ready'; }, (error) => { window.settled.nested = 'rejected: ' + error.message; });
 };
+// A host whose own content is in a closed shadow root: only the viewer's element is in reach.
+window.mountClosed = () => {
+  const closed = document.querySelector('#closed').attachShadow({ mode: 'closed' });
+  closed.innerHTML = '<div style="width:600px;height:400px"></div>';
+  const skyline = mountSkyline(closed.firstElementChild, { assetsUrl: '/nested/skyline' });
+  instances.closed = skyline;
+  window.closedRegion = skyline.element;
+  window.settled.closed = 'pending';
+  skyline.ready.then(() => { window.settled.closed = 'ready'; }, (error) => { window.settled.closed = 'rejected: ' + error.message; });
+};
 window.mountFixture();
 `);
     const bundle = await Bun.build({ entrypoints: [path.join(consumer, "browser.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true });
@@ -194,7 +204,7 @@ window.mountFixture();
       #host,#second{height:100vh;width:100vw}
       button{font-size:80px!important;padding:40px}
       .loading,.control-bar,.skyline-3d{position:static;color:rgb(77,77,77)}
-    </style></head><body><div id="host"></div><div id="second" hidden></div><div id="outer"></div><p class="loading" id="host-loading">host</p><script type="module" src="browser.js"></script></body></html>`);
+    </style></head><body><div id="host"></div><div id="second" hidden></div><div id="outer"></div><div id="closed"></div><p class="loading" id="host-loading">host</p><script type="module" src="browser.js"></script></body></html>`);
     const server = await startServer(publicDirectory);
     let browser: Browser | undefined;
     // The viewer's shadow root in a slot, and its 3D scene's study on the scene's canvas.
@@ -471,6 +481,31 @@ window.mountFixture();
             await page.keyboard.press("f");
             await page.waitForFunction(() => document.fullscreenElement === null);
             await page.evaluate(() => (window as unknown as Hooked).destroyFixture("nested"));
+          }
+          // Mounted inside a host's closed shadow root, a building's menu still takes the press
+          // that chooses its item: here, the detail opens.
+          if (viewport.width >= 600) {
+            await page.evaluate(() => (window as unknown as { mountClosed(): void }).mountClosed());
+            expect(await settled(page, "closed")).toBe("ready");
+            // Code run in the page reaches the viewer only through its element.
+            type Closed = Window & { closedRegion: HTMLElement };
+            await page.evaluate(() => (window as unknown as Closed).closedRegion.scrollIntoView());
+            const point = await page.evaluate(() => {
+              const canvas = (window as unknown as Closed).closedRegion.shadowRoot!.querySelector<HTMLCanvasElement>("#building")!;
+              const box = canvas.getBoundingClientRect(), [u, v] = canvas.__buildingStudy!.projectPoint("layer3", [284, 200, -50]);
+              return { x: box.x + u * box.width, y: box.y + v * box.height };
+            });
+            await page.mouse.click(point.x, point.y, { button: "right" });
+            const item = await page.evaluate(() => {
+              const root = (window as unknown as Closed).closedRegion.shadowRoot!;
+              const box = root.querySelector("#building-detail-link")!.getBoundingClientRect();
+              return { x: box.x + box.width / 2, y: box.y + box.height / 2, shown: !root.querySelector<HTMLElement>("#building-menu")!.hidden };
+            });
+            expect(item.shown).toBe(true);
+            await page.mouse.click(item.x, item.y);
+            await page.waitForFunction(() => (window as unknown as Closed).closedRegion.shadowRoot!.querySelector(".detail-host")?.shadowRoot
+              ?.querySelector<HTMLCanvasElement>("#building")?.__buildingStudy?.ready, null, { timeout: 60_000 });
+            await page.evaluate(() => { (window as unknown as Hooked).destroyFixture("closed"); scrollTo(0, 0); });
           }
           // Without WebGL the scene can't start: `ready` says so, the scene says why, and the
           // drawing stays one press away.

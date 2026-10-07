@@ -265,9 +265,15 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
     if (menu.contains(root.activeElement)) canvas.focus({ preventScroll: true });
     menu.hidden = true;
   }
-  // A press anywhere else on the page closes the menu. Seen from the window, a press inside a
-  // shadow root targets its host, so the press's path says whether it was on the menu.
-  window.addEventListener("pointerdown", (event) => { if (!event.composedPath().includes(menu)) closeMenu(); }, { capture: true, signal });
+  // A press anywhere else on the page closes the menu. The window cannot see inside shadow
+  // roots, the viewer's or a host's closed one around it, so the scene's own root marks a
+  // press on the menu as it passes, and the window closes the menu for any other.
+  let menuPress: Event | null = null;
+  root.addEventListener("pointerdown", (event) => { if (event.composedPath().includes(menu)) menuPress = event; }, { capture: true, signal });
+  window.addEventListener("pointerdown", (event) => {
+    if (event !== menuPress) closeMenu();
+    menuPress = null;
+  }, listening);
   canvas.addEventListener("pointerdown", (event) => {
     press = { x: event.clientX, y: event.clientY, mouse: event.pointerType === "mouse", down: true, moved: false };
   }, listening);
