@@ -23,8 +23,9 @@ which the site never requests. The root holds only repository configuration. Bui
 
 ## Setup
 
-Install Bun (pinned in `mise.toml`; `mise use` installs it), Google Chrome for the browser suites,
-and Node.js 22+ for the package checks and deploys. Then:
+Install the Bun and Node.js versions pinned in `mise.toml`, and Google Chrome for the
+browser suites. Local checks and CI use the same Node.js LTS release; the published
+package continues to support Node.js 22+. Then:
 
 ```sh
 bun install --ignore-scripts
@@ -39,7 +40,8 @@ bun run check
 
 The runner checks managed skill drift and tool configuration, typechecks the repository
 (`tsc --noEmit`), and runs the attribution, hook, timings, merge guard, deploy verification,
-grayscale, skyline-loading, package, reference excerpt, and building kit suites under `bun test`.
+local dependency runtime, grayscale, skyline-loading, package, reference excerpt, and building kit
+suites under `bun test`.
 It then builds `dist/`, starts its own temporary server, and runs the browser suites against the
 compiled site, closing the server afterward.
 
@@ -179,9 +181,10 @@ are there to catch a mistake rather than to defeat an intent.
 ## PR workflow
 
 The [`@a2f0/agent-tool`](https://github.com/a2f0/agent-tool) dev dependency, pinned to an exact npm
-version, supplies the `ship-pr`, `open-pr`, `cross-agent-review`, `squash-merge`, and `reset`
-skills. Invoke `$ship-pr` in Codex or `/ship-pr` in Claude Code to commit, independently review
-and repair, open or resume the PR, squash-merge the reviewed commit, and return to updated `main`;
+version, supplies the `ship-pr`, `open-pr`, `cross-agent-review`, `squash-merge`, `reset`,
+and `update-dependencies` skills. Invoke `$ship-pr` in Codex or `/ship-pr` in Claude Code to
+commit, independently review and repair, open or resume the PR, squash-merge the reviewed
+commit, and return to updated `main`;
 `$open-pr` or `/open-pr` stops with an open PR. Requested report-only reviews or keeping the
 feature branch are honoured.
 
@@ -210,6 +213,42 @@ prepared version (`agent-tool versions check` against the reviewed base). It cal
 merge CLI with the PR title, then confirms the PR merged with its subject-only message;
 `tests/merge-pr.test.ts` covers those guards. `AGENTS.md` gives the full shipping sequence,
 including base-freshness checks and branch cleanup.
+
+## Updating dependencies
+
+Invoke `$update-dependencies` in Codex or `/update-dependencies` in Claude Code.
+The managed skill inventories package and toolchain dependencies, CI pins and
+infrastructure providers, follows upstream migrations and validates compatible
+groups before shipping. Keep `mise.toml` runtime versions and the publish
+workflow aligned. The optional package peer remains the supported r186 series;
+regenerate its standalone browser bundle with `bun run vendor:three` when the
+engine or bundler changes, following [`src/vendor/README.md`](../src/vendor/README.md).
+
+### Temporary security override
+
+Wrangler's Miniflare dependency pins Sharp 0.35.4, which includes the vulnerable
+librsvg described in [GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
+The root `miniflare>sharp` override selects the maintainer's patched 0.35.5 release
+for that dependency alone. Its existing image API and Node requirements remain
+compatible; `tests/dependency-runtime.test.ts` exercises Miniflare's offline
+Images binding under Node, decoding SVG, resizing to PNG and checking dimensions
+and pixel bytes through Sharp's native runtime. It creates no remote bindings.
+`bun run check` runs that regression on developer machines and publishing CI.
+
+Keep the override until a supported Wrangler/Miniflare release selects patched
+Sharp itself. Then remove it, regenerate the lockfile with Bun, and require both
+`bun audit` and the runtime regression to pass. Bun's nested override requires
+the pinned Bun 1.4 runtime and writes lockfile format 3; use the same pin in CI.
+
+Infrastructure updates require a real, complete, non-destructive preview with the
+proposed versions. Do not apply or deploy during an upgrade unless separately
+authorized. Terraform needs the existing backend and `.secrets/root.env`; absent
+credentials or a plan that destroys or replaces a resource means retaining that
+compatibility group's existing versions and reporting it. For Wrangler, run
+`bun run deploy --dry-run`, then separately compare the account, Worker, routes,
+custom domain and bindings with the existing deployment: a bundle dry run alone
+does not prove resource safety. Cloudflare deployment is manual and separate
+from the merge's npm release. See [Deploying](deploying.md).
 
 ## Updating the drawing
 

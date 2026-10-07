@@ -37,6 +37,7 @@ async function main() {
   await suite("merge-pr.test.ts");
   await suite("npm-publish.test.ts");
   await suite("verify-deploy.test.ts");
+  await suite("dependency-runtime.test.ts");
   await suite("grayscale.test.ts");
   await timings.run("reference-svg", () => run(process.execPath, ["scripts/reference-svg.ts", "--check"]));
   await timings.run("skyline-loading", () => run(process.execPath, ["scripts/skyline-loading.ts", "--check"]));
