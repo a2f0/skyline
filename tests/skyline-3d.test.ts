@@ -1245,6 +1245,14 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
+  test("asks for JavaScript when it is off, in the viewer's place", async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, javaScriptEnabled: false });
+    await page.goto(`${origin}/index.html`);
+    expect(await page.locator("#viewer .notice").textContent()).toBe("Enable JavaScript to explore the Chicago skyline.");
+    expect(await page.locator("#viewer .notice").isVisible()).toBe(true);
+    await page.close();
+  });
+
   test("releases a building detail that fails part way through starting", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
     await watch(page);

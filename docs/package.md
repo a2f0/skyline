@@ -163,6 +163,8 @@ lazy loading are safe. Asset URLs may be relative or absolute HTTP(S) directorie
 - The viewer never scrolls the host page: it moves focus with `preventScroll`, and
   its building detail is a non-modal panel (`role="dialog"`, not `aria-modal`), so the
   rest of the page stays usable.
+- It works wherever the host puts it: in the host's own shadow root, open or closed, and
+  under a host's CSS transform, where its menus and tooltip still open at the pointer.
 - Each instance is independent: two viewers can run side by side on one page.
 
 ### React
