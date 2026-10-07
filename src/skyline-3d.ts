@@ -321,11 +321,11 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
       const item = items[next];
       if (!item) return;
       // Focus without scrolling, which could scroll the host page, then bring the item into
-      // the menu's own view.
+      // the menu's own view, in the menu's own CSS pixels, which a host's transform leaves
+      // alone. The menu is the item's offset parent.
       item.focus({ preventScroll: true });
-      const view = menu.getBoundingClientRect(), box = item.getBoundingClientRect(), top = view.top + menu.clientTop;
-      if (box.top < top) menu.scrollTop -= top - box.top;
-      else if (box.bottom > top + menu.clientHeight) menu.scrollTop += box.bottom - top - menu.clientHeight;
+      if (item.offsetTop < menu.scrollTop) menu.scrollTop = item.offsetTop;
+      else if (item.offsetTop + item.offsetHeight > menu.scrollTop + menu.clientHeight) menu.scrollTop = item.offsetTop + item.offsetHeight - menu.clientHeight;
     }
   }, listening);
   detailLink.addEventListener("click", (event) => {

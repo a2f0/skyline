@@ -250,6 +250,20 @@ describe("full-screen 3D skyline", () => {
         expect(last.y + last.height).toBeLessThanOrEqual(menuBox.y + menuBox.height);
         await page.keyboard.press("Space");
         expect(await active()).toBe("thanks");
+        // Scaled by a transform, as a host may scale the viewer, the keys still bring each
+        // item into the short menu's view.
+        await page.evaluate(() => Object.assign(document.body.style, { transform: "scale(0.8)", transformOrigin: "0 0" }));
+        await settle(scene);
+        await open();
+        const scaled = (await scene.locator("#building-menu").boundingBox())!;
+        expect(scaled.y + scaled.height, "the scaled menu fits the scaled scene").toBeLessThanOrEqual(220 * 0.8);
+        for (const key of ["End", "Home", "End"]) {
+          await page.keyboard.press(key);
+          const item = (await scene.locator(`[data-lighting=${key === "End" ? "thanks" : "off"}]`).boundingBox())!;
+          expect(item.y >= scaled.y - 0.5 && item.y + item.height <= scaled.y + scaled.height + 0.5, `${key} shows its item`).toBe(true);
+        }
+        await page.keyboard.press("Escape");
+        await page.evaluate(() => { document.body.style.transform = ""; });
       }
       await page.close();
     }
