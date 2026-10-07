@@ -543,9 +543,10 @@ window.mountFixture(location.search === '?reject' ? { three: Promise.reject(new 
     // A page that already runs Three.js, as devopsrockstars' hat preview does, which three
     // records on the window as its engine loads. It first mounts a viewer with an engine that
     // fails to load and destroys it at once, which must leave no unhandled rejection; then it
-    // hands a viewer its engine through a lazily loaded `@a2f0/skyline/three`. The page does
-    // not render with its engine itself: on the publish runner's software GPU, a page that
-    // did hung creating its WebGL context, before any viewer code ran.
+    // hands a viewer its engine through a lazily loaded `@a2f0/skyline/three`. It is one
+    // bundle, as the mounting test's is: built with code splitting, whose chunk imported the
+    // entry back while the entry still ran, the page hung on the publish runner's Chrome before
+    // any viewer code ran, though never on a workstation.
     await writeFile(path.join(consumer, "three-host.ts"), `
 import { REVISION, Scene } from 'three';
 import { mountSkyline } from '@a2f0/skyline';
@@ -557,7 +558,7 @@ const skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/sky
 skyline.ready.then(() => { window.settled = 'ready'; }, (error) => { window.settled = 'rejected: ' + error.message; });
 window.teardown = () => skyline.destroy();
 `);
-    const bundle = await Bun.build({ entrypoints: [path.join(consumer, "three-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true, splitting: true });
+    const bundle = await Bun.build({ entrypoints: [path.join(consumer, "three-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true });
     expect(bundle.success).toBe(true);
     await writeFile(path.join(publicDirectory, "index.html"), '<!doctype html><html><head><style>body{margin:0}#host{height:100vh}</style></head><body><div id="host"></div><script type="module" src="three-host.js"></script></body></html>');
     const server = await startServer(publicDirectory);
