@@ -37,7 +37,11 @@
   "peerDependencies": { "three": "~0.186.0" },
   "peerDependenciesMeta": { "three": { "optional": true } },
   "dependencies": { "@types/three": "0.186.0" },
-  "overrides": { "miniflare>sharp": "0.35.5" },
+  "overrides": {
+    "miniflare": {
+      "sharp": "0.35.5"
+    }
+  },
   "scripts": {
     "agent-tool": "agent-tool",
     "agents:sync": "bun run agent-tool skills install --apply",

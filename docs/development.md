@@ -228,7 +228,7 @@ engine or bundler changes, following [`src/vendor/README.md`](../src/vendor/READ
 
 Wrangler's Miniflare dependency pins Sharp 0.35.4, which includes the vulnerable
 librsvg described in [GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
-The root `miniflare>sharp` override selects the maintainer's patched 0.35.5 release
+The root nested `miniflare` / `sharp` override selects the maintainer's patched 0.35.5 release
 for that dependency alone. Its existing image API and Node requirements remain
 compatible; `tests/dependency-runtime.test.ts` exercises Miniflare's offline
 Images binding under Node, decoding SVG, resizing to PNG and checking dimensions
@@ -239,6 +239,7 @@ Keep the override until a supported Wrangler/Miniflare release selects patched
 Sharp itself. Then remove it, regenerate the lockfile with Bun, and require both
 `bun audit` and the runtime regression to pass. Bun's nested override requires
 the pinned Bun 1.4 runtime and writes lockfile format 3; use the same pin in CI.
+Use npm's nested object syntax so npm packing and publishing accept it as well.
 
 Infrastructure updates require a real, complete, non-destructive preview with the
 proposed versions. Do not apply or deploy during an upgrade unless separately
