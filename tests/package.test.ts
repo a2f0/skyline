@@ -511,7 +511,10 @@ window.mountFixture(location.search === '?reject' ? { three: Promise.reject(new 
               ?.querySelector<HTMLCanvasElement>("#building")?.__buildingStudy?.ready, null, { timeout: 60_000 });
             await page.evaluate(() => { (window as unknown as Hooked).destroyFixture("closed"); scrollTo(0, 0); });
           }
-          // A host engine that fails to load: the viewer warns and loads the assets' copy.
+          // A host engine that fails to load: the viewer warns and loads the assets' copy. Only
+          // this page's requests and warnings count.
+          requested.length = 0;
+          warnings.length = 0;
           await page.goto(`${server.origin}/?reject`);
           expect(await settled(page)).toBe("ready");
           expect(warnings.filter((warning) => warning.includes("could not use the page's Three.js"))).toHaveLength(1);
