@@ -558,7 +558,9 @@ console.log(JSON.stringify({
 `], { cwd: consumer, encoding: "utf8" })) as { host: boolean; bundle: boolean; warnings: string[] };
     expect(run("provideThree(Promise.resolve(host));")).toEqual({ host: true, bundle: false, warnings: [] });
     expect(run("provideThree(host);")).toEqual({ host: true, bundle: false, warnings: [] });
-    const failing = run("provideThree(Promise.reject(new Error('no engine')));");
+    // Handled where it is offered, as mountSkyline's shell handles it, so Node does not stop on
+    // the rejection before the engine module takes it.
+    const failing = run("const offered = Promise.reject(new Error('no engine')); offered.catch(() => {}); provideThree(offered);");
     expect([failing.host, failing.bundle, failing.warnings.length]).toEqual([false, true, 1]);
     expect(failing.warnings[0]).toStartWith("The Chicago skyline could not use the page's Three.js, so it loads its own:");
     expect(run("")).toEqual({ host: false, bundle: true, warnings: [] });
