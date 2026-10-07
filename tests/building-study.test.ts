@@ -132,17 +132,20 @@ describe("single-building study", () => {
     await mobile.waitForTimeout(300);
     await mobile.screenshot({ path: "/tmp/skyline-3d-mobile.png", fullPage: true });
 
-    // Verify navigation and all pre-existing viewer modes after adding the link.
+    // Verify navigation and all pre-existing viewer modes after adding the link. The viewer's
+    // toolbar, in its shadow root, links the studies by their full address.
     await mobile.locator(".back").tap();
-    await mobile.locator('a[href="building-study.html"]').waitFor();
+    await mobile.locator('.controls a[href$="/building-study.html"]').waitFor();
     expect(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await mobile.locator("#toggle-skyline").tap();
-    expect(await mobile.locator("#scene").getAttribute("src")).toBe("skyline-original-fit.svg");
+    expect(await mobile.locator("#drawing").getAttribute("src")).toBe(`${origin}/skyline-original-fit.svg`);
+    expect(await mobile.locator("#drawing").isVisible()).toBe(true);
     await mobile.locator("#toggle-enhanced").tap();
-    expect(await mobile.locator("#scene").getAttribute("src")).toBe("skyline-animated.svg");
+    expect(await mobile.locator("#enhanced-scene").getAttribute("src")).toBe(`${origin}/skyline-animated.svg`);
+    expect(await mobile.locator("#drawing").isHidden()).toBe(true);
     await mobile.locator("#toggle-webgl").tap();
     await mobile.frameLocator("#webgl-scene").locator("#badge").waitFor({ state: "visible", timeout: 30000 });
-    expect(await mobile.locator("#scene").isHidden()).toBe(true);
+    expect(await mobile.locator("#enhanced-scene").isHidden()).toBe(true);
     await mobile.locator("#toggle-webgl").tap();
     expect(await mobile.locator("#skyline-3d-scene").isVisible()).toBe(true);
     expect(await mobile.locator("#webgl-scene").isHidden()).toBe(true);

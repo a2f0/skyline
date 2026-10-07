@@ -7,6 +7,13 @@
     "rootDir": "."
   },
   "include": [
+    "viewer-page.ts",
+    "skyline-shell.ts",
+    "skyline-viewer.ts",
+    "markup.ts",
+    "three-engine.ts",
+    "skyline-3d-page.ts",
+    "building-detail-page.ts",
     "study-loader.ts",
     "study-viewer.ts",
     "study-types.ts",

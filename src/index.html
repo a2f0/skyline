@@ -5,21 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#000000" />
+    <link rel="icon" href="data:," />
     <title>Chicago Skyline — Living Night</title>
-    <script>
-      if (new URLSearchParams(location.search).get("embed") === "1") {
-        document.documentElement.dataset.embedded = "true";
-      }
-    </script>
+    <!-- viewer-page.js mounts the viewer from skyline-viewer.js, its styles and skyline-3d.html,
+         and starts the scene's code; fetch them alongside it. -->
+    <link rel="modulepreload" href="skyline-viewer.js" />
+    <link rel="preload" href="viewer.css" as="style" />
+    <link rel="preload" href="study.css" as="style" />
     <style>
       :root {
         color-scheme: dark;
         background: #000;
-        font-family: Georgia, "Times New Roman", serif;
-      }
-
-      * {
-        box-sizing: border-box;
       }
 
       html,
@@ -32,376 +28,29 @@
         background: #000;
       }
 
-      .stars,
-      .scene {
-        position: fixed;
-        inset: 0;
-        display: block;
-        width: 100%;
-        height: 100%;
-        border: 0;
-        background: transparent;
-      }
-
-      .stars {
-        z-index: 0;
-        pointer-events: none;
-      }
-
-      .scene {
-        z-index: 1;
-      }
-
-      .scene[hidden] {
-        display: none;
-      }
-
-      .controls {
-        position: fixed;
-        z-index: 2;
-        top: max(12px, env(safe-area-inset-top));
-        left: 50%;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        justify-content: center;
-        gap: 10px clamp(18px, 2vw, 28px);
-        width: max-content;
-        max-width: calc(100% - 24px);
-        transform: translateX(-50%);
-        color: #fff;
-        font-size: clamp(18px, 1.85vw, 26px);
-        line-height: 1;
-        white-space: nowrap;
-      }
-
-      .controls button,
-      .controls a {
-        appearance: none;
+      .notice {
+        box-sizing: border-box;
         margin: 0;
-        border: 0;
-        border-radius: 0;
-        padding: 0;
-        background: transparent;
-        color: inherit;
-        font: inherit;
-        line-height: inherit;
-        text-decoration: underline;
-        text-decoration-thickness: 1px;
-        text-underline-offset: 3px;
-        cursor: pointer;
-        opacity: 0.88;
-      }
-
-      html[data-embedded="true"] .controls {
-        display: none;
-      }
-
-      .controls button:hover,
-      .controls a:hover,
-      .controls button:focus-visible,
-      .controls a:focus-visible,
-      .controls button[aria-pressed="true"] {
-        color: #fff;
-        opacity: 1;
-        text-decoration-thickness: 2px;
-      }
-
-      .controls button:focus-visible,
-      .controls a:focus-visible {
-        outline: 1px solid #fff;
-        outline-offset: 6px;
-      }
-
-      .original-return {
-        position: fixed;
-        z-index: 2;
-        right: max(12px, env(safe-area-inset-right));
-        bottom: max(5px, env(safe-area-inset-bottom));
-        border: 1px solid #393939;
-        border-radius: 2px;
-        padding: 5px 8px;
-        background: #101010;
+        padding: 24px;
         color: #aaa;
-        font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        cursor: pointer;
-      }
-
-      .original-return:hover { color: #fff; border-color: #999; background: #202020; }
-      .original-return:focus-visible { outline: 1px solid #fff; outline-offset: 2px; }
-
-      .motion-status {
-        flex-basis: 100%;
-        margin: 0;
-        color: #999;
-        font: 12px/1.5 system-ui, sans-serif;
-        text-align: center;
-        white-space: normal;
-      }
-
-      .visually-hidden {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-      }
-
-      @media (max-width: 520px) {
-        .controls {
-          top: max(16px, env(safe-area-inset-top));
-          gap: 10px 18px;
-        }
+        font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       }
     </style>
   </head>
   <body>
-    <main id="stage">
-      <iframe
-        class="stars"
-        id="stars"
-        src="stars.svg"
-        title="Twinkling night sky"
-        aria-hidden="true"
-        tabindex="-1"
-      ></iframe>
-      <iframe
-        class="scene"
-        id="skyline-3d-scene"
-        src="skyline-3d.html"
-        title="3D Chicago skyline"
-      ></iframe>
-      <iframe
-        class="scene"
-        id="scene"
-        title="Animated Chicago skyline at night"
-        hidden
-      ></iframe>
-      <iframe
-        class="scene"
-        id="webgl-scene"
-        data-src="skyline-webgl.html"
-        title="WebGL Chicago skyline prototype"
-        hidden
-      ></iframe>
-
-      <nav class="controls" aria-label="Skyline controls">
-        <button type="button" id="fullscreen" aria-pressed="false">fullscreen</button>
-        <button type="button" id="toggle-skyline" aria-pressed="false">show original</button>
-        <button type="button" id="toggle-webgl" aria-pressed="false">show webgl</button>
-        <button type="button" id="toggle-enhanced" aria-pressed="false">show enhanced</button>
-        <a href="building-study.html">3d building</a>
-        <a href="skyline-study.html">skyline study</a>
-        <button type="button" id="debug-motion" aria-pressed="false" aria-describedby="motion-status">debug motion</button>
-        <p class="motion-status" id="motion-status" role="status">Checking motion preference…</p>
-      </nav>
-
-      <button type="button" class="original-return" id="return-skyline-3d" title="Return to the 3D skyline" hidden>3d skyline</button>
-      <button type="button" class="original-return" id="embedded-original" title="Compare with the original skyline SVG" hidden>show original</button>
-      <p class="visually-hidden" id="status" aria-live="polite"></p>
-    </main>
-
+    <!-- The viewer renders into a shadow root inside this element, as in a host's page. -->
+    <main id="viewer"></main>
+    <noscript><p class="notice">Enable JavaScript to explore the Chicago skyline.</p></noscript>
     <script>
-      const fullscreenButton = document.querySelector("#fullscreen");
-      const status = document.querySelector("#status");
-      const scene = document.querySelector("#scene");
-      const webglScene = document.querySelector("#webgl-scene");
-      const skyline3dScene = document.querySelector("#skyline-3d-scene");
-      const stars = document.querySelector("#stars");
-      const debugMotionButton = document.querySelector("#debug-motion");
-      const motionStatus = document.querySelector("#motion-status");
-      const originalReturn = document.querySelector("#return-skyline-3d");
-      const embeddedOriginal = document.querySelector("#embedded-original");
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-      // Modes shown in their own page. The 3D skyline loads with the viewer; the others load
-      // the first time they are chosen.
-      const framedScenes = { webgl: webglScene, "3d": skyline3dScene };
-      // The viewer opens on the 3D skyline. Each toggle shows its mode and, pressed again,
-      // returns to the 3D skyline.
-      const homeMode = "3d";
-      const home = { label: "3d skyline", title: "Return to the 3D skyline", status: "3D skyline displayed" };
-      const toggles = {
-        original: {
-          button: document.querySelector("#toggle-skyline"),
-          label: "show original",
-          title: "Compare with the original skyline SVG",
-          status: "Original skyline displayed",
-        },
-        webgl: {
-          button: document.querySelector("#toggle-webgl"),
-          label: "show webgl",
-          title: "Preview the WebGL skyline prototype",
-          status: "WebGL skyline prototype displayed",
-        },
-        enhanced: {
-          button: document.querySelector("#toggle-enhanced"),
-          label: "show enhanced",
-          title: "Show the enhanced interactive skyline drawing",
-          status: "Enhanced interactive skyline displayed",
-        },
-      };
-      let debugMotion = false;
-      let skylineMode = homeMode;
-      // Keep SVG recovery reachable until the first 3D frame succeeds, even if
-      // the scene document or its bootstrap script never initializes.
-      let sceneUnavailable = true;
-
-      function updateSkylineView() {
-        const framedScene = framedScenes[skylineMode];
-
-        if (framedScene && !framedScene.getAttribute("src")) {
-          framedScene.src = framedScene.dataset.src;
-        }
-        for (const [mode, frame] of Object.entries(framedScenes)) {
-          frame.hidden = mode !== skylineMode;
-        }
-        if (!framedScene) {
-          const showingOriginal = skylineMode === "original";
-          const nextSource = showingOriginal ? "skyline-original-fit.svg" : "skyline-animated.svg";
-          if (scene.getAttribute("src") !== nextSource) {
-            scene.src = nextSource;
-          }
-          scene.title = showingOriginal
-            ? "Original Chicago skyline"
-            : "Animated Chicago skyline at night";
-        }
-        scene.hidden = Boolean(framedScene);
-        originalReturn.hidden = skylineMode !== "original";
-        embeddedOriginal.hidden = document.documentElement.dataset.embedded !== "true" || skylineMode !== homeMode || !sceneUnavailable;
-
-        for (const [mode, toggle] of Object.entries(toggles)) {
-          const showing = mode === skylineMode;
-          toggle.button.textContent = showing ? home.label : toggle.label;
-          toggle.button.setAttribute("aria-pressed", String(showing));
-          toggle.button.title = showing ? home.title : toggle.title;
-        }
+      // Modules do not load from file://, and the sources hold no compiled modules.
+      function showNotice(text) {
+        const notice = document.createElement("p");
+        notice.className = "notice";
+        notice.textContent = text;
+        document.querySelector("#viewer").replaceChildren(notice);
       }
-
-      function showSkylineMode(mode) {
-        skylineMode = mode;
-        updateSkylineView();
-        status.textContent = mode === homeMode ? home.status : toggles[mode].status;
-      }
-
-      for (const [mode, toggle] of Object.entries(toggles)) {
-        toggle.button.addEventListener("click", () => {
-          showSkylineMode(skylineMode === mode ? homeMode : mode);
-        });
-      }
-
-      // The scene's bottom shortcut uses the viewer's mode switch. Only this scene, on
-      // this origin and while it is displayed, can request the original drawing.
-      window.addEventListener("message", (event) => {
-        if (event.origin !== location.origin || event.source !== skyline3dScene.contentWindow) return;
-        if (event.data?.type === "skyline:unavailable" || event.data?.type === "skyline:ready") {
-          sceneUnavailable = event.data.type === "skyline:unavailable";
-          updateSkylineView();
-          return;
-        }
-        if (event.data?.type !== "skyline:show-original" || skylineMode !== homeMode) return;
-        showSkylineMode("original");
-        originalReturn.focus();
-      });
-      originalReturn.addEventListener("click", () => {
-        showSkylineMode(homeMode);
-        const sceneDocument = skyline3dScene.contentDocument;
-        const star = sceneDocument?.querySelector("#menu-toggle");
-        const focus = star?.getAttribute("aria-expanded") === "true" ? sceneDocument.querySelector("#show-original") : star;
-        const target = !sceneUnavailable && focus?.matches(":enabled") ? focus : null;
-        target?.focus();
-        if (!target || sceneDocument?.activeElement !== target) {
-          (embeddedOriginal.hidden ? toggles.original.button : embeddedOriginal).focus();
-        }
-      });
-      embeddedOriginal.addEventListener("click", () => {
-        showSkylineMode("original");
-        originalReturn.focus();
-      });
-
-      updateSkylineView();
-
-      function updateMotionStatus() {
-        const preference = reducedMotion.matches ? "reduced" : "allowed";
-        const animation = debugMotion
-          ? (reducedMotion.matches ? "debug override active" : "debug animation")
-          : (reducedMotion.matches ? "stars paused" : "stars twinkling");
-        motionStatus.textContent = `System motion: ${preference} · ${animation}`;
-        debugMotionButton.textContent = debugMotion ? "stop debug" : "debug motion";
-        debugMotionButton.setAttribute("aria-pressed", String(debugMotion));
-        debugMotionButton.title = debugMotion
-          ? "Return to the system motion setting"
-          : "Preview slightly stronger brightness changes at the same gentle pace, even when reduced motion is enabled";
-      }
-
-      debugMotionButton.addEventListener("click", () => {
-        debugMotion = !debugMotion;
-        // Keep a fragment when stopping so the randomized sky does not reload.
-        stars.src = `stars.svg#${debugMotion ? "debug-motion" : ""}`;
-        updateMotionStatus();
-      });
-
-      reducedMotion.addEventListener("change", updateMotionStatus);
-      updateMotionStatus();
-
-      async function toggleFullscreen() {
-        try {
-          if (document.fullscreenElement) {
-            await document.exitFullscreen();
-          } else {
-            await document.documentElement.requestFullscreen();
-          }
-        } catch {
-          status.textContent = "Fullscreen is not available in this browser";
-        }
-      }
-
-      fullscreenButton.addEventListener("click", toggleFullscreen);
-
-      document.addEventListener("fullscreenchange", () => {
-        const isFullscreen = Boolean(document.fullscreenElement);
-        fullscreenButton.textContent = isFullscreen ? "exit fullscreen" : "fullscreen";
-        fullscreenButton.setAttribute("aria-pressed", String(isFullscreen));
-        status.textContent = isFullscreen ? "Fullscreen enabled" : "Fullscreen exited";
-      });
-
-      if (!document.fullscreenEnabled) {
-        fullscreenButton.hidden = true;
-      }
-
-      function fullscreenShortcut(event) {
-        if (event.key.toLowerCase() === "f" && !event.metaKey && !event.ctrlKey && !event.altKey) {
-          event.preventDefault();
-          toggleFullscreen();
-        }
-      }
-
-      document.addEventListener("keydown", fullscreenShortcut);
-      // Keys pressed inside a scene, such as on the 3D skyline's canvas, go to its frame's own
-      // window, so listen there too. A frame from another origin, as under file://, keeps them.
-      function listenInFrame(frame) {
-        try {
-          frame.contentWindow.addEventListener("keydown", fullscreenShortcut);
-        } catch {}
-      }
-      for (const frame of [skyline3dScene, scene, webglScene]) {
-        listenInFrame(frame);
-        frame.addEventListener("load", () => listenInFrame(frame));
-      }
-
-      // The controls lie over the top of the 3D skyline's frame, which floats a building's
-      // detail below them.
-      const controls = document.querySelector(".controls");
-      function insetSkyline() {
-        try {
-          skyline3dScene.contentDocument.documentElement.style.setProperty("--viewer-controls", `${Math.ceil(controls.getBoundingClientRect().bottom)}px`);
-        } catch {}
-      }
-      new ResizeObserver(insetSkyline).observe(controls);
-      skyline3dScene.addEventListener("load", insetSkyline);
+      if (location.protocol === "file:") showNotice("Start a local server with python3 -m http.server -d dist, then open http://localhost:8000 to explore the skyline.");
     </script>
+    <script type="module" src="viewer-page.js" onerror="showNotice('Build the site with bun run build:site, then serve dist/ with python3 -m http.server -d dist to explore the skyline.')"></script>
   </body>
 </html>

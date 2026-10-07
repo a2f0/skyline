@@ -11,6 +11,15 @@ import { expectPlanHolds } from "./geographic-plan.js";
 import { celebrations } from "../src/models/celebrations.js";
 import { createGeographicSkyline } from "../src/skyline-scene.js";
 import type * as THREE from "../src/vendor/three-r186.js";
+import type { BuildingStudyApi } from "../src/study-viewer.js";
+
+declare global {
+  interface Window {
+    __viewerRoot?: ShadowRoot | null;
+    __detailStudy?: BuildingStudyApi;
+    __focused?: string | undefined;
+  }
+}
 
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
 const settle = (page: Page | Frame) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -37,17 +46,39 @@ const drawing = readFileSync(path.resolve(import.meta.dirname, "../src/skyline-a
 const [boxX, boxY, boxWidth, boxHeight] = /viewBox="([^"]+)"/.exec(drawing)![1]!.split(/\s+/).map(Number) as [number, number, number, number];
 const [shiftX, shiftY] = /id="skyline-position" transform="translate\(([^,]+),([^)]+)\)"/.exec(drawing)!.slice(1).map(Number) as [number, number];
 
+// The viewer renders into the open shadow root of its region in index.html, the 3D skyline
+// in that root, and a building's detail in a shadow root of its own inside the scene's panel.
+// Playwright's locators reach into them; for code run in the page, these hooks find the
+// viewer's root, the scene's study (as window.__buildingStudy, which the scene's own page
+// sets), the open detail's study, and the focused element, however deep. They are test
+// scaffolding over the page, not part of the viewer.
+function viewerHooks() {
+  const root = () => document.querySelector("#viewer > [role=region]")?.shadowRoot ?? null;
+  const canvas = (scope: ParentNode | null | undefined, selector: string) => scope?.querySelector<HTMLCanvasElement>(selector)?.__buildingStudy;
+  Object.defineProperty(window, "__viewerRoot", { get: root, configurable: true });
+  Object.defineProperty(window, "__detailStudy", { get: () => canvas((root() ?? document).querySelector(".detail-host")?.shadowRoot, "#building"), configurable: true });
+  Object.defineProperty(window, "__focused", {
+    get() {
+      let active = document.activeElement;
+      while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+      return active?.getAttribute("data-lighting") ?? (active?.id || undefined);
+    },
+    configurable: true,
+  });
+  if (!["/", "/index.html"].includes(location.pathname)) return;
+  Object.defineProperty(window, "__buildingStudy", { get: () => canvas(root(), ".skyline-3d > #viewport > #building"), configurable: true });
+}
+
 async function openScene(page: Page) {
-  const scene = (await (await page.locator("#skyline-3d-scene").elementHandle())!.contentFrame())!;
-  await scene.waitForURL(/\/skyline-3d(?:\.html)?$/);
-  await scene.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
-  return scene;
+  await page.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
+  return page;
 }
 
 describe("full-screen 3D skyline", () => {
   let browser!: Browser;
   const errors: string[] = [], external: string[] = [];
-  const watch = (page: Page) => {
+  const watch = async (page: Page) => {
+    await page.addInitScript(viewerHooks);
     page.on("pageerror", (error) => errors.push(error.message));
     // The WebGL prototype, reachable from the viewer, rasterizes its textures into blob URLs of
     // the page's own origin.
@@ -65,7 +96,7 @@ describe("full-screen 3D skyline", () => {
 
   test("logo buttons light the actual windows, replace and restore messages, and preserve hover", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
-    watch(page);
+    await watch(page);
     const shaderErrors: string[] = [];
     page.on("console", (message) => { if (message.type() === "error") shaderErrors.push(message.text()); });
     await page.goto(`${origin}/skyline-3d.html`);
@@ -139,7 +170,7 @@ describe("full-screen 3D skyline", () => {
   test("building lighting menus share toolbar state, support keyboard and touch, and fit short screens", async () => {
     for (const embedded of [false, true]) {
       const page = await browser.newPage({ viewport: embedded ? { width: 390, height: 844 } : { width: 1440, height: 900 }, hasTouch: embedded, reducedMotion: "reduce" });
-      watch(page);
+      await watch(page);
       await page.goto(`${origin}/${embedded ? "index.html" : "skyline-3d.html"}`);
       const scene = embedded ? await openScene(page) : page;
       await scene.waitForFunction(() => window.__buildingStudy?.ready);
@@ -152,7 +183,7 @@ describe("full-screen 3D skyline", () => {
         if (embedded) {
           // Deliver the browser's long-press sequence in frame coordinates.
           await scene.evaluate(([u, v]) => {
-            const canvas = document.querySelector("#building")!, box = canvas.getBoundingClientRect();
+            const canvas = window.__viewerRoot!.querySelector("#building")!, box = canvas.getBoundingClientRect();
             const at = { clientX: box.x + u * box.width, clientY: box.y + v * box.height, bubbles: true, cancelable: true };
             canvas.dispatchEvent(new PointerEvent("pointerdown", { ...at, pointerType: "touch", pointerId: 2 }));
             canvas.dispatchEvent(new MouseEvent("contextmenu", at));
@@ -166,7 +197,7 @@ describe("full-screen 3D skyline", () => {
         expect(await scene.locator("#building-menu").isVisible()).toBe(true);
       };
       const active = () => scene.evaluate(() => window.__buildingStudy!.illuminations.find(({ building }) => building === "building-blue-cross-blue-shield")!.active);
-      const focused = () => scene.evaluate(() => document.activeElement?.getAttribute("data-lighting") ?? document.activeElement?.id);
+      const focused = () => scene.evaluate(() => window.__focused);
       await open();
       expect(await scene.locator('[role="menuitemradio"][aria-checked="true"]').getAttribute("data-lighting")).toBe("off");
       expect(await scene.locator('[role="menuitemradio"]').count()).toBe(7);
@@ -226,7 +257,7 @@ describe("full-screen 3D skyline", () => {
 
   test("Crain's building menu offers no celebratory lighting", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
-    watch(page);
+    await watch(page);
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     expect(await page.evaluate(() => window.__buildingStudy!.illuminations.map(({ building }) => building))).toEqual(["building-blue-cross-blue-shield"]);
@@ -244,7 +275,7 @@ describe("full-screen 3D skyline", () => {
 
   test("celebration buttons fit on touch screens and survive original-artwork comparison", async () => {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, reducedMotion: "reduce" });
-    watch(page);
+    await watch(page);
     await page.goto(`${origin}/`);
     const scene = await openScene(page);
     await scene.locator("#menu-toggle").tap();
@@ -277,13 +308,13 @@ describe("full-screen 3D skyline", () => {
         viewport: { width, height },
         reducedMotion: reduced ? "reduce" : "no-preference",
       });
-      watch(page);
+      await watch(page);
       let release!: () => void;
       const held = new Promise<void>((resolve) => { release = resolve; });
       await page.route("**/skyline-3d.js", async (route) => { await held; await route.continue(); });
       try {
         await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
-        const scene = (await (await page.locator("#skyline-3d-scene").elementHandle())!.contentFrame())!;
+        const scene = page;
         const trace = scene.locator(".skyline-trace");
         await trace.waitFor({ state: "visible" });
         expect(await scene.locator("#loading").textContent()).toContain("Preparing the skyline");
@@ -294,10 +325,11 @@ describe("full-screen 3D skyline", () => {
         expect(bounds.x).toBeGreaterThanOrEqual(0);
         expect(bounds.x + bounds.width).toBeLessThanOrEqual(page.viewportSize()!.width);
         const ground = await scene.evaluate(() => {
-          const svg = document.querySelector<SVGSVGElement>(".skyline-trace")!;
-          const outline = document.querySelector<SVGPathElement>("#skyline-loading-outline")!;
+          const root = window.__viewerRoot!;
+          const svg = root.querySelector<SVGSVGElement>(".skyline-trace")!;
+          const outline = root.querySelector<SVGPathElement>("#skyline-loading-outline")!;
           const baseline = outline.getPointAtLength(outline.getTotalLength()).matrixTransform(svg.getScreenCTM()!).y;
-          return { baseline, toolbar: document.querySelector(".control-bar")!.getBoundingClientRect().top };
+          return { baseline, toolbar: root.querySelector(".control-bar")!.getBoundingClientRect().top };
         });
         expect(ground.baseline, "the traced ground line touches the toolbar").toBeCloseTo(ground.toolbar, 1);
         const line = scene.locator(".skyline-trace-line");
@@ -336,6 +368,7 @@ describe("full-screen 3D skyline", () => {
 
   test("replaces the trace with a readable error when the scene cannot load", async () => {
     const page = await browser.newPage();
+    await page.addInitScript(viewerHooks);
     await page.route("**/skyline-3d.js", (route) => route.abort());
     await page.goto(`${origin}/skyline-3d.html`);
     const loading = page.locator("#loading");
@@ -347,14 +380,14 @@ describe("full-screen 3D skyline", () => {
     // The viewer can still compare the drawing after a failed load. Its disabled
     // scene controls cannot receive focus, so returning focuses the top switch.
     await page.goto(`${origin}/index.html`);
-    const scene = (await (await page.locator("#skyline-3d-scene").elementHandle())!.contentFrame())!;
-    await scene.waitForFunction(() => document.querySelector("#loading")!.textContent!.includes("WebGL 2"));
+    const scene = page;
+    await scene.waitForFunction(() => window.__viewerRoot?.querySelector("#loading")?.textContent!.includes("WebGL 2"));
     expect(await scene.locator("#menu-toggle").isDisabled()).toBe(true);
     await page.locator("#toggle-skyline").click();
     await page.locator("#return-skyline-3d").press("Enter");
     expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
     expect(await page.locator("#return-skyline-3d").isHidden()).toBe(true);
-    expect(await page.evaluate(() => document.activeElement?.id)).toBe("toggle-skyline");
+    expect(await page.evaluate(() => window.__focused)).toBe("toggle-skyline");
     expect(await scene.locator("#loading").textContent()).toContain("WebGL 2");
     await page.close();
   });
@@ -367,7 +400,7 @@ describe("full-screen 3D skyline", () => {
     const placed: Record<string, [number, number][]> = {};
     const sizes = [...viewports.map(({ options }) => options.viewport!), { width: 1600, height: 700 }, { width: 2400, height: 700 }];
     const page = await browser.newPage({ viewport: sizes[0]! });
-    watch(page);
+    await watch(page);
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     expect(await page.evaluate(() => [window.__buildingStudy!.activeView, window.__buildingStudy!.projection])).toEqual(["skyline", "perspective"]);
@@ -411,7 +444,7 @@ describe("full-screen 3D skyline", () => {
       return [0, 1, 2].map((axis) => (min[axis]! + max[axis]! - crain.min[axis]! - crain.max[axis]!) / 2);
     });
     const study = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-    watch(study);
+    await watch(study);
     await study.goto(`${origin}/skyline-study.html`);
     await study.waitForFunction(() => window.__buildingStudy?.ready);
     const expected = await groundFromCrain(study);
@@ -435,7 +468,7 @@ describe("full-screen 3D skyline", () => {
     // the sightline at Crain. The lens shift widens the field of view the controls read.
     for (const size of [{ width: 1440, height: 1000 }, { width: 620, height: 1400 }]) {
       const page = await browser.newPage({ viewport: size });
-      watch(page);
+      await watch(page);
       await page.goto(`${origin}/skyline-3d.html`);
       await page.waitForFunction(() => window.__buildingStudy?.ready);
       const project = () => page.evaluate(() => window.__buildingStudy!.projectPoint("building-crain-communications", [0, 0, 0]));
@@ -459,7 +492,7 @@ describe("full-screen 3D skyline", () => {
   test("zooms out to four times the skyline's distance, with every building still in frame", async () => {
     const { drawingView } = createGeographicSkyline();
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    watch(page);
+    await watch(page);
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     // Each building's whole rendered extent, footprint to roof, not only a point on it.
@@ -491,17 +524,27 @@ describe("full-screen 3D skyline", () => {
 
   test("opens the skyline viewer on the 3D skyline over its stars, and keeps an orbit while hidden", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    watch(page);
+    await watch(page);
     const requested: string[] = [];
     page.on("request", (request) => requested.push(new URL(request.url()).pathname));
     await page.goto(`${origin}/index.html`);
     const scene = await openScene(page);
     expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
-    expect(await page.locator("#scene").isHidden()).toBe(true);
+    expect(await page.locator("#drawing").isHidden()).toBe(true);
     expect(await page.locator("#stars").isVisible(), "the stars stay behind the 3D skyline").toBe(true);
-    expect(requested, "the drawing waits until it is chosen").not.toContain("/skyline-animated.svg");
+    expect(await page.locator("#stars circle").count(), "the sky's stars render in the viewer").toBe(96);
+    expect(await page.locator("#stars .twinkle").count(), "a tenth of them twinkle").toBe(10);
+    const twinkle = () => page.locator("#stars .twinkle").first().evaluate((star) => getComputedStyle(star).animationName);
+    expect(await twinkle()).toBe("star-twinkle");
+    await page.locator("#debug-motion").click();
+    expect([await twinkle(), await page.locator("#stars-motion-status").textContent()]).toEqual(["star-debug", "System motion: allowed · debug animation"]);
+    await page.locator("#debug-motion").click();
+    expect(await twinkle()).toBe("star-twinkle");
+    expect(requested, "the drawings wait until they are chosen").not.toContain("/skyline-animated.svg");
+    expect(requested).not.toContain("/skyline-original-fit.svg");
     expect(requested, "the WebGL prototype waits until it is chosen").not.toContain("/skyline-webgl.html");
-    expect(await scene.evaluate(() => [getComputedStyle(document.documentElement).backgroundColor, getComputedStyle(document.body).backgroundColor]))
+    expect(await page.locator("iframe").count(), "the viewer renders in the page, not in frames").toBe(0);
+    expect(await scene.evaluate(() => [".skyline-3d", "#viewport"].map((selector) => getComputedStyle(window.__viewerRoot!.querySelector(selector)!).backgroundColor)))
       .toEqual(["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)"]);
     const toggle = page.locator("#toggle-enhanced");
     const state = async (button = toggle) => [await button.textContent(), await button.getAttribute("aria-pressed"), await button.getAttribute("title")];
@@ -515,11 +558,11 @@ describe("full-screen 3D skyline", () => {
     await page.keyboard.press("ArrowLeft");
     await page.keyboard.press("ArrowUp");
     const orbit = await scene.evaluate(() => window.__buildingStudy!.cameraPosition);
-    // The fullscreen shortcut works from the focused canvas, inside the scene's own frame.
+    // The fullscreen shortcut works from the focused canvas, and shows the viewer's element.
     await page.evaluate(() => {
       const viewer = window as unknown as { fullscreenRequests: number };
       viewer.fullscreenRequests = 0;
-      document.documentElement.requestFullscreen = async () => { viewer.fullscreenRequests++; };
+      document.querySelector<HTMLElement>("#viewer > [role=region]")!.requestFullscreen = async () => { viewer.fullscreenRequests++; };
     });
     await page.keyboard.press("f");
     expect(await page.evaluate(() => (window as unknown as { fullscreenRequests: number }).fullscreenRequests)).toBe(1);
@@ -527,8 +570,8 @@ describe("full-screen 3D skyline", () => {
     expect(await state()).toEqual(["3d skyline", "true", "Return to the 3D skyline"]);
     expect(await announced()).toBe("Enhanced interactive skyline displayed");
     expect(await page.locator("#skyline-3d-scene").isHidden()).toBe(true);
-    expect(await page.locator("#scene").getAttribute("src")).toBe("skyline-animated.svg");
-    expect(await page.locator("#scene").isVisible()).toBe(true);
+    expect(await page.locator("#enhanced-scene").getAttribute("src")).toBe(`${origin}/skyline-animated.svg`);
+    expect(await page.locator("#enhanced-scene").isVisible()).toBe(true);
     await page.setViewportSize({ width: 1280, height: 800 });
     await settle(page);
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -537,7 +580,7 @@ describe("full-screen 3D skyline", () => {
     expect(await state()).toEqual(["show enhanced", "false", "Show the enhanced interactive skyline drawing"]);
     expect(await announced()).toBe("3D skyline displayed");
     expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
-    expect(await page.locator("#scene").isHidden()).toBe(true);
+    expect(await page.locator("#enhanced-scene").isHidden()).toBe(true);
     expect(await scene.evaluate(() => window.__buildingStudy!.activeView)).toBeNull();
     (await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).forEach((value, axis) => near(value, orbit[axis]!, 1e-6));
     await scene.locator("#menu-toggle").click();
@@ -549,7 +592,8 @@ describe("full-screen 3D skyline", () => {
     const webgl = page.locator("#toggle-webgl");
     await original.click();
     expect(await page.locator("#skyline-3d-scene").isHidden()).toBe(true);
-    expect(await page.locator("#scene").getAttribute("src")).toBe("skyline-original-fit.svg");
+    expect(await page.locator("#drawing").getAttribute("src")).toBe(`${origin}/skyline-original-fit.svg`);
+    expect(await page.locator("#drawing").isVisible()).toBe(true);
     expect([await state(original), await state(webgl), await state()]).toEqual([
       ["3d skyline", "true", "Return to the 3D skyline"],
       ["show webgl", "false", "Preview the WebGL skyline prototype"],
@@ -557,9 +601,9 @@ describe("full-screen 3D skyline", () => {
     ]);
     expect(await announced()).toBe("Original skyline displayed");
     await webgl.click();
-    expect(await page.locator("#webgl-scene").getAttribute("src")).toBe("skyline-webgl.html");
+    expect(await page.locator("#webgl-scene").getAttribute("src")).toBe(`${origin}/skyline-webgl.html`);
     expect(await page.locator("#webgl-scene").isVisible()).toBe(true);
-    expect(await page.locator("#scene").isHidden()).toBe(true);
+    expect(await page.locator("#drawing").isHidden()).toBe(true);
     expect([await state(original), await state(webgl)]).toEqual([
       ["show original", "false", "Compare with the original skyline SVG"],
       ["3d skyline", "true", "Return to the 3D skyline"],
@@ -568,7 +612,7 @@ describe("full-screen 3D skyline", () => {
     await webgl.click();
     expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
     expect(await page.locator("#webgl-scene").isHidden()).toBe(true);
-    expect(await page.locator("#scene").isHidden()).toBe(true);
+    expect(await page.locator("#drawing").isHidden()).toBe(true);
     expect(await state(webgl)).toEqual(["show webgl", "false", "Preview the WebGL skyline prototype"]);
     expect(await announced()).toBe("3D skyline displayed");
     await page.close();
@@ -577,7 +621,7 @@ describe("full-screen 3D skyline", () => {
   test("compares with the original from the star's controls and returns from the bottom without resetting the 3D view", async () => {
     for (const [width, height, reduced] of [[1440, 900, false], [390, 844, true], [844, 390, false]] as const) {
       const page = await browser.newPage({ viewport: { width, height }, reducedMotion: reduced ? "reduce" : "no-preference" });
-      watch(page);
+      await watch(page);
       try {
         await page.goto(`${origin}/index.html`);
         const scene = await openScene(page);
@@ -591,21 +635,17 @@ describe("full-screen 3D skyline", () => {
         await back.press("Enter");
         expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
         expect(await scene.locator("#menu-toggle").getAttribute("aria-expanded")).toBe("false");
-        expect(await scene.evaluate(() => document.activeElement?.id)).toBe("menu-toggle");
+        expect(await scene.evaluate(() => window.__focused)).toBe("menu-toggle");
         expect(await original.isHidden()).toBe(true);
-        // A request from another source, or a different origin, cannot change the mode.
-        await page.evaluate(() => {
-          window.postMessage({ type: "skyline:show-original" }, location.origin);
-          window.dispatchEvent(new MessageEvent("message", {
-            origin: "https://example.invalid",
-            source: document.querySelector<HTMLIFrameElement>("#skyline-3d-scene")!.contentWindow,
-            data: { type: "skyline:show-original" },
-          }));
-        });
+        // The scene and the viewer call each other directly: a message, as frames once posted,
+        // changes nothing.
+        await page.evaluate(() => window.postMessage({ type: "skyline:show-original" }, location.origin));
         await settle(page);
         expect(await back.isHidden()).toBe(true);
         await scene.locator("#menu-toggle").click();
-        await scene.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished)));
+        // The folds, not the stars, which twinkle for ever.
+        await scene.evaluate(() => Promise.all(window.__viewerRoot!.getAnimations()
+          .filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group")).map((animation) => animation.finished)));
         expect(await original.isVisible()).toBe(true);
         const [button, bar] = await Promise.all([original.boundingBox(), scene.locator(".control-bar").boundingBox()]);
         expect(button!.x >= bar!.x && button!.x + button!.width <= bar!.x + bar!.width && button!.y >= bar!.y && button!.y + button!.height <= bar!.y + bar!.height, "the original shortcut fits inside the bottom toolbar").toBe(true);
@@ -615,11 +655,11 @@ describe("full-screen 3D skyline", () => {
         await original.click();
         await back.waitFor({ state: "visible" });
         expect(await page.locator("#skyline-3d-scene").isHidden()).toBe(true);
-        expect(await page.locator("#scene").getAttribute("src")).toBe("skyline-original-fit.svg");
+        expect(await page.locator("#drawing").getAttribute("src")).toBe(`${origin}/skyline-original-fit.svg`);
         expect(await page.locator("#toggle-skyline").textContent()).toBe("3d skyline");
         expect(await page.locator("#toggle-skyline").getAttribute("aria-pressed")).toBe("true");
         expect(await page.locator("#status").textContent()).toBe("Original skyline displayed");
-        expect(await page.evaluate(() => document.activeElement?.id)).toBe("return-skyline-3d");
+        expect(await page.evaluate(() => window.__focused)).toBe("return-skyline-3d");
         const bounds = (await back.boundingBox())!;
         expect(bounds.y >= height - 44 && bounds.y + bounds.height <= height, "the return button is at the bottom").toBe(true);
         // Enter on the focused bottom button returns focus to the same shortcut in the
@@ -628,7 +668,7 @@ describe("full-screen 3D skyline", () => {
         expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
         expect(await back.isHidden()).toBe(true);
         expect(await scene.locator("#menu-toggle").getAttribute("aria-expanded")).toBe("true");
-        expect(await scene.evaluate(() => document.activeElement?.id)).toBe("show-original");
+        expect(await scene.evaluate(() => window.__focused)).toBe("show-original");
         (await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).forEach((value, axis) => near(value, orbit[axis]!, 1e-6));
         expect(await page.locator("#toggle-skyline").textContent()).toBe("show original");
         expect(await page.locator("#toggle-skyline").getAttribute("aria-pressed")).toBe("false");
@@ -641,7 +681,7 @@ describe("full-screen 3D skyline", () => {
     // The bar carries the study's toolbar, in its order, and a footprints toggle, folded
     // behind a muted grey six-pointed star. Closed, the star alone shows, in the bar's middle.
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-    watch(page);
+    await watch(page);
     await page.goto(`${origin}/skyline-study.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     const toolbar = await page.locator(".toolbar button").allTextContents();
@@ -870,14 +910,18 @@ describe("full-screen 3D skyline", () => {
 
   test("starts with the controls open when its address or the viewer's asks, and folds them from there", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-    watch(page);
-    const state = (frame: Page | Frame) => frame.evaluate(() => ({
-      expanded: document.querySelector("#menu-toggle")!.getAttribute("aria-expanded"),
-      title: document.querySelector<HTMLButtonElement>("#menu-toggle")!.title,
-      groups: [...document.querySelectorAll(".control-bar .button-group")].map((element) => getComputedStyle(element).display),
-      hint: document.querySelector("#camera-hint")!.checkVisibility(),
-      folds: document.getAnimations().filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group")).length,
-    }));
+    await watch(page);
+    // On the scene's own page or in the viewer's shadow root.
+    const state = (frame: Page | Frame) => frame.evaluate(() => {
+      const root = window.__viewerRoot ?? document;
+      return {
+        expanded: root.querySelector("#menu-toggle")!.getAttribute("aria-expanded"),
+        title: root.querySelector<HTMLButtonElement>("#menu-toggle")!.title,
+        groups: [...root.querySelectorAll(".control-bar .button-group")].map((element) => getComputedStyle(element).display),
+        hint: root.querySelector("#camera-hint")!.checkVisibility(),
+        folds: root.getAnimations().filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group")).length,
+      };
+    });
     const open = { expanded: "true", title: "Hide the controls", groups: ["flex", "flex"], hint: true, folds: 0 };
     const closed = { expanded: "false", title: "Show the controls", groups: ["none", "none"], hint: false, folds: 0 };
     // Open from the first frame the bar paints in, while the scene's code is still on its way,
@@ -901,9 +945,17 @@ describe("full-screen 3D skyline", () => {
       await page.waitForFunction(() => window.__buildingStudy?.ready);
       expect(await state(page), query).toEqual(closed);
     }
-    // The viewer passes its own address's choice to the scene it frames.
-    await page.goto(`${origin}/index.html?controls=open`);
+    // The viewer, which takes the package's options from its own address, opens the scene's
+    // bar from its first frame too: as soon as the scene's markup shows, before its code.
+    let releaseViewer!: () => void;
+    const viewerHeld = new Promise<void>((resolve) => { releaseViewer = resolve; });
+    await page.route("**/skyline-3d.js", async (route) => { await viewerHeld; await route.continue(); });
+    await page.goto(`${origin}/index.html?controls=open`, { waitUntil: "domcontentloaded" });
+    await page.locator(".control-bar").waitFor();
+    expect(await state(page)).toEqual(open);
+    releaseViewer();
     expect(await state(await openScene(page))).toEqual(open);
+    await page.unroute("**/skyline-3d.js");
     await page.goto(`${origin}/index.html`);
     expect(await state(await openScene(page))).toEqual(closed);
     await page.close();
@@ -911,7 +963,7 @@ describe("full-screen 3D skyline", () => {
 
   test("leaves out the OpenStreetMap credit only when its address or the viewer's asks", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: "reduce" });
-    watch(page);
+    await watch(page);
     const notes = async (frame: Page | Frame) => ({ credit: await frame.locator(".attribution").isVisible(), hint: await frame.locator("#camera-hint").isVisible() });
     // With the controls open, where the credit shows: only ?attribution=hidden leaves it out.
     for (const [query, credit] of [["", true], ["&attribution=shown", true], ["&attribution=wide", true], ["&attribution=hidden", false]] as const) {
@@ -925,7 +977,7 @@ describe("full-screen 3D skyline", () => {
     expect(await notes(page)).toEqual({ credit: false, hint: false });
     await star.click();
     expect(await notes(page)).toEqual({ credit: false, hint: true });
-    // The viewer passes its own address's choice to the scene it frames.
+    // The viewer passes its own address's choice to its scene.
     await page.goto(`${origin}/index.html?controls=open&attribution=hidden`);
     expect(await notes(await openScene(page))).toEqual({ credit: false, hint: true });
     await page.close();
@@ -933,7 +985,7 @@ describe("full-screen 3D skyline", () => {
 
   test("opens stacked groups in place and centred, and settles a fold the window resizes under", async () => {
     const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
-    watch(page);
+    await watch(page);
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     const star = page.locator("#menu-toggle");
@@ -977,21 +1029,21 @@ describe("full-screen 3D skyline", () => {
 
   test("keeps its skyline above the control bar on a phone, with views to tap through under reduced motion", async () => {
     const phone = await browser.newPage({ ...viewports[4].options, reducedMotion: "reduce" });
-    watch(phone);
+    await watch(phone);
     await phone.goto(`${origin}/index.html`);
     const scene = await openScene(phone);
     expect(await phone.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     // The drawing's frame is as wide as a portrait screen and stands on the bar.
     const { bar, canvas } = await scene.evaluate(() => ({
-      bar: document.querySelector(".control-bar")!.getBoundingClientRect().toJSON() as DOMRect,
-      canvas: document.querySelector("#building")!.getBoundingClientRect().toJSON() as DOMRect,
+      bar: window.__viewerRoot!.querySelector(".control-bar")!.getBoundingClientRect().toJSON() as DOMRect,
+      canvas: window.__viewerRoot!.querySelector("#building")!.getBoundingClientRect().toJSON() as DOMRect,
     }));
     near(canvas.bottom, bar.top, 0.5);
     expect(canvas.height).toBeGreaterThan(canvas.width * boxHeight / boxWidth);
     await phone.screenshot({ path: "/tmp/skyline-3d-mobile.png" });
     // The star opens the controls at once under reduced motion, with nothing to animate.
     await scene.locator("#menu-toggle").tap();
-    expect(await scene.evaluate(() => [document.getAnimations().length, getComputedStyle(document.querySelector(".camera-views")!).display])).toEqual([0, "flex"]);
+    expect(await scene.evaluate(() => [window.__viewerRoot!.getAnimations().length, getComputedStyle(window.__viewerRoot!.querySelector(".camera-views")!).display])).toEqual([0, "flex"]);
     // Reduced motion stops dragging and leaves out the turntable; the view buttons still move
     // the camera at once, as the hint says.
     expect(await scene.locator("#turntable").isHidden()).toBe(true);
@@ -1011,7 +1063,7 @@ describe("full-screen 3D skyline", () => {
 
   test("floats a building's detail over the skyline from its context menu, without leaving the viewer", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    watch(page);
+    await watch(page);
     await page.goto(`${origin}/index.html`);
     const scene = await openScene(page);
     const visits = await page.evaluate(() => history.length);
@@ -1026,9 +1078,10 @@ describe("full-screen 3D skyline", () => {
     };
     const aon = await on("layer3");
     const menu = scene.locator("#building-menu");
-    const focused = (frame: Page | Frame) => frame.evaluate(() => document.activeElement?.id);
-    const topmost = (frame: Page | Frame, { x, y, width, height }: { x: number; y: number; width: number; height: number }) =>
-      frame.evaluate(([x, y]) => document.elementFromPoint(x, y)?.id, [x + width / 2, y + height / 2] as const);
+    const focused = (frame: Page | Frame) => frame.evaluate(() => window.__focused);
+    // What the viewer's root, or the page, shows on top at the middle of a box.
+    const topmost = (frame: Page | Frame, { x, y, width, height }: { x: number; y: number; width: number; height: number }, inViewer = true) =>
+      frame.evaluate(([x, y, inViewer]) => (inViewer ? window.__viewerRoot! : document).elementFromPoint(x, y)?.id || (inViewer ? undefined : document.elementFromPoint(x, y)?.getAttribute("role")), [x + width / 2, y + height / 2, inViewer] as const);
     // The sky has no menu, and a right-drag across a building pans rather than opening one.
     await page.mouse.click(canvas.x + 60, canvas.y + 120, { button: "right" });
     expect(await menu.isHidden()).toBe(true);
@@ -1049,7 +1102,7 @@ describe("full-screen 3D skyline", () => {
     expect(await scene.locator('#building-menu [role="menuitem"]').allTextContents()).toEqual(["building detail"]);
     expect(await scene.locator("#building-lighting-menu").isHidden()).toBe(true);
     expect(await scene.locator('[role="menuitemradio"]').count()).toBe(0);
-    expect(await scene.locator("#building-detail-link").getAttribute("href")).toBe("building-detail.html?building=layer3");
+    expect(await scene.locator("#building-detail-link").getAttribute("href")).toBe(`${origin}/building-detail.html?building=layer3`);
     expect(await focused(scene)).toBe("building-detail-link");
     const box = (await menu.boundingBox())!;
     near(box.x, aon.x, 1);
@@ -1059,22 +1112,21 @@ describe("full-screen 3D skyline", () => {
     expect(await focused(scene)).toBe("building");
     // Its item floats the building's detail over the skyline, below the viewer's controls,
     // and the panel takes focus. The viewer stays where it is, with no history of its own.
+    // The detail renders in a shadow root of its own inside the panel, not in a frame.
     await page.mouse.click(aon.x, aon.y, { button: "right" });
     await scene.locator("#building-detail-link").click();
     expect(await menu.isHidden()).toBe(true);
     const panel = scene.locator("#building-detail");
     expect(await panel.isVisible()).toBe(true);
-    const openDetail = async () => {
-      const frame = (await (await panel.locator("iframe").elementHandle())!.contentFrame())!;
-      await frame.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
-      return frame;
-    };
-    let detail = await openDetail();
-    expect(detail.url()).toBe(`${origin}/building-detail.html?building=layer3`);
-    expect([page.url(), scene.url()]).toEqual([`${origin}/index.html`, `${origin}/skyline-3d.html`]);
+    const detail = page.locator(".detail-host");
+    const openDetail = (name: string) => page.waitForFunction((name) => window.__detailStudy?.ready && window.__detailStudy.modelName === name, name, { timeout: 60_000 });
+    await openDetail("Aon Center");
+    expect(page.url()).toBe(`${origin}/index.html`);
     expect(await page.evaluate(() => history.length)).toBe(visits);
+    expect(await page.locator("iframe").count()).toBe(0);
     expect(await detail.locator("h1").textContent()).toBe("Aon Center");
-    expect(await panel.locator("iframe").getAttribute("title")).toBe("Aon Center — Building Detail");
+    expect(await panel.getAttribute("aria-label")).toBe("Aon Center — Building Detail");
+    expect(await panel.getAttribute("aria-modal"), "the panel leaves the rest of the page usable").toBeNull();
     expect(await detail.locator(".study-links").isHidden(), "the panel closes the detail, not the page's own links").toBe(true);
     expect(await focused(scene)).toBe("detail-close");
     const floating = (await panel.boundingBox())!, controls = (await page.locator(".controls").boundingBox())!;
@@ -1082,7 +1134,7 @@ describe("full-screen 3D skyline", () => {
     expect(floating.x >= 0 && floating.x + floating.width <= 1440 && floating.y + floating.height <= bar.y, "the panel stays in the scene above the control bar").toBe(true);
     expect(controls.y + controls.height, "the panel stands below the viewer's controls").toBeLessThanOrEqual(floating.y);
     const close = (await scene.locator("#detail-close").boundingBox())!;
-    expect([await topmost(page, close), await topmost(scene, close)], "nothing covers the close button").toEqual(["skyline-3d-scene", "detail-close"]);
+    expect([await topmost(page, close, false), await topmost(page, close)], "nothing covers the close button").toEqual(["region", "detail-close"]);
     await page.screenshot({ path: "/tmp/skyline-3d-detail.png" });
     // The skyline stays live beside it, and another building's menu, drawn over the panel
     // where it reaches it, replaces the detail.
@@ -1094,15 +1146,14 @@ describe("full-screen 3D skyline", () => {
     expect(item.x, "the menu reaches over the panel").toBeLessThan(floating.x + floating.width);
     expect(await topmost(scene, item)).toBe("building-detail-link");
     await scene.locator("#building-detail-link").click();
-    await scene.waitForFunction(() => document.querySelector<HTMLIFrameElement>("#building-detail iframe")?.src.endsWith("building=building-340-on-the-park"));
-    detail = await openDetail();
-    expect(await panel.locator("iframe").count()).toBe(1);
+    await openDetail("340 on the Park");
+    expect(await panel.locator(".detail-host").count()).toBe(1);
     expect(await detail.locator("h1").textContent()).toBe("340 on the Park");
-    // Escape inside the detail closes the panel, removing its frame, and focus returns to
+    // Escape inside the detail closes the panel, releasing the detail, and focus returns to
     // the skyline.
     await detail.locator("#building").focus();
     await page.keyboard.press("Escape");
-    await scene.waitForFunction(() => !document.querySelector("#building-detail iframe"));
+    await scene.waitForFunction(() => !window.__viewerRoot!.querySelector(".detail-host"));
     expect(await panel.isHidden()).toBe(true);
     expect(await focused(scene)).toBe("building");
     // So does Escape once focus has left the panel for the skyline, but an open menu or
@@ -1110,7 +1161,7 @@ describe("full-screen 3D skyline", () => {
     const reopen = async () => {
       await page.mouse.click(aon.x, aon.y, { button: "right" });
       await scene.locator("#building-detail-link").click();
-      await openDetail();
+      await openDetail("Aon Center");
     };
     await reopen();
     await page.mouse.click(park.x, park.y, { button: "right" });
@@ -1119,15 +1170,16 @@ describe("full-screen 3D skyline", () => {
     expect([await menu.isHidden(), await panel.isVisible(), await focused(scene)]).toEqual([true, true, "building"]);
     const star = scene.locator("#menu-toggle");
     await star.click();
-    await scene.locator("#wireframe").focus();
+    // The scene's own toggle; the detail has one too, in its shadow root.
+    await scene.locator(".control-bar #wireframe").focus();
     await page.keyboard.press("Escape");
     expect([await star.getAttribute("aria-expanded"), await panel.isVisible(), await focused(scene)]).toEqual(["false", true, "menu-toggle"]);
     await page.keyboard.press("Escape");
-    await scene.waitForFunction(() => !document.querySelector("#building-detail iframe"));
+    await scene.waitForFunction(() => !window.__viewerRoot!.querySelector(".detail-host"));
     expect(await panel.isHidden()).toBe(true);
     await reopen();
     await scene.locator("#detail-close").click();
-    await scene.waitForFunction(() => !document.querySelector("#building-detail iframe"));
+    await scene.waitForFunction(() => !window.__viewerRoot!.querySelector(".detail-host"));
     expect(await panel.isHidden()).toBe(true);
     expect(await page.evaluate(() => history.length)).toBe(visits);
     await page.close();
@@ -1138,7 +1190,7 @@ describe("full-screen 3D skyline", () => {
     // menu opens all the same. With nothing over the page's top, the panel is centred in the
     // scene above the control bar.
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
-    watch(page);
+    await watch(page);
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     const [u, v] = await page.evaluate(() => window.__buildingStudy!.projectPoint("layer3", [284, 200, -50]));
@@ -1173,9 +1225,8 @@ describe("full-screen 3D skyline", () => {
     expect([box.width, box.height]).toEqual([1040, 760]);
     near(box.x, (1440 - box.width) / 2, 1);
     near(box.y, (bar.y - box.height) / 2, 1);
-    const detail = (await (await panel.locator("iframe").elementHandle())!.contentFrame())!;
-    await detail.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
-    expect(await detail.locator("h1").textContent()).toBe("Aon Center");
+    await page.waitForFunction(() => window.__detailStudy?.ready, null, { timeout: 60_000 });
+    expect(await panel.locator(".detail-host h1").textContent()).toBe("Aon Center");
     expect(page.url()).toBe(`${origin}/skyline-3d.html`);
     await page.close();
   }, { timeout: 180_000 });
