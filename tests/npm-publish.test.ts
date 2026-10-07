@@ -93,6 +93,7 @@ describe("the publish workflow", () => {
   test("also tests the packed library on its declared Node support floor", () => {
     const metadata = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")) as { engines: { node: string } };
     const index = tests.steps.findIndex((step) => step.run === "bun run check:package");
+    expect(index).toBeGreaterThan(0);
     const setup = tests.steps[index - 1];
     expect(setup?.uses).toStartWith("actions/setup-node@");
     const version = String(setup?.with?.["node-version"]);

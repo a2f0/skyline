@@ -239,7 +239,9 @@ The root nested `miniflare` / `sharp` override selects the maintainer's patched 
 for that dependency alone. Its existing image API and Node requirements remain
 compatible; `tests/dependency-runtime.test.ts` exercises Miniflare's offline
 Images binding under Node, decoding SVG, resizing to PNG and checking dimensions
-and pixel bytes through Sharp's native runtime. It creates no remote bindings.
+and pixel bytes through Sharp's native runtime. It also checks the actual
+Miniflare-resolved Sharp and native librsvg versions meet the advisory's patched
+minimums, rather than trusting the lockfile alone. It creates no remote bindings.
 `bun run check` runs that regression and the dependency audit on developer machines
 and publishing CI. The lockfile still records Miniflare's declared Sharp 0.35.4
 constraint; the selected Sharp package resolves to patched 0.35.5 through the

@@ -20,7 +20,8 @@ provenance linking it to the commit and workflow run that built it.
 
 From this repository:
 
-Use the pinned Bun version, Node.js 22+ (with npm), and Google Chrome for checks.
+Use the Bun and Node.js LTS versions pinned in `mise.toml`, npm (included with Node),
+and Google Chrome for checks.
 
 ```sh
 bun install --ignore-scripts
@@ -332,8 +333,11 @@ overlap, and when merges land together only the newest pending run starts, so in
 versions can be skipped on npm.
 
 The workflow first runs the full `bun run check`, browser suites included, in the runner's
-Google Chrome with the pinned Node.js LTS. It also runs the tarball and viewer package
-suite on Node.js 22 to verify the supported minimum. Only when those pass does it build and pack the tarball; both jobs run without
+Google Chrome with the pinned Node.js LTS. The dependency audit is part of that
+check: it needs the registry network, and any advisory in the locked dependency
+graph fails the check and blocks publishing until addressed. It also runs the
+tarball and viewer package suite on Node.js 22 to verify the supported minimum.
+Only when those pass does it build and pack the tarball; both jobs run without
 publish rights, and the publish job receives only that tarball and runs
 `npm publish --ignore-scripts`. Dispatching the workflow on another branch
 (`gh workflow run npm-publish.yml --ref <branch>`) runs only the tests, in a queue of its own,
@@ -351,6 +355,9 @@ npm publish   # prepublishOnly runs bun run check; prepack builds lib/ and site/
 Then, in the package's settings on npmjs.com, add a GitHub Actions trusted publisher for
 repository `a2f0/skyline`, workflow `npm-publish.yml`, and environment `npm`, and re-run
 the workflow; it reports the version as already published.
+
+The Sharp override in the tarball is repository development tooling policy; npm
+and Bun consumers use their own root overrides, so it does not pin their dependencies.
 
 The package is ESM only, with no CommonJS entrypoint. Building requires this repository's
 Bun/TypeScript tools; consuming the published package requires neither Bun nor build
