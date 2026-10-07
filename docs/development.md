@@ -1,9 +1,9 @@
 # Development
 
 Sources are TypeScript under `@tsconfig/strictest`. The browser modules compile to `dist/` with
-tsc, the only build step; there is no bundler. `AGENTS.md` (imported by `CLAUDE.md`) is the
-repository's policy for agents and holds the shipping rules; this page explains the tooling behind
-it.
+tsc, the only build step; there is no bundler. `AGENTS.md`, which Claude Code, Codex, and OpenCode
+read directly, is the repository's policy for agents and holds the shipping rules; this page
+explains the tooling behind it.
 
 ## Layout
 
