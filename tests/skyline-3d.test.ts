@@ -12,6 +12,7 @@ import { celebrations } from "../src/models/celebrations.js";
 import { createGeographicSkyline } from "../src/skyline-scene.js";
 import type * as THREE from "../src/vendor/three-r186.js";
 import type { BuildingStudyApi } from "../src/study-viewer.js";
+import { isThreeDeprecation } from "./three-warnings.js";
 
 declare global {
   interface Window {
@@ -76,10 +77,11 @@ async function openScene(page: Page) {
 
 describe("full-screen 3D skyline", () => {
   let browser!: Browser;
-  const errors: string[] = [], external: string[] = [];
+  const errors: string[] = [], external: string[] = [], deprecations: string[] = [];
   const watch = async (page: Page) => {
     await page.addInitScript(viewerHooks);
     page.on("pageerror", (error) => errors.push(error.message));
+    page.on("console", (message) => { if (isThreeDeprecation(message.text())) deprecations.push(message.text()); });
     // The WebGL prototype, reachable from the viewer, rasterizes its textures into blob URLs of
     // the page's own origin.
     const local = [origin, "data:", `blob:${origin}/`];
@@ -1293,8 +1295,35 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 60_000 });
 
-  test("loads only local assets without page errors", () => {
+  test("boots the viewer and a building's detail without three.js deprecation warnings", async () => {
+    // r186 removed PCFSoftShadowMap, and three said so on every host's console while the
+    // scene still asked for it. Nothing the viewer or a detail starts with may be deprecated
+    // or removed: not in the viewer as a host mounts it, with a detail floated from a
+    // building's menu, nor on the detail's own page.
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+    await watch(page);
+    const logged: string[] = [];
+    page.on("console", (message) => { if (isThreeDeprecation(message.text())) logged.push(`${page.url()}: ${message.text()}`); });
+    await page.goto(`${origin}/index.html`);
+    await openScene(page);
+    await page.evaluate(() => {
+      const canvas = window.__viewerRoot!.querySelector("#building")!, box = canvas.getBoundingClientRect();
+      const [u, v] = window.__buildingStudy!.projectPoint("layer3", [284, 200, -50]);
+      canvas.dispatchEvent(new MouseEvent("contextmenu", { clientX: box.x + u * box.width, clientY: box.y + v * box.height, bubbles: true, cancelable: true }));
+    });
+    await page.locator("#building-detail-link").click();
+    await page.waitForFunction(() => window.__detailStudy?.ready, null, { timeout: 60_000 });
+    await settle(page);
+    await page.goto(`${origin}/building-detail.html?building=layer3`);
+    await page.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
+    await settle(page);
+    expect(logged).toEqual([]);
+    await page.close();
+  }, { timeout: 120_000 });
+
+  test("loads only local assets without page errors or three.js deprecation warnings", () => {
     expect(errors).toEqual([]);
     expect(external).toEqual([]);
+    expect(deprecations).toEqual([]);
   });
 });

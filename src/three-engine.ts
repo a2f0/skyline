@@ -13,7 +13,7 @@ import type { OrbitControls } from "three/addons/controls/OrbitControls.js";
 export type SkylineThree = Pick<typeof THREE,
   | "AmbientLight" | "BoxGeometry" | "BufferGeometry" | "Color" | "DataTexture" | "DirectionalLight"
   | "EdgesGeometry" | "Float32BufferAttribute" | "Group" | "LineBasicMaterial" | "LineSegments"
-  | "Mesh" | "MeshBasicMaterial" | "MeshToonMaterial" | "NearestFilter" | "PCFSoftShadowMap"
+  | "Mesh" | "MeshBasicMaterial" | "MeshToonMaterial" | "NearestFilter" | "PCFShadowMap"
   | "OrthographicCamera" | "PerspectiveCamera" | "Raycaster" | "RedFormat" | "Scene" | "Vector2"
   | "Vector3" | "WebGLRenderer"> & { readonly OrbitControls: typeof OrbitControls };
 

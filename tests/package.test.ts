@@ -10,6 +10,7 @@ import type { Browser, Page } from "playwright";
 import { buildPackage } from "../scripts/build-package.js";
 import { publishedFiles, root } from "../scripts/build-site.js";
 import { startServer } from "../scripts/lib/static-server.js";
+import { isThreeDeprecation } from "./three-warnings.js";
 
 interface PackResult {
   filename: string;
@@ -226,7 +227,7 @@ window.mountFixture();
         const page = await browser.newPage({ viewport, reducedMotion: viewport.width < 600 ? "reduce" : "no-preference", hasTouch: viewport.width < 600 });
         const errors: string[] = [], external: string[] = [], warnings: string[] = [], requested: string[] = [];
         page.on("pageerror", (error) => errors.push(error.message));
-        page.on("console", (message) => { if (message.type() === "warning" && !message.text().includes("PCFSoftShadowMap")) warnings.push(message.text()); });
+        page.on("console", (message) => { if (message.type() === "warning") warnings.push(message.text()); });
         page.on("request", (request) => {
           requested.push(request.url());
           if (!request.url().startsWith(server.origin) && !request.url().startsWith("data:")) external.push(request.url());
@@ -518,6 +519,7 @@ window.mountFixture();
           expect(external).toEqual([]);
           expect(errors).toEqual([]);
           expect(warnings.filter((warning) => warning.includes("Multiple instances of Three.js"))).toEqual([]);
+          expect(warnings.filter(isThreeDeprecation), "the assets' engine warns of nothing deprecated or removed").toEqual([]);
         } finally { await page.close(); }
       }
     } finally { await browser?.close(); await server.close(); }
@@ -578,6 +580,9 @@ if (mode === 'reject-destroyed') {
             expect(multiple).toHaveLength(1);
             expect(fallback).toHaveLength(mode === "reject" ? 1 : 0);
           }
+          // Whichever engine renders, the host's or the assets', it warns of nothing deprecated
+          // or removed.
+          expect(warnings.filter(isThreeDeprecation), mode).toEqual([]);
           expect(errors, mode).toEqual([]);
         } finally { await page.close(); }
       }
