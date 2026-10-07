@@ -569,7 +569,7 @@ if (mode === 'reject-destroyed') {
         await step(`browser close before ${mode}`, browser?.close() ?? Promise.resolve());
         browser = await step(`launch ${mode}`, chromium.launch({
           channel: "chrome", headless: true,
-          logger: { isEnabled: (name) => name === "browser", log: (name, _severity, message) => console.error(`[share browser ${mode}] ${String(message).slice(0, 300)}`) },
+          logger: { isEnabled: (name) => name === "browser", log: (_name, _severity, message) => console.error(`[share browser ${mode}] ${String(message).slice(0, 300)}`) },
         }));
         const page = await step(`newPage ${mode}`, browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" }));
         page.on("crash", () => console.error(`[share page ${mode}] crashed`));
