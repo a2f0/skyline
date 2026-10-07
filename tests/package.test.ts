@@ -512,13 +512,12 @@ window.mountFixture(location.search === '?reject' ? { three: Promise.reject(new 
             await page.evaluate(() => { (window as unknown as Hooked).destroyFixture("closed"); scrollTo(0, 0); });
           }
           // A host engine that fails to load: the viewer warns and loads the assets' copy. Only
-          // this page's requests and warnings count.
-          requested.length = 0;
-          warnings.length = 0;
+          // this page's requests and warnings count; the logs keep the rest for the checks below.
+          const fallback = { requests: requested.length, warnings: warnings.length };
           await page.goto(`${server.origin}/?reject`);
           expect(await settled(page)).toBe("ready");
-          expect(warnings.filter((warning) => warning.includes("could not use the page's Three.js"))).toHaveLength(1);
-          expect(requested.filter((url) => url.endsWith("/nested/skyline/vendor/three-r186.bundle.js")).length).toBeGreaterThan(0);
+          expect(warnings.slice(fallback.warnings).filter((warning) => warning.includes("could not use the page's Three.js"))).toHaveLength(1);
+          expect(requested.slice(fallback.requests).filter((url) => url.endsWith("/nested/skyline/vendor/three-r186.bundle.js"))).toHaveLength(1);
           await page.evaluate(() => (window as unknown as Hooked).destroyFixture());
           // Without WebGL the scene can't start: `ready` says so, the scene says why, and the
           // drawing stays one press away.
@@ -541,26 +540,26 @@ window.mountFixture(location.search === '?reject' ? { three: Promise.reject(new 
     await mkdir(publicDirectory, { recursive: true });
     const { copySkylineAssets } = await import(pathToFileURL(path.join(installed, "lib/package-assets.js")).href) as { copySkylineAssets(destination: string): Promise<void> };
     await copySkylineAssets(path.join(publicDirectory, "skyline"));
-    // A page that already renders with Three.js into a canvas of its own, as devopsrockstars'
-    // hat preview does. It first mounts a viewer with an engine that fails to load and
-    // destroys it at once, which must leave no unhandled rejection; then it hands a viewer its
-    // engine through a lazily loaded `@a2f0/skyline/three`. One page holds every check: the
-    // publish runner's software GPU has hung creating a WebGL context in a second such page.
+    // A page that already runs Three.js, as devopsrockstars' hat preview does, which three
+    // records on the window as its engine loads. It first mounts a viewer with an engine that
+    // fails to load and destroys it at once, which must leave no unhandled rejection; then it
+    // hands a viewer its engine through a lazily loaded `@a2f0/skyline/three`. The page does
+    // not render with its engine itself: on the publish runner's software GPU, a page that
+    // did hung creating its WebGL context, before any viewer code ran.
     await writeFile(path.join(consumer, "three-host.ts"), `
-import { WebGLRenderer, Scene, PerspectiveCamera } from 'three';
+import { REVISION, Scene } from 'three';
 import { mountSkyline } from '@a2f0/skyline';
-const own = new WebGLRenderer({ canvas: document.querySelector('#preview') });
-own.render(new Scene(), new PerspectiveCamera());
+window.hostScene = new Scene();
+window.hostRevision = REVISION;
 const failing = new Promise((resolve, reject) => setTimeout(() => reject(new Error('no engine')), 50));
 mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', three: failing }).destroy();
 const skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', three: import('@a2f0/skyline/three') });
 skyline.ready.then(() => { window.settled = 'ready'; }, (error) => { window.settled = 'rejected: ' + error.message; });
-// Leaves the GPU as it found it: the viewer released, and the page's own renderer too.
-window.teardown = () => { skyline.destroy(); own.dispose(); own.forceContextLoss(); };
+window.teardown = () => skyline.destroy();
 `);
     const bundle = await Bun.build({ entrypoints: [path.join(consumer, "three-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true, splitting: true });
     expect(bundle.success).toBe(true);
-    await writeFile(path.join(publicDirectory, "index.html"), '<!doctype html><html><head><style>body{margin:0}#host{height:90vh}#preview{display:block;width:160px;height:80px}</style></head><body><canvas id="preview"></canvas><div id="host"></div><script type="module" src="three-host.js"></script></body></html>');
+    await writeFile(path.join(publicDirectory, "index.html"), '<!doctype html><html><head><style>body{margin:0}#host{height:100vh}</style></head><body><div id="host"></div><script type="module" src="three-host.js"></script></body></html>');
     const server = await startServer(publicDirectory);
     let browser: Browser | undefined;
     try {
@@ -574,6 +573,9 @@ window.teardown = () => { skyline.destroy(); own.dispose(); own.forceContextLoss
         await page.goto(server.origin);
         await page.waitForFunction(() => (window as unknown as { settled?: string }).settled, null, { timeout: 120_000, polling: 250 });
         expect(await page.evaluate(() => (window as unknown as { settled: string }).settled)).toBe("ready");
+        // The page's engine is on the window before the viewer's scene loads, so a second
+        // engine would warn.
+        expect(await page.evaluate(() => (window as unknown as { __THREE__?: string }).__THREE__)).toBe("186");
         expect(requested, "the shared engine replaces the assets' copy").not.toContain("/skyline/vendor/three-r186.bundle.js");
         expect(warnings.filter((warning) => warning.includes("Multiple instances of Three.js"))).toEqual([]);
         // The destroyed viewer never asked for its engine, so it reports nothing.
