@@ -564,9 +564,12 @@ if (mode === 'reject-destroyed') {
     const server = await step("serve", startServer(publicDirectory));
     let browser: Browser | undefined;
     try {
-      browser = await step("launch", chromium.launch({ channel: "chrome", headless: true }));
-      for (const mode of ["share", "", "reject", "reject-destroyed"]) {
+      for (const mode of ["", "share", "reject", "reject-destroyed"]) {
+        // TEMPORARY: a fresh browser for each mode.
+        await step(`browser close before ${mode}`, browser?.close() ?? Promise.resolve());
+        browser = await step(`launch ${mode}`, chromium.launch({ channel: "chrome", headless: true }));
         const page = await step(`newPage ${mode}`, browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" }));
+        page.on("crash", () => console.error(`[share page ${mode}] crashed`));
         page.on("console", (message) => console.error(`[share page ${mode}] ${message.type()}: ${message.text()}`));
         page.on("pageerror", (error) => console.error(`[share page ${mode}] pageerror: ${error.message}`));
         page.on("requestfailed", (request) => console.error(`[share page ${mode}] failed: ${request.url()}`));
