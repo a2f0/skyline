@@ -1245,6 +1245,46 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
+  test("releases a building detail that fails part way through starting", async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+    await watch(page);
+    // The detail's study fails after its renderer exists: its first resize observation throws.
+    // The page keeps the detail's canvas, to read its WebGL context afterwards.
+    await page.addInitScript(() => {
+      const observe = ResizeObserver.prototype.observe;
+      ResizeObserver.prototype.observe = function (target, options) {
+        const root = target.getRootNode();
+        if (root instanceof ShadowRoot && root.host.classList.contains("detail-host") && target.id === "viewport") {
+          (window as unknown as { failedCanvas: HTMLCanvasElement }).failedCanvas = root.querySelector<HTMLCanvasElement>("#building")!;
+          throw new Error("The detail failed to start.");
+        }
+        return observe.call(this, target, options);
+      };
+    });
+    const errors: string[] = [];
+    page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+    await page.goto(`${origin}/skyline-3d.html`);
+    await page.waitForFunction(() => window.__buildingStudy?.ready);
+    await page.evaluate(() => {
+      const canvas = document.querySelector("#building")!, box = canvas.getBoundingClientRect();
+      const [u, v] = window.__buildingStudy!.projectPoint("layer3", [284, 200, -50]);
+      canvas.dispatchEvent(new MouseEvent("contextmenu", { clientX: box.x + u * box.width, clientY: box.y + v * box.height, bubbles: true, cancelable: true }));
+    });
+    await page.locator("#building-detail-link").click();
+    const panel = page.locator("#building-detail");
+    await panel.locator(".loading").filter({ hasText: "could not load" }).waitFor();
+    // The panel still says so, and the failed detail let go of its graphics context.
+    expect(await panel.isVisible()).toBe(true);
+    expect(await page.evaluate(() => {
+      const canvas = (window as unknown as { failedCanvas: HTMLCanvasElement }).failedCanvas;
+      return { lost: canvas.getContext("webgl2")?.isContextLost(), study: Boolean(canvas.__buildingStudy) };
+    })).toEqual({ lost: true, study: false });
+    expect(errors.some((error) => error.includes("The detail failed to start."))).toBe(true);
+    await page.locator("#detail-close").click();
+    expect(await panel.isHidden()).toBe(true);
+    await page.close();
+  }, { timeout: 60_000 });
+
   test("loads only local assets without page errors", () => {
     expect(errors).toEqual([]);
     expect(external).toEqual([]);

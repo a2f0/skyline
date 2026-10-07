@@ -308,6 +308,12 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
     shown = size;
   });
   resizing.observe(frame);
+  // Released as soon as it exists, so a scene that fails part way lets it go too.
+  signal.addEventListener("abort", () => {
+    resizing.disconnect();
+    folds.forEach((fold) => fold.cancel());
+    folds = [];
+  }, { once: true });
   menu.addEventListener("keydown", (event) => {
     if (event.key === "Escape" || event.key === "Tab") {
       event.preventDefault();
@@ -373,6 +379,9 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
       showBuildingDetail({ root: detailRoot, id, frame: detailRoot.querySelector<HTMLElement>(".detail-root")!, signal: controller.signal });
     }).catch((error: unknown) => {
       if (controller.signal.aborted) return;
+      // A detail that fails part way is released at once, renderer and listeners included,
+      // rather than when the panel closes.
+      controller.abort(error);
       console.error(error);
       const message = document.createElement("p");
       message.className = "loading";
@@ -396,11 +405,6 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
   root.addEventListener("keydown", closeDetailOnEscape, listening);
   detailClose.addEventListener("click", closeDetail, listening);
 
-  signal.addEventListener("abort", () => {
-    clearDetail();
-    resizing.disconnect();
-    folds.forEach((fold) => fold.cancel());
-    folds = [];
-  }, { once: true });
+  signal.addEventListener("abort", clearDetail, { once: true });
   onReady?.();
 }

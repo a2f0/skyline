@@ -1,9 +1,16 @@
 import { showBuildingDetail } from "./building-detail.js";
 
 // building-detail.html?building=<id>: one building's detail on a page of its own.
-showBuildingDetail({
-  root: document,
-  id: new URLSearchParams(location.search).get("building"),
-  frame: document.querySelector<HTMLElement>(".detail-root")!,
-  signal: new AbortController().signal,
-});
+const life = new AbortController();
+try {
+  showBuildingDetail({
+    root: document,
+    id: new URLSearchParams(location.search).get("building"),
+    frame: document.querySelector<HTMLElement>(".detail-root")!,
+    signal: life.signal,
+  });
+} catch (error) {
+  // A detail that fails part way releases what it started; study-loader.js says why.
+  life.abort(error);
+  throw error;
+}
