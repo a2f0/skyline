@@ -527,10 +527,18 @@ window.mountFixture();
   }, { timeout: 600_000 });
 
   test("shares the host page's Three.js, without loading or warning about a second engine", async () => {
+    // TEMPORARY CI DIAGNOSTICS
+    const step = async <T>(label: string, work: Promise<T>): Promise<T> => {
+      console.error(`[share] ${new Date().toISOString()} start ${label}`);
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(`step timed out: ${label}`)), 90_000); })]);
+      } finally { clearTimeout(timer); console.error(`[share] ${new Date().toISOString()} end ${label}`); }
+    };
     const publicDirectory = path.join(consumer, "public-three");
     await mkdir(publicDirectory, { recursive: true });
     const { copySkylineAssets } = await import(pathToFileURL(path.join(installed, "lib/package-assets.js")).href) as { copySkylineAssets(destination: string): Promise<void> };
-    await copySkylineAssets(path.join(publicDirectory, "skyline"));
+    await step("copy", copySkylineAssets(path.join(publicDirectory, "skyline")));
     // A page that already renders with Three.js, as devopsrockstars' hat preview does, then
     // hands the viewer its engine through a lazily loaded `@a2f0/skyline/three`.
     await writeFile(path.join(consumer, "three-host.ts"), `
@@ -550,23 +558,26 @@ if (mode === 'reject-destroyed') {
   setTimeout(() => { window.settled = 'destroyed'; }, 500);
 } else skyline.ready.then(() => { window.settled = 'ready'; }, (error) => { window.settled = 'rejected: ' + error.message; });
 `);
-    const bundle = await Bun.build({ entrypoints: [path.join(consumer, "three-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true, splitting: true });
+    const bundle = await step("bundle", Bun.build({ entrypoints: [path.join(consumer, "three-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true, splitting: true }));
     expect(bundle.success).toBe(true);
     await writeFile(path.join(publicDirectory, "index.html"), '<!doctype html><html><head><style>body{margin:0}#host{height:100vh}</style></head><body><div id="host"></div><script type="module" src="three-host.js"></script></body></html>');
-    const server = await startServer(publicDirectory);
+    const server = await step("serve", startServer(publicDirectory));
     let browser: Browser | undefined;
     try {
-      browser = await chromium.launch({ channel: "chrome", headless: true });
+      browser = await step("launch", chromium.launch({ channel: "chrome", headless: true }));
       for (const mode of ["share", "", "reject", "reject-destroyed"]) {
-        const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+        const page = await step(`newPage ${mode}`, browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" }));
+        page.on("console", (message) => console.error(`[share page ${mode}] ${message.type()}: ${message.text()}`));
+        page.on("pageerror", (error) => console.error(`[share page ${mode}] pageerror: ${error.message}`));
+        page.on("requestfailed", (request) => console.error(`[share page ${mode}] failed: ${request.url()}`));
         const errors: string[] = [], warnings: string[] = [], requested: string[] = [];
         page.on("pageerror", (error) => errors.push(error.message));
         page.on("console", (message) => { if (message.type() === "warning") warnings.push(message.text()); });
         page.on("request", (request) => requested.push(new URL(request.url()).pathname));
         try {
-          await page.goto(`${server.origin}/${mode ? `?${mode}` : ""}`);
-          await page.waitForFunction(() => (window as unknown as { settled?: string }).settled, null, { timeout: 60_000 });
-          expect(await page.evaluate(() => (window as unknown as { settled: string }).settled)).toBe(mode === "reject-destroyed" ? "destroyed" : "ready");
+          await step(`goto ${mode}`, page.goto(`${server.origin}/${mode ? `?${mode}` : ""}`));
+          await step(`settle ${mode}`, page.waitForFunction(() => (window as unknown as { settled?: string }).settled, null, { timeout: 60_000 }));
+          expect(await step(`read ${mode}`, page.evaluate(() => (window as unknown as { settled: string }).settled))).toBe(mode === "reject-destroyed" ? "destroyed" : "ready");
           const multiple = warnings.filter((warning) => warning.includes("Multiple instances of Three.js"));
           const fallback = warnings.filter((warning) => warning.includes("could not use the page's Three.js"));
           if (mode === "share") {
@@ -582,8 +593,8 @@ if (mode === 'reject-destroyed') {
             expect(fallback).toHaveLength(mode === "reject" ? 1 : 0);
           }
           expect(errors, mode).toEqual([]);
-        } finally { await page.close(); }
+        } finally { await step(`close ${mode}`, page.close()); }
       }
-    } finally { await browser?.close(); await server.close(); }
+    } finally { await step("browser close", browser?.close() ?? Promise.resolve()); await step("server close", server.close()); }
   }, { timeout: 600_000 });
 });
