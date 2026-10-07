@@ -567,9 +567,15 @@ if (mode === 'reject-destroyed') {
       for (const mode of ["", "share", "reject", "reject-destroyed"]) {
         // TEMPORARY: a fresh browser for each mode.
         await step(`browser close before ${mode}`, browser?.close() ?? Promise.resolve());
-        browser = await step(`launch ${mode}`, chromium.launch({ channel: "chrome", headless: true }));
+        browser = await step(`launch ${mode}`, chromium.launch({
+          channel: "chrome", headless: true,
+          logger: { isEnabled: (name) => name === "browser", log: (name, _severity, message) => console.error(`[share browser ${mode}] ${String(message).slice(0, 300)}`) },
+        }));
         const page = await step(`newPage ${mode}`, browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" }));
         page.on("crash", () => console.error(`[share page ${mode}] crashed`));
+        const begun = Date.now();
+        page.on("request", (request) => console.error(`[share page ${mode}] +${Date.now() - begun}ms request ${new URL(request.url()).pathname}`));
+        page.on("requestfinished", (request) => console.error(`[share page ${mode}] +${Date.now() - begun}ms finished ${new URL(request.url()).pathname}`));
         page.on("console", (message) => console.error(`[share page ${mode}] ${message.type()}: ${message.text()}`));
         page.on("pageerror", (error) => console.error(`[share page ${mode}] pageerror: ${error.message}`));
         page.on("requestfailed", (request) => console.error(`[share page ${mode}] failed: ${request.url()}`));
@@ -579,7 +585,7 @@ if (mode === 'reject-destroyed') {
         page.on("request", (request) => requested.push(new URL(request.url()).pathname));
         try {
           await step(`goto ${mode}`, page.goto(`${server.origin}/${mode ? `?${mode}` : ""}`));
-          await step(`settle ${mode}`, page.waitForFunction(() => (window as unknown as { settled?: string }).settled, null, { timeout: 60_000 }));
+          await step(`settle ${mode}`, page.waitForFunction(() => (window as unknown as { settled?: string }).settled, null, { timeout: 60_000, polling: 250 }));
           expect(await step(`read ${mode}`, page.evaluate(() => (window as unknown as { settled: string }).settled))).toBe(mode === "reject-destroyed" ? "destroyed" : "ready");
           const multiple = warnings.filter((warning) => warning.includes("Multiple instances of Three.js"));
           const fallback = warnings.filter((warning) => warning.includes("could not use the page's Three.js"));
