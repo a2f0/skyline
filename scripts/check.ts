@@ -31,6 +31,7 @@ async function main() {
   await timings.run("audit", () => run(process.execPath, ["audit"]));
   // The strictest-config typecheck over the whole repository.
   await timings.run("typecheck", () => run(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]));
+  await timings.run("vendor:three", () => run(process.execPath, ["scripts/vendor-three.ts", "--check"]));
   await suite("check-coauthors.test.ts");
   await suite("git-hooks.test.ts");
   await suite("timings.test.ts");

@@ -25,8 +25,10 @@ bun run check
 
 `scripts/vendor-three.ts` bundles `three-entry.js` as minified ESM, preserves
 upstream legal comments, and copies the installed Three.js license. Regenerate
-this checked-in bundle whenever its pinned engine or bundler changes. Patch
-releases keep the `three-r186.js` import path; moving to another r-series also
+this checked-in bundle whenever its pinned engine or bundler changes.
+`bun run vendor:three --check` rebuilds in memory and compares the bundle and
+license without writing; the full `bun run check` requires them to match.
+Patch releases keep the `three-r186.js` import path; moving to another r-series also
 requires migrating its declarations, source imports, build allowlist, package
 peer range and tests using the upstream migration guide.
 

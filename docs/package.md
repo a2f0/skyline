@@ -335,7 +335,10 @@ versions can be skipped on npm.
 The workflow first runs the full `bun run check`, browser suites included, in the runner's
 Google Chrome with the pinned Node.js LTS. The dependency audit is part of that
 check: it needs the registry network, and any advisory in the locked dependency
-graph fails the check and blocks publishing until addressed. It also runs the
+graph fails the check and blocks publishing until addressed.
+If that changes after merge, report the failed release, fix the dependency or
+registry failure, then re-dispatch the workflow to release the merged version.
+It also runs the
 tarball and viewer package suite on Node.js 22 to verify the supported minimum.
 Only when those pass does it build and pack the tarball; both jobs run without
 publish rights, and the publish job receives only that tarball and runs
