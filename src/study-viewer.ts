@@ -211,7 +211,9 @@ export function createBuildingStudy({
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // r186 removed PCFSoftShadowMap and renders it as PCFShadowMap, with a console warning;
+  // PCFShadowMap draws the same shadows without the warning.
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   const scene = new THREE.Scene();
   const labelLayer = document.createElement("div");
   labelLayer.className = "study-annotations";

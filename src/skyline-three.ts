@@ -3,10 +3,13 @@
 // module, or a dynamic import of it, so the viewer shares the host's engine:
 //
 //   mountSkyline(container, { assetsUrl, three: import("@a2f0/skyline/three") });
+//
+// PCFSoftShadowMap, which r186 removed, is deprecated here: the viewer shadows with
+// PCFShadowMap, and the old name stays exported so hosts that import it keep building.
 export {
   AmbientLight, BoxGeometry, BufferGeometry, Color, DataTexture, DirectionalLight,
   EdgesGeometry, Float32BufferAttribute, Group, LineBasicMaterial, LineSegments,
-  Mesh, MeshBasicMaterial, MeshToonMaterial, NearestFilter, PCFSoftShadowMap,
+  Mesh, MeshBasicMaterial, MeshToonMaterial, NearestFilter, PCFShadowMap, PCFSoftShadowMap,
   OrthographicCamera, PerspectiveCamera, Raycaster, RedFormat, Scene, Vector2, Vector3, WebGLRenderer,
 } from "three";
 export { OrbitControls } from "three/addons/controls/OrbitControls.js";
