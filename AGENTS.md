@@ -38,7 +38,9 @@ the vendored bundle, kept as `vendor/three-r186.bundle.js`, otherwise; the
 standalone site keeps the vendored engine. `bun run check:package` tests the
 tarball, imports, declarations, asset copying, the in-page mount's lifecycle, and
 engine sharing.
-Package checks also use Node.js 22+, npm (included with Node), and system tar.
+Package checks use the Node.js LTS version pinned alongside Bun in `mise.toml`,
+npm (included with Node), and system tar. The published package supports Node.js 22+;
+publishing CI separately runs `bun run check:package` on Node 22 to verify that floor.
 
 Install test dependencies with `bun install --ignore-scripts`. Use Bun (pinned
 in `mise.toml`; `mise use` installs it) and Google Chrome, then run
@@ -46,8 +48,9 @@ in `mise.toml`; `mise use` installs it) and Google Chrome, then run
 when it finishes whether it passed or failed, and appends the run to
 `skyline-timings.log` in the Git common directory; `bun scripts/show-timings.ts`
 reads it back; Skyline’s shipping policy requires printing it at the end. The check
-runner checks managed skill drift and tool configuration, typechecks the
-repository, runs the attribution, hooks, timings, merge guard, deploy verification, grayscale,
+runner checks managed skill drift, tool configuration and dependency advisories, typechecks the
+repository, verifies the vendored engine and license against the locked dependencies,
+runs the attribution, hooks, timings, merge guard, deploy verification, local dependency runtime, grayscale,
 skyline-loading, package, reference excerpt, and building kit checks, then
 builds `dist/` and starts its own temporary server for the hover regressions,
 both 3D study browser suites, the building
@@ -107,6 +110,9 @@ ownership. Do not edit those copies. Keep Skyline-specific policy here. To
 upgrade, update the package version, run `bun install --ignore-scripts` and
 `bun run agents:sync`, then commit the dependency, lockfile, both skill
 directories, and manifest together.
+Use `update-dependencies` for repository dependency upgrades, including the
+vendored engine regeneration in `src/vendor/README.md`; `docs/development.md`
+covers its preview and compatibility requirements.
 `bun run agents:check` checks drift without writing; the check runner and
 installed pre-push hook run it too. Reinstall hooks after changing their source.
 This gate checks the current checkout, not arbitrary pushed refs or every

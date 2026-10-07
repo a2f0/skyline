@@ -28,8 +28,10 @@ async function main() {
   });
   await timings.run("agents:check", () => run(process.execPath, ["run", "agents:check"]));
   await timings.run("agent-tool:config", () => run(process.execPath, [path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts"), "config", "show"]));
+  await timings.run("audit", () => run(process.execPath, ["audit"]));
   // The strictest-config typecheck over the whole repository.
   await timings.run("typecheck", () => run(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]));
+  await timings.run("vendor:three", () => run(process.execPath, ["scripts/vendor-three.ts", "--check"]));
   await suite("check-coauthors.test.ts");
   await suite("git-hooks.test.ts");
   await suite("timings.test.ts");
@@ -37,6 +39,7 @@ async function main() {
   await suite("merge-pr.test.ts");
   await suite("npm-publish.test.ts");
   await suite("verify-deploy.test.ts");
+  await suite("dependency-runtime.test.ts");
   await suite("grayscale.test.ts");
   await timings.run("reference-svg", () => run(process.execPath, ["scripts/reference-svg.ts", "--check"]));
   await timings.run("skyline-loading", () => run(process.execPath, ["scripts/skyline-loading.ts", "--check"]));

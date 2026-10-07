@@ -57,7 +57,7 @@ describe("the publish workflow", () => {
   test("runs the full suite before packing, and packs only on main", () => {
     expect(tests.if).toBeUndefined();
     expect(tests.steps.map((step) => step.run).filter(Boolean)).toEqual([
-      "bun install --frozen-lockfile --ignore-scripts", "bun run check",
+      "bun install --frozen-lockfile --ignore-scripts", "bun run check", "bun run check:package",
     ]);
     expect(pack.needs).toBe("test");
     expect(pack.if).toBe("github.ref == 'refs/heads/main'");
@@ -78,12 +78,28 @@ describe("the publish workflow", () => {
     ]);
   });
 
-  test("builds with the Bun version mise.toml pins", () => {
-    const pinned = /^bun = "([^"]+)"$/m.exec(readFileSync(path.join(root, "mise.toml"), "utf8"))?.[1];
-    expect(pinned).toBeDefined();
+  test("builds with the runtime versions mise.toml pins", () => {
+    const pins = Bun.TOML.parse(readFileSync(path.join(root, "mise.toml"), "utf8")) as { tools: { bun: string; node: string } };
     for (const job of [tests, pack]) {
       const setup = job.steps.find((step) => step.uses?.startsWith("oven-sh/setup-bun@"));
-      expect(setup?.with?.["bun-version"]).toBe(pinned);
+      expect(setup?.with?.["bun-version"]).toBe(pins.tools.bun);
     }
+    for (const job of [tests, pack, publish]) {
+      const setup = job.steps.find((step) => step.uses?.startsWith("actions/setup-node@"));
+      expect(setup?.with?.["node-version"]).toBe(pins.tools.node);
+    }
+  });
+
+  test("also tests the packed library on its declared Node support floor", () => {
+    const metadata = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")) as { engines: { node: string } };
+    const index = tests.steps.findIndex((step) => step.run === "bun run check:package");
+    expect(index).toBeGreaterThan(0);
+    const setup = tests.steps[index - 1];
+    expect(setup?.uses).toStartWith("actions/setup-node@");
+    const version = String(setup?.with?.["node-version"]);
+    const major = /^>=([0-9]+)/.exec(metadata.engines.node)?.[1];
+    expect(major).toBeDefined();
+    expect(version.split(".")[0]).toBe(major!);
+    expect(Bun.semver.satisfies(version, metadata.engines.node)).toBe(true);
   });
 });
