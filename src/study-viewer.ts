@@ -132,11 +132,16 @@ interface BuildingStudyOptions {
   onUnavailable?: (() => void) | undefined;
 }
 
-// The box a pointer-placed overlay is positioned in, in client coordinates.
-export function frameBox(frame: HTMLElement | null | undefined): { left: number; top: number; width: number; height: number } {
-  if (!frame) return { left: 0, top: 0, width: innerWidth, height: innerHeight };
-  const { left, top } = frame.getBoundingClientRect();
-  return { left, top, width: frame.clientWidth, height: frame.clientHeight };
+// The box a pointer-placed overlay is positioned in: where it is on screen, its size in CSS
+// pixels, and how much a host's transform scales it, so a pointer's client coordinates
+// become a place inside it: (x - left) / scaleX.
+export function frameBox(frame: HTMLElement | null | undefined): { left: number; top: number; width: number; height: number; scaleX: number; scaleY: number } {
+  if (!frame) return { left: 0, top: 0, width: innerWidth, height: innerHeight, scaleX: 1, scaleY: 1 };
+  const box = frame.getBoundingClientRect();
+  return {
+    left: box.left, top: box.top, width: frame.clientWidth, height: frame.clientHeight,
+    scaleX: frame.offsetWidth ? box.width / frame.offsetWidth : 1, scaleY: frame.offsetHeight ? box.height / frame.offsetHeight : 1,
+  };
 }
 
 // Releases the GPU resources an object tree holds: geometries, materials and their textures.
@@ -569,11 +574,12 @@ export function createBuildingStudy({
     if (selectedModel) {
       const data = selectedModel.building.userData["geography"];
       tooltip.textContent = data ? `${data.name} · ${data.height} m${data.tipHeight !== data.height ? ` / tip ${data.tipHeight} m` : ""}` : selectedModel.building.name;
-      // Beside the pointer, turned back from the frame's right and bottom edges.
-      const tooltipBounds = tooltip.getBoundingClientRect(), box = frameBox(frame);
-      const pointerX = event.clientX - box.left, pointerY = event.clientY - box.top;
-      const x = pointerX + 18 + tooltipBounds.width > box.width - 6 ? pointerX - tooltipBounds.width - 18 : pointerX + 18;
-      const y = pointerY + 18 + tooltipBounds.height > box.height - 6 ? pointerY - tooltipBounds.height - 18 : pointerY + 18;
+      // Beside the pointer, turned back from the frame's right and bottom edges, in the
+      // frame's own CSS pixels.
+      const width = tooltip.offsetWidth, height = tooltip.offsetHeight, box = frameBox(frame);
+      const pointerX = (event.clientX - box.left) / box.scaleX, pointerY = (event.clientY - box.top) / box.scaleY;
+      const x = pointerX + 18 + width > box.width - 6 ? pointerX - width - 18 : pointerX + 18;
+      const y = pointerY + 18 + height > box.height - 6 ? pointerY - height - 18 : pointerY + 18;
       tooltip.style.left = `${Math.max(6, x)}px`;
       tooltip.style.top = `${Math.max(6, y)}px`;
     }

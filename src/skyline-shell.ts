@@ -144,6 +144,10 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, ...optio
   root.append(...stylesheets);
   container.append(element);
 
+  // A host's engine that fails to load is the viewer's to report, once its scene asks for it
+  // (three-engine.ts); until then, or if the instance never gets that far, its rejection is
+  // handled here rather than left unhandled.
+  if (options.three) Promise.resolve(options.three).catch(() => {});
   const controller = new AbortController();
   let destroyed = false, mounted = false;
   const context: ViewerContext = { ...options, assets, signal: controller.signal };

@@ -168,6 +168,16 @@ window.mountFixture = (options = {}, slot = 'host') => {
   return skyline;
 };
 window.destroyFixture = (slot = 'host') => instances[slot].destroy();
+// A host whose own content is in a shadow root, as a web component's would be.
+window.mountNested = () => {
+  const outer = document.querySelector('#outer');
+  const shadow = outer.shadowRoot ?? outer.attachShadow({ mode: 'open' });
+  shadow.innerHTML = '<div id="inner" style="width:400px;height:300px"></div>';
+  const skyline = mountSkyline(shadow.querySelector('#inner'), { assetsUrl: '/nested/skyline' });
+  instances.nested = skyline;
+  window.settled.nested = 'pending';
+  skyline.ready.then(() => { window.settled.nested = 'ready'; }, (error) => { window.settled.nested = 'rejected: ' + error.message; });
+};
 window.mountFixture();
 `);
     const bundle = await Bun.build({ entrypoints: [path.join(consumer, "browser.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true });
@@ -184,7 +194,7 @@ window.mountFixture();
       #host,#second{height:100vh;width:100vw}
       button{font-size:80px!important;padding:40px}
       .loading,.control-bar,.skyline-3d{position:static;color:rgb(77,77,77)}
-    </style></head><body><div id="host"></div><div id="second" hidden></div><p class="loading" id="host-loading">host</p><script type="module" src="browser.js"></script></body></html>`);
+    </style></head><body><div id="host"></div><div id="second" hidden></div><div id="outer"></div><p class="loading" id="host-loading">host</p><script type="module" src="browser.js"></script></body></html>`);
     const server = await startServer(publicDirectory);
     let browser: Browser | undefined;
     // The viewer's shadow root in a slot, and its 3D scene's study on the scene's canvas.
@@ -336,7 +346,9 @@ window.mountFixture();
           await page.locator("#second #camera-views button").first().focus();
           await page.keyboard.press("Escape");
           expect(await expanded()).toEqual(["true", "false"]);
-          // Away from the page's corner, a building's menu still opens at the pointer.
+          // Away from the page's corner, and scaled by a host's transform, a building's menu
+          // still opens at the pointer.
+          await page.evaluate(() => Object.assign(document.querySelector<HTMLElement>("#host")!.style, { transform: "scale(0.8)", transformOrigin: "100% 0" }));
           const aon = await page.evaluate(() => {
             const canvas = document.querySelector("#host > [role=region]")!.shadowRoot!.querySelector<HTMLCanvasElement & { __buildingStudy: { projectPoint(id: string, point: number[]): [number, number] } }>("#building")!;
             const box = canvas.getBoundingClientRect(), [u, v] = canvas.__buildingStudy.projectPoint("layer3", [284, 200, -50]);
@@ -351,6 +363,7 @@ window.mountFixture();
           const inside = menu.x >= half.x && menu.x + menu.width <= half.x + half.width;
           expect({ atPointer, inside }, JSON.stringify({ menu, aon, half })).toEqual({ atPointer: true, inside: true });
           await page.keyboard.press("Escape");
+          await page.evaluate(() => { document.querySelector<HTMLElement>("#host")!.style.transform = ""; });
           await page.evaluate(() => (window as unknown as Hooked).destroyFixture("second"));
           expect(await sceneReady(page)).toBe(true);
           await page.evaluate(() => {
@@ -407,6 +420,19 @@ window.mountFixture();
           expect(await settled(page)).toBe("ready");
           await page.evaluate(() => (window as unknown as Hooked).destroyFixture());
           await page.waitForFunction(() => !document.querySelector("#host > [role=region]"));
+          // Mounted inside a host's own shadow root, F enters fullscreen and, pressed again,
+          // leaves it, though the document names only that root's host as fullscreen.
+          if (viewport.width >= 600) {
+            await page.evaluate(() => (window as unknown as { mountNested(): void }).mountNested());
+            expect(await settled(page, "nested")).toBe("ready");
+            await page.locator("#outer #inner #building").first().focus();
+            await page.keyboard.press("f");
+            await page.waitForFunction(() => document.fullscreenElement?.id === "outer");
+            expect(await page.evaluate(() => document.querySelector("#outer")!.shadowRoot!.fullscreenElement?.getAttribute("role"))).toBe("region");
+            await page.keyboard.press("f");
+            await page.waitForFunction(() => document.fullscreenElement === null);
+            await page.evaluate(() => (window as unknown as Hooked).destroyFixture("nested"));
+          }
           // Without WebGL the scene can't start: `ready` says so, the scene says why, and the
           // drawing stays one press away.
           await page.addInitScript(() => { HTMLCanvasElement.prototype.getContext = () => null; });
@@ -436,9 +462,16 @@ import { mountSkyline } from '@a2f0/skyline';
 const own = new WebGLRenderer();
 own.render(new Scene(), new PerspectiveCamera());
 window.hostRevision = REVISION;
-const share = new URLSearchParams(location.search).has('share');
-const skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', ...(share ? { three: import('@a2f0/skyline/three') } : {}) });
-skyline.ready.then(() => { window.settled = 'ready'; }, (error) => { window.settled = 'rejected: ' + error.message; });
+const mode = location.search.slice(1);
+// An engine that fails to load: the viewer warns and loads its own; destroyed first, it
+// leaves no unhandled rejection.
+const failing = () => new Promise((resolve, reject) => setTimeout(() => reject(new Error('no engine')), 50));
+const three = mode === 'share' ? { three: import('@a2f0/skyline/three') } : mode.startsWith('reject') ? { three: failing() } : {};
+const skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', ...three });
+if (mode === 'reject-destroyed') {
+  skyline.destroy();
+  setTimeout(() => { window.settled = 'destroyed'; }, 500);
+} else skyline.ready.then(() => { window.settled = 'ready'; }, (error) => { window.settled = 'rejected: ' + error.message; });
 `);
     const bundle = await Bun.build({ entrypoints: [path.join(consumer, "three-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true, splitting: true });
     expect(bundle.success).toBe(true);
@@ -447,26 +480,31 @@ skyline.ready.then(() => { window.settled = 'ready'; }, (error) => { window.sett
     let browser: Browser | undefined;
     try {
       browser = await chromium.launch({ channel: "chrome", headless: true });
-      for (const share of [true, false]) {
+      for (const mode of ["share", "", "reject", "reject-destroyed"]) {
         const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
         const errors: string[] = [], warnings: string[] = [], requested: string[] = [];
         page.on("pageerror", (error) => errors.push(error.message));
         page.on("console", (message) => { if (message.type() === "warning") warnings.push(message.text()); });
         page.on("request", (request) => requested.push(new URL(request.url()).pathname));
         try {
-          await page.goto(`${server.origin}/${share ? "?share" : ""}`);
+          await page.goto(`${server.origin}/${mode ? `?${mode}` : ""}`);
           await page.waitForFunction(() => (window as unknown as { settled?: string }).settled, null, { timeout: 60_000 });
-          expect(await page.evaluate(() => (window as unknown as { settled: string }).settled)).toBe("ready");
+          expect(await page.evaluate(() => (window as unknown as { settled: string }).settled)).toBe(mode === "reject-destroyed" ? "destroyed" : "ready");
           const multiple = warnings.filter((warning) => warning.includes("Multiple instances of Three.js"));
-          if (share) {
+          const fallback = warnings.filter((warning) => warning.includes("could not use the page's Three.js"));
+          if (mode === "share") {
             expect(requested, "the shared engine replaces the assets' copy").not.toContain("/skyline/vendor/three-r186.bundle.js");
             expect(multiple).toEqual([]);
+          } else if (mode === "reject-destroyed") {
+            expect(fallback).toEqual([]);
           } else {
-            // Without the option, the viewer runs its own copy beside the page's, as three warns.
+            // Without the option, or with an engine that fails to load, the viewer runs its own
+            // copy beside the page's, as three warns.
             expect(requested).toContain("/skyline/vendor/three-r186.bundle.js");
             expect(multiple).toHaveLength(1);
+            expect(fallback).toHaveLength(mode === "reject" ? 1 : 0);
           }
-          expect(errors).toEqual([]);
+          expect(errors, mode).toEqual([]);
         } finally { await page.close(); }
       }
     } finally { await browser?.close(); await server.close(); }

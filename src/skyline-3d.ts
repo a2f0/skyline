@@ -251,9 +251,10 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
     }
     menu.hidden = false;
     menu.scrollTop = 0;
-    // At the pointer, turned back from the scene's right and bottom edges.
-    const { width, height } = menu.getBoundingClientRect(), box = frameBox(frame);
-    const left = x - box.left, top = y - box.top;
+    // At the pointer, turned back from the scene's right and bottom edges, in the scene's own
+    // CSS pixels.
+    const width = menu.offsetWidth, height = menu.offsetHeight, box = frameBox(frame);
+    const left = (x - box.left) / box.scaleX, top = (y - box.top) / box.scaleY;
     menu.style.left = `${Math.max(4, left + width > box.width - 4 ? left - width : left)}px`;
     menu.style.top = `${Math.max(4, top + height > box.height - 4 ? top - height : top)}px`;
     detailLink.focus({ preventScroll: true });

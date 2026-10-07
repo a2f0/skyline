@@ -115,10 +115,12 @@ export function mount(root: ShadowRoot, { assets, signal, controls, attribution,
   loadStars();
 
   // Fullscreen shows the viewer's element alone; F toggles it from anywhere in the viewer,
-  // or, on the site's own page, from anywhere on the page.
+  // or, on the site's own page, from anywhere on the page. The element's own root says
+  // whether it is fullscreen: in a host's shadow root, the document names that root's host.
+  const fullscreenNow = () => (host.getRootNode() as Document | ShadowRoot).fullscreenElement === host;
   async function toggleFullscreen() {
     try {
-      if (document.fullscreenElement === host) await document.exitFullscreen();
+      if (fullscreenNow()) await document.exitFullscreen();
       else await host.requestFullscreen();
     } catch {
       status.textContent = "Fullscreen is not available in this browser";
@@ -133,7 +135,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, attribution,
   (page ? document : root).addEventListener("keydown", fullscreenShortcut, listening);
   let fullscreen = false;
   document.addEventListener("fullscreenchange", () => {
-    const now = document.fullscreenElement === host;
+    const now = fullscreenNow();
     if (now === fullscreen) return;
     fullscreen = now;
     const button = toolbar?.querySelector<HTMLButtonElement>("#fullscreen");
