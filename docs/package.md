@@ -332,7 +332,8 @@ overlap, and when merges land together only the newest pending run starts, so in
 versions can be skipped on npm.
 
 The workflow first runs the full `bun run check`, browser suites included, in the runner's
-Google Chrome. Only when that passes does it build and pack the tarball; both jobs run without
+Google Chrome with the pinned Node.js LTS. It also runs the tarball and viewer package
+suite on Node.js 22 to verify the supported minimum. Only when those pass does it build and pack the tarball; both jobs run without
 publish rights, and the publish job receives only that tarball and runs
 `npm publish --ignore-scripts`. Dispatching the workflow on another branch
 (`gh workflow run npm-publish.yml --ref <branch>`) runs only the tests, in a queue of its own,

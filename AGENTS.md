@@ -39,7 +39,8 @@ standalone site keeps the vendored engine. `bun run check:package` tests the
 tarball, imports, declarations, asset copying, the in-page mount's lifecycle, and
 engine sharing.
 Package checks use the Node.js LTS version pinned alongside Bun in `mise.toml`,
-npm (included with Node), and system tar. The published package supports Node.js 22+.
+npm (included with Node), and system tar. The published package supports Node.js 22+;
+publishing CI separately runs `bun run check:package` on Node 22 to verify that floor.
 
 Install test dependencies with `bun install --ignore-scripts`. Use Bun (pinned
 in `mise.toml`; `mise use` installs it) and Google Chrome, then run
@@ -47,7 +48,7 @@ in `mise.toml`; `mise use` installs it) and Google Chrome, then run
 when it finishes whether it passed or failed, and appends the run to
 `skyline-timings.log` in the Git common directory; `bun scripts/show-timings.ts`
 reads it back; Skyline’s shipping policy requires printing it at the end. The check
-runner checks managed skill drift and tool configuration, typechecks the
+runner checks managed skill drift, tool configuration and dependency advisories, typechecks the
 repository, runs the attribution, hooks, timings, merge guard, deploy verification, local dependency runtime, grayscale,
 skyline-loading, package, reference excerpt, and building kit checks, then
 builds `dist/` and starts its own temporary server for the hover regressions,

@@ -38,7 +38,8 @@ sh scripts/git/install-hooks.sh
 bun run check
 ```
 
-The runner checks managed skill drift and tool configuration, typechecks the repository
+The runner checks managed skill drift, tool configuration and dependency advisories
+(`bun audit`), typechecks the repository
 (`tsc --noEmit`), and runs the attribution, hook, timings, merge guard, deploy verification,
 local dependency runtime, grayscale, skyline-loading, package, reference excerpt, and building kit
 suites under `bun test`.
@@ -223,20 +224,26 @@ Invoke `$update-dependencies` in Codex or `/update-dependencies` in Claude Code.
 The managed skill inventories package and toolchain dependencies, CI pins and
 infrastructure providers, follows upstream migrations and validates compatible
 groups before shipping. Keep `mise.toml` runtime versions and the publish
-workflow aligned. The optional package peer remains the supported r186 series;
+workflow aligned; CI additionally tests the packed package on its Node 22 support
+floor. Locally, put an installed Node 22 release first on `PATH` and run
+`bun run check:package` for that check. The optional package peer remains the supported r186 series;
 regenerate its standalone browser bundle with `bun run vendor:three` when the
 engine or bundler changes, following [`src/vendor/README.md`](../src/vendor/README.md).
 
 ### Temporary security override
 
-Wrangler's Miniflare dependency pins Sharp 0.35.4, which includes the vulnerable
+Wrangler 4.148.0 selects Miniflare 5.20261006.0-alpha, whose dependency pins
+Sharp 0.35.4, which includes the vulnerable
 librsvg described in [GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
 The root nested `miniflare` / `sharp` override selects the maintainer's patched 0.35.5 release
 for that dependency alone. Its existing image API and Node requirements remain
 compatible; `tests/dependency-runtime.test.ts` exercises Miniflare's offline
 Images binding under Node, decoding SVG, resizing to PNG and checking dimensions
 and pixel bytes through Sharp's native runtime. It creates no remote bindings.
-`bun run check` runs that regression on developer machines and publishing CI.
+`bun run check` runs that regression and the dependency audit on developer machines
+and publishing CI. The lockfile still records Miniflare's declared Sharp 0.35.4
+constraint; the selected Sharp package resolves to patched 0.35.5 through the
+override, with its matching native binaries and updated librsvg.
 
 Keep the override until a supported Wrangler/Miniflare release selects patched
 Sharp itself. Then remove it, regenerate the lockfile with Bun, and require both

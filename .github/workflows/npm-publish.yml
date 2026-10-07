@@ -50,6 +50,13 @@ jobs:
       # Everything a merge must pass locally, including the package suite and
       # the browser suites in the runner's Google Chrome.
       - run: bun run check
+      # The published library still supports Node 22. Exercise the actual
+      # tarball and in-page viewer on that floor, independently of our LTS tools.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.23.2
+          package-manager-cache: false
+      - run: bun run check:package
 
   pack:
     name: Pack @a2f0/skyline

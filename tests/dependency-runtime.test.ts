@@ -5,6 +5,15 @@ import path from "node:path";
 // Exercise Miniflare's own Sharp resolution under Wrangler's actual Node runtime.
 // This protects the security patch override with a local native/runtime check.
 test("Wrangler's local Images binding decodes SVG and transforms it through Sharp", () => {
+  let nodeVersion: string;
+  try {
+    nodeVersion = execFileSync("node", ["--version"], { encoding: "utf8" }).trim();
+  } catch {
+    throw new Error("The dependency runtime check needs Node.js 22+ on PATH; use mise.toml's pinned Node.js.");
+  }
+  if (!Bun.semver.satisfies(nodeVersion, ">=22.0.0")) {
+    throw new Error(`The dependency runtime check needs Node.js 22+; PATH resolves ${nodeVersion}. Use mise.toml's pinned Node.js.`);
+  }
   const result = execFileSync("node", ["--input-type=module", "--eval", `
     import assert from "node:assert/strict";
     import { createRequire } from "node:module";

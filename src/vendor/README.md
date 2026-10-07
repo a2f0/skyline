@@ -4,6 +4,11 @@
 
 Source: [three.js / r186](https://github.com/mrdoob/three.js/tree/r186), distributed by the [`three` npm package](https://www.npmjs.com/package/three/v/0.186.1). License: MIT; the full notice is in `THREE-LICENSE.txt`, with upstream license comments retained in the bundle.
 
+The [0.186.0 → 0.186.1 source diff](https://github.com/mrdoob/three.js/compare/148ef33ecb6d2502ff796d4554abd1549c95d519...9b4a2ac29c63ccb43fd51c5661f2f873ac2c39b8)
+changes WebGPU internals only. Regenerating our selected WebGL exports and
+OrbitControls from 0.186.1 produces exactly the previous bundle's bytes, so the
+engine patch upgrade changes the dependency and provenance without a bundle diff.
+
 The geographic study also exports `OrthographicCamera` for ground plans with a
 constant scale at every building height. The bundle is generated from the exact
 `three` and `esbuild` development dependencies in the root `package.json` and
