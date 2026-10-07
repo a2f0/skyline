@@ -11,6 +11,9 @@
   },
   "include": [
     "skyline-package.ts",
+    "skyline-shell.ts",
+    "three-engine.ts",
+    "skyline-three.ts",
     "skyline-scene.ts",
     "package-assets.ts",
     "study-types.ts",

@@ -7,16 +7,25 @@ and can switch to the [enhanced drawing](#the-enhanced-drawing), the
 **3d skyline** and returns to the 3D skyline. Use the viewer's fullscreen control or press `F` to
 enter fullscreen.
 
-Serve the built `dist/` over HTTP (see the [README](../README.md#run-it-locally)). The enhanced
-and original drawings still work when `index.html` is opened through `file://`; the 3D skyline
-then says how to build or serve the site, and the WebGL prototype needs the server because it
-fetches the drawing at runtime.
+Serve the built `dist/` over HTTP (see the [README](../README.md#run-it-locally)): opened through
+`file://`, or from the sources before a build, `index.html` says how to build and serve the site
+instead.
+
+`index.html` mounts the viewer the way the [package](package.md#mount-the-complete-viewer) does,
+through the same shell (`skyline-shell.ts`) and viewer module (`skyline-viewer.ts`): into a
+shadow root in its own page, with the stars, the 3D skyline, the original drawing and the buttons
+between them composed in that one root, calling each other directly. The site's toolbar along the
+top, the fullscreen, mode and study controls, is the one thing only the site's own page shows;
+`?embed=1` leaves it out, to see the viewer as a host does. The enhanced drawing and the WebGL
+prototype it can switch to are pages of their own, `skyline-animated.svg` and
+`skyline-webgl.html`, which the toolbar shows in place in frames the first time each is chosen.
 
 ## Full-screen 3D skyline
 
 The viewer opens on the geographic layout's buildings full screen over its stars. Open
-`skyline-3d.html` to see it on its own. It loads in its own frame inside the viewer, and the
-drawing's frame waits until the drawing is chosen.
+`skyline-3d.html` to see it on its own. The scene's markup lives in that page, and the viewer
+renders the same markup in its shadow root, so `skyline-3d.ts`'s `startSkyline3d` runs against
+either the page's document or the viewer's root; the drawings wait until they are chosen.
 
 ### Camera and frame
 
@@ -48,9 +57,10 @@ The bar starts closed. `?controls=open` on the viewer's address, or on `skyline-
 starts it open from its first frame instead, with no fold, and the star folds it as usual; any
 other value leaves it closed. Open, the bar shows the camera hint and the OpenStreetMap credit;
 `?attribution=hidden` leaves the credit out, for a host page that credits OpenStreetMap
-contributors itself, as its licence requires. A small inline script after the bar applies both
-before the scene's code arrives, the scene's own address first, and the package's `mountSkyline`
-passes its `controls` and `attribution` options this way.
+contributors itself, as its licence requires. On `skyline-3d.html`, a small inline script after
+the bar applies both before the scene's code arrives; the viewer applies its `controls` and
+`attribution` options, which the package's `mountSkyline` takes and `index.html` reads from its
+address, to the scene's markup before it shows.
 
 Drag to orbit, shift-drag or use two fingers to pan, and scroll or pinch to zoom: in to a tenth of
 a view's framed distance, or out to four times it, where the whole mapped city sits small in the
@@ -95,9 +105,11 @@ button, a drag, or the turntable button stops it; under reduced motion it opens 
 
 The skyline stays live around the panel, and another building's menu, drawn over the panel,
 replaces the detail; the close button or `Escape` closes it, and focus returns to the skyline. The
-panel stands below the viewer's controls, whose height `index.html` passes to the frame as
-`--viewer-controls`. A modified click on the item, or the page's own address, opens the detail on
-its own, with links back to the skyline and the skyline study.
+panel stands below the site's toolbar, whose height the viewer sets on the scene as
+`--viewer-controls`. The detail renders in a shadow root of its own inside the panel, from
+`building-detail.html`'s markup, so its element names and styles stay apart from the scene's;
+closing it releases its renderer and WebGL context. A modified click on the item, or the page's
+own address, opens the detail on its own, with links back to the skyline and the skyline study.
 
 `building-detail.ts` centres the geographic model on its mapped outline and frames it and its
 platform from every side; `tests/building-detail.test.ts` holds each mapped building inside the
@@ -113,7 +125,7 @@ limits of each reconstruction.
 
 ### Loading indicator
 
-The index page's loading indicator is an inline SVG roofline traced left to right with CSS, then
+The 3D skyline's loading indicator is an inline SVG roofline traced left to right with CSS, then
 faded and repeated until the first 3D frame appears. It is a level orthographic elevation of the
 mapped buildings, viewed from the skyline camera's horizontal direction, with no perspective or
 facade edges. Reduced motion shows the complete outline. After adding or changing buildings, run
@@ -137,11 +149,12 @@ and ignore pointer events so they do not interfere with the building hover inter
 
 ### Stars
 
-A separate `stars.svg` layer fills the entire viewport behind the buildings with 96 stars,
-including the sky above the tallest buildings. Ten randomly selected stars (about 10%) softly
-twinkle; the other 86 stay steady. Positions and the twinkling selection are randomized each time
-the sky loads, then stay fixed during animation, resizing, and debug toggles. Star positions use
-percentages and their radii stay fixed so resizing does not stretch the stars.
+A separate stars layer fills the entire viewer behind the buildings with 96 stars, including the
+sky above the tallest buildings. It is drawn from `stars.svg`, whose own script the viewer runs in
+its place (`skyline-viewer.ts`). Ten randomly selected stars (about 10%) softly twinkle; the other
+86 stay steady. Positions and the twinkling selection are randomized each time the sky loads, then
+stay fixed during animation, resizing, and debug toggles. Star positions use percentages and their
+radii stay fixed so resizing does not stretch the stars.
 
 Each twinkling star has its own slow cycle of approximately 40–67 seconds and a random starting
 phase. Brightness varies subtly between 42% and 60% opacity, with fresh brightness levels each

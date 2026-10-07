@@ -4,7 +4,9 @@ This is a static site in TypeScript. The site's pages, styles, drawings, and
 modules live in `src/`, with building models in `src/models/` and the vendored
 Three.js in `src/vendor/`; keep the root to repository configuration, and
 `docs/development.md` maps the layout. Sources live as `.ts`; the browser module
-graph (`study-loader.ts`, `study-viewer.ts`, `skyline-study.ts`,
+graph (the viewer's `viewer-page.ts`, `skyline-shell.ts`, `skyline-viewer.ts`,
+`markup.ts` and `three-engine.ts`; the pages' `study-loader.ts`, `skyline-3d-page.ts`
+and `building-detail-page.ts`; `study-viewer.ts`, `skyline-study.ts`,
 `skyline-comparison.ts`, `skyline-3d.ts`, `building-study.ts`, `building-detail.ts`, and `models/*.ts`, all
 under `src/`) compiles to `dist/` with tsc, which is the only build step, and
 `dist/` is gitignored. Each keeps its path within `src/` in `dist/`, so page URLs
@@ -21,12 +23,21 @@ any other.
 
 `bun run build:package` additionally emits ESM and declarations to `lib/` and
 copies the complete built viewer to `site/`; both are gitignored and included
-in the package's publishing allowlist. `skyline-package.ts` and `package-assets.ts`
-are package-only entrypoints, not static-site entries. Scene construction lives
-in `skyline-scene.ts`, with DOM-free view types in `study-types.ts`. Library
-models share the consumer's Three.js through a generated forwarding module;
-the standalone site keeps the vendored engine. `bun run check:package` tests
-the tarball, imports, declarations, asset copying, and embed lifecycle.
+in the package's publishing allowlist. `skyline-package.ts`, `skyline-three.ts` and
+`package-assets.ts` are package-only entrypoints, not static-site entries.
+`mountSkyline` and the site's own `index.html` mount the viewer the same way: the
+shell (`skyline-shell.ts`) makes a region with a shadow root and imports
+`skyline-viewer.js` from the assets, which renders the stars, the 3D scene from
+`skyline-3d.html`'s markup, the original drawing, and building details there, with
+no iframes; `skyline-3d.html` and `building-detail.html` still work on their own.
+Scene construction lives in `skyline-scene.ts`, with DOM-free view types in
+`study-types.ts`. Library models share the consumer's Three.js through a generated
+forwarding module; in `site/`, a generated `vendor/three-r186.js` takes the host's
+engine when `mountSkyline`'s `three` option offers it (`three-engine.ts`) and imports
+the vendored bundle, kept as `vendor/three-r186.bundle.js`, otherwise; the
+standalone site keeps the vendored engine. `bun run check:package` tests the
+tarball, imports, declarations, asset copying, the in-page mount's lifecycle, and
+engine sharing.
 Package checks use the Node.js LTS version pinned alongside Bun in `mise.toml`,
 npm (included with Node), and system tar. The published package supports Node.js 22+.
 

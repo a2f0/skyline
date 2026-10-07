@@ -9,7 +9,7 @@ explains the tooling behind it.
 
 | Path | Holds |
 | --- | --- |
-| `src/` | The site: pages, styles, drawings, browser and package entry modules, and their build configs |
+| `src/` | The site: pages, styles, drawings, the viewer's shell and module, browser and package entry modules, and their build configs |
 | `src/models/` | Building models, the shared building kit, and the drawing excerpts they were fitted to |
 | `src/vendor/` | The vendored Three.js bundle, its declarations, and its license |
 | `scripts/` | Build, check, deploy, and measuring tools, and the Git hooks |
@@ -54,6 +54,9 @@ Together they cover:
 - SVG/WebGL hover regions and illumination;
 - both 3D studies, every mapped building's detail framed in each view, and the 3D skyline's
   context menu and detail panel;
+- the package's tarball and the viewer it mounts in a host's page: styles kept apart both
+  ways, presses and keys, remounts, two instances, destroying while it loads, failures, and
+  sharing the host's Three.js;
 - sixty-four camera landmarks against the source SVG at desktop, tablet, and mobile sizes, with
   mullion, fin, pier, rib and louver alignment and each drawn column standing proud as the first
   surface along its sight line;
