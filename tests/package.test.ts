@@ -148,6 +148,9 @@ console.log(JSON.stringify({ mount: typeof mountSkyline, copy: typeof copySkylin
     expect(JSON.parse(output)).toEqual({ mount: "function", copy: "function", missingPeer: true });
   });
 
+  // The browser tests below mount many full scenes. The publish workflow runs them in the
+  // runner's software-rendered Chrome, several times slower than a workstation's GPU (about
+  // 130 seconds for this one there), so their limits leave room for that.
   test("bundles a small browser entry and mounts the complete viewer in the page from a nested host path, with remount cleanup", async () => {
     const publicDirectory = path.join(consumer, "public");
     await mkdir(publicDirectory, { recursive: true });
@@ -521,7 +524,7 @@ window.mountFixture();
         } finally { await page.close(); }
       }
     } finally { await browser?.close(); await server.close(); }
-  }, { timeout: 240_000 });
+  }, { timeout: 600_000 });
 
   test("shares the host page's Three.js, without loading or warning about a second engine", async () => {
     const publicDirectory = path.join(consumer, "public-three");
@@ -582,5 +585,5 @@ if (mode === 'reject-destroyed') {
         } finally { await page.close(); }
       }
     } finally { await browser?.close(); await server.close(); }
-  }, { timeout: 180_000 });
+  }, { timeout: 600_000 });
 });

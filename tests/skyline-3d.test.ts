@@ -267,7 +267,7 @@ describe("full-screen 3D skyline", () => {
       }
       await page.close();
     }
-  }, { timeout: 60_000 });
+  }, { timeout: 180_000 });
 
   test("Crain's building menu offers no celebratory lighting", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
@@ -1251,7 +1251,7 @@ describe("full-screen 3D skyline", () => {
     expect(await page.locator("#viewer .notice").textContent()).toBe("Enable JavaScript to explore the Chicago skyline.");
     expect(await page.locator("#viewer .notice").isVisible()).toBe(true);
     await page.close();
-  });
+  }, { timeout: 60_000 });
 
   test("releases a building detail that fails part way through starting", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
@@ -1291,7 +1291,7 @@ describe("full-screen 3D skyline", () => {
     await page.locator("#detail-close").click();
     expect(await panel.isHidden()).toBe(true);
     await page.close();
-  }, { timeout: 60_000 });
+  }, { timeout: 180_000 });
 
   test("loads only local assets without page errors", () => {
     expect(errors).toEqual([]);
