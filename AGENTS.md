@@ -122,8 +122,9 @@ this in `bun run check`. Its ongoing research queue is
 It refines existing geographic buildings, not the building inventory; research
 for buildings the layout lacks belongs in `docs/unmodelled-buildings.md`.
 
-`CLAUDE.md` imports this policy for Claude Code. Skyline's wrapper currently
-supports same-repository PRs whose remote and local feature branch names match.
+Claude Code, Codex, and OpenCode read this policy directly. Skyline's wrapper
+currently supports same-repository PRs whose remote and local feature branch
+names match.
 
 `agent-tool.json` keeps conventional subjects at 72 characters, rejects Claude
 branding in PR content, and gives each independent review 20 minutes. Poll
