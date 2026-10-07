@@ -81,15 +81,16 @@ await copySkylineAssets('./public/skyline');
 
 Serve that directory over HTTP at `/skyline/`, preserving all its relative paths.
 The helper copies files into the supplied directory; it does not clear unrelated
-files already there. Use a dedicated directory for these assets. All HTML, CSS,
-SVGs, compiled browser modules, and the viewer's vendored Three.js travel together.
+files already there. Use a dedicated directory for these assets, and clear it before
+copying an upgrade, so files a new version dropped do not linger. All the viewer's
+code, CSS, markup, SVGs and models, and its vendored Three.js, travel together. Copy
+them again whenever you upgrade the package, so the loader you bundle and the viewer
+you serve match.
 
-In `~/github/devopsrockstars`, the existing `packages/frontend/tooling/build.ts`
-copies `packages/frontend/static` into its build. Its development server also
-serves `/static/` directly. A later integration can call the helper with
-`path.join(frontendRoot, 'static', 'skyline')` in both build and development startup,
-then use `/static/skyline/` as the browser URL. Keep the generated directory out of
-that application's Git history.
+In `~/github/devopsrockstars`, `packages/frontend/tooling/build.ts` calls the helper
+when the `skyline3d` flag is on and serves the copy at `/static/skyline/`, the browser
+URL the viewer mounts with. Keep the generated directory out of that application's
+Git history.
 
 ## Mount the complete viewer
 
@@ -100,17 +101,41 @@ const skyline = mountSkyline(container, {
   assetsUrl: '/skyline/',
   title: 'Interactive Chicago skyline',
 });
+await skyline.ready; // optional: the 3D skyline has drawn its first frame
 
 // When the page or component leaves:
 skyline.destroy();
 ```
 
-The container determines the viewer's size and placement; give it an explicit
-height. The viewer fills it through an iframe, which isolates its styles and
-controls from the application's header and CSS. Embedding hides the standalone
-toolbar and study links so they do not overlap the host's navigation. Set
-`navigation: true` to show them. It retains stars, the traced
-loading silhouette, star controls, original comparison, and building details.
+The viewer renders into the host's own document, inside a shadow root that keeps its
+styles and the host's apart. `mountSkyline` returns at once with an instance:
+
+- `element` is the `HTMLElement` it appended to `container`: a region named by the
+  `title` option (default "Interactive Chicago skyline"), with the viewer in its open
+  shadow root. It fills the container, which sets the viewer's size and placement:
+  give the container an explicit height. The element is `aria-busy` until `ready`
+  settles.
+- `ready` resolves once the 3D skyline has drawn its first frame: use it where an
+  iframe's `load` event was used. It rejects when the viewer can't start: when its
+  assets fail to load, the element says why in the viewer's place; when the 3D scene
+  can't start, as without WebGL 2, the scene says why and the original drawing stays
+  one press away. The error is also logged, so a host that ignores `ready` sees no
+  unhandled rejection. A destroyed instance's `ready` never settles.
+- `destroy()` removes the element and releases everything the viewer holds: its WebGL
+  renderers and contexts (disposed, then lost on purpose, so remounts never exhaust
+  the browser's contexts), animation frames, resize observers, media-query, pointer
+  and keyboard listeners, the building detail, and loads still in flight. Calling it
+  again does nothing, and destroying while the viewer still loads is safe. Unlike a
+  frame, the viewer doesn't stop when its element merely leaves the page: always call
+  `destroy`.
+
+The viewer shows what the embedded viewer always has: the twinkling stars and the
+traced loading silhouette, the 3D skyline with its control bar, the OpenStreetMap
+credit, a small **show original** button until the first 3D frame (and again if the
+graphics context is lost), so the original drawing stays reachable even if WebGL or
+the scene's code cannot load, building details in a panel over the skyline, and
+reduced motion. `F`, pressed inside the viewer, shows its element fullscreen.
+
 The scene's control bar starts folded behind its star; set `controls: 'open'` to
 start it open, with no fold, from its first frame. Visitors can still fold it.
 Open, the bar shows the camera hint and the OpenStreetMap credit for the streets
@@ -118,14 +143,34 @@ and footprints. Set `attribution: false` to leave the credit out. OpenStreetMap'
 [licence](https://www.openstreetmap.org/copyright) requires crediting its contributors
 wherever its data is shown, so do this only when the host page credits
 © OpenStreetMap contributors itself.
-A small independent **show original** button remains available until the first
-3D frame succeeds, and reappears if the graphics context is lost. The SVG stays
-reachable even if WebGL, the scene document, or its bootstrap script cannot load.
-Unmounting removes the entire document, its event handlers, and its WebGL context.
+
 Imports themselves do not access `window` or `document`, so server rendering and
 lazy loading are safe. Asset URLs may be relative or absolute HTTP(S) directories.
 
-For the existing React route in `devopsrockstars`, an effect owns this lifecycle:
+### Living in the host's page
+
+- The host's styles stay out: the element sets `all: initial` and `direction: ltr` on
+  itself, so nothing the host's rules set is inherited into the viewer, and the
+  viewer sets its own type, colours and custom properties. Its styles stay in its
+  shadow root. It lays itself out by its own size, through container queries, not the
+  window's: a small window in a desktop gets the narrow layout.
+- Presses and keys bubble out to the host, as any other content's do: a press inside
+  the viewer reaches the host's `pointerdown` and `mousedown` listeners, so a host's
+  window can raise itself and its menus close. Its keys act only where they are
+  pressed: `F`, `Escape` and its arrow, zoom and menu keys work while focus is inside
+  that viewer, and arrive with `defaultPrevented` set, so two viewers, or a viewer and
+  the host, never take each other's keys.
+- The viewer never scrolls the host page: it moves focus with `preventScroll`, and
+  its building detail is a non-modal panel (`role="dialog"`, not `aria-modal`), so the
+  rest of the page stays usable.
+- It works wherever the host puts it: in the host's own shadow root, open or closed, and
+  under a host's CSS transform, where its menus and tooltip still open at the pointer.
+- Each instance is independent: two viewers can run side by side on one page.
+
+### React
+
+An effect owns the lifecycle. Mounting is synchronous, so React Strict Mode's mount,
+destroy and mount again in development works:
 
 ```tsx
 import React, { useEffect, useRef } from 'react';
@@ -136,6 +181,8 @@ export default function Skyline() {
   useEffect(() => {
     const skyline = mountSkyline(container.current!, {
       assetsUrl: '/static/skyline/',
+      // The page already runs Three.js: share it (see below).
+      three: import('@a2f0/skyline/three'),
     });
     return () => skyline.destroy();
   }, []);
@@ -144,15 +191,95 @@ export default function Skyline() {
 }
 ```
 
-Keep the host's header, footer, sizing, and stacking in that application. Importing
-`@a2f0/skyline` loads only the small mounting helper; scene geometry loads inside
-the viewer when it boots. The cleanup also supports React Strict Mode's remounts.
+Keep the host's header, footer, sizing, and stacking in that application.
+
+### Share the page's Three.js
+
+The viewer's 3D scene renders with Three.js r186. By default it loads the copy in the
+assets, `vendor/three-r186.bundle.js` (about 140 KB compressed), only when a scene
+first needs it, so a host needs no `three` dependency. A page that already runs
+Three.js would then run two engines, and Three.js warns "Multiple instances of
+Three.js being imported". Such a page can share its own instead, through the `three`
+option:
+
+```ts
+mountSkyline(container, { assetsUrl: '/static/skyline/', three: import('@a2f0/skyline/three') });
+```
+
+`@a2f0/skyline/three` re-exports from the host's `three` (the optional peer,
+`~0.186.0`) exactly the classes the viewer uses, and `OrbitControls`, so a bundler keeps
+no more of the engine than the viewer needs; the viewer then never requests its own
+copy. Pass the module, or a promise of it as above, which keeps it out of the host's
+first bundle when the viewer mounts later. The page's first scene takes the engine
+when its code first loads, and later instances on the page share it; if the promise
+rejects, the viewer warns and loads its own copy. A host without `three` simply leaves
+the option out.
+
+### How the viewer's code loads
+
+The package's module (`lib/`) is a small loader that a host bundles (under 4 KB). When
+it mounts, it imports the viewer's code from the assets (`skyline-viewer.js`) with a
+dynamic `import()` that carries `webpackIgnore`, `turbopackIgnore` and `@vite-ignore`
+comments, so webpack (including Next.js with `--webpack`), Turbopack and Vite leave it
+to the browser; Rollup, esbuild and Bun leave an import of a variable alone anyway. A
+bundler that tried to resolve it would fail to build: tell it to ignore that import.
+The viewer then loads its stylesheets, the scene's markup from `skyline-3d.html`, its
+stars from `stars.svg`, and the scene's modules and models from the same directory.
+Each module loads once per page, however many viewers mount.
+
+### Content security policy and other origins
+
+The viewer runs in the host's page, under the host's content security policy. A host
+with one must allow the assets' origin (usually `'self'`) in `script-src`,
+`style-src` and `connect-src` (the viewer fetches its markup and stars), and inline
+styles in `style-src`, which the viewer sets on its elements. Serve the assets from
+the host's origin when you can; on another origin, every file must allow the page's
+origin through CORS. The viewer's code runs with the host page's privileges wherever
+it is served from: serve it only from an origin you trust.
+
+### For tests
+
+`element.shadowRoot` holds the viewer: its 3D canvas is `#building` and the scene's
+loading indicator `#loading`, hidden at the first frame. The region drops `aria-busy`
+when `ready` settles. WebDriver and Playwright reach into open shadow roots; code run
+in the page reads `element.shadowRoot.querySelector(...)`.
+
+### From 0.1 (iframe) to 0.2
+
+Before 0.2, the viewer ran in an iframe. Hosts upgrading:
+
+- `element` is the viewer's region element, not an `HTMLIFrameElement`: wait for
+  `ready` instead of the frame's `load` event, and reach the viewer through
+  `element.shadowRoot` instead of `contentDocument`. There are no nested frames: the
+  3D scene and its building detail render in the same shadow root (the detail in a
+  shadow root of its own, inside the scene's panel), and they no longer post
+  `skyline:` messages to each other.
+- `navigation` is gone. It showed the site's own toolbar, which only the site's
+  `index.html` shows now. The viewer's options are `assetsUrl`, `title`, `controls`,
+  `attribution` and `three`.
+- Presses inside the viewer reach the host as any other press does, so a workaround
+  that raised a window when a frame took focus is no longer needed.
+- The viewer no longer has its own window: `window.__buildingStudy`, which tests read
+  inside the scene's frame, is not set on the host's window.
+- Copy the assets again: the viewer's code is new files (`skyline-viewer.js`,
+  `viewer.css` and others).
+
+### Limitations
+
+- Removing the element without calling `destroy()` leaves the viewer running.
+- If the viewer's or scene's code fails to load, as on a dropped connection, the
+  browser keeps that failure for the page: later mounts on the same page fail the same
+  way until it reloads. A frame used to retry with a new document.
+- The site's own `index.html` shows two prototypes from its toolbar, the hover-scripted
+  enhanced drawing and the WebGL prototype, as pages of their own in frames; a host's
+  viewer never shows them.
 
 ## Import a scene or a building
 
 For an application that owns its own renderer, install `three` from the r186
 series (`~0.186.0`). `devopsrockstars` already uses a compatible version. The
-complete iframe viewer does not need this peer; scene/model imports do.
+mounted viewer needs this peer only to share the host's engine; scene/model imports
+always do.
 
 ```ts
 import { Group } from 'three';

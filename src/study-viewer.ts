@@ -7,8 +7,8 @@ export type { FitBox, PlatformOptions, ShadowCameraOptions, StudyView, StudyLayo
 // Each model supplies its group, display controls, and triangle count. Camera
 // and framing belong to the study, so the same viewer supports one tower or a scene.
 
-// The runtime surface the study pages and the browser tests read through
-// window.__buildingStudy.
+// The runtime surface the browser tests read: through window.__buildingStudy on a study's
+// own page, and on the study's canvas wherever it renders, such as in the viewer's shadow root.
 export interface BuildingStudyApi {
   ready: boolean;
   modelName: string;
@@ -37,6 +37,9 @@ declare global {
   interface Window {
     __buildingStudy?: BuildingStudyApi;
   }
+  interface HTMLCanvasElement {
+    __buildingStudy?: BuildingStudyApi;
+  }
 }
 
 // The vendored bundle includes the OrbitControls example module, whose
@@ -60,6 +63,7 @@ declare module "./vendor/three-r186.js" {
     rotateSpeed: number;
     zoomSpeed: number;
     update(): boolean;
+    dispose(): void;
   }
 }
 
@@ -115,6 +119,44 @@ interface BuildingStudyOptions {
   labels?: StudyLabel[];
   // Whether the page opens on the turntable, where reduced motion allows it.
   turntable?: boolean;
+  // Where the study's markup is: its own page's document, or the shadow root the viewer
+  // renders it in. Every element is looked up in it, so two studies never share one.
+  root?: Document | ShadowRoot;
+  // The box the tooltip is positioned in, its containing block; the window when omitted.
+  frame?: HTMLElement | null;
+  // Aborts when the study's host leaves: the study then releases its renderer, WebGL
+  // context, animation frame, observers and listeners.
+  signal?: AbortSignal;
+  // The first frame has rendered; the graphics context was lost.
+  onReady?: (() => void) | undefined;
+  onUnavailable?: (() => void) | undefined;
+}
+
+// The box a pointer-placed overlay is positioned in: where it is on screen, its size in CSS
+// pixels, and how much a host's transform scales it, so a pointer's client coordinates
+// become a place inside it: (x - left) / scaleX.
+export function frameBox(frame: HTMLElement | null | undefined): { left: number; top: number; width: number; height: number; scaleX: number; scaleY: number } {
+  if (!frame) return { left: 0, top: 0, width: innerWidth, height: innerHeight, scaleX: 1, scaleY: 1 };
+  const box = frame.getBoundingClientRect();
+  return {
+    left: box.left, top: box.top, width: frame.clientWidth, height: frame.clientHeight,
+    scaleX: frame.offsetWidth ? box.width / frame.offsetWidth : 1, scaleY: frame.offsetHeight ? box.height / frame.offsetHeight : 1,
+  };
+}
+
+// Releases the GPU resources an object tree holds: geometries, materials and their textures.
+export function disposeObject(object: THREE.Object3D) {
+  object.traverse((child) => {
+    // A light's shadow map is a render target of its own.
+    if ((child as THREE.DirectionalLight).isDirectionalLight) (child as THREE.DirectionalLight).dispose();
+    const mesh = child as THREE.Mesh;
+    mesh.geometry?.dispose();
+    const materials = mesh.material ? [mesh.material].flat() : [];
+    for (const material of materials) {
+      for (const value of Object.values(material)) if ((value as THREE.DataTexture | null)?.isTexture) (value as THREE.DataTexture).dispose();
+      material.dispose();
+    }
+  });
 }
 
 export function createBuildingStudy({
@@ -146,19 +188,26 @@ export function createBuildingStudy({
   onLayoutChange = () => {},
   labels = [],
   turntable = false,
+  root = document,
+  frame = null,
+  signal = new AbortController().signal,
+  onReady = () => {},
+  onUnavailable = () => {},
 }: BuildingStudyOptions) {
   const original = { models, extras, fit, target, platform, lightPosition, shadowCamera, clippingMargin };
   let layout = "original";
-  const viewport = document.querySelector<HTMLElement>("#viewport")!;
-  const canvas = document.querySelector<HTMLCanvasElement>("#building")!;
-  const tooltip = document.querySelector<HTMLElement>("#tooltip")!;
+  const document = root instanceof Document ? root : root.ownerDocument;
+  const viewport = root.querySelector<HTMLElement>("#viewport")!;
+  const canvas = root.querySelector<HTMLCanvasElement>("#building")!;
+  const tooltip = root.querySelector<HTMLElement>("#tooltip")!;
   // The studies name the active view in the viewport; the full-screen skyline leaves it to
   // the pressed button.
-  const viewLabel = document.querySelector<HTMLElement>("#view-label");
-  const wireframeButton = document.querySelector<HTMLElement>("#wireframe")!;
-  const turntableButton = document.querySelector<HTMLButtonElement>("#turntable")!;
-  const motionStatus = document.querySelector<HTMLElement>("#motion-status")!;
+  const viewLabel = root.querySelector<HTMLElement>("#view-label");
+  const wireframeButton = root.querySelector<HTMLElement>("#wireframe")!;
+  const turntableButton = root.querySelector<HTMLButtonElement>("#turntable")!;
+  const motionStatus = root.querySelector<HTMLElement>("#motion-status")!;
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const listening = { signal };
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.shadowMap.enabled = true;
@@ -249,10 +298,30 @@ export function createBuildingStudy({
   let frameDistance: number | null = null;
   let frameOffset: [number, number] = [0, 0];
   let frameAlign: StudyView["align"] = "center";
+  const resizing = new ResizeObserver(() => resize());
+  let api: BuildingStudyApi | undefined;
+  // Leaving releases what a closed page or a removed frame used to: the next frame, the
+  // observer, the orbit controls' listeners, and the renderer with its WebGL context, its
+  // GPU geometry, materials and textures. Listeners go with the signal. It is set up before
+  // anything else, so a study that fails to start part way is released too.
+  signal.addEventListener("abort", () => {
+    cancelAnimationFrame(frameId);
+    frameId = 0;
+    turning = false;
+    resizing.disconnect();
+    controls.dispose();
+    for (const object of new Set([scene, ...original.models.map((model) => model.building), ...original.extras,
+      ...Object.values(layouts ?? {}).flatMap((entry) => [...entry.models?.map((model) => model.building) ?? [], ...entry.extras ?? []])])) disposeObject(object);
+    renderer.dispose();
+    renderer.forceContextLoss();
+    labelLayer.remove();
+    if (api && root === document && window.__buildingStudy === api) delete window.__buildingStudy;
+    delete canvas.__buildingStudy;
+  }, { once: true });
 
 
   function requestRender() {
-    if (!frameId && !document.hidden) frameId = requestAnimationFrame(render);
+    if (!frameId && !document.hidden && !signal.aborted) frameId = requestAnimationFrame(render);
   }
 
   function render(time: number) {
@@ -296,7 +365,7 @@ export function createBuildingStudy({
   function markView(name: string | null) {
     activeView = name;
     if (viewLabel) viewLabel.textContent = views[name!]?.label || "orbit view";
-    document.querySelectorAll<HTMLElement>("[data-view]").forEach((button) => {
+    root.querySelectorAll<HTMLElement>("[data-view]").forEach((button) => {
       button.setAttribute("aria-pressed", String(button.dataset["view"] === name));
     });
   }
@@ -505,16 +574,19 @@ export function createBuildingStudy({
     if (selectedModel) {
       const data = selectedModel.building.userData["geography"];
       tooltip.textContent = data ? `${data.name} · ${data.height} m${data.tipHeight !== data.height ? ` / tip ${data.tipHeight} m` : ""}` : selectedModel.building.name;
-      const tooltipBounds = tooltip.getBoundingClientRect();
-      const x = event.clientX + 18 + tooltipBounds.width > innerWidth - 6 ? event.clientX - tooltipBounds.width - 18 : event.clientX + 18;
-      const y = event.clientY + 18 + tooltipBounds.height > innerHeight - 6 ? event.clientY - tooltipBounds.height - 18 : event.clientY + 18;
+      // Beside the pointer, turned back from the frame's right and bottom edges, in the
+      // frame's own CSS pixels.
+      const width = tooltip.offsetWidth, height = tooltip.offsetHeight, box = frameBox(frame);
+      const pointerX = (event.clientX - box.left) / box.scaleX, pointerY = (event.clientY - box.top) / box.scaleY;
+      const x = pointerX + 18 + width > box.width - 6 ? pointerX - width - 18 : pointerX + 18;
+      const y = pointerY + 18 + height > box.height - 6 ? pointerY - height - 18 : pointerY + 18;
       tooltip.style.left = `${Math.max(6, x)}px`;
       tooltip.style.top = `${Math.max(6, y)}px`;
     }
-  }, { passive: true });
-  canvas.addEventListener("pointerleave", clearHighlight);
-  canvas.addEventListener("blur", clearHighlight);
-  window.addEventListener("scroll", clearHighlight, { passive: true });
+  }, { passive: true, signal });
+  canvas.addEventListener("pointerleave", clearHighlight, listening);
+  canvas.addEventListener("blur", clearHighlight, listening);
+  window.addEventListener("scroll", clearHighlight, { passive: true, signal });
 
   canvas.addEventListener("keydown", (event) => {
     if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "+", "=", "-", "Home"].includes(event.key)) return;
@@ -543,17 +615,17 @@ export function createBuildingStudy({
     controls.update();
     markView(null);
     clearHighlight();
-  });
+  }, listening);
 
-  document.querySelectorAll<HTMLElement>("[data-view]").forEach((button) => button.addEventListener("click", () => setView(button.dataset["view"]!)));
-  document.querySelector<HTMLElement>("#reset")!.addEventListener("click", () => setView(layouts?.[layout]?.defaultView || defaultView));
+  root.querySelectorAll<HTMLElement>("[data-view]").forEach((button) => button.addEventListener("click", () => setView(button.dataset["view"]!), listening));
+  root.querySelector<HTMLElement>("#reset")!.addEventListener("click", () => setView(layouts?.[layout]?.defaultView || defaultView), listening);
   wireframeButton.addEventListener("click", () => {
     wireframe = !wireframe;
     models.forEach((model) => model.setWireframe(wireframe));
     wireframeButton.setAttribute("aria-pressed", String(wireframe));
     requestRender();
-  });
-  turntableButton.addEventListener("click", () => setTurning(!turning));
+  }, listening);
+  turntableButton.addEventListener("click", () => setTurning(!turning), listening);
 
   function setLayout(name: string) {
     if (name === layout || (name !== "original" && !layouts?.[name])) return;
@@ -593,12 +665,12 @@ export function createBuildingStudy({
     requestRender();
   }
   function markLayout(name: string) {
-    document.querySelectorAll<HTMLElement>("[data-layout]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset["layout"] === name)));
+    root.querySelectorAll<HTMLElement>("[data-layout]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset["layout"] === name)));
   }
-  document.querySelectorAll<HTMLElement>("[data-layout]").forEach((button) => button.addEventListener("click", () => setLayout(button.dataset["layout"]!)));
+  root.querySelectorAll<HTMLElement>("[data-layout]").forEach((button) => button.addEventListener("click", () => setLayout(button.dataset["layout"]!), listening));
 
   function updateCameraHint() {
-    document.querySelector<HTMLElement>("#camera-hint")!.innerHTML = reducedMotion.matches
+    root.querySelector<HTMLElement>("#camera-hint")!.innerHTML = reducedMotion.matches
       ? '<span class="wide-hint">Use the view buttons or arrow keys to inspect<br />+ / − zoom · Home resets</span><span class="narrow-hint">Use the view buttons to inspect</span>'
       : controls.enablePan
         ? '<span class="wide-hint">Drag to orbit · shift-drag to pan · scroll to zoom<br />Arrow keys rotate · + / − zoom · Home resets</span><span class="narrow-hint">Drag to orbit · two fingers pan / zoom</span>'
@@ -614,24 +686,24 @@ export function createBuildingStudy({
     updateCameraHint();
     clearHighlight();
   }
-  reducedMotion.addEventListener("change", updateMotionPreference);
+  reducedMotion.addEventListener("change", updateMotionPreference, listening);
   document.addEventListener("visibilitychange", () => {
     lastTime = 0;
     if (document.hidden) {
       cancelAnimationFrame(frameId);
       frameId = 0;
     } else requestRender();
-  });
+  }, listening);
   canvas.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();
     setTurning(false);
-    const loading = document.querySelector<HTMLElement>("#loading")!;
+    const loading = root.querySelector<HTMLElement>("#loading")!;
     loading.textContent = "The graphics context was interrupted. Reload to restore the 3D preview.";
     loading.hidden = false;
-    if (window.parent !== window) window.parent.postMessage({ type: "skyline:unavailable" }, location.origin);
-  });
+    onUnavailable();
+  }, listening);
 
-  new ResizeObserver(resize).observe(viewport);
+  resizing.observe(viewport);
   updateMotionPreference();
   // Open on the default view with its own frame, target, and eye distance, if it sets any.
   setView(defaultView);
@@ -641,8 +713,8 @@ export function createBuildingStudy({
   else { markLayout(layout); onLayoutChange(layout); }
   if (turntable) setTurning(true);
   renderer.render(scene, camera);
-  document.querySelector<HTMLElement>("#loading")!.hidden = true;
-  window.__buildingStudy = {
+  root.querySelector<HTMLElement>("#loading")!.hidden = true;
+  api = {
     ready: true,
     get modelName() { return models[0]!.building.name; },
     get modelNames() { return models.map((model) => model.building.name); },
@@ -723,6 +795,9 @@ export function createBuildingStudy({
       return { min: min.clone().add(base.position).toArray(), max: max.clone().add(base.position).toArray() };
     },
   };
-  if (window.parent !== window) window.parent.postMessage({ type: "skyline:ready" }, location.origin);
+  // A study's own page publishes it on its window; wherever it renders, its canvas holds it.
+  if (root === document) window.__buildingStudy = api;
+  Object.defineProperty(canvas, "__buildingStudy", { value: api, configurable: true });
+  onReady();
   return { setLayout, setView, requestRender, buildingAt };
 }

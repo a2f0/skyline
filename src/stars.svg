@@ -5,11 +5,13 @@
      style="background:#000000;pointer-events:none">
   <title id="stars-title">Twinkling night sky</title>
   <desc id="stars-description">96 randomly positioned grayscale stars spread across the full viewport. Ten randomly selected stars slowly twinkle with independent timing and changing brightness patterns while the rest stay steady. Reduced motion pauses twinkling; the debug-motion fragment enables stronger brightness pulses on the same ten stars.</desc>
+  <!-- The skyline viewer renders this sky in its shadow root without the script below, which
+       it ports (skyline-viewer.ts), and without element names; it selects by class. -->
   <style><![CDATA[
-    #atmosphere circle {
+    .atmosphere circle {
       opacity: 0.5;
     }
-    #atmosphere .twinkle {
+    .atmosphere .twinkle {
       animation: star-twinkle var(--twinkle-duration, 53.333s) ease-in-out var(--twinkle-delay, 0s) infinite;
     }
 
@@ -25,7 +27,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      #atmosphere .twinkle { animation: none; }
+      .atmosphere .twinkle { animation: none; }
     }
 
     /* An explicit debug preview may override the system motion preference. */
@@ -33,7 +35,7 @@
       animation: star-debug var(--twinkle-duration, 53.333s) ease-in-out var(--twinkle-delay, 0s) infinite;
     }
   ]]></style>
-  <g id="atmosphere">
+  <g id="atmosphere" class="atmosphere">
     <g id="debug-motion">
       <g fill="#ebebeb" class="stars-a">
         <circle cx="22.65%" cy="16.86%" r="0.85" />
@@ -140,7 +142,7 @@
     </g>
   </g>
   <script><![CDATA[
-    const stars = [...document.querySelectorAll("#atmosphere circle")];
+    const stars = [...document.querySelectorAll(".atmosphere circle")];
 
     function randomizeTwinkle(star) {
       star.style.setProperty("--twinkle-dim", 0.42 + Math.random() * 0.05);
@@ -166,7 +168,7 @@
       star.classList.add("twinkle");
     }
 
-    document.querySelector("#atmosphere").addEventListener("animationiteration", (event) => {
+    document.querySelector(".atmosphere").addEventListener("animationiteration", (event) => {
       if (event.animationName === "star-twinkle") {
         // The cycle ends at a fixed brightness so the next pattern joins smoothly.
         randomizeTwinkle(event.target);

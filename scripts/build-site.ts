@@ -15,8 +15,8 @@ export const root = path.resolve(import.meta.dirname, "..");
 export const src = path.join(root, "src");
 export const dist = path.join(root, "dist");
 
-// Reachable from index.html, the two study pages, the WebGL viewer, the 3D skyline, and the
-// building detail its context menu opens.
+// Reachable from index.html and the viewer it mounts, the two study pages, the WebGL viewer,
+// the 3D skyline, and the building detail its context menu opens.
 const staticFiles = [
   "index.html",
   "skyline-webgl.html",
@@ -28,6 +28,7 @@ const staticFiles = [
   "skyline-original-fit.svg",
   "stars.svg",
   "study.css",
+  "viewer.css",
   "vendor/three-r186.js",
   "vendor/THREE-LICENSE.txt",
 ];
@@ -36,6 +37,13 @@ const staticFiles = [
 // with the same filename; removing or renaming one must fail the build rather
 // than ship a site whose script tags point at nothing.
 const compiledEntries = [
+  "viewer-page.ts",
+  "skyline-shell.ts",
+  "skyline-viewer.ts",
+  "markup.ts",
+  "three-engine.ts",
+  "skyline-3d-page.ts",
+  "building-detail-page.ts",
   "study-loader.ts",
   "study-viewer.ts",
   "study-types.ts",

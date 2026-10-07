@@ -1,53 +1,48 @@
+// The browser entrypoint of the @a2f0/skyline package: mounts the viewer in a host-owned
+// container, inside a shadow root in the host's own document. Importing it never touches the
+// DOM, so server rendering and lazy loading are safe. docs/package.md describes the package.
+import { mountViewer, type SkylineInstance } from "./skyline-shell.js";
+import type { SkylineThree } from "./three-engine.js";
+
 export type { BuildingModel, Vec2, Vec3 } from "./models/building-kit.js";
 export type { FitBox, PlatformOptions, ShadowCameraOptions, StudyView, StudyLayout, StudyLabel } from "./study-types.js";
 export type { GeographicSkyline } from "./skyline-scene.js";
+export type { SkylineInstance } from "./skyline-shell.js";
+export type { SkylineThree } from "./three-engine.js";
 
 export interface SkylineOptions {
-  /** Directory serving the package's viewer assets, e.g. "/static/skyline/". */
-  assetsUrl: string | URL;
-  /** Accessible title for the embedded viewer. */
-  title?: string;
-  /** Show the standalone toolbar and study links. Hidden by default when embedded. */
-  navigation?: boolean;
+  /**
+   * The directory serving the package's viewer assets, as copied by `copySkylineAssets`
+   * from `@a2f0/skyline/build`; for example "/static/skyline/". Relative URLs resolve
+   * against the page. The viewer's code, styles, drawings and models load from it.
+   */
+  readonly assetsUrl: string | URL;
+  /** The viewer's accessible name: `element` is a region with this label. */
+  readonly title?: string;
   /** Start the 3D scene's control bar open, or folded behind its star. Closed by default. */
-  controls?: "open" | "closed";
+  readonly controls?: "open" | "closed";
   /**
    * Show the OpenStreetMap credit with the 3D scene's controls. Shown by default. OpenStreetMap's
    * licence requires that credit wherever its data appears, so hide it only when the host page
    * credits OpenStreetMap contributors itself.
    */
-  attribution?: boolean;
-}
-
-export interface SkylineInstance {
-  /** The viewer's frame; its styles are isolated from the host application. */
-  readonly element: HTMLIFrameElement;
-  /** Removes the viewer, releasing its document, event handlers and WebGL context. */
-  destroy(): void;
+  readonly attribution?: boolean;
+  /**
+   * The host's own Three.js, for a page that already runs it: pass `@a2f0/skyline/three`, or a
+   * dynamic import of it, and the scene renders with the host's engine instead of downloading
+   * the copy in the assets. The page's first scene takes the engine; leave it out to use the
+   * assets' copy, which needs no `three` dependency.
+   */
+  readonly three?: SkylineThree | PromiseLike<SkylineThree>;
 }
 
 /**
- * Mounts the complete interactive viewer inside a host-owned container. Importing
- * this module never touches the DOM; call it after mounting a browser component.
- * The container controls placement and size. Destroy it when that component leaves.
+ * Mounts the complete interactive viewer filling `container`, inside a shadow root. It
+ * returns at once; `ready` settles when the 3D skyline shows. The container sets the viewer's
+ * size and placement: give it an explicit height. Call `destroy` when the hosting component
+ * leaves.
  */
-export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", navigation = false, controls = "closed", attribution = true }: SkylineOptions): SkylineInstance {
+export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", controls = "closed", attribution = true, three }: SkylineOptions): SkylineInstance {
   if (controls !== "open" && controls !== "closed") throw new TypeError('Skyline controls must be "open" or "closed".');
-  const document = container.ownerDocument;
-  const base = new URL(assetsUrl, document.baseURI);
-  if (!/^(https?:)$/.test(base.protocol)) throw new TypeError("Skyline assets must be served over HTTP or HTTPS.");
-  if (base.search || base.hash) throw new TypeError("Skyline assetsUrl must be a directory URL without a query or fragment.");
-  if (!base.pathname.endsWith("/")) base.pathname += "/";
-
-  const element = document.createElement("iframe");
-  element.title = title;
-  const viewerUrl = new URL("index.html", base);
-  if (!navigation) viewerUrl.searchParams.set("embed", "1");
-  if (controls === "open") viewerUrl.searchParams.set("controls", "open");
-  if (!attribution) viewerUrl.searchParams.set("attribution", "hidden");
-  element.src = viewerUrl.href;
-  element.allowFullscreen = true;
-  element.style.cssText = "display:block;width:100%;height:100%;border:0";
-  container.append(element);
-  return { element, destroy() { element.remove(); } };
+  return mountViewer(container, { assetsUrl, title, controls, attribution, navigation: false, page: false, three });
 }

@@ -389,7 +389,8 @@ describe("eight-building skyline study", () => {
     await mobile.waitForFunction(() => window.__buildingStudy?.ready);
     expect(await mobile.evaluate(() => window.__buildingStudy!.modelName)).toBe("Crain Communications Building");
     await mobile.locator(".back").tap();
-    await mobile.locator('a[href="skyline-study.html"]').tap();
+    // The viewer's toolbar links the studies from its shadow root, by their full address.
+    await mobile.locator('.controls a[href$="/skyline-study.html"]').tap();
     await mobile.waitForFunction(() => window.__buildingStudy?.ready);
     await mobile.close();
   }, { timeout: 180_000 });
