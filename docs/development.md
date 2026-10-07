@@ -40,11 +40,14 @@ bun run check
 
 The runner checks managed skill drift, tool configuration and dependency advisories
 (`bun audit`), typechecks the repository
-(`tsc --noEmit`), and runs the attribution, hook, timings, merge guard, deploy verification,
+(`tsc --noEmit`), verifies the vendored engine and license (`vendor:three --check`),
+and runs the attribution, hook, timings, merge guard, deploy verification,
 local dependency runtime, grayscale, skyline-loading, package, reference excerpt, and building kit
 suites under `bun test`.
 It then builds `dist/`, starts its own temporary server, and runs the browser suites against the
 compiled site, closing the server afterward.
+The advisory audit requires registry access, so the full check cannot run offline;
+any advisory or registry failure blocks publishing as explained in [Releases](package.md#releases).
 
 Together they cover:
 

@@ -49,7 +49,8 @@ when it finishes whether it passed or failed, and appends the run to
 `skyline-timings.log` in the Git common directory; `bun scripts/show-timings.ts`
 reads it back; Skyline’s shipping policy requires printing it at the end. The check
 runner checks managed skill drift, tool configuration and dependency advisories, typechecks the
-repository, runs the attribution, hooks, timings, merge guard, deploy verification, local dependency runtime, grayscale,
+repository, verifies the vendored engine and license against the locked dependencies,
+runs the attribution, hooks, timings, merge guard, deploy verification, local dependency runtime, grayscale,
 skyline-loading, package, reference excerpt, and building kit checks, then
 builds `dist/` and starts its own temporary server for the hover regressions,
 both 3D study browser suites, the building
