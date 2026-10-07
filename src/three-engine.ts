@@ -9,13 +9,15 @@ import type { OrbitControls } from "three/addons/controls/OrbitControls.js";
 /**
  * The part of Three.js the viewer uses: `@a2f0/skyline/three` exports exactly this from the
  * host's `three`, so a host's bundler keeps no more of its engine than the viewer needs.
+ * The viewer shadows with `PCFShadowMap`; `PCFSoftShadowMap`, which r186 removed, stays
+ * listed only because earlier releases exported it.
  */
 export type SkylineThree = Pick<typeof THREE,
   | "AmbientLight" | "BoxGeometry" | "BufferGeometry" | "Color" | "DataTexture" | "DirectionalLight"
   | "EdgesGeometry" | "Float32BufferAttribute" | "Group" | "LineBasicMaterial" | "LineSegments"
   | "Mesh" | "MeshBasicMaterial" | "MeshToonMaterial" | "NearestFilter" | "PCFShadowMap"
-  | "OrthographicCamera" | "PerspectiveCamera" | "Raycaster" | "RedFormat" | "Scene" | "Vector2"
-  | "Vector3" | "WebGLRenderer"> & { readonly OrbitControls: typeof OrbitControls };
+  | "PCFSoftShadowMap" | "OrthographicCamera" | "PerspectiveCamera" | "Raycaster" | "RedFormat"
+  | "Scene" | "Vector2" | "Vector3" | "WebGLRenderer"> & { readonly OrbitControls: typeof OrbitControls };
 
 let provided: Promise<SkylineThree> | undefined;
 

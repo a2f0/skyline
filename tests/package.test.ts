@@ -56,6 +56,9 @@ describe("published Skyline package", () => {
 import { mountSkyline } from '@a2f0/skyline';
 import type { BuildingModel, SkylineInstance, SkylineThree, StudyView } from '@a2f0/skyline';
 import * as engine from '@a2f0/skyline/three';
+// Hosts built against 0.2.1 or earlier may import the shadow type r186 removed.
+import { PCFShadowMap, PCFSoftShadowMap } from '@a2f0/skyline/three';
+import { PCFShadowMap as threePCF, PCFSoftShadowMap as threePCFSoft } from 'three';
 import { createGeographicSkyline } from '@a2f0/skyline/scene';
 import { createCrainBuilding } from '@a2f0/skyline/models/crain-communications';
 import { geographicBuildings } from '@a2f0/skyline/models/skyline-geography-data';
@@ -82,7 +85,8 @@ const view: StudyView = skyline.drawingView;
 console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets, engine: Object.keys(shared).sort(),
   lights: lit && illumination.active === null && illumination.litWindows === 0 && celebrations.length === 6 && typeof createWindowIllumination === 'function',
   hostEngine: building.building instanceof Group && skyline.models.every(model => model.building instanceof Group),
-  models: skyline.models.length, records: geographicBuildings.length, triangles: building.triangleCount, align: view.align }));
+  models: skyline.models.length, records: geographicBuildings.length, triangles: building.triangleCount, align: view.align,
+  shadowTypes: PCFShadowMap === threePCF && PCFSoftShadowMap === threePCFSoft && shared.PCFShadowMap === threePCF }));
 `);
     await writeFile(path.join(consumer, "tsconfig.json"), JSON.stringify({
       compilerOptions: { target: "es2023", module: "nodenext", moduleResolution: "nodenext", strict: true, types: [], lib: ["es2023", "dom", "dom.iterable"], outDir: "compiled", skipLibCheck: false },
@@ -90,7 +94,7 @@ console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
     }));
     execFileSync(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", path.join(consumer, "tsconfig.json")], { encoding: "utf8" });
     const output = execFileSync("node", [path.join(consumer, "compiled/entry.js")], { cwd: consumer, encoding: "utf8" });
-    const result = JSON.parse(output) as { dom: string; copy: string; engine: string[]; hostEngine: boolean; models: number; records: number; triangles: number; align: string; lights: boolean };
+    const result = JSON.parse(output) as { dom: string; copy: string; engine: string[]; hostEngine: boolean; models: number; records: number; triangles: number; align: string; lights: boolean; shadowTypes: boolean };
     expect(result.dom).toBe("undefined");
     // `@a2f0/skyline/three` hands the viewer exactly what the assets' engine module exports.
     const vendored = await readFile(path.join(installed, "site/vendor/three-r186.js"), "utf8");
@@ -102,6 +106,11 @@ console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
     expect(result.triangles).toBeGreaterThan(0);
     expect(result.align).toBe("bottom");
     expect(result.lights).toBe(true);
+    // The viewer's shadow type, and the removed one an earlier release exported, still
+    // resolve to the host's own constants.
+    expect(result.shadowTypes).toBe(true);
+    expect(result.engine).toContain("PCFShadowMap");
+    expect(result.engine).toContain("PCFSoftShadowMap");
   }, { timeout: 60_000 });
 
   test("builds a GitHub source install with only the host's compiler and types", async () => {
