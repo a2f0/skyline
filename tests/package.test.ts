@@ -371,6 +371,33 @@ window.mountFixture();
             document.querySelector<HTMLElement>("#second")!.hidden = true;
           });
 
+          // On a phone, where a building's detail scrolls inside its panel, its scrolling stops
+          // there: it never scrolls the host page beneath, here made taller than the window.
+          if (viewport.width < 600) {
+            await page.evaluate(() => document.body.append(Object.assign(document.createElement("div"), { id: "spacer" })));
+            await page.evaluate(() => document.querySelector<HTMLElement>("#spacer")!.style.setProperty("height", "150vh"));
+            // The scene has just grown back to the page's width; a resize closes its menu, so
+            // let it settle first.
+            await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+            const point = await page.evaluate(() => {
+              const canvas = document.querySelector("#host > [role=region]")!.shadowRoot!.querySelector<HTMLCanvasElement>("#building")!;
+              const box = canvas.getBoundingClientRect(), [u, v] = canvas.__buildingStudy!.projectPoint("layer3", [284, 200, -50]);
+              return { x: box.x + u * box.width, y: box.y + v * box.height };
+            });
+            await page.mouse.click(point.x, point.y, { button: "right" });
+            await page.locator("#host #building-detail-link").click();
+            await page.waitForFunction(() => document.querySelector("#host > [role=region]")!.shadowRoot!.querySelector(".detail-host")?.shadowRoot?.querySelector<HTMLCanvasElement>("#building")?.__buildingStudy?.ready, null, { timeout: 60_000 });
+            const scroller = page.locator("#host .detail-frame");
+            const box = (await scroller.boundingBox())!;
+            await page.mouse.move(box.x + box.width / 2, box.y + 40);
+            for (let step = 0; step < 12; step += 1) await page.mouse.wheel(0, 400);
+            await page.waitForTimeout(300);
+            expect(await scroller.evaluate((frame) => frame.scrollHeight > frame.clientHeight && frame.scrollTop + frame.clientHeight >= frame.scrollHeight - 1), "the detail scrolls to its end").toBe(true);
+            expect(await page.evaluate(() => scrollY), "the host page stays put").toBe(0);
+            await page.keyboard.press("Escape");
+            await page.evaluate(() => document.querySelector("#spacer")!.remove());
+          }
+
           // Destroyed while it loads, an instance never settles and leaves nothing running;
           // the next mounts normally. Each stage is held in turn: the scene's markup, then, in
           // a page that has yet to load it, the scene's code.
@@ -386,14 +413,26 @@ window.mountFixture();
               await mount(page);
               await page.locator("#host #stars circle").first().waitFor({ state: "attached" });
             }
-            const before = await page.evaluate(() => document.querySelectorAll("canvas").length);
-            await page.evaluate(() => (window as unknown as Hooked).destroyFixture());
+            // Keep the destroyed instance's root, which the page no longer shows, to see that
+            // nothing starts in it once the held load arrives.
+            await page.evaluate(() => {
+              (window as unknown as { destroyedRoot: ShadowRoot }).destroyedRoot = document.querySelector("#host > [role=region]")!.shadowRoot!;
+              (window as unknown as Hooked).destroyFixture();
+            });
             release();
             await page.unroute(`**/${stage}`);
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(1000);
             expect(await page.evaluate(() => (window as unknown as Hooked).settled["host"]), `destroyed while ${stage} loads`).toBe("pending");
             expect(await page.locator("#host > [role=region]").count()).toBe(0);
-            expect(before).toBe(0);
+            expect(await page.evaluate(() => {
+              const root = (window as unknown as { destroyedRoot: ShadowRoot }).destroyedRoot;
+              const canvas = root.querySelector<HTMLCanvasElement>("#building");
+              return { markup: Boolean(canvas), study: Boolean(canvas?.__buildingStudy), loading: root.querySelector<HTMLElement>("#loading")?.hidden ?? null };
+            }), `nothing starts after destroying while ${stage} loads`).toEqual(stage.endsWith(".html")
+              // The scene's markup never arrives,
+              ? { markup: false, study: false, loading: null }
+              // or arrives before its code, which then never starts the scene.
+              : { markup: true, study: false, loading: false });
             await mount(page);
             expect(await settled(page)).toBe("ready");
           }
