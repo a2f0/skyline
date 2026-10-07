@@ -191,7 +191,8 @@ window.mountClosed = () => {
   window.settled.closed = 'pending';
   skyline.ready.then(() => { window.settled.closed = 'ready'; }, (error) => { window.settled.closed = 'rejected: ' + error.message; });
 };
-window.mountFixture();
+// \`?reject\` offers the first mount a host engine that fails to load.
+window.mountFixture(location.search === '?reject' ? { three: Promise.reject(new Error('no engine')) } : {});
 `);
     const bundle = await Bun.build({ entrypoints: [path.join(consumer, "browser.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true });
     expect(bundle.success).toBe(true);
@@ -510,6 +511,12 @@ window.mountFixture();
               ?.querySelector<HTMLCanvasElement>("#building")?.__buildingStudy?.ready, null, { timeout: 60_000 });
             await page.evaluate(() => { (window as unknown as Hooked).destroyFixture("closed"); scrollTo(0, 0); });
           }
+          // A host engine that fails to load: the viewer warns and loads the assets' copy.
+          await page.goto(`${server.origin}/?reject`);
+          expect(await settled(page)).toBe("ready");
+          expect(warnings.filter((warning) => warning.includes("could not use the page's Three.js"))).toHaveLength(1);
+          expect(requested.filter((url) => url.endsWith("/nested/skyline/vendor/three-r186.bundle.js")).length).toBeGreaterThan(0);
+          await page.evaluate(() => (window as unknown as Hooked).destroyFixture());
           // Without WebGL the scene can't start: `ready` says so, the scene says why, and the
           // drawing stays one press away.
           await page.addInitScript(() => { HTMLCanvasElement.prototype.getContext = () => null; });
@@ -527,83 +534,52 @@ window.mountFixture();
   }, { timeout: 600_000 });
 
   test("shares the host page's Three.js, without loading or warning about a second engine", async () => {
-    // TEMPORARY CI DIAGNOSTICS
-    const step = async <T>(label: string, work: Promise<T>): Promise<T> => {
-      console.error(`[share] ${new Date().toISOString()} start ${label}`);
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      try {
-        return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(`step timed out: ${label}`)), 90_000); })]);
-      } finally { clearTimeout(timer); console.error(`[share] ${new Date().toISOString()} end ${label}`); }
-    };
     const publicDirectory = path.join(consumer, "public-three");
     await mkdir(publicDirectory, { recursive: true });
     const { copySkylineAssets } = await import(pathToFileURL(path.join(installed, "lib/package-assets.js")).href) as { copySkylineAssets(destination: string): Promise<void> };
-    await step("copy", copySkylineAssets(path.join(publicDirectory, "skyline")));
-    // A page that already renders with Three.js, as devopsrockstars' hat preview does, then
-    // hands the viewer its engine through a lazily loaded `@a2f0/skyline/three`.
+    await copySkylineAssets(path.join(publicDirectory, "skyline"));
+    // A page that already renders with Three.js into a canvas of its own, as devopsrockstars'
+    // hat preview does. It first mounts a viewer with an engine that fails to load and
+    // destroys it at once, which must leave no unhandled rejection; then it hands a viewer its
+    // engine through a lazily loaded `@a2f0/skyline/three`. One page holds every check: the
+    // publish runner's software GPU has hung creating a WebGL context in a second such page.
     await writeFile(path.join(consumer, "three-host.ts"), `
-import { WebGLRenderer, Scene, PerspectiveCamera, REVISION } from 'three';
+import { WebGLRenderer, Scene, PerspectiveCamera } from 'three';
 import { mountSkyline } from '@a2f0/skyline';
-const own = new WebGLRenderer();
+const own = new WebGLRenderer({ canvas: document.querySelector('#preview') });
 own.render(new Scene(), new PerspectiveCamera());
-window.hostRevision = REVISION;
-const mode = location.search.slice(1);
-// An engine that fails to load: the viewer warns and loads its own; destroyed first, it
-// leaves no unhandled rejection.
-const failing = () => new Promise((resolve, reject) => setTimeout(() => reject(new Error('no engine')), 50));
-const three = mode === 'share' ? { three: import('@a2f0/skyline/three') } : mode.startsWith('reject') ? { three: failing() } : {};
-const skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', ...three });
-if (mode === 'reject-destroyed') {
-  skyline.destroy();
-  setTimeout(() => { window.settled = 'destroyed'; }, 500);
-} else skyline.ready.then(() => { window.settled = 'ready'; }, (error) => { window.settled = 'rejected: ' + error.message; });
+const failing = new Promise((resolve, reject) => setTimeout(() => reject(new Error('no engine')), 50));
+mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', three: failing }).destroy();
+const skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', three: import('@a2f0/skyline/three') });
+skyline.ready.then(() => { window.settled = 'ready'; }, (error) => { window.settled = 'rejected: ' + error.message; });
+// Leaves the GPU as it found it: the viewer released, and the page's own renderer too.
+window.teardown = () => { skyline.destroy(); own.dispose(); own.forceContextLoss(); };
 `);
-    const bundle = await step("bundle", Bun.build({ entrypoints: [path.join(consumer, "three-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true, splitting: true }));
+    const bundle = await Bun.build({ entrypoints: [path.join(consumer, "three-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true, splitting: true });
     expect(bundle.success).toBe(true);
-    await writeFile(path.join(publicDirectory, "index.html"), '<!doctype html><html><head><style>body{margin:0}#host{height:100vh}</style></head><body><div id="host"></div><script type="module" src="three-host.js"></script></body></html>');
-    const server = await step("serve", startServer(publicDirectory));
+    await writeFile(path.join(publicDirectory, "index.html"), '<!doctype html><html><head><style>body{margin:0}#host{height:90vh}#preview{display:block;width:160px;height:80px}</style></head><body><canvas id="preview"></canvas><div id="host"></div><script type="module" src="three-host.js"></script></body></html>');
+    const server = await startServer(publicDirectory);
     let browser: Browser | undefined;
     try {
-      for (const mode of ["", "share", "reject", "reject-destroyed"]) {
-        // TEMPORARY: a fresh browser for each mode.
-        await step(`browser close before ${mode}`, browser?.close() ?? Promise.resolve());
-        browser = await step(`launch ${mode}`, chromium.launch({
-          channel: "chrome", headless: true,
-          logger: { isEnabled: (name) => name === "browser", log: (_name, _severity, message) => console.error(`[share browser ${mode}] ${String(message).slice(0, 300)}`) },
-        }));
-        const page = await step(`newPage ${mode}`, browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" }));
-        page.on("crash", () => console.error(`[share page ${mode}] crashed`));
-        const begun = Date.now();
-        page.on("request", (request) => console.error(`[share page ${mode}] +${Date.now() - begun}ms request ${new URL(request.url()).pathname}`));
-        page.on("requestfinished", (request) => console.error(`[share page ${mode}] +${Date.now() - begun}ms finished ${new URL(request.url()).pathname}`));
-        page.on("console", (message) => console.error(`[share page ${mode}] ${message.type()}: ${message.text()}`));
-        page.on("pageerror", (error) => console.error(`[share page ${mode}] pageerror: ${error.message}`));
-        page.on("requestfailed", (request) => console.error(`[share page ${mode}] failed: ${request.url()}`));
-        const errors: string[] = [], warnings: string[] = [], requested: string[] = [];
-        page.on("pageerror", (error) => errors.push(error.message));
-        page.on("console", (message) => { if (message.type() === "warning") warnings.push(message.text()); });
-        page.on("request", (request) => requested.push(new URL(request.url()).pathname));
-        try {
-          await step(`goto ${mode}`, page.goto(`${server.origin}/${mode ? `?${mode}` : ""}`));
-          await step(`settle ${mode}`, page.waitForFunction(() => (window as unknown as { settled?: string }).settled, null, { timeout: 60_000, polling: 250 }));
-          expect(await step(`read ${mode}`, page.evaluate(() => (window as unknown as { settled: string }).settled))).toBe(mode === "reject-destroyed" ? "destroyed" : "ready");
-          const multiple = warnings.filter((warning) => warning.includes("Multiple instances of Three.js"));
-          const fallback = warnings.filter((warning) => warning.includes("could not use the page's Three.js"));
-          if (mode === "share") {
-            expect(requested, "the shared engine replaces the assets' copy").not.toContain("/skyline/vendor/three-r186.bundle.js");
-            expect(multiple).toEqual([]);
-          } else if (mode === "reject-destroyed") {
-            expect(fallback).toEqual([]);
-          } else {
-            // Without the option, or with an engine that fails to load, the viewer runs its own
-            // copy beside the page's, as three warns.
-            expect(requested).toContain("/skyline/vendor/three-r186.bundle.js");
-            expect(multiple).toHaveLength(1);
-            expect(fallback).toHaveLength(mode === "reject" ? 1 : 0);
-          }
-          expect(errors, mode).toEqual([]);
-        } finally { await step(`close ${mode}`, page.close()); }
+      browser = await chromium.launch({ channel: "chrome", headless: true });
+      const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+      const errors: string[] = [], warnings: string[] = [], requested: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      page.on("console", (message) => { if (message.type() === "warning") warnings.push(message.text()); });
+      page.on("request", (request) => requested.push(new URL(request.url()).pathname));
+      try {
+        await page.goto(server.origin);
+        await page.waitForFunction(() => (window as unknown as { settled?: string }).settled, null, { timeout: 120_000, polling: 250 });
+        expect(await page.evaluate(() => (window as unknown as { settled: string }).settled)).toBe("ready");
+        expect(requested, "the shared engine replaces the assets' copy").not.toContain("/skyline/vendor/three-r186.bundle.js");
+        expect(warnings.filter((warning) => warning.includes("Multiple instances of Three.js"))).toEqual([]);
+        // The destroyed viewer never asked for its engine, so it reports nothing.
+        expect(warnings.filter((warning) => warning.includes("could not use the page's Three.js"))).toEqual([]);
+        expect(errors).toEqual([]);
+      } finally {
+        await page.evaluate(() => (window as unknown as { teardown?(): void }).teardown?.()).catch(() => {});
+        await page.close();
       }
-    } finally { await step("browser close", browser?.close() ?? Promise.resolve()); await step("server close", server.close()); }
+    } finally { await browser?.close(); await server.close(); }
   }, { timeout: 600_000 });
 });
