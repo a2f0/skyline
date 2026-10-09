@@ -237,3 +237,97 @@ Shipping validation on 2026-10-04:
 Review repairs also added the automatic copy invariant and clarified that the
 older baseline image has unchanged Aon geometry relative to the shipping base.
 FID-AON-001 is implemented; FID-AON-002 remains open.
+
+
+## 2026-10-09 — Night colours from the panorama (FID-COL-001)
+
+Withdrawn from the trial on 2026-10-09 at the owner's request for a sunny day: the daytime colours
+below (FID-COL-003) replace these in `src/models/colour-palette.ts`. The findings stand as the night
+photograph's record.
+
+Source: `src/skyline.jpg`, the repository's 2013 night panorama from the Adler Planetarium's
+lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
+`f6001e46471ea59f6fc07ae0eb9e7d5d8d243666f57d96d7efc6f59f2d7d5db4`; photographer and exact date
+unknown; inspected 2026-10-09). It records the building under the city's night lighting in 2013,
+so these are **observed** night colours, not the materials' daylight colours.
+
+Method: `scripts/measure-group.ts` aligned the building's drawn group with the photograph
+(`skyline.svg` places the image at x −15558.758, y −1754.2251, 26553.332 × 7086.6665 in the
+drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
+rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts night layer3` reproduces these rows
+and prints the palette entries they gave, decoding the photograph in Chrome without colour
+management. Single pixels at this scale mix neighbouring materials, which the quartiles show; the
+medians are the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Granite, south | 15275, 1600, 15520, 3300 | hue 10–55, sat 0.1–0.65, val 0.3–0.88 | 187,627 (45.0%) | `115, 90, 73` | 101–133 / 77–107 / 62–87 |
+| Granite, east, for comparison | 15545, 1600, 15700, 3300 | hue 10–55, sat 0.1–0.65, val 0.2–0.88 | 68,140 (25.9%) | `98, 80, 70` | 82–113 / 68–94 / 60–80 |
+| Unlit glass | 15275, 1600, 15520, 3300 | val 0–0.2 | 42,763 (10.3%) | `43, 28, 27` | 36–47 / 24–31 / 23–31 |
+| Lit windows | 15275, 1600, 15520, 3300 | sat 0–0.3, val 0.8–1 | 51,630 (12.4%) | `249, 242, 237` | 239–254 / 227–250 / 214–249 |
+| Lit cap | 15275, 1400, 15520, 1490 | sat 0–0.3, val 0.75–1 | 14,348 (65.1%) | `243, 239, 236` | 231–248 / 225–244 / 219–243 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `white granite` `115, 90, 73`: the white granite piers read a warm brown at night, lit from the
+  street; also the tube shell.
+- `glass` `43, 28, 27`, the window ribbons and their dark spandrels.
+- `cap lights` `243, 239, 236`, the cap, where the top floors and the cap read as one lit band.
+- `lit window` `249, 242, 237`; `dim window` takes it at the dim windows' grey.
+- `aluminium` (the enclosure's slats), `stainless` (the mast) and `neutral` (core and roofing) stay
+  grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 2.1, on the building's surfaces of that material, and leaves its unmeasured ones
+grey. In the skyline view at 1600 × 900, the rendered south piers' median is 1.22 of the
+photograph's in linear light.
+
+## 2026-10-09 — Daytime colours from Chicago.jpg (FID-COL-003)
+
+At the owner's request the colour trial shows a sunny day, so these colours replace the night
+colours above in `src/models/colour-palette.ts`.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-09). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. It looks from nearly the drawing's viewpoint on a sunny day, five years before the 2013
+night panorama the drawing traces. The white granite is the 1990s recladding the 2013 panorama also
+shows. The sun is high in the south: the south faces, which the lakefront sees nearly square, are
+lit, and the east faces are in shade (observed).
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts day layer3` downloads each
+photograph once, checks its SHA-256, and reproduces these rows and the palette's entries, decoding
+in Chrome without colour management. The building is about 57 pixels wide in the rendition, so
+single pixels mix neighbouring materials, which the quartiles show; the medians are the values used.
+Samples take the sunlit face where the photograph shows one.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Granite, sunlit | 1815, 160, 1860, 450 | sat 0–0.12, val 0.6–1 | 6,795 (52.1%) | `223, 223, 221` | 182–244 / 182–245 / 181–242 |
+| Glass | 1815, 160, 1860, 450 | val 0–0.4 | 3,380 (25.9%) | `66, 66, 64` | 55–80 / 55–79 / 53–78 |
+| Shaded face, for comparison | 1852, 170, 1866, 440 | all | 3,780 (100.0%) | `129, 135, 136` | 107–211 / 113–211 / 117–207 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `white granite` `223, 223, 221`, the sunlit south piers; the shaded east face, all its pixels with
+  the windows, measures `129, 135, 136`.
+- `glass` `66, 66, 64`, the window slots; `lit window` and `dim window` take it exactly, since no
+  office lights show by day.
+- `cap lights`, the cap the night shows lit, takes the granite's colour: by day it is the same
+  stone. Inferred.
+- `aluminium` (the enclosure's slats), `stainless` (the mast) and `neutral` stay grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material, and leaves its null ones grey.
+In the skyline view at 1600 × 900 under the day lights, the south piers render `207, 208, 208` under
+the photograph's rule, 0.86 of the photograph's brightness in linear light; the granite just passes
+white at its own grey at this exposure. The east face renders `106, 122, 137` against the
+photograph's `129, 135, 136`, 0.83, and bluer, its shade lit by the sky's colour.

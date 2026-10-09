@@ -62,3 +62,14 @@ export interface StudyLabel {
   text: string;
   placement?: string;
 }
+
+// A sunny day for a study's scene: a sky behind it, and each light's colour and intensity, the
+// sun being the shadow-casting key light. The colour trial (models/colour-materials.ts) gives it.
+export interface Daylight {
+  sky: THREE.Texture;
+  sun: readonly [colour: number, intensity: number];
+  ambient: readonly [colour: number, intensity: number];
+  fill: readonly [colour: number, intensity: number];
+  /** The platform's grey in sunlight. */
+  ground: number;
+}

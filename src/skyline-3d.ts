@@ -1,9 +1,10 @@
+import type * as THREE from "./vendor/three-r186.js";
 import { createBuildingStudy, frameBox } from "./study-viewer.js";
 import { createGeographicSkyline } from "./skyline-scene.js";
 import { createGeographicRoads } from "./models/skyline-geography.js";
 import type { BuildingModel } from "./models/building-kit.js";
 import { celebrations, type CelebrationId } from "./models/celebrations.js";
-import { createSkylineColour } from "./models/colour-materials.js";
+import { createDaylight, createSkylineColour, daylightGround } from "./models/colour-materials.js";
 import { loadMarkup, loadStylesheet } from "./markup.js";
 
 export interface SkylineSceneOptions {
@@ -39,10 +40,12 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
   // footprints control.
   ground.group.children.forEach((child) => { child.visible = false; });
   const { platform } = settings;
+  // The roads' grey at night, which the colour trial's day lightens and turning it off restores.
+  const nightRoads = 0x2c2c2c;
   const roads = createGeographicRoads({
     x: [platform.x - platform.width / 2, platform.x + platform.width / 2],
     z: [platform.z - platform.depth / 2, platform.z + platform.depth / 2],
-  }, 0x2c2c2c);
+  }, nightRoads);
   const { azimuth } = drawingView;
   // The study renders its first frame as it starts; the scene says so once its controls,
   // menus and detail are wired too, at the end.
@@ -128,13 +131,16 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
       viewer.requestRender();
     }, listening);
   }
-  // The colour trial's toggle, pressed while the buildings show their materials' colours over
-  // the greys, which it restores exactly when pressed again.
+  // The colour trial's toggle, pressed while the scene shows a sunny day, the measured buildings in
+  // their colours over the greys; pressed again, it restores the night and every grey exactly.
   const colourButton = root.querySelector<HTMLButtonElement>("#colour")!;
+  const daylight = createDaylight(), roadway = roads.material as THREE.MeshToonMaterial;
+  signal.addEventListener("abort", () => daylight.sky.dispose(), { once: true });
   colourButton.addEventListener("click", () => {
     colour.set(!colour.enabled);
+    roadway.color.setHex(colour.enabled ? daylightGround.roads : nightRoads);
+    viewer.setDaylight(colour.enabled ? daylight : null);
     colourButton.setAttribute("aria-pressed", String(colour.enabled));
-    viewer.requestRender();
   }, listening);
   // The star in the middle of the bar opens and closes the toolbar. Each group unfolds from
   // the star: clipped open from its `--fold` inset while it fades in, one beside the star
