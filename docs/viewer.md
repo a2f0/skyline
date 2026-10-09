@@ -110,9 +110,11 @@ surfaces stay darker; a colour pushed past white keeps its hue at its brightest.
 by an exposure of 1.4, from the render-to-photograph brightness of the sourced buildings' main
 materials in the skyline view at 1600 × 900: Two Prudential's stone and Blue Cross's glass reach
 0.97 and 0.96 of the photograph's in linear light, Aon's granite 0.86 and One Prudential's limestone
-0.80, while Crain's nearly white aluminium, past white at this exposure, reaches 0.66. A higher
-exposure brightens only the darker materials. The scene's sun stands in the south-west, so the east
-faces the camera sees are in shade, as the photograph's are, and bluer, lit by the sky.
+0.80, while Crain's nearly white aluminium, past white at this exposure, reaches 0.66. The Railway
+Exchange shows the view its shaded Michigan front rather than the sunlit Jackson front its colour is
+measured on; that front renders 0.82 of the photograph's shaded front. A higher exposure brightens
+only the darker materials. The scene's sun stands in the south-west, so the east faces the camera
+sees are in shade, as the photograph's are, and bluer, lit by the sky.
 `scripts/sample-colours.ts day` measures every colour again from the photographs; its `night` study
 keeps the first measurements, of the night panorama the drawing traces, which the day replaced.
 

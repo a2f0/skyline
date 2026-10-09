@@ -287,7 +287,9 @@ export const toneOf = (grey: number) => new THREE.Color(grey, grey, grey).getHex
 // Prudential's stone), 0.96 (Blue Cross's glass), 0.86 (Aon's granite), 0.80 (One Prudential's
 // limestone) and 0.66 (Crain's aluminium) of the photograph's brightness in linear light. Aon's
 // granite and Crain's aluminium pass white at their own greys here, so a higher factor would
-// brighten only the darker materials.
+// brighten only the darker materials. The Railway Exchange is left out: the view shows its shaded
+// Michigan front, not the sunlit Jackson front its colour is measured on; that front renders 0.82
+// of the photograph's shaded Michigan front.
 export const exposure = 1.4;
 
 // A measured colour in linear light, and the grey it is measured at: the most common grey of
@@ -331,9 +333,9 @@ export function swatchesOf(buildingId: string, greys: ReadonlyMap<MaterialName, 
   return swatches;
 }
 
-// The sun's, the shade's and the fill light's intensities on the sunny day, brighter than the
-// night's 2.4, 0.7 and 0.55, and the ground's greys in the sun: the platform's blocks, and the
-// roads' darker asphalt.
+// The sun's, the shade's and the fill light's intensities on the sunny day: the sun and the shade
+// brighter than the night's 2.4 and 0.7, the fill a little dimmer than its 0.55. And the ground's
+// greys in the sun: the platform's blocks, and the roads' darker asphalt.
 export const daylightIntensities = { sun: 3.4, ambient: 0.9, fill: 0.5 } as const;
 export const daylightGround = { blocks: 0x6e6e6e, roads: 0x4a4a4a } as const;
 
