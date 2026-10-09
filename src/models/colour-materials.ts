@@ -324,7 +324,8 @@ export interface SkylineColour {
 }
 
 // Vertex-coloured batches keep the greys they held, red channel only since each is a grey,
-// while they show colour; single-colour batches keep their material's grey.
+// while they show colour; single-colour batches keep their material's grey from when the layer
+// was made, so nothing else may write those materials' colours while colour shows.
 interface PaintedBatch {
   attribute: THREE.BufferAttribute;
   array: Float32Array;

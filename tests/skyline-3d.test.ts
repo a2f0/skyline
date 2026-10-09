@@ -912,12 +912,14 @@ describe("full-screen 3D skyline", () => {
     await settle(page);
     // The colour trial's toggle shows the buildings in colour, and pressing it again restores
     // every grey. A celebration lit while colour shows stays in colour, and turning colour off
-    // returns exactly the celebration's greys.
+    // returns exactly the celebration's greys. Snapshots leave out the scene notes, which name
+    // the celebration.
     const colour = page.locator("#colour"), cubs = page.locator('[data-celebration="cubs"]');
+    const scene = () => page.locator("#building").screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
     await page.locator('[data-view="skyline"]').click();
     await settle(page);
     expect(await colour.getAttribute("aria-pressed")).toBe("false");
-    const grey = await picture();
+    const grey = await scene();
     await colour.click();
     await settle(page);
     expect(await colour.getAttribute("aria-pressed")).toBe("true");
@@ -925,10 +927,10 @@ describe("full-screen 3D skyline", () => {
     await colour.click();
     await settle(page);
     expect(await colour.getAttribute("aria-pressed")).toBe("false");
-    expect((await picture()).equals(grey), "colour off restores the greys").toBe(true);
+    expect((await scene()).equals(grey), "colour off restores the greys").toBe(true);
     await cubs.click();
     await settle(page);
-    const lit = await picture();
+    const lit = await scene();
     await cubs.click();
     await colour.click();
     await cubs.click();
@@ -937,10 +939,10 @@ describe("full-screen 3D skyline", () => {
     expect(await chroma(page), "a celebration keeps the colour").toBeGreaterThan(20);
     await colour.click();
     await settle(page);
-    expect((await picture()).equals(lit), "colour off restores the celebration's greys").toBe(true);
+    expect((await scene()).equals(lit), "colour off restores the celebration's greys").toBe(true);
     await cubs.click();
     await settle(page);
-    expect((await picture()).equals(grey), "lights off restores the greys").toBe(true);
+    expect((await scene()).equals(grey), "lights off restores the greys").toBe(true);
     // Escape inside the bar folds the toolbar back behind the star and returns focus to it.
     // The folding groups take no focus, so Tab from the star does not land in them.
     await page.locator("#wireframe").focus();
