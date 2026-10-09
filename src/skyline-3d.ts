@@ -3,6 +3,7 @@ import { createGeographicSkyline } from "./skyline-scene.js";
 import { createGeographicRoads } from "./models/skyline-geography.js";
 import type { BuildingModel } from "./models/building-kit.js";
 import { celebrations, type CelebrationId } from "./models/celebrations.js";
+import { createSkylineColour } from "./models/colour-materials.js";
 import { loadMarkup, loadStylesheet } from "./markup.js";
 
 export interface SkylineSceneOptions {
@@ -77,6 +78,8 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
     enablePan: true,
     minimumCameraHeight: 1,
   });
+  // The colour trial's layer (models/colour-materials.ts), which the colour toggle turns on.
+  const colour = createSkylineColour(models);
   // A toolbar badge applies one celebration across the skyline, using each
   // building's own supported wording. Context menus change only their building.
   const illuminated = models.filter((model) => model.illumination);
@@ -85,6 +88,7 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
   const celebrationButtons = [...root.querySelectorAll<HTMLButtonElement>("[data-celebration]")];
   function setCelebration(targets: readonly BuildingModel[], next: CelebrationId | null) {
     targets.forEach((model) => model.illumination!.set(model.illumination!.presets.some(({ id }) => id === next) ? next : null));
+    colour.refresh();
     for (const button of celebrationButtons) {
       const eligible = illuminated.filter((model) => model.illumination!.presets.some(({ id }) => id === button.dataset["celebration"]));
       const active = eligible.filter((model) => model.illumination!.active === button.dataset["celebration"]).length;
@@ -124,6 +128,14 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
       viewer.requestRender();
     }, listening);
   }
+  // The colour trial's toggle, pressed while the buildings show their materials' colours over
+  // the greys, which it restores exactly when pressed again.
+  const colourButton = root.querySelector<HTMLButtonElement>("#colour")!;
+  colourButton.addEventListener("click", () => {
+    colour.set(!colour.enabled);
+    colourButton.setAttribute("aria-pressed", String(colour.enabled));
+    viewer.requestRender();
+  }, listening);
   // The star in the middle of the bar opens and closes the toolbar. Each group unfolds from
   // the star: clipped open from its `--fold` inset while it fades in, one beside the star
   // slides out from it to its edge of the bar, and it folds back the same way before it hides. A toggle mid-way reverses the moving

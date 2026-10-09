@@ -703,7 +703,8 @@ describe("full-screen 3D skyline", () => {
     const toolbar = await page.locator(".toolbar button").allTextContents();
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
-    expect((await page.locator(".control-bar .button-group button:not([data-celebration])").allTextContents()).filter((label) => label !== "footprints" && label !== "show original")).toEqual(toolbar);
+    // The 3D skyline adds footprints, show original and the colour trial's toggle.
+    expect((await page.locator(".control-bar .button-group button:not([data-celebration])").allTextContents()).filter((label) => !["footprints", "show original", "colour"].includes(label))).toEqual(toolbar);
     expect(await page.locator("#show-original").isHidden(), "the shortcut belongs to the index viewer").toBe(true);
     const star = page.locator("#menu-toggle");
     const groups = () => page.locator(".control-bar .button-group").evaluateAll((elements) => elements.map((element) => getComputedStyle(element).display));
@@ -909,6 +910,39 @@ describe("full-screen 3D skyline", () => {
     }
     await page.locator("#footprints").click();
     await settle(page);
+    // The colour trial's toggle shows the buildings in colour, and pressing it again restores
+    // every grey. A celebration lit while colour shows stays in colour, and turning colour off
+    // returns exactly the celebration's greys. Snapshots leave out the scene notes, which name
+    // the celebration.
+    const colour = page.locator("#colour"), cubs = page.locator('[data-celebration="cubs"]');
+    const scene = () => page.locator("#building").screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
+    await page.locator('[data-view="skyline"]').click();
+    await settle(page);
+    expect(await colour.getAttribute("aria-pressed")).toBe("false");
+    const grey = await scene();
+    await colour.click();
+    await settle(page);
+    expect(await colour.getAttribute("aria-pressed")).toBe("true");
+    expect(await chroma(page), "colour shows hue").toBeGreaterThan(20);
+    await colour.click();
+    await settle(page);
+    expect(await colour.getAttribute("aria-pressed")).toBe("false");
+    expect((await scene()).equals(grey), "colour off restores the greys").toBe(true);
+    await cubs.click();
+    await settle(page);
+    const lit = await scene();
+    await cubs.click();
+    await colour.click();
+    await cubs.click();
+    await settle(page);
+    expect(await cubs.getAttribute("aria-pressed")).toBe("true");
+    expect(await chroma(page), "a celebration keeps the colour").toBeGreaterThan(20);
+    await colour.click();
+    await settle(page);
+    expect((await scene()).equals(lit), "colour off restores the celebration's greys").toBe(true);
+    await cubs.click();
+    await settle(page);
+    expect((await scene()).equals(grey), "lights off restores the greys").toBe(true);
     // Escape inside the bar folds the toolbar back behind the star and returns focus to it.
     // The folding groups take no focus, so Tab from the star does not land in them.
     await page.locator("#wireframe").focus();

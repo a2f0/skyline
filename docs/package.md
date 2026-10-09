@@ -314,6 +314,10 @@ the selection and `litWindows` counts illuminated office panes. Each instance
 has its own state. Use the model from `createGeographicSkyline()` or
 `createGeographicBuilding()` for these displays.
 
+`models/colour-materials` and `models/colour-palette` are an opt-in colour trial for the
+viewer's colour toggle, published only because every model module is; they are not a stable
+API and may change or disappear in any release.
+
 `@a2f0/skyline/models/building-kit` exposes the same plan runs and mesh builder
 used by this repository, for adding buildings. Coordinate and model assumptions
 are in [the geography notes](skyline-geography.md). Asset paths are also available
