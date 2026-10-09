@@ -151,11 +151,12 @@ The installer and the hook layout are cannibalized from [tearleads](https://gith
 whose `scripts/checks/checkCommitTrust.sh` rejects every `Co-authored-by` trailer and also requires
 signed commits. Skyline also requires signatures at push time, while rejecting only agent attribution.
 `scripts/check-signed-commits.ts --range <revisions...>` uses Git's `%G?` status to reject missing
-(`N`) and bad (`B`) signatures. Like tearleads, it accepts `G/U/E/X/Y/R`: local verification errors,
+(`N` with no raw signature header) and bad (`B`) signatures. Like tearleads, it accepts `G/U/E/X/Y/R`: local verification errors,
 unknown trust, expiry, or revocation do not imply an unsigned commit. This checks signature presence
 and rejects provably bad signatures; it does not establish signer identity or trust. Sign an
 unsigned HEAD with `git commit --amend -S --no-edit`, or rebase older commits with `--gpg-sign`.
-The same push ranges below apply to both attribution and signatures.
+Git can also report `N` when verification cannot run; the checker accepts that status if the raw
+commit headers contain a signature. The same push ranges below apply to both attribution and signatures.
 
 - The hooks **and both commit checkers they call** are copied, not symlinked, and the
   commit gates run the installed checks. Each installed hook and checker

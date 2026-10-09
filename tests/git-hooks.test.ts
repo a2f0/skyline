@@ -1,5 +1,5 @@
 // Runs the hooks the way Git runs them. The check itself is unit-tested in
-// check-coauthors.test.ts; what only an execution can show is whether the hook
+// check-coauthors.test.ts and check-signed-commits.test.ts; an execution shows whether the hook
 // reaches it at all. An earlier revision resolved `bun` off the invoking
 // process's PATH, which a hook does not reliably carry, so every commit was
 // refused with "bun: not found" — a check that refuses everything looks exactly
@@ -413,3 +413,18 @@ describe("push signature enforcement", () => {
     }
   }, 60_000);
 });
+
+
+test("permits a signed push when SSH allowed signers are not configured", () => {
+  const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-signatures-unverified-"));
+  git(["config", "--unset", "gpg.ssh.allowedSignersFile"]);
+  try {
+    execFileSync("git", ["init", "--bare", "--quiet", remote]);
+    expect(git(["log", "-1", "--format=%G?"]).output.trim()).toBe("N");
+    const push = git(["push", remote, "HEAD:refs/heads/main"]);
+    expect(push.ok, push.output).toBe(true);
+  } finally {
+    git(["config", "gpg.ssh.allowedSignersFile", path.join(repo, "allowed-signers")]);
+    rmSync(remote, { recursive: true, force: true });
+  }
+}, 60_000);

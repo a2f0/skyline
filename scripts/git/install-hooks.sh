@@ -4,11 +4,11 @@
 #
 #   sh scripts/git/install-hooks.sh
 #
-# Hooks and the check they call are copied rather than symlinked, and the hooks
+# Hooks and the checkers they call are copied rather than symlinked, and the hooks
 # run the copies: a branch that edits the worktree cannot change what the gate
 # does. Each hook compares its copy against its checked-out source and refuses
 # to run when they differ, so a copy cannot quietly go on enforcing an older
-# rule either — rerun this after changing a hook or the check.
+# rule either — rerun this after changing a hook or either checker.
 #
 # It removes only hooks it installed itself, recorded in a manifest, so a hook
 # that was renamed here stops running while anyone else's stays. Anything it

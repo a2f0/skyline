@@ -2,6 +2,7 @@
 // Require signatures without requiring every contributor's key locally.
 import { execFileSync } from "node:child_process";
 
+// Kept self-contained because the hook installs this checker as a standalone copy.
 type Runner = (file: string, args: string[]) => string;
 const command: Runner = (file, args) => execFileSync(file, args, {
   encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
@@ -18,7 +19,16 @@ export function checkSignedCommits(args: string[], run: Runner = command): strin
     const match = /^([a-f0-9]{40,64}) ([GBUXYREN])$/.exec(line);
     if (!match) throw new Error(`Unexpected signature record: ${line}`);
     const [, commit, status] = match;
-    if (status === "N" || status === "B") {
+    // Git also leaves N when it cannot start verification (for example, SSH
+    // signing without an allowed-signers file). Inspect only the raw headers,
+    // so a signature-looking line in the message cannot mask an unsigned commit.
+    let missing = status === "N";
+    if (missing && commit) {
+      const raw = run("git", ["cat-file", "commit", commit]);
+      const headers = raw.split("\n\n", 1)[0] ?? "";
+      missing = !/^gpgsig(?:-sha256)? [^\n]+$/m.test(headers);
+    }
+    if (missing || status === "B") {
       failures.push(`  ${commit}: missing or invalid signature (status: ${status})`);
     }
   }

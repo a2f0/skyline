@@ -211,7 +211,7 @@ clean message still commits.
 
 The pre-push hook also requires signed commits via `scripts/check-signed-commits.ts`,
 using the same revision ranges as the attribution check. It rejects Git signature
-statuses N (missing) and B (bad), and accepts G/U/E/X/Y/R, matching tearleads'
+statuses N (no raw signature header) and B (bad), and accepts G/U/E/X/Y/R, matching tearleads'
 local-verification policy. Both checkers are installed copies with source-drift
 checks; reinstall hooks after changing either. `tests/check-signed-commits.test.ts`
 and the real push cases in `tests/git-hooks.test.ts` cover this gate.
