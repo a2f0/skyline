@@ -229,8 +229,13 @@ describe("colour trial", () => {
       }
     }
     expect(shaded.size, "the shaded panes share one colour").toBe(1);
-    const [red, , blue] = [...shaded][0]!.split(",").map(Number);
-    expect(red !== blue, "the shaded panes are painted, not left grey").toBe(true);
+    // That colour is the glass's, the batch's material, at the shades' grey: a glass vertex's
+    // colour scaled by the shades' grey against its own, none of them near white.
+    const [base, tones = {}] = batchOf(idOf(model), wall.name)!;
+    const glass = plain.findIndex((grey, index) => index % 3 === 0 && (tones[toneOf(grey)] ?? base) === "glass");
+    const shade = lit.find((grey, index) => index % 3 === 0 && grey !== plain[index])!;
+    const expected = coloured.slice(glass, glass + 3).map((channel) => channel * shade / plain[glass]!);
+    [...shaded][0]!.split(",").map(Number).forEach((channel, index) => expect(channel).toBeCloseTo(expected[index]!, 6));
     expect(kept).toBeGreaterThan(0);
     colour.set(false);
     expect(Array.from(colours.array), "the celebration's greys return with colour off").toEqual(lit);

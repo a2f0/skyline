@@ -105,16 +105,16 @@ building, the median colour of each material's pixels in a box of the photograph
 where it shows one, which the building's reference audit records with the box, the rule that picked
 the pixels and their count; and the sky's two colours, measured the same way. A material may take
 another's colour where the photograph does not show it, or stay grey. A material's most common grey
-shows its measured colour and its other greys scale with their brightness against it, so darker
-surfaces stay darker; a colour pushed past white keeps its hue at its brightest. The colours scale
-by an exposure of 1.4, from the render-to-photograph brightness of the sourced buildings' main
-materials in the skyline view at 1600 × 900: Two Prudential's stone and Blue Cross's glass reach
-0.97 and 0.96 of the photograph's in linear light, Aon's granite 0.86 and One Prudential's limestone
-0.80, while Crain's nearly white aluminium, past white at this exposure, reaches 0.66. The Railway
-Exchange shows the view its shaded Michigan front rather than the sunlit Jackson front its colour is
-measured on; that front renders 0.82 of the photograph's shaded front. A higher exposure brightens
-only the darker materials. The scene's sun stands in the south-west, so the east faces the camera
-sees are in shade, as the photograph's are, and bluer, lit by the sky.
+shows its measured colour, scaled by the exposure below, and its other greys scale with their
+brightness against it, so darker surfaces stay darker; a colour pushed past white keeps its hue at
+its brightest. The exposure is 1.4, from the render-to-photograph brightness of the sourced
+buildings' main materials in the skyline view at 1600 × 900: Two Prudential's stone and Blue Cross's
+glass reach 0.97 and 0.96 of the photograph's in linear light, Aon's granite 0.86 and One
+Prudential's limestone 0.80, while Crain's nearly white aluminium, past white at this exposure,
+reaches 0.66. The Railway Exchange shows the view its shaded Michigan front rather than the sunlit
+Jackson front its colour is measured on; that front renders 0.82 of the photograph's shaded front. A
+higher exposure brightens only the darker materials. The scene's sun stands in the south-west, so
+the east faces the camera sees are in shade, as the photograph's are, and bluer, lit by the sky.
 `scripts/sample-colours.ts day` measures every colour again from the photographs; its `night` study
 keeps the first measurements, of the night panorama the drawing traces, which the day replaced.
 
