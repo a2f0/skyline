@@ -130,4 +130,6 @@ its null ones grey. In the skyline view at 1600 × 900 under the day lights, the
 `161, 158, 151` under the photograph's rule, 0.65 of the photograph's brightness in linear light.
 The face as a whole renders `67, 71, 74` against the photograph's `183, 179, 173`, 0.14: the model's
 dark panes cover far more of each face than the building's windows do, so it reads as a grey glass
-tower where the photograph shows a white one. FID-KEM-002 records that gap.
+tower where the photograph shows a white one. If the darker face to the right is this tower's east
+face in shade, the fairer comparison is with its `95, 101, 110`, 0.47. FID-KEM-002 records the gap,
+provisionally until that face is identified.

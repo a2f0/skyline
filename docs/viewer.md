@@ -96,10 +96,11 @@ Millennium Park, Kemper, 330 North Wabash, Millennium Park Plaza, Trump Tower an
 in the colours measured from Daniel Schwen's 2008 daytime panorama of the skyline from the Adler
 Planetarium, [Chicago.jpg on Wikimedia
 Commons](https://commons.wikimedia.org/wiki/File:Chicago.jpg), nearly the drawing's own viewpoint;
-Blue Cross's crown, built after 2008, comes from a 2022 close-up, and Trump Tower, unfinished in the
-photograph, takes its glass's colour on its crown and spire. The rest stay grey until they are
-measured, so the unsourced towers keep their night greys under the day sky. Office windows show as
-glass: no lights show by day, though a celebration's message still lights the Blue Cross tower.
+Blue Cross's crown, built after 2008, comes from a 2022 close-up, and the glass of Trump Tower's
+crown, unfinished in the photograph, takes its tower's glass colour while its stainless spire stays
+grey. The rest stay grey until they are measured, so the unsourced towers keep their night greys
+under the day sky. Office windows show as glass: no lights show by day, though a celebration's
+message still lights the Blue Cross tower.
 
 `models/colour-materials.ts` names the material of every surface of every building, by building ID,
 mesh batch and grey, and makes the day: the sky's gradient, the sun's, sky's and haze's lights, and
