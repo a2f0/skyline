@@ -14,7 +14,8 @@ import type { MaterialName } from "./colour-materials.js";
 export type Measurement = number | MaterialName | null;
 
 // By day no office lights show: lit and dim windows are the glass, in its measured colour.
-const glass = (colour: number, material: "glass" | "green glass" | "bronze glass" = "glass") => ({ [material]: colour, "lit window": colour, "dim window": colour });
+const glass = (colour: number, material: Extract<MaterialName, "glass" | "green glass" | "bronze glass"> = "glass"): Partial<Record<MaterialName, number>> =>
+  ({ [material]: colour, "lit window": colour, "dim window": colour });
 
 export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<MaterialName, Measurement>>>>> = {
   // docs/railway-exchange-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
@@ -110,7 +111,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   // docs/trump-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
   "building-trump-tower-only": {
     ...glass(0x6f838e),
-    stainless: "glass",
+    stainless: null,
   },
   // docs/340-on-the-park-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
   "building-340-on-the-park": {

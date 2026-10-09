@@ -210,9 +210,10 @@ Decisions in `src/models/colour-palette.ts`:
   faces, the hoist left out by its hue; `lit window` and `dim window` take it exactly, since no
   office lights show by day. The sunlit left face measures `151, 164, 172` and the right
   `104, 123, 135`.
-- `stainless`, the projecting mullions, the crown's mullions and the spire, takes the glass's colour
-  at its own grey: at this scale the mullions are in the facade's mix, and the crown and spire did
-  not yet exist. Inferred.
+- `stainless`, the projecting mullions, the crown's mullions and the spire, stays grey: brushed and
+  polished steel is near neutral, the rendition does not resolve the mullions, and the crown and
+  spire did not yet exist. Taking the glass's colour at their light greys pushed them past white
+  into a pale cyan.
 
 Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
 layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves

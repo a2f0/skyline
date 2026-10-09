@@ -21,8 +21,9 @@ were closed and harvested: their one gap in an existing building, the Sheraton G
 [Buildings not yet modelled](unmodelled-buildings.md). On 2026-10-09 the colour trial measured six
 buildings' night colours from the panorama (FID-COL-001), then, at the owner's request for a sunny
 day, their daytime colours from a 2008 panorama (FID-COL-003), which replaced them; seven more
-followed from the same panorama (FID-COL-004). Other buildings are not yet reassessed. Existing detailed facades are not a
-claim of survey accuracy. This is a curated queue, not a score for all 34.
+followed from the same panorama (FID-COL-004). Other buildings are not yet reassessed. Existing
+detailed facades are not a claim of survey accuracy. This is a curated queue, not a score for all
+34.
 
 High priority means a visible discrepancy with usable evidence. Medium means a
 visible gap whose dimensions or interpretation still need research. Low means
