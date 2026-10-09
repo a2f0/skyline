@@ -1,30 +1,41 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import * as THREE from "../src/vendor/three-r186.js";
-import { batchOf, colourMaterials, createSkylineColour, tint, toneOf, toOklab } from "../src/models/colour-materials.js";
-import type { Batch } from "../src/models/colour-materials.js";
-import { colourPalette } from "../src/models/colour-palette.js";
-import type { MaterialName } from "../src/models/colour-palette.js";
+import { batchOf, colourMaterials, createDaylight, createSkylineColour, daylightGround, daylightIntensities, exposure, materialNames, paint, swatchesOf, toneOf } from "../src/models/colour-materials.js";
+import type { Batch, MaterialName } from "../src/models/colour-materials.js";
+import { daylightColours, measuredColours } from "../src/models/colour-palette.js";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 import { createGeographicBuilding } from "../src/models/skyline-geography.js";
 
 // The colour trial reads the built models; these keep its table in step with them, so a model
 // change that renames a batch or retones a surface the table names fails here, not silently.
 const models = geographicBuildings.map((record) => createGeographicBuilding(record));
-const meshesOf = (model: (typeof models)[number]) => {
+type Model = (typeof models)[number];
+const meshesOf = (model: Model) => {
   const meshes: THREE.Mesh[] = [];
   model.building.traverse((object) => { if ((object as THREE.Mesh).isMesh) meshes.push(object as THREE.Mesh); });
   return meshes;
 };
-const idOf = (model: (typeof models)[number]) => String(model.building.userData["buildingId"]);
+const idOf = (model: Model) => String(model.building.userData["buildingId"]);
+const toonOf = (mesh: THREE.Mesh) => mesh.material as THREE.MeshToonMaterial;
 // The tones a mesh holds: its vertex colours' greys, or its material's.
 function tonesOf(mesh: THREE.Mesh) {
-  const material = mesh.material as THREE.MeshToonMaterial, colours = mesh.geometry.getAttribute("color");
-  if (!material.vertexColors) return new Set([toneOf(material.color.r)]);
+  const colours = mesh.geometry.getAttribute("color");
+  if (!toonOf(mesh).vertexColors) return new Set([toneOf(toonOf(mesh).color.r)]);
   const tones = new Set<number>();
   for (let vertex = 0; vertex < colours.count; vertex += 1) tones.add(toneOf(colours.getX(vertex)));
   return tones;
 }
-const snapshot = () => models.flatMap(meshesOf).map((mesh) => [Array.from(mesh.geometry.getAttribute("color")?.array ?? []), (mesh.material as THREE.MeshToonMaterial).color.getHex()]);
+// Every colour a mesh shows: one per vertex, or its material's.
+function coloursOf(mesh: THREE.Mesh): [number, number, number][] {
+  const colours = mesh.geometry.getAttribute("color");
+  if (!toonOf(mesh).vertexColors) return [[toonOf(mesh).color.r, toonOf(mesh).color.g, toonOf(mesh).color.b]];
+  return Array.from({ length: colours.count }, (_, vertex) => [colours.getX(vertex), colours.getY(vertex), colours.getZ(vertex)]);
+}
+const snapshotOf = (chosen: readonly Model[]) => chosen.flatMap(meshesOf).map((mesh) => [Array.from(mesh.geometry.getAttribute("color")?.array ?? []), toonOf(mesh).color.getHex()]);
+// The materials a building's table names, by batch default and tone.
+const materialsOf = (id: string) => new Set(Object.values(colourMaterials[id]!).flatMap(([base, tones = {}]) => [base, ...Object.values(tones)]));
+const sourced = models.filter((model) => measuredColours[idOf(model)]);
 
 describe("colour trial", () => {
   test("names a material for every batch of every building, and nothing the models lack", () => {
@@ -45,7 +56,7 @@ describe("colour trial", () => {
     expect(unused).toEqual([]);
   });
 
-  test("names only tones its batches hold, and uses every material in the palette", () => {
+  test("names only tones its batches hold, and every material name it lists", () => {
     // Keyed by each batch entry itself, so two batches with the same materials stay apart.
     const held = new Map<Batch, Set<number>>();
     for (const model of models) {
@@ -56,62 +67,140 @@ describe("colour trial", () => {
         held.set(batch, tones);
       }
     }
-    const stale: string[] = [], materials = new Set<MaterialName>();
+    const stale: string[] = [];
     for (const [id, batches] of Object.entries(colourMaterials)) {
       for (const [name, batch] of Object.entries(batches)) {
-        const [base, tones = {}] = batch;
-        materials.add(base);
         const holds = held.get(batch) ?? new Set<number>();
-        for (const [tone, material] of Object.entries(tones)) {
-          materials.add(material);
-          if (!holds.has(Number(tone))) stale.push(`${id}: ${name} has no tone ${Number(tone).toString(16)}`);
-        }
+        for (const tone of Object.keys(batch[1] ?? {})) if (!holds.has(Number(tone))) stale.push(`${id}: ${name} has no tone ${Number(tone).toString(16)}`);
       }
     }
     expect(stale).toEqual([]);
-    expect(Object.keys(colourPalette).filter((material) => !materials.has(material as MaterialName))).toEqual([]);
+    const named = new Set(Object.keys(colourMaterials).flatMap((id) => [...materialsOf(id)]));
+    expect(materialNames.filter((material) => !named.has(material))).toEqual([]);
   });
 
-  test("keeps each grey's lightness, and a material with no hue leaves it exactly", () => {
-    for (const material of Object.keys(colourPalette) as MaterialName[]) {
-      for (const tone of [0x1c, 0x3a, 0x6e, 0xb4, 0xe9]) {
-        const grey = new THREE.Color(tone * 0x010101).r;
-        const [r, g, b] = tint(grey, material);
-        for (const channel of [r, g, b]) expect(channel >= 0 && channel <= 1, `${material} at ${tone.toString(16)} is in sRGB`).toBe(true);
-        expect(Math.abs(toOklab(r, g, b)[0] - toOklab(grey, grey, grey)[0]), `${material} at ${tone.toString(16)} keeps its lightness`).toBeLessThan(0.01);
+  test("measures every material its sourced buildings use, and only those", () => {
+    expect(sourced.length).toBeGreaterThan(0);
+    for (const [id, measured] of Object.entries(measuredColours)) {
+      expect(colourMaterials[id], `${id} is a building the table knows`).toBeDefined();
+      const uses = materialsOf(id), entries = measured as Partial<Record<MaterialName, unknown>>;
+      expect([...uses].filter((material) => !(material in entries)), `${id} measures every material it uses`).toEqual([]);
+      expect(Object.keys(entries).filter((material) => !uses.has(material as MaterialName)), `${id} measures nothing it lacks`).toEqual([]);
+      // A material naming another takes a measured colour of the same building.
+      for (const [material, entry] of Object.entries(entries)) {
+        if (typeof entry === "string") expect(typeof entries[entry as MaterialName], `${id}: ${material} names a measured colour`).toBe("number");
       }
     }
-    const grey = new THREE.Color(0x6e6e6e).r;
-    expect(tint(grey, "neutral")).toEqual([grey, grey, grey]);
-    const [r, g, b] = tint(new THREE.Color(0x808080).r, "white terracotta");
-    expect(r > g && g > b, "terracotta is warm").toBe(true);
   });
 
-  test("colours every building, keeps distinct greys distinct, and restores the greys exactly", () => {
-    const greys = snapshot();
-    const toneCounts = new Map(models.flatMap(meshesOf).map((mesh) => [mesh, tonesOf(mesh).size]));
+  test("paints each measured material's most common grey in its measured colour, and leaves the rest of the skyline grey", () => {
+    const unsourced = models.filter((model) => !measuredColours[idOf(model)]);
+    const greys = snapshotOf(models), unsourcedGreys = snapshotOf(unsourced);
     const colour = createSkylineColour(models);
-    expect(snapshot(), "creating the layer changes nothing").toEqual(greys);
+    expect(snapshotOf(models), "creating the layer changes nothing").toEqual(greys);
     colour.set(true);
     expect(colour.enabled).toBe(true);
-    for (const model of models) {
-      const hued = meshesOf(model).some((mesh) => {
-        const material = mesh.material as THREE.MeshToonMaterial, colours = mesh.geometry.getAttribute("color");
-        if (!material.vertexColors) return material.color.r !== material.color.b;
-        for (let vertex = 0; vertex < colours.count; vertex += 1) if (colours.getX(vertex) !== colours.getZ(vertex)) return true;
-        return false;
-      });
-      expect(hued, `${idOf(model)} shows colour`).toBe(true);
-      // Two surfaces of a batch that differed in grey still differ in colour, so glass stays
-      // apart from the wall around it.
-      for (const mesh of meshesOf(model).filter((each) => (each.material as THREE.MeshToonMaterial).vertexColors)) {
-        const colours = mesh.geometry.getAttribute("color"), seen = new Set<string>();
-        for (let vertex = 0; vertex < colours.count; vertex += 1) seen.add(`${colours.getX(vertex)},${colours.getY(vertex)},${colours.getZ(vertex)}`);
-        expect(seen.size, `${mesh.name} keeps its tones apart`).toBe(toneCounts.get(mesh)!);
+    expect(snapshotOf(unsourced), "unsourced buildings stay grey").toEqual(unsourcedGreys);
+    for (const model of sourced) {
+      const id = idOf(model), shown = meshesOf(model).flatMap(coloursOf);
+      for (const [material, entry] of Object.entries(measuredColours[id]!)) {
+        if (typeof entry !== "number") continue;
+        // The measured colour at the scene's exposure, kept in hue where it passes white.
+        const { r, g, b } = new THREE.Color(entry);
+        const scaled = [r, g, b].map((channel) => channel * exposure), brightest = Math.max(...scaled);
+        const expected = scaled.map((channel) => Math.fround(brightest > 1 ? channel / brightest : channel));
+        const found = shown.some((rgb) => rgb.every((channel, index) => Math.abs(Math.fround(channel) - expected[index]!) < 1e-6));
+        expect(found, `${id} shows its measured ${material}`).toBe(true);
       }
+      expect(shown.some(([red, , blue]) => red !== blue), `${id} shows colour`).toBe(true);
     }
     colour.set(false);
-    expect(snapshot(), "turning colour off restores every grey").toEqual(greys);
+    expect(snapshotOf(models), "turning colour off restores every grey").toEqual(greys);
+  });
+
+  test("paints a grey at its brightness against the swatch's, keeping hue past white", () => {
+    const swatch = { colour: [0.1, 0.2, 0.3] as const, reference: 0.4 };
+    const close = (actual: number[], expected: number[]) => actual.forEach((value, index) => expect(value).toBeCloseTo(expected[index]!, 12));
+    close(paint(0.4, swatch), [0.1 * exposure, 0.2 * exposure, 0.3 * exposure]);
+    close(paint(0.2, swatch), [0.05 * exposure, 0.1 * exposure, 0.15 * exposure]);
+    // Past white the colour keeps its proportions, its brightest channel at one.
+    close(paint(0.4, { colour: [0.9, 0.6, 0.3] as const, reference: 0.4 }), [1, 2 / 3, 1 / 3]);
+    close(paint(0.3, { colour: [0.1, 0.2, 0.3] as const, reference: 0 }), [0.1 * exposure, 0.2 * exposure, 0.3 * exposure]);
+  });
+
+  test("measures a material at its most common grey, and lends it to the materials naming it", () => {
+    const id = "building-crain-communications", measured = measuredColours[id]!;
+    const linear = (hex: number): [number, number, number] => { const { r, g, b } = new THREE.Color(hex); return [r, g, b]; };
+    const swatches = swatchesOf(id, new Map<MaterialName, Map<number, number>>([
+      // A tie goes to the lighter grey.
+      ["aluminium", new Map([[0.2, 10], [0.3, 10], [0.1, 4]])],
+      ["lamp", new Map([[0.12, 50]])],
+      ["neutral", new Map([[0.05, 30]])],
+      ["glass", new Map([[0.4, 1]])],
+      ["marble", new Map([[0.6, 9]])],
+    ]));
+    expect(swatches.get("aluminium")).toEqual({ colour: linear(measured.aluminium as number), reference: 0.3 });
+    expect(swatches.get("lamp"), "a material naming another takes its colour and grey").toEqual(swatches.get("aluminium")!);
+    expect(swatches.get("glass")).toEqual({ colour: linear(measured.glass as number), reference: 0.4 });
+    expect(swatches.get("neutral"), "a null material stays grey").toBeNull();
+    expect(swatches.get("marble"), "an unmeasured material stays grey").toBeNull();
+    expect(swatchesOf("building-kemper", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
+  });
+
+  test("leaves null materials grey and paints every other in its own or its named material's hue", () => {
+    const greysOf = new Map(sourced.flatMap(meshesOf).map((mesh) => [mesh, coloursOf(mesh).map(([grey]) => grey)]));
+    const colour = createSkylineColour(sourced);
+    colour.set(true);
+    try {
+      for (const model of sourced) {
+        const id = idOf(model), measured = measuredColours[id]!;
+        for (const mesh of meshesOf(model)) {
+          const [base, tones = {}] = batchOf(id, mesh.name)!, greys = greysOf.get(mesh)!;
+          coloursOf(mesh).forEach((rgb, index) => {
+            const material = tones[toneOf(greys[index]!)] ?? base, entry = measured[material];
+            const source = typeof entry === "string" ? measured[entry] : entry;
+            if (typeof source !== "number") {
+              expect(rgb, `${id}: ${mesh.name}'s ${material} stays grey`).toEqual([greys[index]!, greys[index]!, greys[index]!]);
+              return;
+            }
+            // The same hue: proportional to the measured colour in linear light.
+            const { r, g, b } = new THREE.Color(source), [cr, cg, cb] = rgb, scale = (cr + cg + cb) / (r + g + b);
+            [cr - r * scale, cg - g * scale, cb - b * scale].forEach((offset) => expect(Math.abs(offset), `${id}: ${mesh.name}'s ${material} in ${typeof entry === "string" ? entry : material}'s hue`).toBeLessThan(1e-5));
+          });
+        }
+      }
+    } finally {
+      colour.set(false);
+    }
+  });
+
+  test("keeps a sourced batch's materials apart in colour", () => {
+    // Two greys of one material may meet where both pass white; greys of different materials
+    // share a colour only where both stay grey or both measure the same, as the day's windows
+    // and glass do.
+    const greysOf = new Map(sourced.flatMap(meshesOf).map((mesh) => [mesh, coloursOf(mesh).map(([grey]) => grey)]));
+    const colour = createSkylineColour(sourced);
+    colour.set(true);
+    try {
+      for (const model of sourced) {
+        for (const mesh of meshesOf(model).filter((each) => toonOf(each).vertexColors)) {
+          const [base, tones = {}] = batchOf(idOf(model), mesh.name)!, greys = greysOf.get(mesh)!, measured = measuredColours[idOf(model)]!;
+          const materials = new Map<string, Set<MaterialName | number>>();
+          coloursOf(mesh).forEach((rgb, vertex) => {
+            if (rgb[0] === rgb[1] && rgb[1] === rgb[2]) return;
+            const key = rgb.join(), shared = materials.get(key) ?? new Set<MaterialName | number>();
+            const material = tones[toneOf(greys[vertex]!)] ?? base, entry = measured[material];
+            // A material measured with another's colour counts as that colour.
+            shared.add(typeof entry === "number" ? entry : material);
+            materials.set(key, shared);
+          });
+          const mixed = [...materials.values()].filter((shared) => shared.size > 1).map((shared) => [...shared].join(" and "));
+          expect(mixed, `${mesh.name} keeps its materials apart`).toEqual([]);
+        }
+      }
+    } finally {
+      colour.set(false);
+    }
   });
 
   test("recolours a facade that window illumination resets, and restores its lit greys", () => {
@@ -127,23 +216,71 @@ describe("colour trial", () => {
     const coloured = Array.from(colours.array);
     model.illumination!.set("cubs");
     colour.refresh();
-    // The panes the message shades are the vertices illumination changed: those take the
-    // colour of their shaded grey, and every other vertex keeps the colour it had.
-    let shaded = 0, kept = 0;
+    // The panes the message shades are the vertices illumination changed: refresh paints them
+    // all one colour, not grey, and every other vertex keeps the colour it had.
+    const shaded = new Set<string>();
+    let kept = 0;
     for (let vertex = 0; vertex < colours.count; vertex += 1) {
-      const at = vertex * 3, [r, g, b] = [colours.getX(vertex), colours.getY(vertex), colours.getZ(vertex)];
-      if (lit[at] !== plain[at]) {
-        expect([r, g, b]).toEqual(tint(lit[at]!, "glass").map(Math.fround));
-        shaded += 1;
-      } else {
-        expect([r, g, b]).toEqual(coloured.slice(at, at + 3));
+      const at = vertex * 3, rgb = [colours.getX(vertex), colours.getY(vertex), colours.getZ(vertex)];
+      if (lit[at] !== plain[at]) shaded.add(rgb.join());
+      else {
+        expect(rgb).toEqual(coloured.slice(at, at + 3));
         kept += 1;
       }
     }
-    expect(shaded).toBeGreaterThan(0);
+    expect(shaded.size, "the shaded panes share one colour").toBe(1);
+    // That colour is the glass's, the batch's material, at the shades' grey: a glass vertex's
+    // colour scaled by the shades' grey against its own, none of them near white.
+    const [base, tones = {}] = batchOf(idOf(model), wall.name)!;
+    const glass = plain.findIndex((grey, index) => index % 3 === 0 && (tones[toneOf(grey)] ?? base) === "glass");
+    const shade = lit.find((grey, index) => index % 3 === 0 && grey !== plain[index])!;
+    const expected = coloured.slice(glass, glass + 3).map((channel) => channel * shade / plain[glass]!);
+    [...shaded][0]!.split(",").map(Number).forEach((channel, index) => expect(channel).toBeCloseTo(expected[index]!, 6));
     expect(kept).toBeGreaterThan(0);
     colour.set(false);
     expect(Array.from(colours.array), "the celebration's greys return with colour off").toEqual(lit);
     model.illumination!.set(null);
+  });
+
+  test("makes the sunny day's sky from the haze at the horizon to the blue overhead", () => {
+    const day = createDaylight(), { data, width, height } = day.sky.image as { data: Uint8Array; width: number; height: number };
+    const row = (index: number) => (data[index * 4]! << 16) | (data[index * 4 + 1]! << 8) | data[index * 4 + 2]!;
+    expect([width, height]).toEqual([1, 256]);
+    // A texture's first row is its bottom, the horizon.
+    expect([row(0), row(height - 1)]).toEqual([daylightColours.horizon, daylightColours.sky]);
+    expect(day.sky.colorSpace).toBe("srgb");
+    expect(day.sun).toEqual([daylightColours.sun, daylightIntensities.sun]);
+    expect(day.ambient).toEqual([daylightColours.sky, daylightIntensities.ambient]);
+    expect(day.fill).toEqual([daylightColours.horizon, daylightIntensities.fill]);
+    expect(day.ground).toBe(daylightGround.blocks);
+  });
+
+  test("records each measured colour in its building's audit, and the sky's in the viewer's notes", () => {
+    // The audit whose daytime entry each sourced building's colours come from.
+    const audits: Record<string, string> = {
+      "building-railway-exchange": "railway-exchange",
+      "building-crain-communications": "crain",
+      "building-one-prudential-plaza": "one-prudential",
+      "building-two-prudential-plaza": "two-prudential",
+      layer3: "aon",
+      "building-blue-cross-blue-shield": "blue-cross",
+    };
+    expect(Object.keys(audits).sort()).toEqual(Object.keys(measuredColours).sort());
+    const read = (file: string) => readFileSync(new URL(`../docs/${file}`, import.meta.url), "utf8").replace(/\s+/g, " ");
+    const rgb = (hex: number) => [hex >> 16, (hex >> 8) & 255, hex & 255].join(", ");
+    for (const [id, measured] of Object.entries(measuredColours)) {
+      const audit = read(`${audits[id]}-reference.md`), start = audit.indexOf("Daytime colours from Chicago.jpg (FID-COL-003)");
+      expect(start, `${id}'s audit has the daytime entry`).toBeGreaterThan(-1);
+      const entry = audit.slice(start);
+      // Each value is in the entry's decisions under a material measured at it; the day's windows
+      // share the glass's.
+      for (const [material, value] of Object.entries(measured)) {
+        if (typeof value !== "number") continue;
+        const recorded = Object.entries(measured).filter(([, other]) => other === value).some(([name]) => entry.includes(`\`${name}\` \`${rgb(value)}\``));
+        expect(recorded, `${id}: ${material} ${rgb(value)} is in its audit`).toBe(true);
+      }
+    }
+    const notes = read("viewer.md");
+    for (const hex of [daylightColours.sky, daylightColours.horizon]) expect(notes).toContain(`\`${rgb(hex)}\``);
   });
 });

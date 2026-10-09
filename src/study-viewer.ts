@@ -1,8 +1,8 @@
 import * as THREE from "./vendor/three-r186.js";
 import type { BuildingModel, Vec3 } from "./models/building-kit.js";
 import type { CelebrationId } from "./models/celebrations.js";
-import type { FitBox, PlatformOptions, ShadowCameraOptions, StudyView, StudyLayout, StudyLabel } from "./study-types.js";
-export type { FitBox, PlatformOptions, ShadowCameraOptions, StudyView, StudyLayout, StudyLabel } from "./study-types.js";
+import type { Daylight, FitBox, PlatformOptions, ShadowCameraOptions, StudyView, StudyLayout, StudyLabel } from "./study-types.js";
+export type { Daylight, FitBox, PlatformOptions, ShadowCameraOptions, StudyView, StudyLayout, StudyLabel } from "./study-types.js";
 
 // Each model supplies its group, display controls, and triangle count. Camera
 // and framing belong to the study, so the same viewer supports one tower or a scene.
@@ -262,8 +262,11 @@ export function createBuildingStudy({
   controls.rotateSpeed = 0.65;
   controls.zoomSpeed = 0.7;
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-  const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
+  // The night's lights, which setDaylight(null) restores.
+  const night = { sun: [0xffffff, 2.4], ambient: [0xffffff, 0.7], fill: [0xffffff, 0.55] } as const;
+  const ambientLight = new THREE.AmbientLight(...night.ambient);
+  scene.add(ambientLight);
+  const keyLight = new THREE.DirectionalLight(...night.sun);
   keyLight.position.fromArray(lightPosition);
   keyLight.target.position.set(0, 80, 0);
   keyLight.castShadow = true;
@@ -271,7 +274,7 @@ export function createBuildingStudy({
   Object.assign(keyLight.shadow.camera, shadowCamera);
   keyLight.shadow.normalBias = 0.2;
   scene.add(keyLight, keyLight.target);
-  const fillLight = new THREE.DirectionalLight(0xffffff, 0.55);
+  const fillLight = new THREE.DirectionalLight(...night.fill);
   fillLight.position.set(100, 140, -140);
   scene.add(fillLight);
 
@@ -281,6 +284,7 @@ export function createBuildingStudy({
   const base = new THREE.Mesh(new THREE.BoxGeometry(platform.width, 2, platform.depth), new THREE.MeshToonMaterial({ color: platform.color ?? 0x3a3a3a }));
   base.position.set(platform.x || 0, -1.1, platform.z || 0);
   base.receiveShadow = true;
+  const nightGround = base.material.color.getHex();
   scene.add(base);
   const baseEdges = new THREE.LineSegments(new THREE.EdgesGeometry(base.geometry), new THREE.LineBasicMaterial({ color: 0x555555 }));
   baseEdges.position.copy(base.position);
@@ -801,5 +805,15 @@ export function createBuildingStudy({
   if (root === document) window.__buildingStudy = api;
   Object.defineProperty(canvas, "__buildingStudy", { value: api, configurable: true });
   onReady();
-  return { setLayout, setView, requestRender, buildingAt };
+  // Day or night: the transparent canvas shows the page's night behind it until a sky covers it.
+  function setDaylight(day: Daylight | null) {
+    scene.background = day?.sky ?? null;
+    base.material.color.setHex(day?.ground ?? nightGround);
+    for (const [light, [colour, intensity]] of [[keyLight, day?.sun ?? night.sun], [ambientLight, day?.ambient ?? night.ambient], [fillLight, day?.fill ?? night.fill]] as const) {
+      light.color.setHex(colour);
+      light.intensity = intensity;
+    }
+    requestRender();
+  }
+  return { setLayout, setView, requestRender, buildingAt, setDaylight };
 }

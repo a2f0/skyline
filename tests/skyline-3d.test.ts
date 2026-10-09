@@ -9,6 +9,7 @@ import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
 import { celebrations } from "../src/models/celebrations.js";
+import { toneOf } from "../src/models/colour-materials.js";
 import { createGeographicSkyline } from "../src/skyline-scene.js";
 import type * as THREE from "../src/vendor/three-r186.js";
 import type { BuildingStudyApi } from "../src/study-viewer.js";
@@ -39,6 +40,31 @@ const chroma = async (page: Page) => page.evaluate(async (png) => {
   }
   return widest;
 }, (await page.screenshot()).toString("base64"));
+// A snapshot's red, green and blue at a point given as fractions of its width and height.
+const pixelAt = async (page: Page, png: Buffer, x: number, y: number) => page.evaluate(async ([data, across, down]) => {
+  const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
+  const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
+  context.drawImage(bitmap, 0, 0);
+  return Array.from(context.getImageData(Math.floor(bitmap.width * across), Math.floor(bitmap.height * down), 1, 1).data.slice(0, 3));
+}, [png.toString("base64"), x, y] as const);
+// The middle of the largest east-facing triangle of Blue Cross's crown screen, which faces the
+// skyline camera. In colour it shows its measured dark blue, which neither its grey nor the day's
+// bluish shade gives it.
+function blueCrossScreen(): number[] {
+  const model = createGeographicBuilding(geographicBuildings.find(({ id }) => id === "building-blue-cross-blue-shield")!);
+  const geometry = (model.building.getObjectByName("Blue Cross · glass, spandrels and bands") as THREE.Mesh).geometry;
+  const colours = geometry.getAttribute("color"), normals = geometry.getAttribute("normal"), positions = geometry.getAttribute("position");
+  const corner = (vertex: number) => [positions.getX(vertex), positions.getY(vertex), positions.getZ(vertex)];
+  let middle: number[] = [], largest = 0;
+  for (let vertex = 0; vertex < positions.count; vertex += 3) {
+    if (toneOf(colours.getX(vertex)) !== 0x3e3e3e || normals.getX(vertex) < 0.9) continue;
+    const [a, b, c] = [corner(vertex), corner(vertex + 1), corner(vertex + 2)];
+    const [u, v] = [b.map((value, axis) => value - a[axis]!), c.map((value, axis) => value - a[axis]!)];
+    const area = Math.hypot(u[1]! * v[2]! - u[2]! * v[1]!, u[2]! * v[0]! - u[0]! * v[2]!, u[0]! * v[1]! - u[1]! * v[0]!) / 2;
+    if (area > largest) [largest, middle] = [area, a.map((value, axis) => (value + b[axis]! + c[axis]!) / 3)];
+  }
+  return middle;
+}
 
 // The frame the skyline viewer shows the drawing in, and the translate that places the
 // drawing's layer inside it, read from the file the viewer loads. Landmarks are drawn in
@@ -910,12 +936,19 @@ describe("full-screen 3D skyline", () => {
     }
     await page.locator("#footprints").click();
     await settle(page);
-    // The colour trial's toggle shows the buildings in colour, and pressing it again restores
-    // every grey. A celebration lit while colour shows stays in colour, and turning colour off
-    // returns exactly the celebration's greys. Snapshots leave out the scene notes, which name
-    // the celebration.
+    // The colour trial's toggle shows the buildings in colour under a blue day sky, and pressing
+    // it again restores every grey. A celebration lit while colour shows stays in colour, and
+    // turning colour off returns exactly the celebration's greys. Snapshots leave out the scene
+    // notes, which name the celebration.
     const colour = page.locator("#colour"), cubs = page.locator('[data-celebration="cubs"]');
     const scene = () => page.locator("#building").screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
+    // Blue Cross's crown screen, as red and blue: the sky alone would pass a test of hue.
+    const screen = blueCrossScreen();
+    const screenAt = async () => {
+      const [u, v] = await page.evaluate((point) => window.__buildingStudy!.projectPoint("building-blue-cross-blue-shield", point), screen);
+      const [red, , blue] = await pixelAt(page, await scene(), u, v);
+      return blue! - red!;
+    };
     await page.locator('[data-view="skyline"]').click();
     await settle(page);
     expect(await colour.getAttribute("aria-pressed")).toBe("false");
@@ -923,7 +956,9 @@ describe("full-screen 3D skyline", () => {
     await colour.click();
     await settle(page);
     expect(await colour.getAttribute("aria-pressed")).toBe("true");
-    expect(await chroma(page), "colour shows hue").toBeGreaterThan(20);
+    expect(await screenAt(), "Blue Cross's screen in its measured blue").toBeGreaterThan(25);
+    const [red, , blue] = await pixelAt(page, await scene(), 0.5, 0.02);
+    expect(blue! - red!, "a blue sky overhead").toBeGreaterThan(40);
     await colour.click();
     await settle(page);
     expect(await colour.getAttribute("aria-pressed")).toBe("false");
@@ -936,7 +971,7 @@ describe("full-screen 3D skyline", () => {
     await cubs.click();
     await settle(page);
     expect(await cubs.getAttribute("aria-pressed")).toBe("true");
-    expect(await chroma(page), "a celebration keeps the colour").toBeGreaterThan(20);
+    expect(await screenAt(), "a celebration keeps the colour").toBeGreaterThan(25);
     await colour.click();
     await settle(page);
     expect((await scene()).equals(lit), "colour off restores the celebration's greys").toBe(true);
