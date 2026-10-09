@@ -338,9 +338,10 @@ interface FlatBatch {
 }
 
 // The colour layer for a skyline's models. A building or batch the trial does not know stays
-// in grey.
+// in grey, as does a vertex-coloured batch whose colours are not plain floats, and a material
+// another batch already took, since the builder lets batches share a surface.
 export function createSkylineColour(models: readonly BuildingModel[]): SkylineColour {
-  const painted: PaintedBatch[] = [], flat: FlatBatch[] = [];
+  const painted: PaintedBatch[] = [], flat: FlatBatch[] = [], taken = new Set<THREE.Material>();
   for (const model of models) {
     const buildingId = String(model.building.userData["buildingId"]);
     model.building.traverse((object) => {
@@ -352,7 +353,8 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
       const material = mesh.material as THREE.MeshToonMaterial;
       const colourOf = (grey: number) => tint(grey, tones[toneOf(grey)] ?? base);
       const attribute = mesh.geometry.getAttribute("color") as THREE.BufferAttribute | undefined;
-      if (material.vertexColors && attribute?.array instanceof Float32Array) {
+      if (material.vertexColors) {
+        if (!(attribute?.array instanceof Float32Array)) return;
         const cache = new Map<number, Float32Array>();
         const paint = (grey: number) => {
           let colour = cache.get(grey);
@@ -360,7 +362,8 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
           return colour;
         };
         painted.push({ attribute, array: attribute.array, paint, greys: null });
-      } else {
+      } else if (!taken.has(material)) {
+        taken.add(material);
         flat.push({ material, grey: material.color.clone(), colour: new THREE.Color(...colourOf(material.color.r)) });
       }
     });
@@ -375,7 +378,11 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
         const { array } = batch;
         if (next) {
           const greys = batch.greys = new Float32Array(array.length / 3);
-          for (let vertex = 0; vertex < greys.length; vertex += 1) array.set(batch.paint(greys[vertex] = array[vertex * 3]!), vertex * 3);
+          for (let vertex = 0; vertex < greys.length; vertex += 1) {
+            const grey = array[vertex * 3]!;
+            greys[vertex] = grey;
+            array.set(batch.paint(grey), vertex * 3);
+          }
         } else {
           batch.greys!.forEach((grey, vertex) => array.fill(grey, vertex * 3, vertex * 3 + 3));
           batch.greys = null;
@@ -392,7 +399,9 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
         for (let vertex = 0; vertex < greys.length; vertex += 1) {
           const colour = batch.paint(greys[vertex]!), at = vertex * 3;
           if (array[at] === colour[0] && array[at + 1] === colour[1] && array[at + 2] === colour[2]) continue;
-          array.set(batch.paint(greys[vertex] = array[at]!), at);
+          const grey = array[at]!;
+          greys[vertex] = grey;
+          array.set(batch.paint(grey), at);
           changed = true;
         }
         if (changed) batch.attribute.needsUpdate = true;

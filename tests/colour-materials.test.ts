@@ -37,6 +37,9 @@ describe("colour trial", () => {
       }
     }
     expect(unmatched).toEqual([]);
+    // Each batch owns its surface, so recolouring one material never recolours another batch.
+    const surfaces = models.flatMap(meshesOf).map((mesh) => mesh.material);
+    expect(new Set(surfaces).size).toBe(surfaces.length);
     const unused = Object.entries(colourMaterials).flatMap(([id, batches]) => Object.keys(batches).map((name) => `${id}:${name}`)).filter((key) => !used.has(key));
     expect(unused).toEqual([]);
   });
