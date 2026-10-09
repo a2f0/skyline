@@ -140,18 +140,20 @@ Method: `scripts/measure-group.ts` aligned the building's drawn group with the p
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. Single pixels at this scale mix neighbouring materials, which
-the quartiles show; the medians are the values used.
+quartiles of red, green and blue. `bun scripts/sample-colours.ts building-blue-cross-blue-shield` reproduces these rows
+and the palette's entries, decoding the photograph in Chrome without colour management. Single
+pixels at this scale mix neighbouring materials, which the quartiles show; the medians are the
+values used.
 
 | Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |
-| Glass and spandrels | 15780, 2120, 16260, 3350 | sat ≤ 0.40, val 0.20–0.60 | 319,788 (54%) | `72, 64, 80` | 57–98 / 49–91 / 64–107 |
-| Unlit glass, for comparison | 15780, 2120, 16260, 3350 | val ≤ 0.20 | 47,255 (8%) | `34, 28, 42` | 25–42 / 22–33 / 33–48 |
-| Lit windows | 15780, 2120, 16260, 3350 | sat ≤ 0.35, val ≥ 0.80 | 85,737 (15%) | `239, 238, 243` | 217–249 / 216–247 / 225–251 |
-| Screen | 15800, 1975, 16250, 2075 | val ≤ 0.35 | 15,090 (34%) | `36, 29, 74` | 30–41 / 24–35 / 61–82 |
-| Band lights | 15800, 2610, 16260, 2710 | hue 205–265, sat ≥ 0.40, val ≥ 0.45 | 11,411 (25%) | `11, 33, 161` | 3–27 / 23–61 / 137–193 |
-| Screen's bars, for comparison | 15800, 1975, 16250, 2075 | as band lights | 13,215 (29%) | `17, 33, 147` | 5–62 / 20–63 / 129–168 |
-| Emblems | 15800, 1975, 15950, 2075 | sat ≤ 0.25, val ≥ 0.85 | 1,836 (12%) | `241, 244, 254` | 226–249 / 232–251 / 249–255 |
+| Glass and spandrels | 15780, 2120, 16260, 3350 | sat 0–0.4, val 0.2–0.6 | 319,788 (54.2%) | `72, 64, 80` | 57–98 / 49–91 / 64–107 |
+| Unlit glass, for comparison | 15780, 2120, 16260, 3350 | val 0–0.2 | 47,255 (8.0%) | `34, 28, 42` | 25–42 / 22–33 / 33–48 |
+| Lit windows | 15780, 2120, 16260, 3350 | sat 0–0.35, val 0.8–1 | 85,737 (14.5%) | `239, 238, 243` | 217–249 / 216–247 / 225–251 |
+| Screen | 15800, 1975, 16250, 2075 | val 0–0.35 | 15,090 (33.5%) | `36, 29, 74` | 30–41 / 24–35 / 61–82 |
+| Band lights | 15800, 2610, 16260, 2710 | hue 205–265, sat 0.4–1, val 0.45–1 | 11,411 (24.8%) | `11, 33, 161` | 3–27 / 23–61 / 137–193 |
+| Screen's bars, for comparison | 15800, 1975, 16250, 2075 | hue 205–265, sat 0.4–1, val 0.45–1 | 13,215 (29.4%) | `17, 33, 147` | 5–62 / 20–63 / 129–168 |
+| Emblems, for comparison | 15800, 1975, 15950, 2075 | sat 0–0.25, val 0.85–1 | 1,836 (12.2%) | `241, 244, 254` | 226–249 / 232–251 / 249–255 |
 
 Decisions in `src/models/colour-palette.ts`:
 

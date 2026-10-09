@@ -274,18 +274,20 @@ Method: `scripts/measure-group.ts` aligned the building's drawn group with the p
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. Single pixels at this scale mix neighbouring materials, which
-the quartiles show; the medians are the values used.
+quartiles of red, green and blue. `bun scripts/sample-colours.ts building-two-prudential-plaza` reproduces these rows
+and the palette's entries, decoding the photograph in Chrome without colour management. Single
+pixels at this scale mix neighbouring materials, which the quartiles show; the medians are the
+values used.
 
 | Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |
-| Stone, lower shaft | 14865, 2650, 15045, 3250 | sat ≤ 0.45, val 0.12–0.60 | 96,023 (89%) | `58, 50, 54` | 44–78 / 39–67 / 44–67 |
-| Stone, upper shaft, for comparison | 14870, 2160, 14960, 2480 | sat ≤ 0.45, val 0.12–0.98 | 27,325 (95%) | `89, 81, 85` | 58–163 / 54–156 / 63–151 |
-| Unlit glass | 14865, 2650, 15045, 3250 | val ≤ 0.12 | 1,246 (1%) | `23, 21, 28` | 21–26 / 19–22 / 26–29 |
-| Lit windows | 14865, 2650, 15045, 3250 | sat ≤ 0.45, val ≥ 0.75 | 6,940 (6%) | `233, 233, 225` | 211–245 / 209–244 / 201–242 |
-| Crown glass | 14985, 1890, 15065, 2000 | hue 185–250, sat ≥ 0.15, val ≥ 0.45 | 3,687 (42%) | `75, 93, 137` | 50–105 / 83–130 / 123–176 |
-| Crown lights | 14940, 1860, 15110, 2060 | sat ≤ 0.30, val ≥ 0.80 | 3,558 (11%) | `213, 225, 244` | 190–235 / 204–242 / 230–253 |
-| Spire | 14995, 1720, 15020, 1880 | sat ≤ 0.35, val ≥ 0.55 | 138 (4%) | `193, 206, 238` | 120–212 / 137–224 / 174–252 |
+| Stone, lower shaft | 14865, 2650, 15045, 3250 | sat 0–0.45, val 0.12–0.6 | 96,023 (88.9%) | `58, 50, 54` | 44–78 / 39–67 / 44–67 |
+| Stone, upper shaft, for comparison | 14870, 2160, 14960, 2480 | sat 0–0.45, val 0.12–0.98 | 27,325 (94.9%) | `89, 81, 85` | 58–163 / 54–156 / 63–151 |
+| Unlit glass | 14865, 2650, 15045, 3250 | val 0–0.12 | 1,246 (1.2%) | `23, 21, 28` | 21–26 / 19–22 / 26–29 |
+| Lit windows | 14865, 2650, 15045, 3250 | sat 0–0.45, val 0.75–1 | 6,940 (6.4%) | `233, 233, 225` | 211–245 / 209–244 / 201–242 |
+| Crown glass | 14985, 1890, 15065, 2000 | hue 185–250, sat 0.15–1, val 0.45–1 | 3,687 (41.9%) | `75, 93, 137` | 51–105 / 83–130 / 123–176 |
+| Crown lights | 14940, 1860, 15110, 2060 | sat 0–0.3, val 0.8–1 | 3,558 (10.5%) | `213, 225, 244` | 190–235 / 204–242 / 230–253 |
+| Spire | 14995, 1720, 15020, 1880 | sat 0–0.35, val 0.55–1 | 138 (3.5%) | `193, 207, 239` | 120–212 / 137–224 / 174–252 |
 
 Decisions in `src/models/colour-palette.ts`:
 
@@ -294,7 +296,7 @@ Decisions in `src/models/colour-palette.ts`:
 - `glass` `23, 21, 28`, the vision glass and dark strips.
 - `crown glass` `75, 93, 137`, the crown's risers and sloped glass, lit blue.
 - `crown lights` `213, 225, 244`, the white bands and ribs on the crown's ridges.
-- `stainless` `193, 206, 238`, the spire, from few pixels.
+- `stainless` `193, 207, 239`, the spire, from few pixels.
 - `lit window` `233, 233, 225`; `dim window` takes it at the dim windows' grey.
 - `aluminium` (the strip mullions) stays grey.
 

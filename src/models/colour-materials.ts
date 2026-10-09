@@ -296,11 +296,10 @@ export interface Swatch {
 // A grey in its measured colour: the swatch's colour scaled by the grey's brightness against the
 // swatch's grey, both in linear light, so the model's lighter and darker surfaces of one
 // material stay lighter and darker. A colour pushed past white keeps its hue.
-export function paint(grey: number, { colour, reference }: Swatch): [number, number, number] {
+export function paint(grey: number, { colour: [r, g, b], reference }: Swatch): [number, number, number] {
   const scale = exposure * (reference > 0 ? grey / reference : 1);
-  const scaled = colour.map((channel) => channel * scale) as [number, number, number];
-  const brightest = Math.max(...scaled);
-  return brightest > 1 ? scaled.map((channel) => channel / brightest) as [number, number, number] : scaled;
+  const fit = scale / Math.max(1, r * scale, g * scale, b * scale);
+  return [r * fit, g * fit, b * fit];
 }
 
 // Every measured material's swatch for a building, from how many vertices of each linear grey
@@ -364,7 +363,7 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
     const buildingId = String(model.building.userData["buildingId"]);
     if (!measuredColours[buildingId]) continue;
     // The building's batches, and how many vertices of each grey each material holds.
-    const surfaces: { material: THREE.MeshToonMaterial; attribute: THREE.BufferAttribute | null; materialOf(grey: number): MaterialName }[] = [];
+    const surfaces: { material: THREE.MeshToonMaterial; colours: { attribute: THREE.BufferAttribute; array: Float32Array } | null; materialOf(grey: number): MaterialName }[] = [];
     const greys = new Map<MaterialName, Map<number, number>>();
     const count = (material: MaterialName, grey: number, vertices: number) => {
       const held = greys.get(material) ?? new Map<number, number>();
@@ -386,27 +385,27 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
         const vertices = new Map<number, number>();
         for (let vertex = 0; vertex < attribute.count; vertex += 1) vertices.set(attribute.array[vertex * 3]!, (vertices.get(attribute.array[vertex * 3]!) ?? 0) + 1);
         vertices.forEach((n, grey) => count(materialOf(grey), grey, n));
-        surfaces.push({ material, attribute, materialOf });
+        surfaces.push({ material, colours: { attribute, array: attribute.array }, materialOf });
       } else if (!taken.has(material)) {
         taken.add(material);
         count(materialOf(material.color.r), material.color.r, mesh.geometry.getAttribute("position").count);
-        surfaces.push({ material, attribute: null, materialOf });
+        surfaces.push({ material, colours: null, materialOf });
       }
     });
     const swatches = swatchesOf(buildingId, greys);
-    for (const { material, attribute, materialOf } of surfaces) {
+    for (const { material, colours, materialOf } of surfaces) {
       const colourOf = (grey: number): [number, number, number] => {
         const swatch = swatches.get(materialOf(grey));
         return swatch ? paint(grey, swatch) : [grey, grey, grey];
       };
-      if (attribute) {
+      if (colours) {
         const cache = new Map<number, Float32Array>();
         const paintGrey = (grey: number) => {
           let colour = cache.get(grey);
           if (!colour) cache.set(grey, colour = Float32Array.from(colourOf(grey)));
           return colour;
         };
-        painted.push({ attribute, array: attribute.array as Float32Array, paint: paintGrey, greys: null });
+        painted.push({ ...colours, paint: paintGrey, greys: null });
       } else {
         flat.push({ material, grey: material.color.clone(), colour: new THREE.Color(...colourOf(material.color.r)) });
       }

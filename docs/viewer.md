@@ -101,9 +101,12 @@ building's reference audit records with the box, the rule that picked the pixels
 A material may take another's colour where the photograph does not show it, or stay grey. A
 material's most common grey shows its measured colour, and its other greys keep their brightness
 relative to it, so the model's lighter and darker surfaces stay so. The colours scale by an
-exposure of 2.1, calibrated so the skyline view's floodlit faces match the photograph's on
-average; the brightest, such as the Railway Exchange's and Crain's, reach about half the
-photograph's brightness, since a surface cannot reflect more than the scene's lights give it.
+exposure of 2.1, from the render-to-photograph brightness of four floodlit fronts in the skyline
+view. Across the six buildings the render then reaches 0.43 (Crain) to 1.78 (Blue Cross) of the
+photograph's brightness in linear light: the brightest floodlit faces cannot reflect more than
+the scene's lights give them, and Blue Cross's vision glass is lighter than the spandrels its
+colour is measured at. `scripts/sample-colours.ts` measures every colour again from the
+photograph.
 
 Pressing the toggle again restores every grey exactly. The models themselves are untouched, and
 celebratory lights work in either mode. The building detail panel stays in grey.

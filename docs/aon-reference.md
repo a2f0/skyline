@@ -252,16 +252,18 @@ Method: `scripts/measure-group.ts` aligned the building's drawn group with the p
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. Single pixels at this scale mix neighbouring materials, which
-the quartiles show; the medians are the values used.
+quartiles of red, green and blue. `bun scripts/sample-colours.ts layer3` reproduces these rows
+and the palette's entries, decoding the photograph in Chrome without colour management. Single
+pixels at this scale mix neighbouring materials, which the quartiles show; the medians are the
+values used.
 
 | Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |
-| Granite, south | 15275, 1600, 15520, 3300 | hue 10–55, sat 0.10–0.65, val 0.30–0.88 | 188,129 (45%) | `115, 90, 73` | 101–133 / 77–107 / 62–87 |
-| Granite, east, for comparison | 15545, 1600, 15700, 3300 | hue 10–55, sat 0.10–0.65, val 0.20–0.88 | 68,392 (26%) | `98, 80, 70` | 82–113 / 68–93 / 60–80 |
-| Unlit glass | 15275, 1600, 15520, 3300 | val ≤ 0.20 | 42,763 (10%) | `43, 28, 27` | 36–47 / 24–31 / 23–31 |
-| Lit windows | 15275, 1600, 15520, 3300 | sat ≤ 0.30, val ≥ 0.80 | 51,630 (12%) | `249, 242, 237` | 239–254 / 227–250 / 214–249 |
-| Lit cap | 15275, 1400, 15520, 1490 | sat ≤ 0.30, val ≥ 0.75 | 14,348 (65%) | `243, 239, 236` | 231–248 / 225–244 / 219–243 |
+| Granite, south | 15275, 1600, 15520, 3300 | hue 10–55, sat 0.1–0.65, val 0.3–0.88 | 187,627 (45.0%) | `115, 90, 73` | 101–133 / 77–107 / 62–87 |
+| Granite, east, for comparison | 15545, 1600, 15700, 3300 | hue 10–55, sat 0.1–0.65, val 0.2–0.88 | 68,140 (25.9%) | `98, 80, 70` | 82–113 / 68–94 / 60–80 |
+| Unlit glass | 15275, 1600, 15520, 3300 | val 0–0.2 | 42,763 (10.3%) | `43, 28, 27` | 36–47 / 24–31 / 23–31 |
+| Lit windows | 15275, 1600, 15520, 3300 | sat 0–0.3, val 0.8–1 | 51,630 (12.4%) | `249, 242, 237` | 239–254 / 227–250 / 214–249 |
+| Lit cap | 15275, 1400, 15520, 1490 | sat 0–0.3, val 0.75–1 | 14,348 (65.1%) | `243, 239, 236` | 231–248 / 225–244 / 219–243 |
 
 Decisions in `src/models/colour-palette.ts`:
 

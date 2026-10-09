@@ -193,17 +193,19 @@ Method: `scripts/measure-group.ts` aligned the building's drawn group with the p
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. Single pixels at this scale mix neighbouring materials, which
-the quartiles show; the medians are the values used.
+quartiles of red, green and blue. `bun scripts/sample-colours.ts building-one-prudential-plaza` reproduces these rows
+and the palette's entries, decoding the photograph in Chrome without colour management. Single
+pixels at this scale mix neighbouring materials, which the quartiles show; the medians are the
+values used.
 
 | Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |
-| Limestone, south | 14400, 2560, 14760, 3290 | hue 10–50, sat ≥ 0.35, val 0.25–0.92 | 189,864 (72%) | `136, 96, 63` | 119–149 / 82–107 / 50–75 |
-| Limestone, east, for comparison | 14772, 2560, 14838, 3290 | as south | 4,297 (9%) | `107, 76, 45` | 77–137 / 53–99 / 33–58 |
-| Unlit glass | 14400, 2560, 14760, 3290 | val ≤ 0.22 | 1,788 (1%) | `47, 32, 34` | 39–53 / 27–36 / 26–41 |
-| Lit windows | 14400, 2560, 14760, 3290 | sat ≤ 0.35, val ≥ 0.80 | 35,404 (14%) | `250, 243, 242` | 240–254 / 227–251 / 222–251 |
-| Sign board | 14410, 2462, 14660, 2512 | hue 200–250, sat ≥ 0.30, val 0.15–0.75 | 6,647 (53%) | `36, 57, 128` | 18–60 / 45–71 / 95–145 |
-| Sign letters | 14410, 2462, 14660, 2512 | sat ≤ 0.25, val ≥ 0.85 | 3,230 (26%) | `249, 251, 254` | 240–253 / 245–254 / 250–255 |
+| Limestone, south | 14400, 2560, 14760, 3290 | hue 10–50, sat 0.35–1, val 0.25–0.92 | 189,811 (72.2%) | `136, 96, 63` | 119–149 / 82–107 / 50–75 |
+| Limestone, east, for comparison | 14772, 2560, 14838, 3290 | hue 10–50, sat 0.35–1, val 0.25–0.92 | 4,296 (8.9%) | `107, 76, 45` | 77–137 / 53–99 / 33–58 |
+| Unlit glass | 14400, 2560, 14760, 3290 | val 0–0.22 | 1,788 (0.7%) | `47, 32, 34` | 39–53 / 27–36 / 26–41 |
+| Lit windows | 14400, 2560, 14760, 3290 | sat 0–0.35, val 0.8–1 | 35,404 (13.5%) | `250, 243, 242` | 240–254 / 227–251 / 222–251 |
+| Sign board | 14410, 2462, 14660, 2512 | hue 200–250, sat 0.3–1, val 0.15–0.75 | 6,647 (53.2%) | `36, 57, 128` | 18–60 / 45–71 / 95–145 |
+| Sign letters | 14410, 2462, 14660, 2512 | sat 0–0.25, val 0.85–1 | 3,230 (25.8%) | `249, 251, 254` | 240–253 / 245–254 / 250–255 |
 
 Decisions in `src/models/colour-palette.ts`:
 

@@ -7,14 +7,15 @@ import type { MaterialName } from "./colour-materials.js";
 // terracotta reads gold, granite a warm brown, crown lighting blue. Each value is the
 // per-channel median, in sRGB, of one material's pixels in a box of the photograph; the
 // building's reference audit records every box, the rule that picked its pixels, their count
-// and quartiles. A material may instead name another of its building's materials, whose colour
-// it takes at its own grey's brightness, for a surface the photograph does not resolve; null
-// leaves it grey. A building with no entry stays grey. This is the one file in the repository
-// allowed colours, which tests/grayscale.test.ts exempts by name.
+// and quartiles, and scripts/sample-colours.ts measures them again. A material may instead name
+// another of its building's materials, whose colour it takes at its own grey's brightness, for a
+// surface the photograph does not resolve; null leaves it grey. A building with no entry stays
+// grey. This is the one file in the repository allowed colours, which tests/grayscale.test.ts
+// exempts by name.
 export type Measurement = number | MaterialName | null;
 
 export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<MaterialName, Measurement>>>>> = {
-  // docs/railway-exchange-reference.md, Colour.
+  // docs/railway-exchange-reference.md, 2026-10-09 — Night colours from the panorama.
   "building-railway-exchange": {
     "white terracotta": 0xb08412,
     copper: 0x647673,
@@ -24,7 +25,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     "common brick": "white terracotta",
     neutral: null,
   },
-  // docs/crain-reference.md, Colour.
+  // docs/crain-reference.md, 2026-10-09 — Night colours from the panorama.
   "building-crain-communications": {
     aluminium: 0xcbac7c,
     glass: 0x41302a,
@@ -35,7 +36,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     "dark metal": null,
     neutral: null,
   },
-  // docs/one-prudential-reference.md, Colour.
+  // docs/one-prudential-reference.md, 2026-10-09 — Night colours from the panorama.
   "building-one-prudential-plaza": {
     limestone: 0x88603f,
     aluminium: "limestone",
@@ -48,7 +49,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     stainless: null,
     neutral: null,
   },
-  // docs/two-prudential-reference.md, Colour.
+  // docs/two-prudential-reference.md, 2026-10-09 — Night colours from the panorama.
   "building-two-prudential-plaza": {
     granite: 0x3a3236,
     glass: 0x17151c,
@@ -56,10 +57,10 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     "dim window": "lit window",
     "crown glass": 0x4b5d89,
     "crown lights": 0xd5e1f4,
-    stainless: 0xc1ceee,
+    stainless: 0xc1cfef,
     aluminium: null,
   },
-  // docs/aon-reference.md, Colour.
+  // docs/aon-reference.md, 2026-10-09 — Night colours from the panorama.
   layer3: {
     "white granite": 0x735a49,
     glass: 0x2b1c1b,
@@ -70,7 +71,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     stainless: null,
     neutral: null,
   },
-  // docs/blue-cross-reference.md, Colour.
+  // docs/blue-cross-reference.md, 2026-10-09 — Night colours from the panorama.
   "building-blue-cross-blue-shield": {
     glass: 0x484050,
     "lit window": 0xefeef3,

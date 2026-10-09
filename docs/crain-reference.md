@@ -376,16 +376,18 @@ Method: `scripts/measure-group.ts` aligned the building's drawn group with the p
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. Single pixels at this scale mix neighbouring materials, which
-the quartiles show; the medians are the values used.
+quartiles of red, green and blue. `bun scripts/sample-colours.ts building-crain-communications` reproduces these rows
+and the palette's entries, decoding the photograph in Chrome without colour management. Single
+pixels at this scale mix neighbouring materials, which the quartiles show; the medians are the
+values used.
 
 | Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |
-| Aluminium spandrels | 13735, 2900, 14065, 3290 | hue 10–55, sat 0.12–0.65, val 0.45–0.97 | 77,391 (60%) | `203, 172, 124` | 180–216 / 141–186 / 90–151 |
-| Unlit glass | 13735, 2900, 14065, 3290 | val ≤ 0.35 | 33,074 (26%) | `65, 48, 42` | 57–73 / 41–56 / 34–52 |
-| Lit windows | 13735, 2900, 14065, 3290 | sat ≤ 0.30, val ≥ 0.85 | 12,211 (10%) | `232, 222, 213` | 223–243 / 205–241 / 179–236 |
-| Diamond glass | 13860, 2640, 13980, 2760 | val ≤ 0.60 | 14,084 (98%) | `19, 28, 58` | 14–26 / 25–32 / 54–62 |
-| Outline lights | 13735, 2500, 14075, 2780 | hue 150–240, sat ≥ 0.08, val ≥ 0.75 | 1,953 (2%) | `195, 209, 237` | 171–217 / 183–229 / 214–255 |
+| Aluminium spandrels | 13735, 2900, 14065, 3290 | hue 10–55, sat 0.12–0.65, val 0.45–0.97 | 77,391 (60.1%) | `203, 172, 124` | 180–216 / 141–186 / 90–151 |
+| Unlit glass | 13735, 2900, 14065, 3290 | val 0–0.35 | 33,074 (25.7%) | `65, 48, 42` | 57–73 / 41–56 / 34–52 |
+| Lit windows | 13735, 2900, 14065, 3290 | sat 0–0.3, val 0.85–1 | 12,211 (9.5%) | `232, 222, 213` | 223–243 / 205–241 / 179–236 |
+| Diamond glass | 13860, 2640, 13980, 2760 | val 0–0.6 | 14,084 (97.8%) | `19, 28, 58` | 14–26 / 25–32 / 54–62 |
+| Outline lights | 13735, 2500, 14075, 2780 | hue 150–240, sat 0.08–1, val 0.75–1 | 1,953 (2.1%) | `195, 209, 237` | 171–217 / 183–229 / 214–255 |
 
 Decisions in `src/models/colour-palette.ts`:
 

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import * as THREE from "../src/vendor/three-r186.js";
-import { batchOf, colourMaterials, createSkylineColour, exposure, materialNames, toneOf } from "../src/models/colour-materials.js";
+import { batchOf, colourMaterials, createSkylineColour, exposure, materialNames, paint, swatchesOf, toneOf } from "../src/models/colour-materials.js";
 import type { Batch, MaterialName } from "../src/models/colour-materials.js";
 import { measuredColours } from "../src/models/colour-palette.js";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
@@ -115,6 +115,62 @@ describe("colour trial", () => {
     }
     colour.set(false);
     expect(snapshotOf(models), "turning colour off restores every grey").toEqual(greys);
+  });
+
+  test("paints a grey at its brightness against the swatch's, keeping hue past white", () => {
+    const swatch = { colour: [0.1, 0.2, 0.3] as const, reference: 0.4 };
+    const close = (actual: number[], expected: number[]) => actual.forEach((value, index) => expect(value).toBeCloseTo(expected[index]!, 12));
+    close(paint(0.4, swatch), [0.1 * exposure, 0.2 * exposure, 0.3 * exposure]);
+    close(paint(0.2, swatch), [0.05 * exposure, 0.1 * exposure, 0.15 * exposure]);
+    // Past white the colour keeps its proportions, its brightest channel at one.
+    close(paint(0.4, { colour: [0.9, 0.6, 0.3] as const, reference: 0.4 }), [1, 2 / 3, 1 / 3]);
+    close(paint(0.3, { colour: [0.1, 0.2, 0.3] as const, reference: 0 }), [0.1 * exposure, 0.2 * exposure, 0.3 * exposure]);
+  });
+
+  test("measures a material at its most common grey, and lends it to the materials naming it", () => {
+    const id = "building-railway-exchange", measured = measuredColours[id]!;
+    const linear = (hex: number): [number, number, number] => { const { r, g, b } = new THREE.Color(hex); return [r, g, b]; };
+    const swatches = swatchesOf(id, new Map<MaterialName, Map<number, number>>([
+      // A tie goes to the lighter grey.
+      ["white terracotta", new Map([[0.2, 10], [0.3, 10], [0.1, 4]])],
+      ["common brick", new Map([[0.12, 50]])],
+      ["neutral", new Map([[0.05, 30]])],
+      ["copper", new Map([[0.4, 1]])],
+      ["marble", new Map([[0.6, 9]])],
+    ]));
+    expect(swatches.get("white terracotta")).toEqual({ colour: linear(measured["white terracotta"] as number), reference: 0.3 });
+    expect(swatches.get("common brick"), "a material naming another takes its colour and grey").toEqual(swatches.get("white terracotta")!);
+    expect(swatches.get("copper")).toEqual({ colour: linear(measured.copper as number), reference: 0.4 });
+    expect(swatches.get("neutral"), "a null material stays grey").toBeNull();
+    expect(swatches.get("marble"), "an unmeasured material stays grey").toBeNull();
+    expect(swatchesOf("building-kemper", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
+  });
+
+  test("leaves null materials grey and paints every other in its own or its named material's hue", () => {
+    const greysOf = new Map(sourced.flatMap(meshesOf).map((mesh) => [mesh, coloursOf(mesh).map(([grey]) => grey)]));
+    const colour = createSkylineColour(sourced);
+    colour.set(true);
+    try {
+      for (const model of sourced) {
+        const id = idOf(model), measured = measuredColours[id]!;
+        for (const mesh of meshesOf(model)) {
+          const [base, tones = {}] = batchOf(id, mesh.name)!, greys = greysOf.get(mesh)!;
+          coloursOf(mesh).forEach((rgb, index) => {
+            const material = tones[toneOf(greys[index]!)] ?? base, entry = measured[material];
+            const source = typeof entry === "string" ? measured[entry] : entry;
+            if (typeof source !== "number") {
+              expect(rgb, `${id}: ${mesh.name}'s ${material} stays grey`).toEqual([greys[index]!, greys[index]!, greys[index]!]);
+              return;
+            }
+            // The same hue: proportional to the measured colour in linear light.
+            const { r, g, b } = new THREE.Color(source), [cr, cg, cb] = rgb, scale = (cr + cg + cb) / (r + g + b);
+            [cr - r * scale, cg - g * scale, cb - b * scale].forEach((offset) => expect(Math.abs(offset), `${id}: ${mesh.name}'s ${material} in ${typeof entry === "string" ? entry : material}'s hue`).toBeLessThan(1e-5));
+          });
+        }
+      }
+    } finally {
+      colour.set(false);
+    }
   });
 
   test("keeps a sourced batch's materials apart in colour", () => {
