@@ -19,7 +19,9 @@ by `skyline-webgl.html`. Preserve path geometry and draw order when changing
 hover ownership; see `docs/building-labels.md`. The original comparison artwork
 is separate. Every colour is a grey, with equal red, green and blue; only the
 photograph `src/skyline.jpg` keeps its colour, and `tests/grayscale.test.ts` refuses
-any other.
+any other. The one exception is the opt-in colour trial's palette,
+`src/models/colour-palette.ts`; its materials table and toggle are described in
+`docs/viewer.md`.
 
 `bun run build:package` additionally emits ESM and declarations to `lib/` and
 copies the complete built viewer to `site/`; both are gitignored and included
