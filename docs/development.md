@@ -67,7 +67,10 @@ Together they cover:
 - independent building highlights and building occlusion, visible geometry at both zoom limits,
   camera views and orbit, wireframe, idle rendering, reduced motion, keyboard navigation, mobile
   touch, existing viewer modes, and failure messages;
-- that every colour is a grey, except the photograph `src/skyline.jpg`.
+- that every colour is a grey, except the photograph `src/skyline.jpg` and the colour trial's
+  palette, `src/models/colour-palette.ts`;
+- that the colour trial's materials table matches every building's batches and tones, keeps
+  each grey's lightness, and restores the greys exactly (`tests/colour-materials.test.ts`).
 
 Screenshots are written to `/tmp/skyline-3d-*.png` and `/tmp/skyline-group-*.png`.
 
