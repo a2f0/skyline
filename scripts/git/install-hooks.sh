@@ -47,7 +47,7 @@ if [ -n "$repo_scoped" ]; then
 else
   HOOKS_DST="$DEFAULT_HOOKS"
 fi
-CHECK="check-coauthors.ts"
+CHECKS="check-coauthors.ts check-signed-commits.ts"
 MANIFEST_NAME=".skyline-installed"
 mkdir -p "$HOOKS_DST"
 
@@ -110,9 +110,11 @@ done
 
 # The hooks run this copy, not the worktree's, so editing the worktree cannot
 # change what they enforce without a reinstall.
-install_file "$REPO_ROOT/scripts/$CHECK" "$HOOKS_DST/$CHECK"
-installed="$installed$CHECK
+for check in $CHECKS; do
+  install_file "$REPO_ROOT/scripts/$check" "$HOOKS_DST/$check"
+  installed="$installed$check
 "
+done
 
 # Copying alone leaves a hook that was renamed or deleted here installed and
 # executable, so it keeps running forever. Mirror that, but only for files a

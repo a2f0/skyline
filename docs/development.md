@@ -118,7 +118,7 @@ itself, so a timing test does not depend on timing.
 ## Git hooks
 
 Two hooks keep agent attribution out of the history, and `pre-push` also checks managed skill drift
-in the current checkout. Install them after cloning with `sh scripts/git/install-hooks.sh`; they are
+in the current checkout and requires signed commits. Install them after cloning with `sh scripts/git/install-hooks.sh`; they are
 not installed for you. Pushes (including tags and branch deletions) also need
 `bun install --ignore-scripts` in the current checkout or linked worktree.
 
@@ -149,11 +149,16 @@ the hook reached the check rather than dying before it.
 
 The installer and the hook layout are cannibalized from [tearleads](https://github.com/a2f0/tearleads),
 whose `scripts/checks/checkCommitTrust.sh` rejects every `Co-authored-by` trailer and also requires
-signed commits. This repository takes neither: it rejects only the agent attribution, and does not
-require signatures.
+signed commits. Skyline also requires signatures at push time, while rejecting only agent attribution.
+`scripts/check-signed-commits.ts --range <revisions...>` uses Git's `%G?` status to reject missing
+(`N`) and bad (`B`) signatures. Like tearleads, it accepts `G/U/E/X/Y/R`: local verification errors,
+unknown trust, expiry, or revocation do not imply an unsigned commit. This checks signature presence
+and rejects provably bad signatures; it does not establish signer identity or trust. Sign an
+unsigned HEAD with `git commit --amend -S --no-edit`, or rebase older commits with `--gpg-sign`.
+The same push ranges below apply to both attribution and signatures.
 
-- The hooks **and the attribution check they call** are copied, not symlinked, and the
-  attribution gate runs the installed check. Each installed hook and the attribution checker
+- The hooks **and both commit checkers they call** are copied, not symlinked, and the
+  commit gates run the installed checks. Each installed hook and checker
   compares against its checked-out source and refuses to run when they differ, so rerun the
   installer after changing either. The managed-skill gate runs the commit-pinned package from
   `node_modules`, refreshed by `bun install --ignore-scripts`; the source comparison does not cover

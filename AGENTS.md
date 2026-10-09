@@ -52,7 +52,7 @@ when it finishes whether it passed or failed, and appends the run to
 reads it back; Skyline’s shipping policy requires printing it at the end. The check
 runner checks managed skill drift, tool configuration and dependency advisories, typechecks the
 repository, verifies the vendored engine and license against the locked dependencies,
-runs the attribution, hooks, timings, merge guard, deploy verification, local dependency runtime, grayscale,
+runs the attribution, signatures, hooks, timings, merge guard, deploy verification, local dependency runtime, grayscale,
 skyline-loading, package, reference excerpt, and building kit checks, then
 builds `dist/` and starts its own temporary server for the hover regressions,
 both 3D study browser suites, the building
@@ -208,3 +208,10 @@ against a range or a message file. The hooks resolve `bun` from `PATH` and then
 from `mise which bun`, because a hook does not reliably inherit an interactive
 shell's `PATH`; `tests/git-hooks.test.ts` runs them through `git` to prove a
 clean message still commits.
+
+The pre-push hook also requires signed commits via `scripts/check-signed-commits.ts`,
+using the same revision ranges as the attribution check. It rejects Git signature
+statuses N (missing) and B (bad), and accepts G/U/E/X/Y/R, matching tearleads'
+local-verification policy. Both checkers are installed copies with source-drift
+checks; reinstall hooks after changing either. `tests/check-signed-commits.test.ts`
+and the real push cases in `tests/git-hooks.test.ts` cover this gate.

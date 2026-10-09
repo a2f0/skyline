@@ -44,12 +44,18 @@ beforeAll(() => {
   git(["init", "--quiet", "."]);
   git(["config", "user.email", "test@example.com"]);
   git(["config", "user.name", "Test"]);
-  // The throwaway repository must not inherit a global signing config: the
-  // isolated PATH cases carry no gpg, and signing is not what is under test.
-  git(["config", "commit.gpgsign", "false"]);
+  // Disposable SSH keys make signature tests independent of personal keys.
+  const key = path.join(repo, "signing-key");
+  execFileSync("ssh-keygen", ["-q", "-t", "ed25519", "-N", "", "-f", key]);
+  git(["config", "gpg.format", "ssh"]);
+  git(["config", "user.signingkey", key]);
+  git(["config", "commit.gpgsign", "true"]);
+  writeFileSync(path.join(repo, "allowed-signers"), `test@example.com ${readFileSync(`${key}.pub`, "utf8")}`);
+  git(["config", "gpg.ssh.allowedSignersFile", path.join(repo, "allowed-signers")]);
   git(["config", "tag.gpgsign", "false"]);
   mkdirSync(path.join(repo, "scripts/git"), { recursive: true });
   cpSync(path.join(root, "scripts/check-coauthors.ts"), path.join(repo, "scripts/check-coauthors.ts"));
+  cpSync(path.join(root, "scripts/check-signed-commits.ts"), path.join(repo, "scripts/check-signed-commits.ts"));
   cpSync(path.join(root, "scripts/lib"), path.join(repo, "scripts/lib"), { recursive: true });
   cpSync(path.join(root, "scripts/git/hooks"), path.join(repo, "scripts/git/hooks"), { recursive: true });
   cpSync(path.join(root, "scripts/git/install-hooks.sh"), path.join(repo, "scripts/git/install-hooks.sh"));
@@ -97,7 +103,7 @@ describe("the installed commit-msg hook", () => {
   // whichever of bun and mise the case under test wants to exist.
   const isolated = (fakes: Record<string, string> = {}) => {
     const directory = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-path-"));
-    for (const tool of ["git", "cmp"]) {
+    for (const tool of ["git", "cmp", "ssh-keygen"]) {
       symlinkSync(execFileSync("sh", ["-c", `command -v ${tool}`], { encoding: "utf8" }).trim(), path.join(directory, tool));
     }
     for (const [name, body] of Object.entries(fakes)) writeFileSync(path.join(directory, name), body, { mode: 0o755 });
@@ -265,7 +271,7 @@ describe("the installed pre-push hook", () => {
     const directory = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-path-"));
     try {
       execFileSync("git", ["init", "--bare", "--quiet", remote], { stdio: "ignore" });
-      for (const tool of ["git", "cmp", "mktemp", "cat", "rm"]) {
+      for (const tool of ["git", "cmp", "mktemp", "cat", "rm", "ssh-keygen"]) {
         symlinkSync(execFileSync("sh", ["-c", `command -v ${tool}`], { encoding: "utf8" }).trim(), path.join(directory, tool));
       }
       writeFileSync(path.join(directory, "mise"), `#!/bin/sh\n[ "$1" = which ] && printf '%s\\n' '${process.execPath}'\n`, { mode: 0o755 });
@@ -333,6 +339,7 @@ describe("the installed pre-push hook", () => {
   }, 60_000);
   test("refuses a commit that reached the branch past commit-msg", () => {
     const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
+    const previousHead = git(["rev-parse", "HEAD"]).output.trim();
     try {
       execFileSync("git", ["init", "--bare", "--quiet", remote], { stdio: "ignore" });
       git(["remote", "add", "origin", remote]);
@@ -357,6 +364,51 @@ describe("the installed pre-push hook", () => {
       expect(fresh.ok, "a new branch must not smuggle an offending ancestor past the gate").toBe(false);
       expect(fresh.output).toContain("agent attribution");
     } finally {
+      git(["reset", "--hard", previousHead]);
+      rmSync(remote, { recursive: true, force: true });
+    }
+  }, 60_000);
+});
+
+
+describe("push signature enforcement", () => {
+  test("rejects an unsigned ancestor on existing and new branches, and permits deletions", () => {
+    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-signatures-remote-"));
+    const previousHead = git(["rev-parse", "HEAD"]).output.trim();
+    try {
+      execFileSync("git", ["init", "--bare", "--quiet", remote]);
+      git(["remote", "add", "signatures", remote]);
+      expect(git(["push", "signatures", "HEAD:refs/heads/main"]).ok).toBe(true);
+      expect(git(["commit", "--no-gpg-sign", "--allow-empty", "-m", "test: unsigned ancestor"]).ok).toBe(true);
+      const unsigned = git(["rev-parse", "HEAD"]).output.trim();
+      expect(git(["commit", "--allow-empty", "-m", "test: signed tip"]).ok).toBe(true);
+      for (const destination of ["main", "new-branch"]) {
+        const push = git(["push", "signatures", `HEAD:refs/heads/${destination}`]);
+        expect(push.ok).toBe(false);
+        expect(push.output).toContain(unsigned);
+        expect(push.output).toContain("missing or invalid signature");
+      }
+      // Deleting a ref carries no commits, even when local HEAD is unsigned.
+      expect(git(["push", "signatures", ":refs/heads/main"]).ok).toBe(true);
+    } finally {
+      git(["reset", "--hard", previousHead]);
+      git(["remote", "remove", "signatures"]);
+      rmSync(remote, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  test("refuses a stale installed signature checker before pushing", () => {
+    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-signatures-remote-"));
+    const source = path.join(repo, "scripts/check-signed-commits.ts");
+    const original = readFileSync(source, "utf8");
+    try {
+      execFileSync("git", ["init", "--bare", "--quiet", remote]);
+      writeFileSync(source, `${original}\n// changed\n`);
+      const push = git(["push", remote, "HEAD:refs/heads/main"]);
+      expect(push.ok).toBe(false);
+      expect(push.output).toContain("installed signature check is stale");
+    } finally {
+      writeFileSync(source, original);
       rmSync(remote, { recursive: true, force: true });
     }
   }, 60_000);
