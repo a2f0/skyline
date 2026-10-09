@@ -4,11 +4,11 @@
 #
 #   sh scripts/git/install-hooks.sh
 #
-# Hooks and the check they call are copied rather than symlinked, and the hooks
+# Hooks and the checkers they call are copied rather than symlinked, and the hooks
 # run the copies: a branch that edits the worktree cannot change what the gate
 # does. Each hook compares its copy against its checked-out source and refuses
 # to run when they differ, so a copy cannot quietly go on enforcing an older
-# rule either — rerun this after changing a hook or the check.
+# rule either — rerun this after changing a hook or either checker.
 #
 # It removes only hooks it installed itself, recorded in a manifest, so a hook
 # that was renamed here stops running while anyone else's stays. Anything it
@@ -47,7 +47,7 @@ if [ -n "$repo_scoped" ]; then
 else
   HOOKS_DST="$DEFAULT_HOOKS"
 fi
-CHECK="check-coauthors.ts"
+CHECKS="check-coauthors.ts check-signed-commits.ts"
 MANIFEST_NAME=".skyline-installed"
 mkdir -p "$HOOKS_DST"
 
@@ -110,9 +110,11 @@ done
 
 # The hooks run this copy, not the worktree's, so editing the worktree cannot
 # change what they enforce without a reinstall.
-install_file "$REPO_ROOT/scripts/$CHECK" "$HOOKS_DST/$CHECK"
-installed="$installed$CHECK
+for check in $CHECKS; do
+  install_file "$REPO_ROOT/scripts/$check" "$HOOKS_DST/$check"
+  installed="$installed$check
 "
+done
 
 # Copying alone leaves a hook that was renamed or deleted here installed and
 # executable, so it keeps running forever. Mirror that, but only for files a

@@ -49,7 +49,7 @@ export interface Offender {
 // Commits are read in one git call, NUL-separated, so a message containing any
 // line of its own cannot be mistaken for the next commit's header.
 export function offendersIn(revisions: string[], run: Runner = command): Offender[] {
-  const log = run("git", ["log", "-z", "--format=%H%n%B", ...revisions]);
+  const log = run("git", ["log", "-z", "--format=%H%n%B", "--no-show-signature", ...revisions]);
   return log.split("\0").filter((entry) => entry.trim()).flatMap((entry) => {
     const [commit = "", ...body] = entry.split("\n");
     const lines = attributionIn(body.join("\n"));

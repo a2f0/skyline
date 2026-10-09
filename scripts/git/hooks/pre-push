@@ -1,5 +1,5 @@
 #!/bin/sh
-# Checks managed skills and refuses commits carrying agent attribution. Adapted from tearleads'
+# Checks managed skills, commit signatures, and agent attribution. Adapted from tearleads'
 # scripts/git/hooks/pre-push, with its timing, lint and test stages dropped:
 # this repository's suite runs from `bun run check`, and gating a push on the
 # browser suites would cost minutes on every push.
@@ -22,6 +22,12 @@ fi
 CHECK="${0%/*}/check-coauthors.ts"
 if ! cmp -s "$CHECK" "$REPO_ROOT/scripts/check-coauthors.ts"; then
   echo "Error: the installed attribution check is stale. Run sh scripts/git/install-hooks.sh." >&2
+  exit 1
+fi
+
+SIGNATURE_CHECK="${0%/*}/check-signed-commits.ts"
+if ! cmp -s "$SIGNATURE_CHECK" "$REPO_ROOT/scripts/check-signed-commits.ts"; then
+  echo "Error: the installed signature check is stale. Run sh scripts/git/install-hooks.sh." >&2
   exit 1
 fi
 
@@ -102,4 +108,5 @@ while read -r _ local_sha _ remote_sha; do
   fi
 
   "$BUN" "$CHECK" --range "$@" </dev/null
+  "$BUN" "$SIGNATURE_CHECK" --range "$@" </dev/null
 done <"$refs_file"

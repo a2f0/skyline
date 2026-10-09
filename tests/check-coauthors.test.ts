@@ -64,8 +64,8 @@ describe("agent attribution in a range", () => {
   let revisions: string[] = [];
   const log = (entries: string[]): Runner => (file, args) => {
     expect(file).toBe("git");
-    expect(args.slice(0, 3)).toEqual(["log", "-z", "--format=%H%n%B"]);
-    revisions = args.slice(3);
+    expect(args.slice(0, 4)).toEqual(["log", "-z", "--format=%H%n%B", "--no-show-signature"]);
+    revisions = args.slice(4);
     return entries.join("\0");
   };
   test("finds the commits that carry it and leaves the rest", () => {
