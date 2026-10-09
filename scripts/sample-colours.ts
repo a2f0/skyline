@@ -242,7 +242,7 @@ command(usage, {}, async ({ positionals }) => {
     const page = await browser.newPage();
     await page.goto(`${server.origin}/blank.html`);
     const number = (value: number) => value.toLocaleString("en-GB");
-    const range = (value?: [number, number], unit = "") => value && `${value[0]}–${value[1]}${unit}`;
+    const range = (value?: [number, number]) => value && `${value[0]}–${value[1]}`;
     for (const id of chosen) {
       console.log(`\n${id}\n`);
       const entries: string[] = [];
