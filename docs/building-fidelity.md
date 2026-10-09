@@ -8,20 +8,21 @@ Research and model changes belong in the same reviewable branch.
 
 ## Coverage and priorities
 
-Last triage: **2026-10-05**. The registry contains 34 buildings. This first pass compared the source
-and audits for Aon, Kemper, Swissôtel, Blue Cross, River Plaza, and Millennium Park Plaza; fresh
-external research concentrated on Aon. A subsequent pass researched Crain against the architect’s
-photographs and owner’s leasing plans. The crown-lighting follow-up assessed Crain again using
+Last triage: **2026-10-05**. The registry contains 34 buildings. This first pass
+compared the source and audits for Aon, Kemper, Swissôtel, Blue Cross, River
+Plaza, and Millennium Park Plaza; fresh external research concentrated on Aon.
+A subsequent pass researched Crain against the architect’s photographs and
+owner’s leasing plans. The crown-lighting follow-up assessed Crain again using
 celebration photographs, one dated 2010-06-10, correcting its shortened roof-grid ends and
 reconstructing its lamp displays; those displays were withdrawn on 2026-10-05 at the owner's
 request, keeping the roof-grid correction. On 2026-10-05 the building-inventory issues #63 and #72
 were closed and harvested: their one gap in an existing building, the Sheraton Grand's omitted
-28-level wing, became FID-SHER-001 after its map tags were rechecked; the rest moved to [Buildings
-not yet modelled](unmodelled-buildings.md). On 2026-10-09 the colour trial measured six buildings'
-night colours from the panorama (FID-COL-001), then, at the owner's request for a sunny day, their
-daytime colours from a 2008 panorama (FID-COL-003), which replaced them. Other buildings are not yet
-reassessed. Existing detailed facades are not a claim of survey accuracy. This is a curated queue,
-not a score for all 34.
+28-level wing, became FID-SHER-001 after its map tags were rechecked; the rest moved to
+[Buildings not yet modelled](unmodelled-buildings.md). On 2026-10-09 the colour trial measured six
+buildings' night colours from the panorama (FID-COL-001), then, at the owner's request for a sunny
+day, their daytime colours from a 2008 panorama (FID-COL-003), which replaced them. Other
+buildings are not yet reassessed. Existing detailed facades are not a
+claim of survey accuracy. This is a curated queue, not a score for all 34.
 
 High priority means a visible discrepancy with usable evidence. Medium means a
 visible gap whose dimensions or interpretation still need research. Low means

@@ -116,6 +116,16 @@ faces the camera sees are in shade, as the photograph's are, and bluer, lit by t
 `scripts/sample-colours.ts day` measures every colour again from the photographs; its `night` study
 keeps the first measurements, of the night panorama the drawing traces, which the day replaced.
 
+The sky's two colours are each the median of a clear box of the panorama's 3840 × 551 px rendition
+(SHA-256 `a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`), measured as the
+buildings' are; `bun scripts/sample-colours.ts day sky` reproduces them. The sun's warm white,
+`255, 244, 230`, is chosen, not measured.
+
+| Sample | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Sky, top of the frame | 3300, 0, 3800, 25 | all | 12,500 (100.0%) | `158, 187, 219` | 156–159 / 185–189 / 217–220 |
+| Sky, near the horizon | 3000, 420, 3800, 470 | all | 40,000 (100.0%) | `196, 209, 225` | 194–199 / 207–211 / 223–227 |
+
 Pressing the toggle again restores every grey and the night exactly. The models themselves are
 untouched, and celebratory lights work in either mode. The building detail panel stays in grey.
 
@@ -123,8 +133,9 @@ untouched, and celebratory lights work in either mode. The building detail panel
 measured colours as red, green and blue values. `tests/colour-materials.test.ts` keeps the table in
 step with the models, so a renamed batch or a retoned surface it names fails there, checks every
 material of a sourced building is measured, named or left grey, finds each measured colour on its
-building, and checks the day's sky and lights. Removing the trial means deleting those three files,
-the toggle, the viewer's `setDaylight` with its `Daylight` type, and the exemption.
+building, and checks the day's sky and lights. Removing the trial means deleting those three files
+and `scripts/sample-colours.ts`, the toggle and its roads' daytime grey in `skyline-3d.ts`, the
+viewer's `setDaylight` with its `Daylight` type, and the exemption.
 
 The page shares `study-viewer.ts`, `study.css`, and `study-loader.ts` with the
 [studies](studies.md), and `skyline-3d.ts` holds only its settings: `createGeographicSkyline` in

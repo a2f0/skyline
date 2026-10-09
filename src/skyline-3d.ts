@@ -40,10 +40,12 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
   // footprints control.
   ground.group.children.forEach((child) => { child.visible = false; });
   const { platform } = settings;
+  // The roads' grey at night, which the colour trial's day lightens and turning it off restores.
+  const nightRoads = 0x2c2c2c;
   const roads = createGeographicRoads({
     x: [platform.x - platform.width / 2, platform.x + platform.width / 2],
     z: [platform.z - platform.depth / 2, platform.z + platform.depth / 2],
-  }, 0x2c2c2c);
+  }, nightRoads);
   const { azimuth } = drawingView;
   // The study renders its first frame as it starts; the scene says so once its controls,
   // menus and detail are wired too, at the end.
@@ -133,9 +135,10 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
   // their colours over the greys; pressed again, it restores the night and every grey exactly.
   const colourButton = root.querySelector<HTMLButtonElement>("#colour")!;
   const daylight = createDaylight(), roadway = roads.material as THREE.MeshToonMaterial;
+  signal.addEventListener("abort", () => daylight.sky.dispose(), { once: true });
   colourButton.addEventListener("click", () => {
     colour.set(!colour.enabled);
-    roadway.color.setHex(colour.enabled ? daylightGround.roads : 0x2c2c2c);
+    roadway.color.setHex(colour.enabled ? daylightGround.roads : nightRoads);
     viewer.setDaylight(colour.enabled ? daylight : null);
     colourButton.setAttribute("aria-pressed", String(colour.enabled));
   }, listening);

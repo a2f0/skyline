@@ -164,6 +164,8 @@ async function measure({ sample, photo }: { sample: Sample; photo: string }): Pr
   const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d", { colorSpace: "srgb" })!;
   context.drawImage(bitmap, 0, 0);
   const data = context.getImageData(0, 0, bitmap.width, bitmap.height).data;
+  // The photographs are opaque; a box past their edge reads transparent there.
+  for (let i = 3; i < data.length; i += 4) if (data[i] !== 255) throw new Error(`"${sample.row}"'s box ${sample.box.join(", ")} runs past the edge of ${photo}.`);
   // Hue as Python's colorsys.rgb_to_hsv gives it, in degrees.
   const hueOf = (r: number, g: number, b: number) => {
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -205,11 +207,13 @@ async function fetchPhoto(name: string, directory: string): Promise<void> {
   if (existsSync(target) && digest() === sha256) return;
   if (!/^https:/.test(source)) copyFileSync(path.join(import.meta.dirname, "..", source), target);
   else {
-    // Wikimedia asks for a descriptive agent, and answers 429 to a busy address: wait and retry.
-    for (let wait = 30_000; ; wait = Math.min(wait * 2, 600_000)) {
+    // Wikimedia asks for a descriptive agent, and answers 429 to a busy address: wait and retry,
+    // for about 25 minutes in all.
+    for (let attempt = 1, wait = 30_000; ; attempt += 1, wait = Math.min(wait * 2, 600_000)) {
       const response = await fetch(source, { headers: { "User-Agent": "SkylineColourResearch/1.0 (https://github.com/a2f0/skyline)" } });
       if (response.ok) { writeFileSync(target, Buffer.from(await response.arrayBuffer())); break; }
       if (response.status !== 429) throw new Error(`${source} answered ${response.status}.`);
+      if (attempt > 6) throw new Error(`${source} still answers 429 after ${attempt} tries; try again later.`);
       console.error(`${source} answered 429; trying again in ${wait / 1000} s.`);
       await new Promise((resolve) => setTimeout(resolve, wait));
     }
