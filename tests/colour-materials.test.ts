@@ -144,7 +144,7 @@ describe("colour trial", () => {
     expect(swatches.get("glass")).toEqual({ colour: linear(measured.glass as number), reference: 0.4 });
     expect(swatches.get("neutral"), "a null material stays grey").toBeNull();
     expect(swatches.get("marble"), "an unmeasured material stays grey").toBeNull();
-    expect(swatchesOf("building-kemper", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
+    expect(swatchesOf("building-swissotel", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
   });
 
   test("leaves null materials grey and paints every other in its own or its named material's hue", () => {
@@ -264,12 +264,19 @@ describe("colour trial", () => {
       "building-two-prudential-plaza": "two-prudential",
       layer3: "aon",
       "building-blue-cross-blue-shield": "blue-cross",
+      "building-willoughby-tower": "willoughby-tower",
+      "building-heritage-at-millennium-park": "heritage-geographic",
+      "building-kemper": "kemper-geographic",
+      "building-330-north-wabash": "north-wabash",
+      "building-michigan-plaza-front-tall": "millennium-park-plaza",
+      "building-trump-tower-only": "trump",
+      "building-340-on-the-park": "340-on-the-park",
     };
     expect(Object.keys(audits).sort()).toEqual(Object.keys(measuredColours).sort());
     const read = (file: string) => readFileSync(new URL(`../docs/${file}`, import.meta.url), "utf8").replace(/\s+/g, " ");
     const rgb = (hex: number) => [hex >> 16, (hex >> 8) & 255, hex & 255].join(", ");
     for (const [id, measured] of Object.entries(measuredColours)) {
-      const audit = read(`${audits[id]}-reference.md`), start = audit.indexOf("Daytime colours from Chicago.jpg (FID-COL-003)");
+      const audit = read(`${audits[id]}-reference.md`), start = audit.indexOf("Daytime colours from Chicago.jpg (FID-COL-");
       expect(start, `${id}'s audit has the daytime entry`).toBeGreaterThan(-1);
       const entry = audit.slice(start);
       // Each value is in the entry's decisions under a material measured at it; the day's windows

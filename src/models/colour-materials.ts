@@ -139,7 +139,7 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
     piers: ["concrete"],
     "corner balconies": ["concrete"],
   },
-  // A grey precast slab.
+  // A warm white precast slab with bronze-tinted glass.
   "building-michigan-plaza-front-tall": {
     shell: ["neutral"],
     "walls and windows": ["glass", { ...windows(0x727272, 0x484848), 0x666666: "concrete" }],

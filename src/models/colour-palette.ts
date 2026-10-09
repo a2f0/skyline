@@ -14,7 +14,7 @@ import type { MaterialName } from "./colour-materials.js";
 export type Measurement = number | MaterialName | null;
 
 // By day no office lights show: lit and dim windows are the glass, in its measured colour.
-const glass = (colour: number) => ({ glass: colour, "lit window": colour, "dim window": colour });
+const glass = (colour: number, material: "glass" | "green glass" | "bronze glass" = "glass") => ({ [material]: colour, "lit window": colour, "dim window": colour });
 
 export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<MaterialName, Measurement>>>>> = {
   // docs/railway-exchange-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
@@ -69,6 +69,54 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     screen: 0x334a60,
     "band lights": 0xb0bdcd,
     "dark metal": null,
+    neutral: null,
+  },
+  // docs/willoughby-tower-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
+  "building-willoughby-tower": {
+    limestone: 0xccbdab,
+    ...glass(0x4d4541),
+    "dark granite": null,
+    neutral: null,
+  },
+  // docs/heritage-geographic-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
+  "building-heritage-at-millennium-park": {
+    limestone: 0xd8dad6,
+    "green glass": 0x475861,
+    "lit window": 0x475861,
+    bronze: 0x475861,
+    concrete: null,
+    "buff brick": null,
+    neutral: null,
+  },
+  // docs/kemper-geographic-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
+  "building-kemper": {
+    marble: 0xc3c0b6,
+    ...glass(0x535455),
+    aluminium: null,
+  },
+  // docs/north-wabash-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
+  "building-330-north-wabash": {
+    ...glass(0x2f4052, "bronze glass"),
+    bronze: 0x2f4052,
+    "dark granite": null,
+    neutral: null,
+  },
+  // docs/millennium-park-plaza-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
+  "building-michigan-plaza-front-tall": {
+    concrete: 0xe5d6c9,
+    ...glass(0x3c342a),
+    neutral: null,
+  },
+  // docs/trump-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
+  "building-trump-tower-only": {
+    ...glass(0x6f838e),
+    stainless: "glass",
+  },
+  // docs/340-on-the-park-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
+  "building-340-on-the-park": {
+    concrete: 0xdfe3e1,
+    ...glass(0x637c84, "green glass"),
+    aluminium: null,
     neutral: null,
   },
 };

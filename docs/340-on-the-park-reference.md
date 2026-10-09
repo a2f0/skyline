@@ -154,3 +154,53 @@ Colours follow the original artwork's grayscale palette.
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-09 — Daytime colours from Chicago.jpg (FID-COL-004)
+
+The colour trial's sunny day gains a second group of buildings, measured as the first was
+(FID-COL-003, in the [Railway Exchange's audit](railway-exchange-reference.md) and five others), in
+the same photograph and with the same exposure.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-09). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. It looks from nearly the drawing's viewpoint on a sunny day, five years before the 2013
+night panorama the drawing traces. It was completed in 2007.
+
+Identification: the building's bearing and roof height from the drawing's fitted eye (1471.76 m east
+and 1948.8 m south of Crain's mapped centre), fitted to the rendition through the six buildings
+measured first, place it at x 1983–2048 with its roof near y 281; the fit holds those six within
+about 25 pixels across and 4 pixels in height. It is the glass tower with a white frame at x
+1997–2062, its glass guard's top at y 266.
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-340-on-the-park`
+downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
+entries, decoding in Chrome without colour management. The building is about 65 pixels wide in the
+rendition, so single pixels mix neighbouring materials, which the quartiles show; the medians are
+the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Concrete frame, sunlit | 1998, 270, 2040, 440 | sat 0–0.15, val 0.7–1 | 2,208 (30.9%) | `223, 227, 225` | 190–243 / 201–251 / 201–251 |
+| Glass, south | 2007, 290, 2032, 440 | hue 160–230, sat 0.1–1, val 0–0.75 | 3,115 (83.1%) | `99, 124, 132` | 84–119 / 109–145 / 118–152 |
+| Glass, east, for comparison | 2043, 270, 2060, 440 | all | 2,890 (100.0%) | `59, 89, 107` | 50–69 / 78–102 / 92–120 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `concrete` `223, 227, 225`, the south face's white frame.
+- `green glass` `99, 124, 132`, the south face's blue-green glass between the frame; `lit window`
+  and `dim window` take it exactly, since no office lights show by day. The east face's glass
+  measures darker and bluer, `59, 89, 107`.
+- `aluminium`, the railings and guards, and `neutral` stay grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, the frame renders
+`210, 213, 212` under the photograph's rule, 0.87 of the photograph's brightness in linear light,
+and the glass `94, 117, 128`, 0.91.
