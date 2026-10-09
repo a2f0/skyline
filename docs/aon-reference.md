@@ -257,9 +257,9 @@ drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
 quartiles of red, green and blue. `bun scripts/sample-colours.ts night layer3` reproduces these rows
-and the palette's entries, decoding the photograph in Chrome without colour management. Single
-pixels at this scale mix neighbouring materials, which the quartiles show; the medians are the
-values used.
+and prints the palette entries they gave, decoding the photograph in Chrome without colour
+management. Single pixels at this scale mix neighbouring materials, which the quartiles show; the
+medians are the values used.
 
 | Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |

@@ -6,13 +6,13 @@
 // x1, y1, half-open) and a rule on hue (degrees), saturation and value (0–1) choosing one
 // material's pixels in it, or all of them; the result is their per-channel sRGB median and
 // quartiles, with their count and their share of the box. A photograph from the web is
-// downloaded once into the system's temporary directory and checked against its SHA-256; Chrome
-// decodes each without colour management, so the values are the file's own. Locate new boxes in
-// skyline.jpg with scripts/measure-group.ts, whose photo crop frames a building there, and in
-// the others on a crop of the photograph with a pixel grid drawn over it.
+// downloaded once into the repository's ignored node_modules/.cache, not a shared temporary
+// directory, and checked against its SHA-256; Chrome decodes each without colour management, so
+// the values are the file's own. Locate new boxes in skyline.jpg with scripts/measure-group.ts,
+// whose photo crop frames a building there, and in the others on a crop of the photograph with
+// a pixel grid drawn over it.
 import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import type { Browser } from "playwright";
 import { startServer } from "./lib/static-server.js";
@@ -200,7 +200,7 @@ async function measure({ sample, photo }: { sample: Sample; photo: string }): Pr
   };
 }
 
-// A photograph in the temporary directory, downloaded or copied once and checked.
+// A photograph in the cache, downloaded or copied once and checked.
 async function fetchPhoto(name: string, directory: string): Promise<void> {
   const { source, sha256 } = photos[name]!, target = path.join(directory, name);
   const digest = () => createHash("sha256").update(readFileSync(target)).digest("hex");
@@ -231,7 +231,7 @@ command(usage, {}, async ({ positionals }) => {
   if (!study) throw new Error(usage);
   const chosen = ids.length ? ids : Object.keys(study.samples);
   for (const id of chosen) if (!study.samples[id]) throw new Error(`No ${name} samples for ${id}; there are ${Object.keys(study.samples).join(", ")}.`);
-  const directory = path.join(os.tmpdir(), "skyline-colour-photos");
+  const directory = path.join(import.meta.dirname, "..", "node_modules", ".cache", "skyline-colour-photos");
   mkdirSync(directory, { recursive: true });
   for (const photo of new Set(chosen.flatMap((id) => study.samples[id]!.map((sample) => sample.photo ?? study.photo)))) await fetchPhoto(photo, directory);
   writeFileSync(path.join(directory, "blank.html"), "<!doctype html>");

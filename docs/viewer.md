@@ -135,9 +135,9 @@ untouched, and celebratory lights work in either mode. The building detail panel
 measured colours as red, green and blue values. `tests/colour-materials.test.ts` keeps the table in
 step with the models, so a renamed batch or a retoned surface it names fails there, checks every
 material of a sourced building is measured, named or left grey, finds each measured colour on its
-building, and checks the day's sky and lights. Removing the trial means deleting those three files
-and `scripts/sample-colours.ts`, the toggle and its roads' daytime grey in `skyline-3d.ts`, the
-viewer's `setDaylight` with its `Daylight` type, and the exemption.
+building and in its audit's daytime entry, and checks the day's sky and lights. Removing the trial
+means deleting those three files and `scripts/sample-colours.ts`, the toggle and its roads' daytime
+grey in `skyline-3d.ts`, the viewer's `setDaylight` with its `Daylight` type, and the exemption.
 
 The page shares `study-viewer.ts`, `study.css`, and `study-loader.ts` with the
 [studies](studies.md), and `skyline-3d.ts` holds only its settings: `createGeographicSkyline` in

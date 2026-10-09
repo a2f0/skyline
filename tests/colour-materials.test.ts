@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import * as THREE from "../src/vendor/three-r186.js";
 import { batchOf, colourMaterials, createDaylight, createSkylineColour, daylightGround, daylightIntensities, exposure, materialNames, paint, swatchesOf, toneOf } from "../src/models/colour-materials.js";
 import type { Batch, MaterialName } from "../src/models/colour-materials.js";
@@ -247,5 +248,34 @@ describe("colour trial", () => {
     expect(day.ambient).toEqual([daylightColours.sky, daylightIntensities.ambient]);
     expect(day.fill).toEqual([daylightColours.horizon, daylightIntensities.fill]);
     expect(day.ground).toBe(daylightGround.blocks);
+  });
+
+  test("records each measured colour in its building's audit, and the sky's in the viewer's notes", () => {
+    // The audit whose daytime entry each sourced building's colours come from.
+    const audits: Record<string, string> = {
+      "building-railway-exchange": "railway-exchange",
+      "building-crain-communications": "crain",
+      "building-one-prudential-plaza": "one-prudential",
+      "building-two-prudential-plaza": "two-prudential",
+      layer3: "aon",
+      "building-blue-cross-blue-shield": "blue-cross",
+    };
+    expect(Object.keys(audits).sort()).toEqual(Object.keys(measuredColours).sort());
+    const read = (file: string) => readFileSync(new URL(`../docs/${file}`, import.meta.url), "utf8").replace(/\s+/g, " ");
+    const rgb = (hex: number) => [hex >> 16, (hex >> 8) & 255, hex & 255].join(", ");
+    for (const [id, measured] of Object.entries(measuredColours)) {
+      const audit = read(`${audits[id]}-reference.md`), start = audit.indexOf("Daytime colours from Chicago.jpg (FID-COL-003)");
+      expect(start, `${id}'s audit has the daytime entry`).toBeGreaterThan(-1);
+      const entry = audit.slice(start);
+      // Each value is in the entry's decisions under a material measured at it; the day's windows
+      // share the glass's.
+      for (const [material, value] of Object.entries(measured)) {
+        if (typeof value !== "number") continue;
+        const recorded = Object.entries(measured).filter(([, other]) => other === value).some(([name]) => entry.includes(`\`${name}\` \`${rgb(value)}\``));
+        expect(recorded, `${id}: ${material} ${rgb(value)} is in its audit`).toBe(true);
+      }
+    }
+    const notes = read("viewer.md");
+    for (const hex of [daylightColours.sky, daylightColours.horizon]) expect(notes).toContain(`\`${rgb(hex)}\``);
   });
 });
