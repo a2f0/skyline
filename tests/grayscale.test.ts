@@ -6,10 +6,11 @@ import path from "node:path";
 // Skyline is drawn in greys: every colour the repository writes, in its pages, styles,
 // drawings, models, scripts and tests, has equal red, green and blue. The photograph the
 // drawing was traced from, src/skyline.jpg, is the one exception, the vendored Three.js
-// bundle's own constants are not Skyline's to change, and this file's samples are colours
-// on purpose.
+// bundle's own constants are not Skyline's to change, the colour trial's palette,
+// src/models/colour-palette.ts, holds its colours in that one file, and this file's samples
+// are colours on purpose.
 const root = path.resolve(import.meta.dirname, "..");
-const exempt = new Set(["src/skyline.jpg", "src/vendor/three-r186.js", "bun.lock", "tests/grayscale.test.ts"]);
+const exempt = new Set(["src/skyline.jpg", "src/vendor/three-r186.js", "src/models/colour-palette.ts", "bun.lock", "tests/grayscale.test.ts"]);
 const files = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8" })
   .split("\0").filter((file) => file && !exempt.has(file));
 

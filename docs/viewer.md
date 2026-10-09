@@ -77,12 +77,31 @@ heights. Open, the bar holds the study's toolbar:
 - **footprints** adds the study's light grey mapped outlines, hidden at first; the study's grid
   stays hidden;
 - **wireframe** shows the triangles, and **turntable** circles the city about the camera's pivot;
+- **colour** is a trial ([issue 115](https://github.com/a2f0/skyline/issues/115)): each building's
+  materials in colour, described [below](#colour-trial);
 - the **lights** badges, described [below](#celebratory-lights).
 
 The pressed camera button names the view, so the bar has no separate view label. A small credit in
 the scene's corner links OpenStreetMap's copyright page for the streets and footprints, beside the
 hint while the controls are open. Reduced motion pauses dragging and leaves out the turntable
 button, as in the studies, and leaves the view buttons.
+
+### Colour trial
+
+The skyline is drawn in greys. The **colour** toggle tries it in colour: `models/colour-materials.ts`
+names the material of every surface of every building, by building ID, mesh batch and grey, from
+what each building's reference audit records (white terracotta and green copper on the Railway
+Exchange, pink terracotta and a green tile roof on the Monroe Building, blue enamel spandrels on
+Borg-Warner), and `models/colour-palette.ts` gives each material's colour. A surface keeps its
+model's grey lightness and takes only the material's hue, so the drawing's values are unchanged, and
+pressing the toggle again restores every grey exactly. The models themselves are untouched, and
+celebratory lights work in either mode. Glass takes only a tint: toon shading cannot show the sky a
+curtain wall reflects. The building detail panel stays in grey.
+
+`colour-palette.ts` is the one source file `tests/grayscale.test.ts` exempts, and
+`tests/colour-materials.test.ts` keeps the table in step with the models: a renamed batch or a
+retoned surface it names fails there. Removing the trial means deleting those three files and the
+toggle, and the exemption.
 
 The page shares `study-viewer.ts`, `study.css`, and `study-loader.ts` with the
 [studies](studies.md), and `skyline-3d.ts` holds only its settings: `createGeographicSkyline` in

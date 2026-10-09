@@ -703,7 +703,8 @@ describe("full-screen 3D skyline", () => {
     const toolbar = await page.locator(".toolbar button").allTextContents();
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
-    expect((await page.locator(".control-bar .button-group button:not([data-celebration])").allTextContents()).filter((label) => label !== "footprints" && label !== "show original")).toEqual(toolbar);
+    // The 3D skyline adds footprints, show original and the colour trial's toggle.
+    expect((await page.locator(".control-bar .button-group button:not([data-celebration])").allTextContents()).filter((label) => !["footprints", "show original", "colour"].includes(label))).toEqual(toolbar);
     expect(await page.locator("#show-original").isHidden(), "the shortcut belongs to the index viewer").toBe(true);
     const star = page.locator("#menu-toggle");
     const groups = () => page.locator(".control-bar .button-group").evaluateAll((elements) => elements.map((element) => getComputedStyle(element).display));
