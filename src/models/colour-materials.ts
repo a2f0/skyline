@@ -338,10 +338,11 @@ interface FlatBatch {
 }
 
 // The colour layer for a skyline's models. A building or batch the trial does not know stays
-// in grey, as does a vertex-coloured batch whose colours are not plain floats, and a material
-// another batch already took, since the builder lets batches share a surface.
+// in grey, as does a mesh without a single toon material, a vertex-coloured batch whose
+// colours are not plain floats, and a material or colour buffer another batch already took,
+// since the builder lets batches share them.
 export function createSkylineColour(models: readonly BuildingModel[]): SkylineColour {
-  const painted: PaintedBatch[] = [], flat: FlatBatch[] = [], taken = new Set<THREE.Material>();
+  const painted: PaintedBatch[] = [], flat: FlatBatch[] = [], taken = new Set<object>();
   for (const model of models) {
     const buildingId = String(model.building.userData["buildingId"]);
     model.building.traverse((object) => {
@@ -350,11 +351,13 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
       const batch = batchOf(buildingId, mesh.name);
       if (!batch) return;
       const [base, tones = {}] = batch;
+      if (Array.isArray(mesh.material) || !(mesh.material as THREE.MeshToonMaterial).isMeshToonMaterial) return;
       const material = mesh.material as THREE.MeshToonMaterial;
       const colourOf = (grey: number) => tint(grey, tones[toneOf(grey)] ?? base);
       const attribute = mesh.geometry.getAttribute("color") as THREE.BufferAttribute | undefined;
       if (material.vertexColors) {
-        if (!(attribute?.array instanceof Float32Array)) return;
+        if (!(attribute?.array instanceof Float32Array) || taken.has(attribute)) return;
+        taken.add(attribute);
         const cache = new Map<number, Float32Array>();
         const paint = (grey: number) => {
           let colour = cache.get(grey);

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import * as THREE from "../src/vendor/three-r186.js";
 import { batchOf, colourMaterials, createSkylineColour, tint, toneOf, toOklab } from "../src/models/colour-materials.js";
+import type { Batch } from "../src/models/colour-materials.js";
 import { colourPalette } from "../src/models/colour-palette.js";
 import type { MaterialName } from "../src/models/colour-palette.js";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
@@ -45,13 +46,14 @@ describe("colour trial", () => {
   });
 
   test("names only tones its batches hold, and uses every material in the palette", () => {
-    const held = new Map<string, Set<number>>();
+    // Keyed by each batch entry itself, so two batches with the same materials stay apart.
+    const held = new Map<Batch, Set<number>>();
     for (const model of models) {
       for (const mesh of meshesOf(model)) {
         const batch = batchOf(idOf(model), mesh.name)!;
-        const tones = held.get(`${idOf(model)}:${JSON.stringify(batch)}`) ?? new Set<number>();
+        const tones = held.get(batch) ?? new Set<number>();
         tonesOf(mesh).forEach((tone) => tones.add(tone));
-        held.set(`${idOf(model)}:${JSON.stringify(batch)}`, tones);
+        held.set(batch, tones);
       }
     }
     const stale: string[] = [], materials = new Set<MaterialName>();
@@ -59,7 +61,7 @@ describe("colour trial", () => {
       for (const [name, batch] of Object.entries(batches)) {
         const [base, tones = {}] = batch;
         materials.add(base);
-        const holds = held.get(`${id}:${JSON.stringify(batch)}`)!;
+        const holds = held.get(batch) ?? new Set<number>();
         for (const [tone, material] of Object.entries(tones)) {
           materials.add(material);
           if (!holds.has(Number(tone))) stale.push(`${id}: ${name} has no tone ${Number(tone).toString(16)}`);
@@ -116,6 +118,7 @@ describe("colour trial", () => {
     const model = models.find((each) => idOf(each) === "building-blue-cross-blue-shield")!;
     const wall = model.building.getObjectByName("Blue Cross · glass, spandrels and bands") as THREE.Mesh;
     const colours = wall.geometry.getAttribute("color");
+    const plain = Array.from(colours.array);
     model.illumination!.set("cubs");
     const lit = Array.from(colours.array);
     model.illumination!.set(null);
@@ -124,18 +127,21 @@ describe("colour trial", () => {
     const coloured = Array.from(colours.array);
     model.illumination!.set("cubs");
     colour.refresh();
-    const shaded: number[] = [];
-    for (let vertex = 0; vertex < colours.count; vertex += 1) if (Math.abs(lit[vertex * 3]! - 0.018) < 1e-6) shaded.push(vertex);
-    expect(shaded.length).toBeGreaterThan(0);
-    const shadedSet = new Set(shaded);
-    let recoloured = 0;
+    // The panes the message shades are the vertices illumination changed: those take the
+    // colour of their shaded grey, and every other vertex keeps the colour it had.
+    let shaded = 0, kept = 0;
     for (let vertex = 0; vertex < colours.count; vertex += 1) {
-      if (shadedSet.has(vertex)) continue;
-      expect(colours.getX(vertex)).toBe(coloured[vertex * 3]!);
-      expect(colours.getZ(vertex)).toBe(coloured[vertex * 3 + 2]!);
-      recoloured += 1;
+      const at = vertex * 3, [r, g, b] = [colours.getX(vertex), colours.getY(vertex), colours.getZ(vertex)];
+      if (lit[at] !== plain[at]) {
+        expect([r, g, b]).toEqual(tint(lit[at]!, "glass").map(Math.fround));
+        shaded += 1;
+      } else {
+        expect([r, g, b]).toEqual(coloured.slice(at, at + 3));
+        kept += 1;
+      }
     }
-    expect(recoloured).toBeGreaterThan(0);
+    expect(shaded).toBeGreaterThan(0);
+    expect(kept).toBeGreaterThan(0);
     colour.set(false);
     expect(Array.from(colours.array), "the celebration's greys return with colour off").toEqual(lit);
     model.illumination!.set(null);
