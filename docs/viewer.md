@@ -99,10 +99,11 @@ ID, mesh batch and grey. `models/colour-palette.ts` holds the measured colours: 
 building, the median colour of each material's pixels in a box of the photograph, which the
 building's reference audit records with the box, the rule that picked the pixels and their count.
 A material may take another's colour where the photograph does not show it, or stay grey. A
-material's most common grey shows its measured colour, and its other greys keep their brightness
-relative to it, so the model's lighter and darker surfaces stay so. The colours scale by an
-exposure of 2.1, from the render-to-photograph brightness of four floodlit fronts in the skyline
-view. Across the six buildings the render then reaches 0.43 (Crain) to 1.78 (Blue Cross) of the
+material's most common grey shows its measured colour and its other greys scale with their
+brightness against it, so darker surfaces stay darker; a colour pushed past white keeps its hue at
+its brightest, where a bright material's lightest greys, such as lit windows, meet. The colours
+scale by an exposure of 2.1, from the render-to-photograph brightness of four floodlit fronts in
+the skyline view, measured once at 1600 × 900. Across the six buildings the render then reaches 0.43 (Crain) to 1.78 (Blue Cross) of the
 photograph's brightness in linear light: the brightest floodlit faces cannot reflect more than
 the scene's lights give them, and Blue Cross's vision glass is lighter than the spandrels its
 colour is measured at. `scripts/sample-colours.ts` measures every colour again from the

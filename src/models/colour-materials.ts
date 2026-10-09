@@ -294,8 +294,9 @@ export interface Swatch {
 }
 
 // A grey in its measured colour: the swatch's colour scaled by the grey's brightness against the
-// swatch's grey, both in linear light, so the model's lighter and darker surfaces of one
-// material stay lighter and darker. A colour pushed past white keeps its hue.
+// swatch's grey, both in linear light, so a darker surface of one material stays darker. A colour
+// pushed past white keeps its hue at its brightest, so a bright material's lightest greys can
+// meet there, as lit windows do.
 export function paint(grey: number, { colour: [r, g, b], reference }: Swatch): [number, number, number] {
   const scale = exposure * (reference > 0 ? grey / reference : 1);
   const fit = scale / Math.max(1, r * scale, g * scale, b * scale);

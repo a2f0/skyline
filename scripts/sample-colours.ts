@@ -131,7 +131,8 @@ command(usage, {}, async ({ positionals }) => {
   try {
     browser = await launch();
     const page = await browser.newPage();
-    await page.goto(`${server.origin}/index.html`);
+    // Any page of the server's origin can fetch the photograph; the small starfield will do.
+    await page.goto(`${server.origin}/stars.svg`);
     const number = (value: number) => value.toLocaleString("en-GB");
     const range = (value?: [number, number], unit = "") => value && `${value[0]}–${value[1]}${unit}`;
     for (const id of chosen) {
