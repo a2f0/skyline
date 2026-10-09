@@ -370,7 +370,6 @@ describe("the installed pre-push hook", () => {
   }, 60_000);
 });
 
-
 describe("push signature enforcement", () => {
   test("rejects an unsigned ancestor on existing and new branches, and permits deletions", () => {
     const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-signatures-remote-"));
@@ -388,7 +387,7 @@ describe("push signature enforcement", () => {
         expect(push.output).toContain(unsigned);
         expect(push.output).toContain("missing or invalid signature");
       }
-      // Deleting a ref carries no commits, even when local HEAD is unsigned.
+      // Deleting a ref carries no commits, even with an unsigned ancestor.
       expect(git(["push", "signatures", ":refs/heads/main"]).ok).toBe(true);
     } finally {
       git(["reset", "--hard", previousHead]);
@@ -412,19 +411,31 @@ describe("push signature enforcement", () => {
       rmSync(remote, { recursive: true, force: true });
     }
   }, 60_000);
+
+  test("permits a signed push when SSH allowed signers are not configured", () => {
+    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-signatures-unverified-"));
+    git(["config", "--unset", "gpg.ssh.allowedSignersFile"]);
+    try {
+      execFileSync("git", ["init", "--bare", "--quiet", remote]);
+      expect(git(["log", "-1", "--format=%G?"]).output.trim()).toBe("N");
+      const push = git(["push", remote, "HEAD:refs/heads/main"]);
+      expect(push.ok, push.output).toBe(true);
+    } finally {
+      git(["config", "gpg.ssh.allowedSignersFile", path.join(repo, "allowed-signers")]);
+      rmSync(remote, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  test("permits signed pushes with log.showSignature enabled", () => {
+    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-signatures-log-"));
+    git(["config", "log.showSignature", "true"]);
+    try {
+      execFileSync("git", ["init", "--bare", "--quiet", remote]);
+      const push = git(["push", remote, "HEAD:refs/heads/main"]);
+      expect(push.ok, push.output).toBe(true);
+    } finally {
+      git(["config", "--unset", "log.showSignature"]);
+      rmSync(remote, { recursive: true, force: true });
+    }
+  }, 60_000);
 });
-
-
-test("permits a signed push when SSH allowed signers are not configured", () => {
-  const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-signatures-unverified-"));
-  git(["config", "--unset", "gpg.ssh.allowedSignersFile"]);
-  try {
-    execFileSync("git", ["init", "--bare", "--quiet", remote]);
-    expect(git(["log", "-1", "--format=%G?"]).output.trim()).toBe("N");
-    const push = git(["push", remote, "HEAD:refs/heads/main"]);
-    expect(push.ok, push.output).toBe(true);
-  } finally {
-    git(["config", "gpg.ssh.allowedSignersFile", path.join(repo, "allowed-signers")]);
-    rmSync(remote, { recursive: true, force: true });
-  }
-}, 60_000);

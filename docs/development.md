@@ -156,7 +156,7 @@ unknown trust, expiry, or revocation do not imply an unsigned commit. This check
 and rejects provably bad signatures; it does not establish signer identity or trust. Sign an
 unsigned HEAD with `git commit --amend -S --no-edit`, or rebase older commits with `--gpg-sign`.
 Git can also report `N` when verification cannot run; the checker accepts that status if the raw
-commit headers contain a signature. The same push ranges below apply to both attribution and signatures.
+commit headers contain a signature. Bad signatures are detected only when Git can verify them locally. The same push ranges below apply to both attribution and signatures.
 
 - The hooks **and both commit checkers they call** are copied, not symlinked, and the
   commit gates run the installed checks. Each installed hook and checker
@@ -189,7 +189,11 @@ nothing at all. A push straight to a URL, or to a branch whose advertised tip th
 fetched, names nothing whose tracking refs describe that destination, so the whole branch is
 scanned: that can refuse a commit already published elsewhere, where subtracting some other
 remote's refs would let one through. A remote whose `pushurl` differs from its fetch URL has the
-same mismatch and is not detected.
+same mismatch and is not detected. The older history contains two unsigned commits
+(`13115751adbf` and `6344d9481d01`), so a whole-history scan will reject a URL push or an
+unfetched destination tip containing them. Use a configured remote and fetch its destination
+branch before pushing so the check can limit itself to incoming commits. This policy does not
+exempt old unsigned commits when a conservative scan includes them.
 
 None of this stops someone who means to bypass it: `--no-verify` skips both hooks, and the gates
 are there to catch a mistake rather than to defeat an intent.

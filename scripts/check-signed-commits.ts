@@ -13,7 +13,7 @@ export function checkSignedCommits(args: string[], run: Runner = command): strin
     throw new Error("Usage: bun scripts/check-signed-commits.ts --range <rev-range...>");
   }
   // No subjects or bodies: commit messages cannot inject signature records.
-  const log = run("git", ["log", "--format=%H %G?", ...args.slice(1)]);
+  const log = run("git", ["log", "--no-show-signature", "--format=%H %G?", ...args.slice(1)]);
   const failures: string[] = [];
   for (const line of log.trim().split("\n").filter(Boolean)) {
     const match = /^([a-f0-9]{40,64}) ([GBUXYREN])$/.exec(line);
@@ -35,7 +35,7 @@ export function checkSignedCommits(args: string[], run: Runner = command): strin
   return failures.length ? [
     "Error: pushed commits have a missing or invalid signature:", ...failures,
     "Sign HEAD with 'git commit --amend -S --no-edit', or rewrite older commits",
-    "with 'git rebase --gpg-sign <base>', then push again.",
+    "with 'git rebase --force-rebase --gpg-sign <base>', then push again.",
   ].join("\n") : null;
 }
 

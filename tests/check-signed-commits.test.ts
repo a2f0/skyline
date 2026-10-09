@@ -16,7 +16,7 @@ test("reports every unsigned or bad signature", () => {
 test("passes revision exclusions through and permits an empty range", () => {
   expect(checkSignedCommits(["--range", sha, "--not", "--remotes=origin"], (file, args) => {
     expect(file).toBe("git");
-    expect(args).toEqual(["log", "--format=%H %G?", sha, "--not", "--remotes=origin"]);
+    expect(args).toEqual(["log", "--no-show-signature", "--format=%H %G?", sha, "--not", "--remotes=origin"]);
     return "";
   })).toBeNull();
 });
@@ -26,7 +26,6 @@ test("fails closed on usage errors, git errors, and unexpected records", () => {
   expect(() => checkSignedCommits(["--range", "missing"], () => { throw new Error("bad revision"); })).toThrow("bad revision");
   expect(() => checkSignedCommits(["--range", "HEAD"], () => `${sha} ?`)).toThrow("Unexpected signature record");
 });
-
 
 test("distinguishes missing signatures from verification that could not run", () => {
   for (const header of ["gpgsig", "gpgsig-sha256"]) {
