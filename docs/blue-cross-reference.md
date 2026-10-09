@@ -129,6 +129,10 @@ Reference pages are research inputs only; the viewer downloads nothing from them
 
 ## 2026-10-09 — Night colours from the panorama (FID-COL-001)
 
+Withdrawn from the trial on 2026-10-09 at the owner's request for a sunny day: the daytime colours
+below (FID-COL-003) replace these in `src/models/colour-palette.ts`. The findings stand as the night
+photograph's record.
+
 Source: `src/skyline.jpg`, the repository's 2013 night panorama from the Adler Planetarium's
 lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
 `f6001e46471ea59f6fc07ae0eb9e7d5d8d243666f57d96d7efc6f59f2d7d5db4`; photographer and exact date
@@ -140,10 +144,10 @@ Method: `scripts/measure-group.ts` aligned the building's drawn group with the p
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts building-blue-cross-blue-shield` reproduces these rows
-and the palette's entries, decoding the photograph in Chrome without colour management. Single
-pixels at this scale mix neighbouring materials, which the quartiles show; the medians are the
-values used.
+quartiles of red, green and blue.
+`bun scripts/sample-colours.ts night building-blue-cross-blue-shield` reproduces these rows and the
+palette's entries, decoding the photograph in Chrome without colour management. Single pixels at
+this scale mix neighbouring materials, which the quartiles show; the medians are the values used.
 
 | Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |
@@ -172,3 +176,62 @@ layer's exposure of 2.1, on the building's surfaces of that material, and leaves
 grey. In the skyline view at 1600 × 900, the rendered facade's median is 1.78 of the photograph's in
 linear light: the vision glass's greys are lighter than the spandrels', whose grey the measured
 colour sits at.
+
+## 2026-10-09 — Daytime colours from Chicago.jpg (FID-COL-003)
+
+At the owner's request the colour trial shows a sunny day, so these colours replace the night
+colours above in `src/models/colour-palette.ts`.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-09). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. It looks from nearly the drawing's viewpoint on a sunny day, five years before the 2013
+night panorama the drawing traces. In August 2008 the tower's vertical expansion was under
+construction (completed 2010): the panorama shows the original curtain wall, which the expansion
+continues, below the new floors' steel. The crown's screen and the bands are not in it, so they come
+from a close-up: [Blue Cross Blue Shield Tower, Chicago, Illinois, US (PPL1-Corrected)
+julesvernex2.jpg](https://commons.wikimedia.org/wiki/File:Blue_Cross_Blue_Shield_Tower,_Chicago,_Illinois,_US_(PPL1-Corrected)_julesvernex2.jpg)
+by Jules Verne Times Two, photographed 2022-07-28 at 15:48 (CC BY-SA 4.0; accessed 2026-10-09),
+measured in its 1920 × 1214 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Blue_Cross_Blue_Shield_Tower%2C_Chicago%2C_Illinois%2C_US_%28PPL1-Corrected%29_julesvernex2.jpg/1920px-Blue_Cross_Blue_Shield_Tower%2C_Chicago%2C_Illinois%2C_US_%28PPL1-Corrected%29_julesvernex2.jpg`
+(SHA-256 `0bbb057c7adae72dc5456c546b5109df56cec0f91bf81911f0f2bcb39f117edf`; `blue-cross-2022.jpg`
+in the sampler), looking up at the tower from the street, after the 2013 panorama. The sun is high
+in the south: the south faces, which the lakefront sees nearly square, are lit, and the east faces
+are in shade (observed).
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), in the panorama
+unless the box names the close-up, a rule on hue (degrees), saturation and value (0–1) choosing one
+material's pixels in it, or all of them, and the per-channel sRGB median of those pixels (0–255),
+with their count, their share of the box and the quartiles of red, green and blue.
+`bun scripts/sample-colours.ts day building-blue-cross-blue-shield` downloads each photograph once,
+checks its SHA-256, and reproduces these rows and the palette's entries, decoding in Chrome without
+colour management. The building is about 80 pixels wide in the rendition, so single pixels mix
+neighbouring materials, which the quartiles show; the medians are the values used. Samples take the
+sunlit face where the photograph shows one.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Glass and spandrels | 1910, 375, 1980, 465 | all | 6,300 (100.0%) | `125, 137, 146` | 89–154 / 103–167 / 113–174 |
+| Glass, looking up, for comparison | 700, 900, 1300, 1150 in blue-cross-2022.jpg | hue 190–250, val 0.15–0.75 | 140,149 (93.4%) | `22, 47, 73` | 1–44 / 24–72 / 54–96 |
+| Screen | 720, 250, 1220, 300 in blue-cross-2022.jpg | val 0–0.5 | 13,759 (55.0%) | `51, 74, 96` | 35–71 / 58–92 / 80–115 |
+| Band columns | 640, 630, 1290, 710 in blue-cross-2022.jpg | sat 0–0.2, val 0.6–1 | 2,846 (5.5%) | `176, 189, 205` | 154–220 / 164–228 / 178–240 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `glass` `125, 137, 146`, the curtain wall's glass and spandrels together, as at night;
+  `lit window` and `dim window` take it exactly, since no office lights show by day.
+- The close-up's glass, looking up into a deep blue sky, measures far darker and bluer,
+  `22, 47, 73`: glass shows what it reflects. The panorama wins, seen across the lake in the same
+  light as the other five buildings. Conflicting.
+- `screen` `51, 74, 96`, the crown's screen, and `band lights` `176, 189, 205`, the bands' white
+  columns and the emblems, both from the close-up, whose light and white balance differ from the
+  panorama's, so they compare less closely with the rest.
+- `dark metal` and `neutral` stay grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material, and leaves its null ones grey.
+In the skyline view at 1600 × 900 under the day lights, the curtain wall renders `124, 134, 142`,
+0.96 of the photograph's brightness in linear light.

@@ -1,10 +1,18 @@
-// Measures the colour trial's colours in the photograph the drawing traces, src/skyline.jpg,
-// and prints each building's audit rows and colour-palette.ts entries. Each sample is a box in
-// photograph pixels (x0, y0, x1, y1, half-open) and a rule on hue (degrees), saturation and
-// value (0–1) choosing one material's pixels in it; the result is their per-channel sRGB
-// median and quartiles, with their count and their share of the box. Chrome decodes the
-// photograph without colour management, so the values are the file's own. Locate new boxes
-// with scripts/measure-group.ts, whose photo crop frames a building in the same pixels.
+// Measures the colour trial's colours in photographs and prints each building's audit rows and
+// colour-palette.ts entries. A study is a photograph and its samples, any of which may name
+// another photograph: "day", Chicago.jpg, the 2008 sunny panorama from the Adler Planetarium on
+// Wikimedia Commons, whose colours the trial shows, and "night", src/skyline.jpg, the photograph
+// the drawing traces, measured first. Each sample is a box in the photograph's pixels (x0, y0,
+// x1, y1, half-open) and a rule on hue (degrees), saturation and value (0–1) choosing one
+// material's pixels in it, or all of them; the result is their per-channel sRGB median and
+// quartiles, with their count and their share of the box. A photograph from the web is
+// downloaded once into the system's temporary directory and checked against its SHA-256; Chrome
+// decodes each without colour management, so the values are the file's own. Locate new boxes in
+// skyline.jpg with scripts/measure-group.ts, whose photo crop frames a building there, and in
+// the others on a crop of the photograph with a pixel grid drawn over it.
+import { createHash } from "node:crypto";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import type { Browser } from "playwright";
 import { startServer } from "./lib/static-server.js";
@@ -16,9 +24,20 @@ interface Sample {
   /** The colour-palette.ts material it measures, or null for a sample kept for comparison. */
   material: string | null;
   box: [number, number, number, number];
+  /** The photograph, where it is not the study's own. */
+  photo?: string;
   hue?: [number, number];
   sat?: [number, number];
   val?: [number, number];
+}
+interface Photo {
+  /** A path in the repository, or a URL to download. */
+  source: string;
+  sha256: string;
+}
+interface Study {
+  photo: string;
+  samples: Record<string, Sample[]>;
 }
 interface Result {
   count: number;
@@ -27,8 +46,18 @@ interface Result {
   quartiles: [number, number][];
 }
 
-// FID-COL-001's samples, as each building's reference audit records them.
-const samples: Record<string, Sample[]> = {
+const photos: Record<string, Photo> = {
+  "skyline.jpg": { source: "src/skyline.jpg", sha256: "f6001e46471ea59f6fc07ae0eb9e7d5d8d243666f57d96d7efc6f59f2d7d5db4" },
+  // Commons serves its files' thumbnails at fixed widths; these are the 3840 and 1920 px ones.
+  "chicago-2008.jpg": { source: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg", sha256: "a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41" },
+  "blue-cross-2022.jpg": {
+    source: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Blue_Cross_Blue_Shield_Tower%2C_Chicago%2C_Illinois%2C_US_%28PPL1-Corrected%29_julesvernex2.jpg/1920px-Blue_Cross_Blue_Shield_Tower%2C_Chicago%2C_Illinois%2C_US_%28PPL1-Corrected%29_julesvernex2.jpg",
+    sha256: "0bbb057c7adae72dc5456c546b5109df56cec0f91bf81911f0f2bcb39f117edf",
+  },
+};
+
+// FID-COL-001's night samples, as each building's reference audit records them.
+const night: Record<string, Sample[]> = {
   "building-railway-exchange": [
     { row: "Terracotta", material: "white terracotta", box: [10830, 3010, 11110, 3240], hue: [25, 60], sat: [0.55, 1], val: [0.35, 0.97] },
     { row: "Frieze, for comparison", material: null, box: [10830, 2990, 11110, 3008], hue: [25, 60], sat: [0.55, 1], val: [0.35, 0.97] },
@@ -78,9 +107,58 @@ const samples: Record<string, Sample[]> = {
   ],
 };
 
+// FID-COL-003's sunny samples, as each building's reference audit records them.
+const day: Record<string, Sample[]> = {
+  "building-railway-exchange": [
+    { row: "Terracotta, Jackson front, sunlit", material: "white terracotta", box: [1066, 412, 1084, 458], sat: [0, 0.3], val: [0.6, 1] },
+    { row: "Glass, Jackson front", material: "glass", box: [1066, 412, 1084, 458], val: [0, 0.4] },
+    { row: "Terracotta, Michigan front, shaded, for comparison", material: null, box: [1086, 412, 1128, 470], sat: [0, 0.3], val: [0.45, 1] },
+    { row: "Roof, for comparison", material: null, box: [1068, 402, 1128, 410] },
+  ],
+  "building-crain-communications": [
+    { row: "Aluminium spandrels, sunlit", material: "aluminium", box: [1555, 420, 1583, 470], sat: [0, 0.15], val: [0.65, 1] },
+    { row: "Glass", material: "glass", box: [1555, 420, 1583, 470], val: [0, 0.45] },
+    { row: "Diamond glass", material: "crown glass", box: [1565, 355, 1600, 395], sat: [0, 0.4], val: [0, 0.7] },
+    { row: "Shaded face, for comparison", material: null, box: [1590, 400, 1608, 470], sat: [0, 0.2], val: [0.45, 1] },
+  ],
+  "building-one-prudential-plaza": [
+    { row: "Limestone, sunlit", material: "limestone", box: [1668, 350, 1718, 470], sat: [0, 0.25], val: [0.55, 1] },
+    { row: "Glass", material: "glass", box: [1668, 350, 1718, 470], val: [0, 0.42] },
+    { row: "Sign panel", material: "sign board", box: [1670, 326, 1712, 340], sat: [0, 0.2], val: [0.6, 1] },
+    { row: "Sign letters and emblem", material: "sign letters", box: [1670, 326, 1712, 340], hue: [190, 250], sat: [0.2, 1] },
+  ],
+  "building-two-prudential-plaza": [
+    { row: "Stone, sunlit", material: "granite", box: [1748, 300, 1772, 440], sat: [0, 0.3], val: [0.5, 1] },
+    { row: "Glass", material: "glass", box: [1748, 300, 1795, 440], hue: [180, 240], sat: [0.08, 1] },
+    { row: "Crown glass", material: "crown glass", box: [1755, 255, 1790, 290], hue: [180, 240], sat: [0.05, 1] },
+    { row: "Crown bands and ribs", material: "crown lights", box: [1750, 255, 1795, 290], sat: [0, 0.3], val: [0.6, 1] },
+  ],
+  layer3: [
+    { row: "Granite, sunlit", material: "white granite", box: [1815, 160, 1860, 450], sat: [0, 0.12], val: [0.6, 1] },
+    { row: "Glass", material: "glass", box: [1815, 160, 1860, 450], val: [0, 0.4] },
+    { row: "Shaded face, for comparison", material: null, box: [1852, 170, 1866, 440] },
+  ],
+  "building-blue-cross-blue-shield": [
+    { row: "Glass and spandrels", material: "glass", box: [1910, 375, 1980, 465] },
+    { row: "Glass, looking up, for comparison", material: null, photo: "blue-cross-2022.jpg", box: [700, 900, 1300, 1150], hue: [190, 250], val: [0.15, 0.75] },
+    { row: "Screen", material: "screen", photo: "blue-cross-2022.jpg", box: [720, 250, 1220, 300], val: [0, 0.5] },
+    { row: "Band columns", material: "band lights", photo: "blue-cross-2022.jpg", box: [640, 630, 1290, 710], sat: [0, 0.2], val: [0.6, 1] },
+  ],
+  // The sky, for colour-palette.ts's daylightColours.
+  sky: [
+    { row: "Sky, top of the frame", material: null, box: [3300, 0, 3800, 25] },
+    { row: "Sky, near the horizon", material: null, box: [3000, 420, 3800, 470] },
+  ],
+};
+
+const studies: Record<string, Study> = { day: { photo: "chicago-2008.jpg", samples: day }, night: { photo: "skyline.jpg", samples: night } };
+
 // Runs in the page: one sample's pixels, chosen and summarised.
-async function measure(sample: Sample): Promise<Result> {
-  const blob = await (await fetch("/skyline.jpg")).blob();
+async function measure({ sample, photo }: { sample: Sample; photo: string }): Promise<Result> {
+  // Each photograph is fetched once per page.
+  const cache = ((window as unknown as { photos?: Map<string, Blob> }).photos ??= new Map<string, Blob>());
+  if (!cache.has(photo)) cache.set(photo, await (await fetch(`/${photo}`)).blob());
+  const blob = cache.get(photo)!;
   const [x0, y0, x1, y1] = sample.box;
   const bitmap = await createImageBitmap(blob, x0, y0, x1 - x0, y1 - y0, { colorSpaceConversion: "none", premultiplyAlpha: "none" });
   const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d", { colorSpace: "srgb" })!;
@@ -111,6 +189,7 @@ async function measure(sample: Sample): Promise<Result> {
     return sorted[low]! + (sorted[Math.min(low + 1, sorted.length - 1)]! - sorted[low]!) * (at - low);
   };
   const count = chosen[0].length;
+  if (!count) throw new Error(`"${sample.row}" matched no pixels in ${sample.box.join(", ")}.`);
   return {
     count,
     share: count / (data.length / 4),
@@ -119,29 +198,54 @@ async function measure(sample: Sample): Promise<Result> {
   };
 }
 
-const usage = `Usage: bun scripts/sample-colours.ts [building-id]
-  Measures every sample, or one building's, in src/skyline.jpg and prints its audit rows and
-  colour-palette.ts entries.`;
+// A photograph in the temporary directory, downloaded or copied once and checked.
+async function fetchPhoto(name: string, directory: string): Promise<void> {
+  const { source, sha256 } = photos[name]!, target = path.join(directory, name);
+  const digest = () => createHash("sha256").update(readFileSync(target)).digest("hex");
+  if (existsSync(target) && digest() === sha256) return;
+  if (!/^https:/.test(source)) copyFileSync(path.join(import.meta.dirname, "..", source), target);
+  else {
+    // Wikimedia asks for a descriptive agent, and answers 429 to a busy address: wait and retry.
+    for (let wait = 30_000; ; wait = Math.min(wait * 2, 600_000)) {
+      const response = await fetch(source, { headers: { "User-Agent": "SkylineColourResearch/1.0 (https://github.com/a2f0/skyline)" } });
+      if (response.ok) { writeFileSync(target, Buffer.from(await response.arrayBuffer())); break; }
+      if (response.status !== 429) throw new Error(`${source} answered ${response.status}.`);
+      console.error(`${source} answered 429; trying again in ${wait / 1000} s.`);
+      await new Promise((resolve) => setTimeout(resolve, wait));
+    }
+  }
+  if (digest() !== sha256) throw new Error(`${name} does not match its SHA-256, ${sha256}; the source has changed.`);
+}
+
+const usage = `Usage: bun scripts/sample-colours.ts <day|night> [building-id]
+  Measures a study's samples, or one building's, and prints its audit rows and colour-palette.ts
+  entries.`;
 
 command(usage, {}, async ({ positionals }) => {
-  const chosen = positionals.length ? positionals : Object.keys(samples);
-  for (const id of chosen) if (!samples[id]) throw new Error(`No samples for ${id}; there are ${Object.keys(samples).join(", ")}.`);
-  const server = await startServer(path.join(import.meta.dirname, "../src"));
+  const [name, ...ids] = positionals;
+  const study = studies[name ?? ""];
+  if (!study) throw new Error(usage);
+  const chosen = ids.length ? ids : Object.keys(study.samples);
+  for (const id of chosen) if (!study.samples[id]) throw new Error(`No ${name} samples for ${id}; there are ${Object.keys(study.samples).join(", ")}.`);
+  const directory = path.join(os.tmpdir(), "skyline-colour-photos");
+  mkdirSync(directory, { recursive: true });
+  for (const photo of new Set(chosen.flatMap((id) => study.samples[id]!.map((sample) => sample.photo ?? study.photo)))) await fetchPhoto(photo, directory);
+  writeFileSync(path.join(directory, "blank.html"), "<!doctype html>");
+  const server = await startServer(directory);
   let browser: Browser | undefined;
   try {
     browser = await launch();
     const page = await browser.newPage();
-    // Any page of the server's origin can fetch the photograph; the small starfield will do.
-    await page.goto(`${server.origin}/stars.svg`);
+    await page.goto(`${server.origin}/blank.html`);
     const number = (value: number) => value.toLocaleString("en-GB");
     const range = (value?: [number, number], unit = "") => value && `${value[0]}–${value[1]}${unit}`;
     for (const id of chosen) {
       console.log(`\n${id}\n`);
       const entries: string[] = [];
-      for (const sample of samples[id]!) {
-        const result = await page.evaluate(measure, sample);
+      for (const sample of study.samples[id]!) {
+        const result = await page.evaluate(measure, { sample, photo: sample.photo ?? study.photo });
         const rule = [sample.hue && `hue ${range(sample.hue)}`, sample.sat && `sat ${range(sample.sat)}`, sample.val && `val ${range(sample.val)}`].filter(Boolean).join(", ");
-        console.log(`| ${sample.row} | ${sample.box.join(", ")} | ${rule} | ${number(result.count)} (${(result.share * 100).toFixed(1)}%) | \`${result.median.join(", ")}\` | ${result.quartiles.map(([low, high]) => `${low}–${high}`).join(" / ")} |`);
+        console.log(`| ${sample.row} | ${sample.box.join(", ")}${sample.photo ? ` in ${sample.photo}` : ""} | ${rule || "all"} | ${number(result.count)} (${(result.share * 100).toFixed(1)}%) | \`${result.median.join(", ")}\` | ${result.quartiles.map(([low, high]) => `${low}–${high}`).join(" / ")} |`);
         if (sample.material) entries.push(`    ${JSON.stringify(sample.material)}: 0x${result.median.map((channel) => channel.toString(16).padStart(2, "0")).join("")},`);
       }
       console.log(`\n${entries.join("\n")}`);

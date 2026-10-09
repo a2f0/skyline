@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import * as THREE from "../src/vendor/three-r186.js";
-import { batchOf, colourMaterials, createSkylineColour, exposure, materialNames, paint, swatchesOf, toneOf } from "../src/models/colour-materials.js";
+import { batchOf, colourMaterials, createDaylight, createSkylineColour, daylightGround, daylightIntensities, exposure, materialNames, paint, swatchesOf, toneOf } from "../src/models/colour-materials.js";
 import type { Batch, MaterialName } from "../src/models/colour-materials.js";
-import { measuredColours } from "../src/models/colour-palette.js";
+import { daylightColours, measuredColours } from "../src/models/colour-palette.js";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 import { createGeographicBuilding } from "../src/models/skyline-geography.js";
 
@@ -128,19 +128,19 @@ describe("colour trial", () => {
   });
 
   test("measures a material at its most common grey, and lends it to the materials naming it", () => {
-    const id = "building-railway-exchange", measured = measuredColours[id]!;
+    const id = "building-crain-communications", measured = measuredColours[id]!;
     const linear = (hex: number): [number, number, number] => { const { r, g, b } = new THREE.Color(hex); return [r, g, b]; };
     const swatches = swatchesOf(id, new Map<MaterialName, Map<number, number>>([
       // A tie goes to the lighter grey.
-      ["white terracotta", new Map([[0.2, 10], [0.3, 10], [0.1, 4]])],
-      ["common brick", new Map([[0.12, 50]])],
+      ["aluminium", new Map([[0.2, 10], [0.3, 10], [0.1, 4]])],
+      ["lamp", new Map([[0.12, 50]])],
       ["neutral", new Map([[0.05, 30]])],
-      ["copper", new Map([[0.4, 1]])],
+      ["glass", new Map([[0.4, 1]])],
       ["marble", new Map([[0.6, 9]])],
     ]));
-    expect(swatches.get("white terracotta")).toEqual({ colour: linear(measured["white terracotta"] as number), reference: 0.3 });
-    expect(swatches.get("common brick"), "a material naming another takes its colour and grey").toEqual(swatches.get("white terracotta")!);
-    expect(swatches.get("copper")).toEqual({ colour: linear(measured.copper as number), reference: 0.4 });
+    expect(swatches.get("aluminium")).toEqual({ colour: linear(measured.aluminium as number), reference: 0.3 });
+    expect(swatches.get("lamp"), "a material naming another takes its colour and grey").toEqual(swatches.get("aluminium")!);
+    expect(swatches.get("glass")).toEqual({ colour: linear(measured.glass as number), reference: 0.4 });
     expect(swatches.get("neutral"), "a null material stays grey").toBeNull();
     expect(swatches.get("marble"), "an unmeasured material stays grey").toBeNull();
     expect(swatchesOf("building-kemper", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
@@ -174,20 +174,23 @@ describe("colour trial", () => {
   });
 
   test("keeps a sourced batch's materials apart in colour", () => {
-    // Two greys of one material may meet where both pass white, as lit windows do; greys of
-    // different materials never share a colour unless both stay grey.
+    // Two greys of one material may meet where both pass white; greys of different materials
+    // share a colour only where both stay grey or both measure the same, as the day's windows
+    // and glass do.
     const greysOf = new Map(sourced.flatMap(meshesOf).map((mesh) => [mesh, coloursOf(mesh).map(([grey]) => grey)]));
     const colour = createSkylineColour(sourced);
     colour.set(true);
     try {
       for (const model of sourced) {
         for (const mesh of meshesOf(model).filter((each) => toonOf(each).vertexColors)) {
-          const [base, tones = {}] = batchOf(idOf(model), mesh.name)!, greys = greysOf.get(mesh)!;
-          const materials = new Map<string, Set<MaterialName>>();
+          const [base, tones = {}] = batchOf(idOf(model), mesh.name)!, greys = greysOf.get(mesh)!, measured = measuredColours[idOf(model)]!;
+          const materials = new Map<string, Set<MaterialName | number>>();
           coloursOf(mesh).forEach((rgb, vertex) => {
             if (rgb[0] === rgb[1] && rgb[1] === rgb[2]) return;
-            const key = rgb.join(), shared = materials.get(key) ?? new Set<MaterialName>();
-            shared.add(tones[toneOf(greys[vertex]!)] ?? base);
+            const key = rgb.join(), shared = materials.get(key) ?? new Set<MaterialName | number>();
+            const material = tones[toneOf(greys[vertex]!)] ?? base, entry = measured[material];
+            // A material measured with another's colour counts as that colour.
+            shared.add(typeof entry === "number" ? entry : material);
             materials.set(key, shared);
           });
           const mixed = [...materials.values()].filter((shared) => shared.size > 1).map((shared) => [...shared].join(" and "));
@@ -231,5 +234,18 @@ describe("colour trial", () => {
     colour.set(false);
     expect(Array.from(colours.array), "the celebration's greys return with colour off").toEqual(lit);
     model.illumination!.set(null);
+  });
+
+  test("makes the sunny day's sky from the haze at the horizon to the blue overhead", () => {
+    const day = createDaylight(), { data, width, height } = day.sky.image as { data: Uint8Array; width: number; height: number };
+    const row = (index: number) => (data[index * 4]! << 16) | (data[index * 4 + 1]! << 8) | data[index * 4 + 2]!;
+    expect([width, height]).toEqual([1, 256]);
+    // A texture's first row is its bottom, the horizon.
+    expect([row(0), row(height - 1)]).toEqual([daylightColours.horizon, daylightColours.sky]);
+    expect(day.sky.colorSpace).toBe("srgb");
+    expect(day.sun).toEqual([daylightColours.sun, daylightIntensities.sun]);
+    expect(day.ambient).toEqual([daylightColours.sky, daylightIntensities.ambient]);
+    expect(day.fill).toEqual([daylightColours.horizon, daylightIntensities.fill]);
+    expect(day.ground).toBe(daylightGround.blocks);
   });
 });

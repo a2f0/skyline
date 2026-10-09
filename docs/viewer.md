@@ -88,35 +88,43 @@ button, as in the studies, and leaves the view buttons.
 
 ### Colour trial
 
-The skyline is drawn in greys. The **colour** toggle tries it in colour, building by building, in
-the colours of the photograph the drawing traces, `skyline.jpg`: the 2013 panorama at night, so
-floodlit terracotta reads gold, granite a warm brown, and crowns in their blue and white lights.
-Six buildings are sourced so far, the Railway Exchange, Crain, One and Two Prudential Plaza, Aon and
-Blue Cross; the rest stay grey in colour mode until they are measured.
+The skyline is drawn in greys at night. The **colour** toggle tries it in colour on a sunny day: a
+blue sky, fading to haze at the horizon, and a bright, slightly warm sun, with the ground and
+streets lighter in its light. Six buildings are sourced so far, the Railway Exchange, Crain, One and
+Two Prudential Plaza, Aon and Blue Cross, in the colours measured from Daniel Schwen's 2008 daytime
+panorama of the skyline from the Adler Planetarium, [Chicago.jpg on Wikimedia
+Commons](https://commons.wikimedia.org/wiki/File:Chicago.jpg), nearly the drawing's own viewpoint;
+Blue Cross's crown, built after 2008, comes from a 2022 close-up. The rest stay grey until they are
+measured, so the unsourced towers keep their night greys under the day sky. Office windows show as
+glass: no lights show by day, though a celebration's message still lights the Blue Cross tower.
 
-`models/colour-materials.ts` names the material of every surface of every building, by building
-ID, mesh batch and grey. `models/colour-palette.ts` holds the measured colours: for each sourced
-building, the median colour of each material's pixels in a box of the photograph, which the
-building's reference audit records with the box, the rule that picked the pixels and their count.
-A material may take another's colour where the photograph does not show it, or stay grey. A
-material's most common grey shows its measured colour and its other greys scale with their
-brightness against it, so darker surfaces stay darker; a colour pushed past white keeps its hue at
-its brightest, where a bright material's lightest greys, such as lit windows, meet. The colours
-scale by an exposure of 2.1, from the render-to-photograph brightness of four floodlit fronts in
-the skyline view, measured once at 1600 × 900. Across the six buildings the render then reaches 0.43 (Crain) to 1.78 (Blue Cross) of the
-photograph's brightness in linear light: the brightest floodlit faces cannot reflect more than
-the scene's lights give them, and Blue Cross's vision glass is lighter than the spandrels its
-colour is measured at. `scripts/sample-colours.ts` measures every colour again from the
-photograph.
+`models/colour-materials.ts` names the material of every surface of every building, by building ID,
+mesh batch and grey, and makes the day: the sky's gradient, the sun's, sky's and haze's lights, and
+the ground's greys. `models/colour-palette.ts` holds the measured colours: for each sourced
+building, the median colour of each material's pixels in a box of the photograph, on a sunlit face
+where it shows one, which the building's reference audit records with the box, the rule that picked
+the pixels and their count; and the sky's two colours, measured the same way. A material may take
+another's colour where the photograph does not show it, or stay grey. A material's most common grey
+shows its measured colour and its other greys scale with their brightness against it, so darker
+surfaces stay darker; a colour pushed past white keeps its hue at its brightest. The colours scale
+by an exposure of 1.4, from the render-to-photograph brightness of the sourced buildings' main
+materials in the skyline view at 1600 × 900: Two Prudential's stone and Blue Cross's glass reach
+0.97 and 0.96 of the photograph's in linear light, Aon's granite 0.86 and One Prudential's limestone
+0.80, while Crain's nearly white aluminium, past white at this exposure, reaches 0.66. A higher
+exposure brightens only the darker materials. The scene's sun stands in the south-west, so the east
+faces the camera sees are in shade, as the photograph's are, and bluer, lit by the sky.
+`scripts/sample-colours.ts day` measures every colour again from the photographs; its `night` study
+keeps the first measurements, of the night panorama the drawing traces, which the day replaced.
 
-Pressing the toggle again restores every grey exactly. The models themselves are untouched, and
-celebratory lights work in either mode. The building detail panel stays in grey.
+Pressing the toggle again restores every grey and the night exactly. The models themselves are
+untouched, and celebratory lights work in either mode. The building detail panel stays in grey.
 
 `colour-palette.ts` is the one source file `tests/grayscale.test.ts` exempts; the audits give the
 measured colours as red, green and blue values. `tests/colour-materials.test.ts` keeps the table in
 step with the models, so a renamed batch or a retoned surface it names fails there, checks every
-material of a sourced building is measured, named or left grey, and finds each measured colour on
-its building. Removing the trial means deleting those three files, the toggle and the exemption.
+material of a sourced building is measured, named or left grey, finds each measured colour on its
+building, and checks the day's sky and lights. Removing the trial means deleting those three files,
+the toggle, the viewer's `setDaylight` with its `Daylight` type, and the exemption.
 
 The page shares `study-viewer.ts`, `study.css`, and `study-loader.ts` with the
 [studies](studies.md), and `skyline-3d.ts` holds only its settings: `createGeographicSkyline` in

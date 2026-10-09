@@ -39,6 +39,13 @@ const chroma = async (page: Page) => page.evaluate(async (png) => {
   }
   return widest;
 }, (await page.screenshot()).toString("base64"));
+// A snapshot's red, green and blue at a point given as fractions of its width and height.
+const pixelAt = async (page: Page, png: Buffer, x: number, y: number) => page.evaluate(async ([data, across, down]) => {
+  const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
+  const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
+  context.drawImage(bitmap, 0, 0);
+  return Array.from(context.getImageData(Math.floor(bitmap.width * across), Math.floor(bitmap.height * down), 1, 1).data.slice(0, 3));
+}, [png.toString("base64"), x, y] as const);
 
 // The frame the skyline viewer shows the drawing in, and the translate that places the
 // drawing's layer inside it, read from the file the viewer loads. Landmarks are drawn in
@@ -910,10 +917,10 @@ describe("full-screen 3D skyline", () => {
     }
     await page.locator("#footprints").click();
     await settle(page);
-    // The colour trial's toggle shows the buildings in colour, and pressing it again restores
-    // every grey. A celebration lit while colour shows stays in colour, and turning colour off
-    // returns exactly the celebration's greys. Snapshots leave out the scene notes, which name
-    // the celebration.
+    // The colour trial's toggle shows the buildings in colour under a blue day sky, and pressing
+    // it again restores every grey. A celebration lit while colour shows stays in colour, and
+    // turning colour off returns exactly the celebration's greys. Snapshots leave out the scene
+    // notes, which name the celebration.
     const colour = page.locator("#colour"), cubs = page.locator('[data-celebration="cubs"]');
     const scene = () => page.locator("#building").screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
     await page.locator('[data-view="skyline"]').click();
@@ -924,6 +931,8 @@ describe("full-screen 3D skyline", () => {
     await settle(page);
     expect(await colour.getAttribute("aria-pressed")).toBe("true");
     expect(await chroma(page), "colour shows hue").toBeGreaterThan(20);
+    const [red, , blue] = await pixelAt(page, await scene(), 0.5, 0.02);
+    expect(blue! - red!, "a blue sky overhead").toBeGreaterThan(40);
     await colour.click();
     await settle(page);
     expect(await colour.getAttribute("aria-pressed")).toBe("false");

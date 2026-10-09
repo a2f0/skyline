@@ -182,6 +182,10 @@ Reference pages are research inputs only; the viewer downloads nothing from them
 
 ## 2026-10-09 — Night colours from the panorama (FID-COL-001)
 
+Withdrawn from the trial on 2026-10-09 at the owner's request for a sunny day: the daytime colours
+below (FID-COL-003) replace these in `src/models/colour-palette.ts`. The findings stand as the night
+photograph's record.
+
 Source: `src/skyline.jpg`, the repository's 2013 night panorama from the Adler Planetarium's
 lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
 `f6001e46471ea59f6fc07ae0eb9e7d5d8d243666f57d96d7efc6f59f2d7d5db4`; photographer and exact date
@@ -193,10 +197,10 @@ Method: `scripts/measure-group.ts` aligned the building's drawn group with the p
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts building-one-prudential-plaza` reproduces these rows
-and the palette's entries, decoding the photograph in Chrome without colour management. Single
-pixels at this scale mix neighbouring materials, which the quartiles show; the medians are the
-values used.
+quartiles of red, green and blue.
+`bun scripts/sample-colours.ts night building-one-prudential-plaza` reproduces these rows and the
+palette's entries, decoding the photograph in Chrome without colour management. Single pixels at
+this scale mix neighbouring materials, which the quartiles show; the medians are the values used.
 
 | Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |
@@ -224,3 +228,54 @@ Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, 
 layer's exposure of 2.1, on the building's surfaces of that material, and leaves its unmeasured ones
 grey. In the skyline view at 1600 × 900, the rendered south front's median is 0.95 of the
 photograph's in linear light.
+
+## 2026-10-09 — Daytime colours from Chicago.jpg (FID-COL-003)
+
+At the owner's request the colour trial shows a sunny day, so these colours replace the night
+colours above in `src/models/colour-palette.ts`.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-09). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. It looks from nearly the drawing's viewpoint on a sunny day, five years before the 2013
+night panorama the drawing traces. No change to these materials between 2008 and 2013 is known to
+this audit. The sun is high in the south: the south faces, which the lakefront sees nearly square,
+are lit, and the east faces are in shade (observed).
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-one-prudential-plaza`
+downloads each photograph once, checks its SHA-256, and reproduces these rows and the palette's
+entries, decoding in Chrome without colour management. The building is about 75 pixels wide in the
+rendition, so single pixels mix neighbouring materials, which the quartiles show; the medians are
+the values used. Samples take the sunlit face where the photograph shows one.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Limestone, sunlit | 1668, 350, 1718, 470 | sat 0–0.25, val 0.55–1 | 5,066 (84.4%) | `194, 188, 180` | 171–209 / 167–203 / 160–194 |
+| Glass | 1668, 350, 1718, 470 | val 0–0.42 | 225 (3.8%) | `98, 94, 89` | 90–103 / 87–100 / 82–95 |
+| Sign panel | 1670, 326, 1712, 340 | sat 0–0.2, val 0.6–1 | 239 (40.6%) | `196, 192, 185` | 172–211 / 170–206 / 168–199 |
+| Sign letters and emblem | 1670, 326, 1712, 340 | hue 190–250, sat 0.2–1 | 135 (23.0%) | `102, 132, 160` | 77–121 / 110–155 / 137–182 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `limestone` `194, 188, 180`, the sunlit south face; `aluminium`, the mullions and screen louvers
+  the rendition does not resolve, takes its colour, as at night.
+- `glass` `98, 94, 89`, and `lit window` and `dim window` take it exactly. The ribbon windows are a
+  pixel high here, so only 3.8% of the box qualifies and the value is likely lighter than the glass
+  itself, mixed with stone. Uncertain.
+- `sign board` `196, 192, 185`, the sign's light panel, and `sign letters` `102, 132, 160`, its blue
+  name and emblem. By day the sign is blue on a light panel, so the model's board, darker than its
+  letters as the night shows them, takes the panel's colour and the letters the blue: each
+  material's own grey shows its measured colour, which reverses their brightness as the photograph
+  does.
+- `dark metal`, `stainless` (the mast) and `neutral` stay grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material, and leaves its null ones grey.
+In the skyline view at 1600 × 900 under the day lights, the limestone renders `175, 169, 164` under
+the photograph's rule, 0.80 of the photograph's brightness in linear light.

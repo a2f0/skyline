@@ -143,6 +143,10 @@ Reference pages are research inputs only; the viewer downloads nothing from them
 
 ## 2026-10-09 — Night colours from the panorama (FID-COL-001)
 
+Withdrawn from the trial on 2026-10-09 at the owner's request for a sunny day: the daytime colours
+below (FID-COL-003) replace these in `src/models/colour-palette.ts`. The findings stand as the night
+photograph's record.
+
 Source: `src/skyline.jpg`, the repository's 2013 night panorama from the Adler Planetarium's
 lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
 `f6001e46471ea59f6fc07ae0eb9e7d5d8d243666f57d96d7efc6f59f2d7d5db4`; photographer and exact date
@@ -154,10 +158,10 @@ Method: `scripts/measure-group.ts` aligned the building's drawn group with the p
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts building-railway-exchange` reproduces these rows
-and the palette's entries, decoding the photograph in Chrome without colour management. Single
-pixels at this scale mix neighbouring materials, which the quartiles show; the medians are the
-values used.
+quartiles of red, green and blue. `bun scripts/sample-colours.ts night building-railway-exchange`
+reproduces these rows and the palette's entries, decoding the photograph in Chrome without colour
+management. Single pixels at this scale mix neighbouring materials, which the quartiles show; the
+medians are the values used.
 
 | Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |
@@ -182,3 +186,56 @@ Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, 
 layer's exposure of 2.1, on the building's surfaces of that material, and leaves its unmeasured ones
 grey. In the skyline view at 1600 × 900, the rendered front's median is 0.53 of the photograph's in
 linear light: the toon lights cannot raise the brightest floodlit faces to the photograph's level.
+
+## 2026-10-09 — Daytime colours from Chicago.jpg (FID-COL-003)
+
+At the owner's request the colour trial shows a sunny day, so these colours replace the night
+colours above in `src/models/colour-palette.ts`.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-09). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. It looks from nearly the drawing's viewpoint on a sunny day, five years before the 2013
+night panorama the drawing traces. No change to these materials between 2008 and 2013 is known to
+this audit. The sun is high in the south: the south faces, which the lakefront sees nearly square,
+are lit, and the east faces are in shade (observed).
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-railway-exchange`
+downloads each photograph once, checks its SHA-256, and reproduces these rows and the palette's
+entries, decoding in Chrome without colour management. The building is about 65 pixels wide in the
+rendition, so single pixels mix neighbouring materials, which the quartiles show; the medians are
+the values used. Samples take the sunlit face where the photograph shows one.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Terracotta, Jackson front, sunlit | 1066, 412, 1084, 458 | sat 0–0.3, val 0.6–1 | 304 (36.7%) | `200, 193, 179` | 178–225 / 170–216 / 157–203 |
+| Glass, Jackson front | 1066, 412, 1084, 458 | val 0–0.4 | 353 (42.6%) | `61, 66, 67` | 49–75 / 54–78 / 55–78 |
+| Terracotta, Michigan front, shaded, for comparison | 1086, 412, 1128, 470 | sat 0–0.3, val 0.45–1 | 1,077 (44.2%) | `117, 125, 128` | 111–125 / 119–133 / 121–135 |
+| Roof, for comparison | 1068, 402, 1128, 410 | all | 480 (100.0%) | `135, 136, 142` | 111–167 / 109–166 / 107–166 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `white terracotta` `200, 193, 179`, the sunlit Jackson front, a warm cream; the shaded Michigan
+  front measures `117, 125, 128`, the same terracotta in shade, which the scene's own lights give
+  it.
+- `glass` `61, 66, 67`; `lit window` and `dim window` take it exactly, since no office lights show
+  by day.
+- `copper` stays grey: the hipped roof is a band eight pixels high that reads blue-grey,
+  `135, 136, 142`, mixed with the cornice and the sky, so its patina is not resolved at this
+  distance. The night entry's grey-green remains the only colour evidence for it.
+- `common brick`, the alley and north walls, stays grey: the lakefront sees neither. At night it
+  took the terracotta's colour; that inference is dropped rather than carried into daylight.
+- `neutral` (the core and flat roofing) stays grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material, and leaves its null ones grey.
+In the skyline view at 1600 × 900 under the day lights, the building stands at the frame's left edge
+with its shaded Michigan front towards the camera; that front's terracotta renders `103, 113, 120`
+(sat 0–0.3, val 0.45–1) against the photograph's shaded Michigan front at `117, 125, 128`, 0.82 in
+linear light.

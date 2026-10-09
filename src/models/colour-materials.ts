@@ -1,6 +1,7 @@
 import * as THREE from "../vendor/three-r186.js";
 import type { BuildingModel } from "./building-kit.js";
-import { measuredColours } from "./colour-palette.js";
+import { daylightColours, measuredColours } from "./colour-palette.js";
+import type { Daylight } from "../study-types.js";
 
 // The colour trial (https://github.com/a2f0/skyline/issues/115): which named material each
 // surface of each building is, and a layer that shows the colours measured for those materials
@@ -14,8 +15,9 @@ export const materialNames = [
   "limestone", "marble", "white granite", "granite", "dark granite", "slate",
   "white terracotta", "pink terracotta", "green tile", "brick", "common brick", "orange brick", "brown brick", "buff brick", "glazed brick",
   "concrete", "precast", "copper", "maroon", "blue enamel", "bronze", "dark metal", "aluminium", "stainless",
-  // What the night photograph shows on its own: lit crown glass and crown lights, an emblem
-  // screen and the lights in its bands, a sign's board and letters, and a lit cap.
+  // Parts the photographs show on their own, named as the night first showed them: crown glass
+  // and crown lights, an emblem screen and the lights in its bands, a sign's board and letters,
+  // and a lit cap.
   "crown glass", "crown lights", "screen", "band lights", "sign board", "sign letters", "cap lights",
 ] as const;
 export type MaterialName = (typeof materialNames)[number];
@@ -280,11 +282,13 @@ export function batchOf(buildingId: string, meshName: string): Batch | undefined
 export const toneOf = (grey: number) => new THREE.Color(grey, grey, grey).getHex();
 
 // The measured colours scale to the scene by this factor in linear light, so the skyline view's
-// faces show the photograph's brightness. The toon lights render a colour's front faces at
-// 0.36 (Railway Exchange), 0.62 (Aon), 0.46 (One Prudential) and 0.45 (Crain) of the measured
-// colours in linear light, medians of the skyline view's 1600 x 900 render against the
-// photograph's; their geometric mean, 0.46, gives this factor, rounded down.
-export const exposure = 2.1;
+// faces show about the photograph's brightness under the day's lights. At 1.4 the skyline view's
+// 1600 x 900 render, its pixels chosen by each photograph sample's rule, reaches 0.97 (Two
+// Prudential's stone), 0.96 (Blue Cross's glass), 0.86 (Aon's granite), 0.80 (One Prudential's
+// limestone) and 0.66 (Crain's aluminium) of the photograph's brightness in linear light. Aon's
+// granite and Crain's aluminium pass white at their own greys here, so a higher factor would
+// brighten only the darker materials.
+export const exposure = 1.4;
 
 // A measured colour in linear light, and the grey it is measured at: the most common grey of
 // its material in the building.
@@ -296,7 +300,7 @@ export interface Swatch {
 // A grey in its measured colour: the swatch's colour scaled by the grey's brightness against the
 // swatch's grey, both in linear light, so a darker surface of one material stays darker. A colour
 // pushed past white keeps its hue at its brightest, so a bright material's lightest greys can
-// meet there, as lit windows do.
+// meet there, as Aon's granite and Crain's aluminium do.
 export function paint(grey: number, { colour: [r, g, b], reference }: Swatch): [number, number, number] {
   const scale = exposure * (reference > 0 ? grey / reference : 1);
   const fit = scale / Math.max(1, r * scale, g * scale, b * scale);
@@ -325,6 +329,35 @@ export function swatchesOf(buildingId: string, greys: ReadonlyMap<MaterialName, 
     swatches.set(material, { colour: [r, g, b], reference });
   }
   return swatches;
+}
+
+// The sun's, the shade's and the fill light's intensities on the sunny day, brighter than the
+// night's 2.4, 0.7 and 0.55, and the ground's greys in the sun: the platform's blocks, and the
+// roads' darker asphalt.
+export const daylightIntensities = { sun: 3.4, ambient: 0.9, fill: 0.5 } as const;
+export const daylightGround = { blocks: 0x6e6e6e, roads: 0x4a4a4a } as const;
+
+// The sunny day the colour toggle shows the buildings in: a sky fading from the photograph's blue
+// at the top of the view to its haze at the horizon, blended in linear light, the warm sun, the
+// sky's blue for the light in the shade, and its haze for the fill.
+export function createDaylight(): Daylight {
+  const rows = 256, data = new Uint8Array(rows * 4);
+  const top = new THREE.Color(daylightColours.sky), bottom = new THREE.Color(daylightColours.horizon);
+  for (let row = 0; row < rows; row += 1) {
+    const hex = bottom.clone().lerp(top, row / (rows - 1)).getHex();
+    data.set([(hex >> 16) & 255, (hex >> 8) & 255, hex & 255, 255], row * 4);
+  }
+  // A data texture's first row is the bottom of the view.
+  const sky = new THREE.DataTexture(data, 1, rows);
+  sky.colorSpace = "srgb";
+  sky.needsUpdate = true;
+  return {
+    sky,
+    sun: [daylightColours.sun, daylightIntensities.sun],
+    ambient: [daylightColours.sky, daylightIntensities.ambient],
+    fill: [daylightColours.horizon, daylightIntensities.fill],
+    ground: daylightGround.blocks,
+  };
 }
 
 export interface SkylineColour {
