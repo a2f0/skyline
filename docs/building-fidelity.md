@@ -18,7 +18,7 @@ reconstructing its lamp displays; those displays were withdrawn on 2026-10-05 at
 request, keeping the roof-grid correction. On 2026-10-05 the building-inventory issues #63 and #72
 were closed and harvested: their one gap in an existing building, the Sheraton Grand's omitted
 28-level wing, became FID-SHER-001 after its map tags were rechecked; the rest moved to
-[Buildings not yet modelled](unmodelled-buildings.md). Other buildings are not yet reassessed. Existing detailed facades are not a
+[Buildings not yet modelled](unmodelled-buildings.md). On 2026-10-09 the colour trial measured six buildings' night colours from the panorama (FID-COL-001). Other buildings are not yet reassessed. Existing detailed facades are not a
 claim of survey accuracy. This is a curated queue, not a score for all 34.
 
 High priority means a visible discrepancy with usable evidence. Medium means a
@@ -28,6 +28,8 @@ stronger evidence and bounded implementation.
 
 | ID | Building / registry ID | Opportunity and rationale | Priority | Status | Assessed | Evidence / next action |
 | --- | --- | --- | --- | --- | --- | --- |
+| FID-COL-001 | Railway Exchange, Crain, One Prudential, Two Prudential, Aon, Blue Cross | The colour toggle showed hand-picked hues. Measured each building's materials in the 2013 night panorama the drawing traces, with boxes, rules and counts. | Medium | implemented | 2026-10-09 | Each building's audit, under 2026-10-09 — Night colours from the panorama; [the trial](viewer.md#colour-trial). Two Prudential's floodlit upper shaft and Blue Cross's white emblems remain one colour with their batches. |
+| FID-COL-002 | The other 28 buildings | Grey in colour mode until measured. | Low | open | 2026-10-09 | Measure in `skyline.jpg` as FID-COL-001 did; the Michigan Avenue fronts are floodlit gold, which is the largest visible gap. |
 | FID-AON-001 | Aon Center / `layer3` | Mapped model had 14 window slots per face; source plan and photograph show 15. Repeated full-height detail makes this conspicuous in close views. | High | implemented | 2026-10-04 | [Dated evidence and validation](aon-reference.md#2026-10-04-fifteen-bays-on-the-geographic-model-fid-aon-001). Retain the count independently of map notch depth. |
 | FID-CRAIN-001 | Crain / `building-crain-communications` | Crown used office glazing through its metal tips and mechanical bands. Added two louver bands, three crown shadow strips and solid tips from architect photographs. | High | implemented | 2026-10-04 | [Evidence, estimates and validation](crain-reference.md#2026-10-04--crown-detail-and-roof-grid-fid-crain-001-fid-crain-002). Counts are observed; elevations remain approximate. |
 | FID-CRAIN-002 | Crain / `building-crain-communications` | Roof grid followed street axes instead of downslope mullions and level crossbars. | High | implemented | 2026-10-04 | [Architect’s aerial photograph and acceptance checks](crain-reference.md#2026-10-04--crown-detail-and-roof-grid-fid-crain-001-fid-crain-002). Geographic orientation corrected; original drawing fit retained. |

@@ -361,3 +361,45 @@ record should the displays return.
 
 The [lamp comparison images](fidelity/crain-lamps-on.png) above show the
 withdrawn display, not the current model.
+
+
+## 2026-10-09 — Night colours from the panorama (FID-COL-001)
+
+Source: `src/skyline.jpg`, the repository's 2013 night panorama from the Adler Planetarium's
+lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
+`f6001e46471ea59f6fc07ae0eb9e7d5d8d243666f57d96d7efc6f59f2d7d5db4`; photographer and exact date
+unknown; inspected 2026-10-09). It records the building under the city's night lighting in 2013,
+so these are **observed** night colours, not the materials' daylight colours.
+
+Method: `scripts/measure-group.ts` aligned the building's drawn group with the photograph
+(`skyline.svg` places the image at x −15558.758, y −1754.2251, 26553.332 × 7086.6665 in the
+drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
+rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. Single pixels at this scale mix neighbouring materials, which
+the quartiles show; the medians are the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Aluminium spandrels | 13735, 2900, 14065, 3290 | hue 10–55, sat 0.12–0.65, val 0.45–0.97 | 77,391 (60%) | `203, 172, 124` | 180–216 / 141–186 / 90–151 |
+| Unlit glass | 13735, 2900, 14065, 3290 | val ≤ 0.35 | 33,074 (26%) | `65, 48, 42` | 57–73 / 41–56 / 34–52 |
+| Lit windows | 13735, 2900, 14065, 3290 | sat ≤ 0.30, val ≥ 0.85 | 12,211 (10%) | `232, 222, 213` | 223–243 / 205–241 / 179–236 |
+| Diamond glass | 13860, 2640, 13980, 2760 | val ≤ 0.60 | 14,084 (98%) | `19, 28, 58` | 14–26 / 25–32 / 54–62 |
+| Outline lights | 13735, 2500, 14075, 2780 | hue 150–240, sat ≥ 0.08, val ≥ 0.75 | 1,953 (2%) | `195, 209, 237` | 171–217 / 183–229 / 214–255 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `aluminium` `203, 172, 124`: the white aluminium spandrels read warm under the street's light;
+  also the coping and the crown's louvers and blades.
+- `glass` `65, 48, 42`, the ribbon glazing's unlit panes.
+- `crown glass` `19, 28, 58`, the diamond's sloped glazing and its grid, which the photograph does
+  not separate at this scale.
+- `lamp` `195, 209, 237`, the diamond's outline lights.
+- `lit window` `232, 222, 213`; `dim window` takes it at the dim windows' grey.
+- `dark metal` (the louver vents) and `neutral` (the slot floor and shadow strips) stay grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 2.1, on the building's surfaces of that material, and leaves its unmeasured ones
+grey. In the skyline view at 1600 × 900, the rendered spandrels' median is 0.43 of the photograph's
+in linear light: their colour passes white at the exposure and keeps its hue, so it cannot reach the
+photograph's brightness.

@@ -88,20 +88,31 @@ button, as in the studies, and leaves the view buttons.
 
 ### Colour trial
 
-The skyline is drawn in greys. The **colour** toggle tries it in colour: `models/colour-materials.ts`
-names the material of every surface of every building, by building ID, mesh batch and grey, from
-what each building's reference audit records (white terracotta and green copper on the Railway
-Exchange, pink terracotta and a green tile roof on the Monroe Building, blue enamel spandrels on
-Borg-Warner), and `models/colour-palette.ts` gives each material's colour. A surface keeps its
-model's grey lightness and takes only the material's hue, so the drawing's values are unchanged, and
-pressing the toggle again restores every grey exactly. The models themselves are untouched, and
-celebratory lights work in either mode. Glass takes only a tint: toon shading cannot show the sky a
-curtain wall reflects. The building detail panel stays in grey.
+The skyline is drawn in greys. The **colour** toggle tries it in colour, building by building, in
+the colours of the photograph the drawing traces, `skyline.jpg`: the 2013 panorama at night, so
+floodlit terracotta reads gold, granite a warm brown, and crowns in their blue and white lights.
+Six buildings are sourced so far, the Railway Exchange, Crain, One and Two Prudential Plaza, Aon and
+Blue Cross; the rest stay grey in colour mode until they are measured.
 
-`colour-palette.ts` is the one source file `tests/grayscale.test.ts` exempts, and
-`tests/colour-materials.test.ts` keeps the table in step with the models: a renamed batch or a
-retoned surface it names fails there. Removing the trial means deleting those three files and the
-toggle, and the exemption.
+`models/colour-materials.ts` names the material of every surface of every building, by building
+ID, mesh batch and grey. `models/colour-palette.ts` holds the measured colours: for each sourced
+building, the median colour of each material's pixels in a box of the photograph, which the
+building's reference audit records with the box, the rule that picked the pixels and their count.
+A material may take another's colour where the photograph does not show it, or stay grey. A
+material's most common grey shows its measured colour, and its other greys keep their brightness
+relative to it, so the model's lighter and darker surfaces stay so. The colours scale by an
+exposure of 2.1, calibrated so the skyline view's floodlit faces match the photograph's on
+average; the brightest, such as the Railway Exchange's and Crain's, reach about half the
+photograph's brightness, since a surface cannot reflect more than the scene's lights give it.
+
+Pressing the toggle again restores every grey exactly. The models themselves are untouched, and
+celebratory lights work in either mode. The building detail panel stays in grey.
+
+`colour-palette.ts` is the one source file `tests/grayscale.test.ts` exempts; the audits give the
+measured colours as red, green and blue values. `tests/colour-materials.test.ts` keeps the table in
+step with the models, so a renamed batch or a retoned surface it names fails there, checks every
+material of a sourced building is measured, named or left grey, and finds each measured colour on
+its building. Removing the trial means deleting those three files, the toggle and the exemption.
 
 The page shares `study-viewer.ts`, `study.css`, and `study-loader.ts` with the
 [studies](studies.md), and `skyline-3d.ts` holds only its settings: `createGeographicSkyline` in

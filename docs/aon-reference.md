@@ -237,3 +237,43 @@ Shipping validation on 2026-10-04:
 Review repairs also added the automatic copy invariant and clarified that the
 older baseline image has unchanged Aon geometry relative to the shipping base.
 FID-AON-001 is implemented; FID-AON-002 remains open.
+
+
+## 2026-10-09 — Night colours from the panorama (FID-COL-001)
+
+Source: `src/skyline.jpg`, the repository's 2013 night panorama from the Adler Planetarium's
+lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
+`f6001e46471ea59f6fc07ae0eb9e7d5d8d243666f57d96d7efc6f59f2d7d5db4`; photographer and exact date
+unknown; inspected 2026-10-09). It records the building under the city's night lighting in 2013,
+so these are **observed** night colours, not the materials' daylight colours.
+
+Method: `scripts/measure-group.ts` aligned the building's drawn group with the photograph
+(`skyline.svg` places the image at x −15558.758, y −1754.2251, 26553.332 × 7086.6665 in the
+drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
+rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. Single pixels at this scale mix neighbouring materials, which
+the quartiles show; the medians are the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Granite, south | 15275, 1600, 15520, 3300 | hue 10–55, sat 0.10–0.65, val 0.30–0.88 | 188,129 (45%) | `115, 90, 73` | 101–133 / 77–107 / 62–87 |
+| Granite, east, for comparison | 15545, 1600, 15700, 3300 | hue 10–55, sat 0.10–0.65, val 0.20–0.88 | 68,392 (26%) | `98, 80, 70` | 82–113 / 68–93 / 60–80 |
+| Unlit glass | 15275, 1600, 15520, 3300 | val ≤ 0.20 | 42,763 (10%) | `43, 28, 27` | 36–47 / 24–31 / 23–31 |
+| Lit windows | 15275, 1600, 15520, 3300 | sat ≤ 0.30, val ≥ 0.80 | 51,630 (12%) | `249, 242, 237` | 239–254 / 227–250 / 214–249 |
+| Lit cap | 15275, 1400, 15520, 1490 | sat ≤ 0.30, val ≥ 0.75 | 14,348 (65%) | `243, 239, 236` | 231–248 / 225–244 / 219–243 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `white granite` `115, 90, 73`: the white granite piers read a warm brown at night, lit from the
+  street; also the tube shell.
+- `glass` `43, 28, 27`, the window ribbons and their dark spandrels.
+- `cap lights` `243, 239, 236`, the cap, where the top floors and the cap read as one lit band.
+- `lit window` `249, 242, 237`; `dim window` takes it at the dim windows' grey.
+- `aluminium` (the enclosure's slats), `stainless` (the mast) and `neutral` (core and roofing) stay
+  grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 2.1, on the building's surfaces of that material, and leaves its unmeasured ones
+grey. In the skyline view at 1600 × 900, the rendered south piers' median is 1.22 of the
+photograph's in linear light.

@@ -125,3 +125,48 @@ Colours follow the original artwork's grayscale palette.
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+
+## 2026-10-09 — Night colours from the panorama (FID-COL-001)
+
+Source: `src/skyline.jpg`, the repository's 2013 night panorama from the Adler Planetarium's
+lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
+`f6001e46471ea59f6fc07ae0eb9e7d5d8d243666f57d96d7efc6f59f2d7d5db4`; photographer and exact date
+unknown; inspected 2026-10-09). It records the building under the city's night lighting in 2013,
+so these are **observed** night colours, not the materials' daylight colours.
+
+Method: `scripts/measure-group.ts` aligned the building's drawn group with the photograph
+(`skyline.svg` places the image at x −15558.758, y −1754.2251, 26553.332 × 7086.6665 in the
+drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
+rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. Single pixels at this scale mix neighbouring materials, which
+the quartiles show; the medians are the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Glass and spandrels | 15780, 2120, 16260, 3350 | sat ≤ 0.40, val 0.20–0.60 | 319,788 (54%) | `72, 64, 80` | 57–98 / 49–91 / 64–107 |
+| Unlit glass, for comparison | 15780, 2120, 16260, 3350 | val ≤ 0.20 | 47,255 (8%) | `34, 28, 42` | 25–42 / 22–33 / 33–48 |
+| Lit windows | 15780, 2120, 16260, 3350 | sat ≤ 0.35, val ≥ 0.80 | 85,737 (15%) | `239, 238, 243` | 217–249 / 216–247 / 225–251 |
+| Screen | 15800, 1975, 16250, 2075 | val ≤ 0.35 | 15,090 (34%) | `36, 29, 74` | 30–41 / 24–35 / 61–82 |
+| Band lights | 15800, 2610, 16260, 2710 | hue 205–265, sat ≥ 0.40, val ≥ 0.45 | 11,411 (25%) | `11, 33, 161` | 3–27 / 23–61 / 137–193 |
+| Screen's bars, for comparison | 15800, 1975, 16250, 2075 | as band lights | 13,215 (29%) | `17, 33, 147` | 5–62 / 20–63 / 129–168 |
+| Emblems | 15800, 1975, 15950, 2075 | sat ≤ 0.25, val ≥ 0.85 | 1,836 (12%) | `241, 244, 254` | 226–249 / 232–251 / 249–255 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `glass` `72, 64, 80`, the facade's predominant tone at this scale, where glass, spandrels and the
+  offices' glow mix; also the shell.
+- `screen` `36, 29, 74`, the emblem screen.
+- `band lights` `11, 33, 161`, the columns in the mechanical bands and on the screen, lit blue. The
+  emblems share their batch and take the same blue, though the photograph shows them white. Open.
+- `lit window` `239, 238, 243`; `dim window` takes it at the dim windows' grey. The photograph shows
+  far more lit offices than the drawing's lit panes, so the tower reads darker than in the
+  photograph.
+- `dark metal` (the mullions) and `neutral` (the recesses and roofing) stay grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 2.1, on the building's surfaces of that material, and leaves its unmeasured ones
+grey. In the skyline view at 1600 × 900, the rendered facade's median is 1.78 of the photograph's in
+linear light: the vision glass's greys are lighter than the spandrels', whose grey the measured
+colour sits at.

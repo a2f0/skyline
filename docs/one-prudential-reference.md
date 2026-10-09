@@ -178,3 +178,47 @@ which makes the screen's west end the worst landmark.
   corners at 169.5 m and the tubular mast's top.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+
+## 2026-10-09 — Night colours from the panorama (FID-COL-001)
+
+Source: `src/skyline.jpg`, the repository's 2013 night panorama from the Adler Planetarium's
+lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
+`f6001e46471ea59f6fc07ae0eb9e7d5d8d243666f57d96d7efc6f59f2d7d5db4`; photographer and exact date
+unknown; inspected 2026-10-09). It records the building under the city's night lighting in 2013,
+so these are **observed** night colours, not the materials' daylight colours.
+
+Method: `scripts/measure-group.ts` aligned the building's drawn group with the photograph
+(`skyline.svg` places the image at x −15558.758, y −1754.2251, 26553.332 × 7086.6665 in the
+drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
+rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. Single pixels at this scale mix neighbouring materials, which
+the quartiles show; the medians are the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Limestone, south | 14400, 2560, 14760, 3290 | hue 10–50, sat ≥ 0.35, val 0.25–0.92 | 189,864 (72%) | `136, 96, 63` | 119–149 / 82–107 / 50–75 |
+| Limestone, east, for comparison | 14772, 2560, 14838, 3290 | as south | 4,297 (9%) | `107, 76, 45` | 77–137 / 53–99 / 33–58 |
+| Unlit glass | 14400, 2560, 14760, 3290 | val ≤ 0.22 | 1,788 (1%) | `47, 32, 34` | 39–53 / 27–36 / 26–41 |
+| Lit windows | 14400, 2560, 14760, 3290 | sat ≤ 0.35, val ≥ 0.80 | 35,404 (14%) | `250, 243, 242` | 240–254 / 227–251 / 222–251 |
+| Sign board | 14410, 2462, 14660, 2512 | hue 200–250, sat ≥ 0.30, val 0.15–0.75 | 6,647 (53%) | `36, 57, 128` | 18–60 / 45–71 / 95–145 |
+| Sign letters | 14410, 2462, 14660, 2512 | sat ≤ 0.25, val ≥ 0.85 | 3,230 (26%) | `249, 251, 254` | 240–253 / 245–254 / 250–255 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `limestone` `136, 96, 63`, the south front's floodlit piers and courses, and the penthouse; the
+  east face measures darker, which the model's own lighting already gives it.
+- `aluminium` takes the limestone's colour at its grey: the spandrels between the piers read the
+  same amber at this scale. Inferred.
+- `glass` `47, 32, 34`, from few pixels, since most panes are lit or tinted amber.
+- `sign board` `36, 57, 128` and `sign letters` `249, 251, 254`, the Prudential sign; the logo is
+  white too.
+- `lit window` `250, 243, 242`; `dim window` takes it at the dim windows' grey.
+- `dark metal` (the dark spandrels and louver backing), `stainless` (the mast) and `neutral`
+  (roofing) stay grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 2.1, on the building's surfaces of that material, and leaves its unmeasured ones
+grey. In the skyline view at 1600 × 900, the rendered south front's median is 0.95 of the
+photograph's in linear light.

@@ -139,3 +139,44 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+
+## 2026-10-09 — Night colours from the panorama (FID-COL-001)
+
+Source: `src/skyline.jpg`, the repository's 2013 night panorama from the Adler Planetarium's
+lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
+`f6001e46471ea59f6fc07ae0eb9e7d5d8d243666f57d96d7efc6f59f2d7d5db4`; photographer and exact date
+unknown; inspected 2026-10-09). It records the building under the city's night lighting in 2013,
+so these are **observed** night colours, not the materials' daylight colours.
+
+Method: `scripts/measure-group.ts` aligned the building's drawn group with the photograph
+(`skyline.svg` places the image at x −15558.758, y −1754.2251, 26553.332 × 7086.6665 in the
+drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
+rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. Single pixels at this scale mix neighbouring materials, which
+the quartiles show; the medians are the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Terracotta | 10830, 3010, 11110, 3240 | hue 25–60, sat ≥ 0.55, val 0.35–0.97 | 45,295 (70%) | `176, 132, 18` | 153–192 / 112–147 / 4–34 |
+| Frieze, for comparison | 10830, 2990, 11110, 3008 | as terracotta | 4,427 (88%) | `203, 156, 51` | 186–215 / 141–167 / 36–65 |
+| Lit windows | 10830, 3010, 11110, 3240 | sat ≤ 0.35, val ≥ 0.85 | 7,749 (12%) | `248, 238, 225` | 239–253 / 223–248 / 196–246 |
+| Unlit glass | 10830, 3010, 11110, 3240 | val ≤ 0.30 | 4,165 (7%) | `64, 41, 0` | 54–71 / 34–47 / 0–7 |
+| Copper roof | 10770, 2946, 10895, 2968 | hue 110–210, sat ≥ 0.10 | 1,277 (46%) | `100, 118, 115` | 79–116 / 93–135 / 92–134 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `white terracotta` `176, 132, 18`, the floodlit front, the band and the cornice; the frieze
+  measures lighter, as the model's lighter band and frieze greys render it.
+- `copper` `100, 118, 115`, the hipped roof, a weathered grey-green.
+- `glass` `64, 41, 0`: unlit panes read dark amber, their frames' floodlight spilling into them.
+- `lit window` `248, 238, 225`; `dim window` takes it at the dim windows' grey.
+- `common brick` takes the terracotta's colour at the plain walls' grey: the photograph does not
+  show those walls. Inferred.
+- `neutral` (the core and flat roofing) stays grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 2.1, on the building's surfaces of that material, and leaves its unmeasured ones
+grey. In the skyline view at 1600 × 900, the rendered front's median is 0.53 of the photograph's in
+linear light: the toon lights cannot raise the brightest floodlit faces to the photograph's level.
