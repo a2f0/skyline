@@ -376,7 +376,7 @@ describe("push signature enforcement", () => {
     const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-signatures-remote-"));
     const previousHead = git(["rev-parse", "HEAD"]).output.trim();
     try {
-      execFileSync("git", ["init", "--bare", "--quiet", remote]);
+      execFileSync("git", ["init", "--bare", "--quiet", "--initial-branch=unused", remote]);
       git(["remote", "add", "signatures", remote]);
       expect(git(["push", "signatures", "HEAD:refs/heads/main"]).ok).toBe(true);
       expect(git(["commit", "--no-gpg-sign", "--allow-empty", "-m", "test: unsigned ancestor"]).ok).toBe(true);
@@ -402,7 +402,7 @@ describe("push signature enforcement", () => {
     const source = path.join(repo, "scripts/check-signed-commits.ts");
     const original = readFileSync(source, "utf8");
     try {
-      execFileSync("git", ["init", "--bare", "--quiet", remote]);
+      execFileSync("git", ["init", "--bare", "--quiet", "--initial-branch=unused", remote]);
       writeFileSync(source, `${original}\n// changed\n`);
       const push = git(["push", remote, "HEAD:refs/heads/main"]);
       expect(push.ok).toBe(false);
