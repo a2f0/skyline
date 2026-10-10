@@ -99,10 +99,10 @@ Reference pages are research inputs only; the viewer downloads nothing from them
 
 ## 2026-10-10 — Daytime colours from Chicago.jpg (FID-COL-006)
 
-The colour trial's sunny day gains a fourth group: the towers the 2008 panorama shows north of
-Randolph Street, measured in it as the first three groups were (FID-COL-003 to FID-COL-005), and
-buildings it does not resolve, measured in daytime close-ups calibrated to it. All are shown at the
-same exposure.
+The colour trial's sunny day gains a fourth group of nine buildings: four towers measured on sunlit
+faces in the 2008 panorama, as the first three groups were (FID-COL-003 to FID-COL-005), and five
+buildings the panorama does not resolve, measured in daytime close-ups calibrated to it. All are
+shown at the same exposure.
 
 Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
 Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008

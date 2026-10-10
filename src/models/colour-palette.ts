@@ -183,8 +183,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     ...glass(0x3b3f42),
     neutral: null,
   },
-  // FID-COL-006, the towers the panorama shows north of Randolph and the river, on their sunlit
-  // south faces.
+  // FID-COL-006, four towers the panorama shows, measured on their sunlit south faces.
   // docs/buckingham-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
   "building-the-buckingham": {
     concrete: 0xc0beb6,

@@ -98,10 +98,10 @@ Reference pages are research inputs only; the viewer downloads nothing from them
 
 ## 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg (FID-COL-006)
 
-The colour trial's sunny day gains a fourth group: the towers the 2008 panorama shows north of
-Randolph Street, measured in it as the first three groups were (FID-COL-003 to FID-COL-005), and
-buildings it does not resolve, measured in daytime close-ups calibrated to it. All are shown at the
-same exposure.
+The colour trial's sunny day gains a fourth group of nine buildings: four towers measured on sunlit
+faces in the 2008 panorama, as the first three groups were (FID-COL-003 to FID-COL-005), and five
+buildings the panorama does not resolve, measured in daytime close-ups calibrated to it. All are
+shown at the same exposure.
 
 Sources:
 
@@ -153,7 +153,10 @@ close-up, which would make the calibrated brick too dark.
 Decisions in `src/models/colour-palette.ts`:
 
 - `orange brick` `101, 85, 75`, calibrated from `72, 61, 55`: the tower's brown brick piers and
-  spandrels.
+  spandrels. This is 0.47 of the panorama strip's `127, 123, 127` in linear light. The strip's
+  brightness is the tower's only where its few pixels are wholly lit brick, and haze lightening Aon
+  in the close-up would make the calibration too dark, so the brick may be up to twice as bright as
+  calibrated; its colour, which the strip cannot give, is the close-up's.
 - `bronze glass`, `dark metal`, `lit window` and `dim window` stay grey: the windows reflect the
   overcast, and the metal is not resolved.
 - `neutral` stays grey.
@@ -162,4 +165,4 @@ Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, 
 layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
 its null ones grey. In the skyline view at 1600 × 900 under the day lights, the view sees a sliver of
 its south face between Aon and Blue Cross, whose brick renders `100, 84, 74` against the calibrated
-`101, 85, 75`, 0.98 in linear light.
+`101, 85, 75`, 0.98 in linear light, and 0.46 of the panorama strip's.

@@ -139,8 +139,8 @@ are provisional. The wall's shaded fronts render 0.81 to 1.21 of the photograph'
 its sunlit south faces 0.77 to 0.86 of the photograph's, while the University Club's slate roof, lit
 by the scene's sun, renders 1.64. The fourth group's sunlit faces render 0.79 (the Buckingham's
 concrete) to 0.98 (the Hyatt's brick) of their photographs', 180 North Michigan's stone, lit by the
-scene's sun, 1.27, and the close-ups' Michigan fronts, in the scene's shade, 0.41 to 0.51 of their
-calibrated sunlit colours. The exposure is kept for all thirty. The scene's sun stands in
+scene's sun, 1.27, Swissôtel's sliver beside the Buckingham, partly in its shadow, 0.5, and the
+close-ups' Michigan fronts, in the scene's shade, 0.41 to 0.51 of their calibrated sunlit colours. The exposure is kept for all thirty. The scene's sun stands in
 the south-west, so the east faces the camera sees are in shade, as the photograph's are, and bluer,
 lit by the sky. `scripts/sample-colours.ts day` measures every colour again from the photographs,
 and `scripts/panorama-owners.ts` locates the mapped buildings in the panorama, pixel by pixel and

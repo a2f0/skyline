@@ -294,8 +294,9 @@ export const toneOf = (grey: number) => new THREE.Color(grey, grey, grey).getHex
 // lights their faces differently from the photograph's. On the Michigan Avenue wall (FID-COL-005),
 // whose shaded fronts are estimated as if sunlit, the fronts render 0.81 to 1.21 of the
 // photograph's shaded fronts and the south faces 0.77 to 0.86 of its sunlit ones. The next nine
-// (FID-COL-006) render 0.79 to 0.98 on sunlit faces, 1.27 on 180 North Michigan's stone, and 0.41 to
-// 0.51 of their calibrated sunlit colours on the close-ups' shaded Michigan fronts. docs/viewer.md
+// (FID-COL-006) render 0.79 to 0.98 on sunlit faces, 1.27 on 180 North Michigan's stone, 0.5 on
+// Swissôtel's half-shadowed sliver, and 0.41 to 0.51 of their calibrated sunlit colours on the
+// close-ups' shaded Michigan fronts. docs/viewer.md
 // and the audits give each.
 export const exposure = 1.4;
 

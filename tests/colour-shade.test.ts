@@ -38,7 +38,9 @@ describe("shade estimate", () => {
 
 // The buildings the panorama hides (FID-COL-006) are measured in close-ups, each calibrated through a
 // reference beside them that the panorama shows sunlit; these re-derive the palette's calibrated
-// entries from the medians their audits record.
+// entries from the medians their audits record. The medians are the audits' figures, not the
+// sampler's live table (scripts/sample-colours.ts runs as a command and measures in a browser), so
+// a changed sample row is caught here only once its audit and palette entry change with it.
 describe("close-up calibration", () => {
   test("gives the palette's calibrated colours from each close-up's reference and medians", () => {
     const references: Record<string, [panorama: number[], closeUp: number[]]> = {

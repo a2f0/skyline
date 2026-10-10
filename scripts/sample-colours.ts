@@ -436,25 +436,25 @@ command(usage, {}, async ({ positionals }) => {
     }
     // Each second photograph's calibration, measured when a chosen sample is in it.
     const calibrations = new Map<string, number[]>();
-    for (const photo of new Set(chosen.flatMap((id) => study.samples[id]!.flatMap((sample) => sample.photo && sample.material ? [sample.photo] : [])))) {
+    for (const photo of new Set(chosen.flatMap((id) => study.samples[id]!.flatMap((sample) => sample.photo ? [sample.photo] : [])))) {
       const reference = study.references?.[photo];
       if (!reference) continue;
-      const [building, own, other] = reference, [there, here] = [find(building, own), find(building, other)];
-      if (there.photo || here.photo !== photo) throw new Error(`${photo}'s reference rows must be in ${study.photo} and in ${photo}.`);
-      const [study_, photograph] = await Promise.all([there, here].map((sample) => page.evaluate(measure, { sample, photo: sample.photo ?? study.photo })));
-      calibrations.set(photo, channelRatios([[study_!.median, photograph!.median]]));
-      console.log(`Calibration of ${photo} through ${building}: \`${study_!.median.join(", ")}\` in ${study.photo}, \`${photograph!.median.join(", ")}\` in ${photo}, ratio ${calibrations.get(photo)!.map((ratio) => ratio.toFixed(2)).join(", ")}`);
+      const [building, own, other] = reference, [inPanorama, inCloseUp] = [find(building, own), find(building, other)];
+      if (inPanorama.photo || inCloseUp.photo !== photo) throw new Error(`${photo}'s reference rows must be in ${study.photo} and in ${photo}.`);
+      const [panoramaMedian, closeUpMedian] = (await Promise.all([inPanorama, inCloseUp].map((sample) => page.evaluate(measure, { sample, photo: sample.photo ?? study.photo })))).map((result) => result.median);
+      calibrations.set(photo, channelRatios([[panoramaMedian!, closeUpMedian!]]));
+      console.log(`Calibration of ${photo} through ${building}: \`${panoramaMedian!.join(", ")}\` in ${study.photo}, \`${closeUpMedian!.join(", ")}\` in ${photo}, ratio ${calibrations.get(photo)!.map((ratio) => ratio.toFixed(2)).join(", ")}`);
     }
     for (const id of chosen) {
       console.log(`\n${id}\n`);
       const entries: string[] = [], calibrated: string[] = [];
       for (const sample of study.samples[id]!) {
+        if (sample.photo && sample.shaded) throw new Error(`"${sample.row}" is in ${sample.photo} and shaded; a second photograph's samples take its own light.`);
         const result = await page.evaluate(measure, { sample, photo: sample.photo ?? study.photo });
         const rule = [sample.hue && `hue ${range(sample.hue)}`, sample.sat && `sat ${range(sample.sat)}`, sample.val && `val ${range(sample.val)}`].filter(Boolean).join(", ");
         console.log(`| ${sample.row} | ${sample.box.join(", ")}${sample.photo ? ` in ${sample.photo}` : ""} | ${rule || "all"} | ${number(result.count)} (${(result.share * 100).toFixed(1)}%) | \`${result.median.join(", ")}\` | ${result.quartiles.map(([low, high]) => `${low}–${high}`).join(" / ")} |`);
         if (sample.photo && calibrations.has(sample.photo) && !sample.material) calibrated.push(`"${sample.row}" calibrated: \`${scaled(result.median, calibrations.get(sample.photo)!).join(", ")}\``);
         if (!sample.material) continue;
-        if (sample.photo && sample.shaded) throw new Error(`"${sample.row}" is in ${sample.photo} and shaded; a second photograph's samples take its own light.`);
         if (sample.photo && calibrations.has(sample.photo)) {
           const value = scaled(result.median, calibrations.get(sample.photo)!);
           entries.push(`    ${JSON.stringify(sample.material)}: ${hex(value)}, // calibrated \`${value.join(", ")}\` of \`${result.median.join(", ")}\` in ${sample.photo}`);
