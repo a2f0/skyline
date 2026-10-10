@@ -95,3 +95,71 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg (FID-COL-006)
+
+The colour trial's sunny day gains a fourth group: the towers the 2008 panorama shows north of
+Randolph Street, measured in it as the first three groups were (FID-COL-003 to FID-COL-005), and
+buildings it does not resolve, measured in daytime close-ups calibrated to it. All are shown at the
+same exposure.
+
+Sources:
+
+- [Hyatt Regency Chicago, circa 2007.jpg](https://commons.wikimedia.org/wiki/File:Hyatt_Regency_Chicago,_circa_2007.jpg)
+  on Wikimedia Commons, by Atomic Taco on the English Wikipedia, uploaded on 4 July 2007: the hotel's
+  two brick towers under an overcast sky, from the north, with Aon behind them; its description names
+  the right-hand tower the West Tower (CC BY-SA 2.5; accessed 2026-10-10). Measured in Commons'
+  1280 × 960 px rendition,
+  `https://thumb.wikimedia.org/wikipedia/commons/thumb/4/42/Hyatt_Regency_Chicago%2C_circa_2007.jpg/1280px-Hyatt_Regency_Chicago%2C_circa_2007.jpg`
+  (SHA-256 `a338fcff7fa4a962ff8a176d7a29158ce5f8da154e3e266bf3bcabc7a7499ac3`).
+- [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg), Daniel Schwen's 2008 daytime
+  panorama the trial's colours come from (CC BY-SA 4.0), for the reference: Aon's white granite,
+  sunlit there at `223, 223, 221` (`aon-reference.md`, FID-COL-003).
+
+Neither photograph is in the repository. In the panorama the tower shows between Aon and Blue Cross
+at x 1884–1894 (`bun scripts/panorama-owners.ts building-hyatt-regency-west-tower`), four or five
+pixels to a face, where the rendition's colour, stored at half resolution, mixes with its
+neighbours': its sunlit brick there measures a neutral `127, 123, 127`, so the panorama gives its
+brightness but not its colour.
+
+Method: each sample is a box in the close-up's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, and the per-channel sRGB
+median of those pixels (0–255), with their count, their share of the box and the quartiles of red,
+green and blue, as in the panorama. `bun scripts/sample-colours.ts day building-hyatt-regency-west-tower` downloads the
+photographs once, checks their SHA-256, and reproduces these rows, the calibration and the palette's
+entries, decoding in Chrome without colour management.
+
+Calibration: the close-up's colours are carried into the panorama's light through a reference
+beside them, on the same front and in the same light, that the panorama shows sunlit. Each channel's
+ratio, in linear light, between the reference's median in the panorama and its median in the
+close-up scales the close-up's medians, and the colour is scaled back to white if it passes, keeping
+its hue: the same arithmetic as FID-COL-005's shade estimate (`scripts/lib/shade.ts`).
+`tests/colour-shade.test.ts` re-derives the palette's calibrated entries from the medians below. The
+calibration assumes the reference and the building share one light and that the reference's
+material reads the same on its two faces; it carries a close-up's exposure, white balance and
+light, not its viewpoint, so it is provisional, like the shade estimate.
+
+Here the reference is Aon's granite behind the towers, under the same cloud: `163, 165, 168` there
+(box 530, 130, 610, 380, sat 0–0.12, val 0.6–1, the rule of Aon's panorama sample; 7,365 pixels,
+36.8%), against `223, 223, 221` in the panorama, a ratio of 2.01, 1.96 and 1.85 in red, green and
+blue. Aon stands several hundred metres behind the hotel, and haze over it would lighten it in the
+close-up, which would make the calibrated brick too dark.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Brick, overcast | 740, 150, 930, 550 in the close-up | hue 340–50, sat 0.12–1, val 0.15–1 | 48,154 (63.4%) | `72, 61, 55` | 66–77 / 55–69 / 50–62 |
+| Brick, south face, panorama, for comparison | 1885, 400, 1889, 434 in Chicago.jpg | val 0.35–1 | 98 (72.1%) | `127, 123, 127` | 87–140 / 88–134 / 98–136 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `orange brick` `101, 85, 75`, calibrated from `72, 61, 55`: the tower's brown brick piers and
+  spandrels.
+- `bronze glass`, `dark metal`, `lit window` and `dim window` stay grey: the windows reflect the
+  overcast, and the metal is not resolved.
+- `neutral` stays grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, the view sees a sliver of
+its south face between Aon and Blue Cross, whose brick renders `100, 84, 74` against the calibrated
+`101, 85, 75`, 0.98 in linear light.

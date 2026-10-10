@@ -73,9 +73,9 @@ Together they cover:
   sourced buildings measure every material they use and show those colours, that their audits
   record each measured colour, and that it restores the greys exactly
   (`tests/colour-materials.test.ts`);
-- that the colour trial's panorama fit holds and gives each Michigan Avenue sample to its building
-  and face (`tests/panorama-owners.test.ts`), and that its shaded fronts' estimates follow from
-  their recorded medians (`tests/colour-shade.test.ts`).
+- that the colour trial's panorama fit holds and gives each wall sample to its building and face
+  (`tests/panorama-owners.test.ts`), and that its shaded fronts' estimates and its close-ups'
+  calibrated colours follow from their recorded medians (`tests/colour-shade.test.ts`).
 
 Screenshots are written to `/tmp/skyline-3d-*.png` and `/tmp/skyline-group-*.png`.
 

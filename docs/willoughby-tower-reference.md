@@ -189,3 +189,12 @@ Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, 
 layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
 its null ones grey. In the skyline view at 1600 × 900 under the day lights, the limestone renders
 `189, 187, 170` under the photograph's rule, 0.93 of the photograph's brightness in linear light.
+
+## 2026-10-10 — Calibration reference for a close-up (FID-COL-006)
+
+The sampler's day study also measures this tower's limestone on its Michigan front in Diego Delso's
+2012 overcast close-up of the Chicago Athletic Association, `179, 174, 166` (box 862, 0, 900, 780,
+sat 0–0.35, val 0.5–1), as the reference that calibrates that close-up to the panorama for the
+Athletic Association and the Gage Building (`chicago-athletic-association-reference.md` and
+`gage-reference.md`). `bun scripts/sample-colours.ts day building-willoughby-tower` prints that row after the
+FID-COL-004 rows; this building's palette entry is unchanged.

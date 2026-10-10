@@ -159,3 +159,53 @@ photographs and, if it stood in 2013, model it with the arms' precast and window
 photographed height, or record why it stays omitted.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-10 — Daytime colours from Chicago.jpg (FID-COL-006)
+
+The colour trial's sunny day gains a fourth group: the towers the 2008 panorama shows north of
+Randolph Street, measured in it as the first three groups were (FID-COL-003 to FID-COL-005), and
+buildings it does not resolve, measured in daytime close-ups calibrated to it. All are shown at the
+same exposure.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-10). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. No change to these materials between 2008 and the drawing's 2013 panorama is known to
+this audit.
+
+Identification: `bun scripts/panorama-owners.ts building-buckingham-east` places the hotel's south
+face at x 2127–2151 and its corner drum's faces at x 2152–2162, its roof at row 412, with the photographer's eye fitted as for FID-COL-005, 10 m east and 100 m
+south of the drawing's fitted eye, at 1.6 px RMS: a ray from that eye through each pixel meets the
+nearest mapped part, which owns the pixel, and the face it meets gives the pixel's direction. The
+photograph shows a white precast block with a grid of windows at x 2127–2142, its top at about row
+408; from x 2143 a taller tower the layout does not map stands in front of the rest. The box below
+lies wholly on the south face, as the script's `--box` option reports and
+`tests/panorama-owners.test.ts` checks.
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-buckingham-east`
+downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
+entries, decoding in Chrome without colour management.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Precast, south face, sunlit | 2129, 418, 2141, 466 | sat 0–0.35, val 0.5–1 | 456 (79.2%) | `220, 218, 206` | 189–237 / 185–235 / 175–224 |
+| Glass, south face | 2129, 418, 2141, 466 | val 0–0.3 | 76 (13.2%) | `29, 29, 19` | 10–46 / 6–44 / 0–33 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `precast` `220, 218, 206`, the sunlit south face's warm white precast.
+- `glass` `29, 29, 19`, a small sample (76 pixels); `lit window` and `dim window` take it exactly,
+  since no office lights show by day.
+- `maroon`, the drums' alternate fins, and `neutral` stay grey: the photograph does not resolve the
+  fins, and the unmapped tower hides the drums.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. The skyline view at 1600 × 900 frames the hotel just beyond its right edge, so
+the check there has nothing to read; the other views show it in these colours.

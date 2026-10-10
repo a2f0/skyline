@@ -9,7 +9,10 @@
 // downloaded once into the repository's ignored node_modules/.cache, not a shared temporary
 // directory, and checked against its SHA-256; Chrome decodes each without colour management, so
 // the values are the file's own. A sample on a face in shade can be marked shaded: the palette
-// then takes its sunlit estimate, through the shade factors the study's paired samples give.
+// then takes its sunlit estimate, through the shade factors the study's paired samples give. A
+// sample in a second photograph, for a building the study's own does not resolve, takes that
+// photograph's calibration where the study gives it a reference: the ratio between one material's
+// medians in the study's photograph and in the second, measured beside it in the same light.
 // Locate new boxes in skyline.jpg with scripts/measure-group.ts, whose photo crop frames a
 // building there, and in the day panorama with scripts/panorama-owners.ts, which reports the
 // share of a box a building owns on one face.
@@ -17,7 +20,7 @@ import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { Browser } from "playwright";
-import { hex, shadeFactors, sunlitEstimate } from "./lib/shade.js";
+import { channelRatios, hex, scaled } from "./lib/shade.js";
 import { startServer } from "./lib/static-server.js";
 import { launch, command } from "./lib/study-page.js";
 
@@ -46,6 +49,11 @@ interface Study {
   /** Pairs of one material's sunlit and shaded samples, by building and row, whose mean per-channel
    *  ratio in linear light estimates a shaded sample's sunlit colour. One pair will do. */
   shade?: [building: string, sunlit: string, shaded: string][];
+  /** For each second photograph, a reference material's rows, in the study's photograph and in the
+   *  second, beside and in the same light as the samples it calibrates; its per-channel ratio in
+   *  linear light carries a second photograph's samples into the study's. A second photograph
+   *  without one gives its values as measured. */
+  references?: Record<string, [building: string, study: string, photograph: string]>;
 }
 interface Result {
   count: number;
@@ -61,6 +69,18 @@ const photos: Record<string, Photo> = {
   "blue-cross-2022.jpg": {
     source: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Blue_Cross_Blue_Shield_Tower%2C_Chicago%2C_Illinois%2C_US_%28PPL1-Corrected%29_julesvernex2.jpg/1920px-Blue_Cross_Blue_Shield_Tower%2C_Chicago%2C_Illinois%2C_US_%28PPL1-Corrected%29_julesvernex2.jpg",
     sha256: "0bbb057c7adae72dc5456c546b5109df56cec0f91bf81911f0f2bcb39f117edf",
+  },
+  "athletic-association-2012.jpg": {
+    source: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Edificio_de_la_Chicago_Athletic_Association%2C_Chicago%2C_Illinois%2C_Estados_Unidos%2C_2012-10-20%2C_DD_01.jpg/960px-Edificio_de_la_Chicago_Athletic_Association%2C_Chicago%2C_Illinois%2C_Estados_Unidos%2C_2012-10-20%2C_DD_01.jpg",
+    sha256: "444f4531e9f9f138dd5f7905f979984fc2a7e55dffb3ad8b4113f5b874900cc7",
+  },
+  "gage-group-2012.jpg": {
+    source: "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/Gage_Group_Buildings.jpg/1280px-Gage_Group_Buildings.jpg",
+    sha256: "3156c19dee13fd217372d4972263e2e2cda1a77674d610aabf375a661afbb953",
+  },
+  "hyatt-regency-2007.jpg": {
+    source: "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/42/Hyatt_Regency_Chicago%2C_circa_2007.jpg/1280px-Hyatt_Regency_Chicago%2C_circa_2007.jpg",
+    sha256: "a338fcff7fa4a962ff8a176d7a29158ce5f8da154e3e266bf3bcabc7a7499ac3",
   },
 };
 
@@ -145,6 +165,7 @@ const day: Record<string, Sample[]> = {
     { row: "Granite, sunlit", material: "white granite", box: [1815, 160, 1860, 450], sat: [0, 0.12], val: [0.6, 1] },
     { row: "Glass", material: "glass", box: [1815, 160, 1860, 450], val: [0, 0.4] },
     { row: "Shaded face, for comparison", material: null, box: [1852, 170, 1866, 440] },
+    { row: "Granite, overcast", material: null, photo: "hyatt-regency-2007.jpg", box: [530, 130, 610, 380], sat: [0, 0.12], val: [0.6, 1] },
   ],
   "building-blue-cross-blue-shield": [
     { row: "Glass and spandrels", material: "glass", box: [1910, 375, 1980, 465] },
@@ -157,6 +178,7 @@ const day: Record<string, Sample[]> = {
     { row: "Limestone, sunlit", material: "limestone", box: [1373, 357, 1386, 395], sat: [0, 0.35], val: [0.5, 1] },
     { row: "Glass", material: "glass", box: [1373, 357, 1386, 395], val: [0, 0.4] },
     { row: "Shaded face, for comparison", material: null, box: [1387, 357, 1395, 395] },
+    { row: "Limestone, Michigan front, overcast", material: null, photo: "athletic-association-2012.jpg", box: [862, 0, 900, 780], sat: [0, 0.35], val: [0.5, 1] },
   ],
   "building-heritage-at-millennium-park": [
     { row: "Frame, sunlit", material: "limestone", box: [1468, 315, 1480, 395], sat: [0, 0.15], val: [0.65, 1] },
@@ -214,6 +236,7 @@ const day: Record<string, Sample[]> = {
     { row: "Limestone, south face, sunlit", material: "limestone", box: [1306, 438, 1317, 462], sat: [0, 0.35], val: [0.5, 1] },
     { row: "Dark pixels, south face, for comparison", material: null, box: [1306, 438, 1317, 462], val: [0, 0.3] },
     { row: "Slate roof", material: "slate", box: [1310, 428, 1332, 436] },
+    { row: "Limestone, Michigan front, sunlit", material: null, photo: "gage-group-2012.jpg", box: [10, 480, 125, 800], sat: [0, 0.35], val: [0.5, 1] },
   ],
   "building-six-north-michigan": [
     { row: "Brick, south face, sunlit", material: "buff brick", box: [1406, 412, 1420, 460], sat: [0, 0.35], val: [0.5, 1] },
@@ -224,6 +247,48 @@ const day: Record<string, Sample[]> = {
     { row: "Common brick, south wall, sunlit", material: "common brick", box: [1440, 418, 1466, 460], sat: [0, 0.35], val: [0.5, 1] },
     { row: "Terracotta, Michigan front, shaded", material: "white terracotta", box: [1468, 418, 1485, 460], sat: [0, 0.35], val: [0.45, 1], shaded: true },
     { row: "Glass, Michigan front", material: "glass", box: [1468, 418, 1485, 460], val: [0, 0.3] },
+  ],
+  // FID-COL-006, the towers north of the river and beside the Illinois Center, sunlit on their south
+  // faces where the panorama shows them.
+  "building-the-buckingham": [
+    { row: "Concrete, south face, sunlit", material: "concrete", box: [2086, 380, 2108, 465], sat: [0, 0.35], val: [0.5, 1] },
+    { row: "Glass, south face", material: "bronze glass", box: [2086, 380, 2108, 465], val: [0, 0.3] },
+    { row: "Concrete, east face, shaded, for comparison", material: null, box: [2114, 380, 2123, 465], sat: [0, 0.35], val: [0.4, 1] },
+  ],
+  "building-buckingham-east": [
+    { row: "Precast, south face, sunlit", material: "precast", box: [2129, 418, 2141, 466], sat: [0, 0.35], val: [0.5, 1] },
+    { row: "Glass, south face", material: "glass", box: [2129, 418, 2141, 466], val: [0, 0.3] },
+  ],
+  "building-swissotel": [
+    { row: "Curtain wall, south face", material: "blue-green glass", box: [2070, 372, 2077, 465] },
+  ],
+  "building-michigan-plaza-front-middle": [
+    { row: "Stone top floor, south face, sunlit", material: "limestone", box: [1619, 413, 1629, 420], sat: [0, 0.35], val: [0.5, 1] },
+    { row: "Brick, south face, in Crain's shadow, for comparison", material: null, box: [1612, 421, 1629, 465], val: [0.15, 1] },
+    { row: "Glass, south face, in Crain's shadow", material: null, box: [1612, 421, 1629, 465], val: [0, 0.15] },
+  ],
+  // FID-COL-006, Michigan Avenue fronts Grant Park's trees hide in the panorama, measured in a
+  // close-up under an overcast sky and calibrated through a neighbour on the same front that the
+  // panorama shows sunlit (the study's references).
+  "building-chicago-athletic-association": [
+    { row: "Brick, Michigan front, overcast", material: "brick", photo: "athletic-association-2012.jpg", box: [85, 95, 840, 780], hue: [340, 40], sat: [0.25, 1], val: [0.25, 1] },
+    { row: "Limestone band, Michigan front, overcast", material: "limestone", photo: "athletic-association-2012.jpg", box: [85, 290, 840, 400], sat: [0, 0.2], val: [0.5, 1] },
+    { row: "Brick, Michigan front, sunlit, for comparison", material: null, photo: "gage-group-2012.jpg", box: [1180, 400, 1280, 1300], hue: [340, 40], sat: [0.25, 1], val: [0.3, 1] },
+  ],
+  "building-michigan-west-right": [
+    { row: "Terracotta pier, Michigan front, overcast", material: "white terracotta", photo: "athletic-association-2012.jpg", box: [44, 0, 72, 700], sat: [0, 0.35], val: [0.5, 1] },
+  ],
+  "building-michigan-west-front": [
+    { row: "Brick, Michigan front, sunlit", material: "brick", photo: "gage-group-2012.jpg", box: [305, 750, 640, 1390], hue: [340, 40], sat: [0.25, 1], val: [0.3, 1] },
+  ],
+  "building-30-south-michigan": [
+    { row: "Brick, Michigan front, sunlit", material: "brick", photo: "gage-group-2012.jpg", box: [90, 800, 295, 1390], hue: [340, 40], sat: [0.25, 1], val: [0.3, 1] },
+  ],
+  // The Hyatt Regency's west tower stands behind Aon and Blue Cross in the panorama, a few pixels
+  // wide; measured in a close-up under an overcast sky, calibrated through Aon's granite behind it.
+  "building-hyatt-regency-west-tower": [
+    { row: "Brick, overcast", material: "orange brick", photo: "hyatt-regency-2007.jpg", box: [740, 150, 930, 550], hue: [340, 50], sat: [0.12, 1], val: [0.15, 1] },
+    { row: "Brick, south face, panorama, for comparison", material: null, box: [1885, 400, 1889, 434], val: [0.35, 1] },
   ],
   // The sky, for colour-palette.ts's daylightColours.
   sky: [
@@ -241,6 +306,15 @@ const studies: Record<string, Study> = {
     shade: [
       ["building-railway-exchange", "Terracotta, Jackson front, sunlit", "Terracotta, Michigan front, shaded, for comparison"],
     ],
+    // Each close-up's reference: a material the panorama shows sunlit, on the close-up's front beside
+    // the buildings it calibrates, in their light: Willoughby Tower's limestone beside the Athletic
+    // Association and the Gage Building, the University Club's beside the Ascher and Keith
+    // Buildings, and Aon's granite behind the Hyatt Regency.
+    references: {
+      "athletic-association-2012.jpg": ["building-willoughby-tower", "Limestone, sunlit", "Limestone, Michigan front, overcast"],
+      "gage-group-2012.jpg": ["building-university-club", "Limestone, south face, sunlit", "Limestone, Michigan front, sunlit"],
+      "hyatt-regency-2007.jpg": ["layer3", "Granite, sunlit", "Granite, overcast"],
+    },
   },
   night: { photo: "skyline.jpg", samples: night },
 };
@@ -328,6 +402,10 @@ command(usage, {}, async ({ positionals }) => {
   // The chosen samples' photographs, and the shade pairs' where a chosen sample is shaded.
   const needed = chosen.flatMap((id) => study.samples[id]!);
   if (needed.some((sample) => sample.shaded)) for (const [building, ...rows] of study.shade ?? []) needed.push(...(study.samples[building] ?? []).filter((sample) => rows.includes(sample.row)));
+  for (const photo of new Set(needed.flatMap((sample) => sample.photo ? [sample.photo] : []))) {
+    const reference = study.references?.[photo];
+    if (reference) needed.push(...(study.samples[reference[0]] ?? []).filter((sample) => reference.includes(sample.row)));
+  }
   for (const photo of new Set(needed.map((sample) => sample.photo ?? study.photo))) await fetchPhoto(photo, directory);
   writeFileSync(path.join(directory, "blank.html"), "<!doctype html>");
   const server = await startServer(directory);
@@ -351,23 +429,42 @@ command(usage, {}, async ({ positionals }) => {
       for (const [building, sunlit, shaded] of study.shade) {
         const [bright, dark] = await Promise.all([find(building, sunlit), find(building, shaded)].map((sample) => page.evaluate(measure, { sample, photo: sample.photo ?? study.photo })));
         pairs.push([bright!.median, dark!.median]);
-        console.log(`Shade pair ${building}: \`${bright!.median.join(", ")}\` sunlit, \`${dark!.median.join(", ")}\` shaded, ratio ${shadeFactors([pairs.at(-1)!]).map((ratio) => ratio.toFixed(2)).join(", ")}`);
+        console.log(`Shade pair ${building}: \`${bright!.median.join(", ")}\` sunlit, \`${dark!.median.join(", ")}\` shaded, ratio ${channelRatios([pairs.at(-1)!]).map((ratio) => ratio.toFixed(2)).join(", ")}`);
       }
-      factors = shadeFactors(pairs);
+      factors = channelRatios(pairs);
       console.log(`Shade factors${pairs.length > 1 ? ", the pairs' mean" : ""}: ${factors.map((factor) => factor.toFixed(2)).join(", ")}`);
+    }
+    // Each second photograph's calibration, measured when a chosen sample is in it.
+    const calibrations = new Map<string, number[]>();
+    for (const photo of new Set(chosen.flatMap((id) => study.samples[id]!.flatMap((sample) => sample.photo && sample.material ? [sample.photo] : [])))) {
+      const reference = study.references?.[photo];
+      if (!reference) continue;
+      const [building, own, other] = reference, [there, here] = [find(building, own), find(building, other)];
+      if (there.photo || here.photo !== photo) throw new Error(`${photo}'s reference rows must be in ${study.photo} and in ${photo}.`);
+      const [study_, photograph] = await Promise.all([there, here].map((sample) => page.evaluate(measure, { sample, photo: sample.photo ?? study.photo })));
+      calibrations.set(photo, channelRatios([[study_!.median, photograph!.median]]));
+      console.log(`Calibration of ${photo} through ${building}: \`${study_!.median.join(", ")}\` in ${study.photo}, \`${photograph!.median.join(", ")}\` in ${photo}, ratio ${calibrations.get(photo)!.map((ratio) => ratio.toFixed(2)).join(", ")}`);
     }
     for (const id of chosen) {
       console.log(`\n${id}\n`);
-      const entries: string[] = [];
+      const entries: string[] = [], calibrated: string[] = [];
       for (const sample of study.samples[id]!) {
         const result = await page.evaluate(measure, { sample, photo: sample.photo ?? study.photo });
         const rule = [sample.hue && `hue ${range(sample.hue)}`, sample.sat && `sat ${range(sample.sat)}`, sample.val && `val ${range(sample.val)}`].filter(Boolean).join(", ");
         console.log(`| ${sample.row} | ${sample.box.join(", ")}${sample.photo ? ` in ${sample.photo}` : ""} | ${rule || "all"} | ${number(result.count)} (${(result.share * 100).toFixed(1)}%) | \`${result.median.join(", ")}\` | ${result.quartiles.map(([low, high]) => `${low}–${high}`).join(" / ")} |`);
+        if (sample.photo && calibrations.has(sample.photo) && !sample.material) calibrated.push(`"${sample.row}" calibrated: \`${scaled(result.median, calibrations.get(sample.photo)!).join(", ")}\``);
         if (!sample.material) continue;
+        if (sample.photo && sample.shaded) throw new Error(`"${sample.row}" is in ${sample.photo} and shaded; a second photograph's samples take its own light.`);
+        if (sample.photo && calibrations.has(sample.photo)) {
+          const value = scaled(result.median, calibrations.get(sample.photo)!);
+          entries.push(`    ${JSON.stringify(sample.material)}: ${hex(value)}, // calibrated \`${value.join(", ")}\` of \`${result.median.join(", ")}\` in ${sample.photo}`);
+          continue;
+        }
         if (!sample.shaded) { entries.push(`    ${JSON.stringify(sample.material)}: ${hex(result.median)},`); continue; }
-        const estimate = sunlitEstimate(result.median, factors!);
+        const estimate = scaled(result.median, factors!);
         entries.push(`    ${JSON.stringify(sample.material)}: ${hex(estimate)}, // sunlit estimate \`${estimate.join(", ")}\` of the shaded \`${result.median.join(", ")}\``);
       }
+      if (calibrated.length) console.log(`\n${calibrated.join("\n")}`);
       console.log(`\n${entries.join("\n")}`);
     }
   } finally {

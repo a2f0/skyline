@@ -96,3 +96,52 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-10 — Daytime colours from Chicago.jpg (FID-COL-006)
+
+The colour trial's sunny day gains a fourth group: the towers the 2008 panorama shows north of
+Randolph Street, measured in it as the first three groups were (FID-COL-003 to FID-COL-005), and
+buildings it does not resolve, measured in daytime close-ups calibrated to it. All are shown at the
+same exposure.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-10). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. No change to these materials between 2008 and the drawing's 2013 panorama is known to
+this audit.
+
+Identification: `bun scripts/panorama-owners.ts building-swissotel` places the hotel's south face
+at x 2070–2112 from row 368, with the photographer's eye fitted as for FID-COL-005, 10 m east and 100 m
+south of the drawing's fitted eye, at 1.6 px RMS: a ray from that eye through each pixel meets the
+nearest mapped part, which owns the pixel, and the face it meets gives the pixel's direction. The Buckingham, in front, leaves it the strip at x 2070–2078 below
+its own roof and the few rows above. The photograph shows a dark tower of reflective glass, with a
+light crown, at x 2067–2076, its top at about row 366, within three pixels of the prediction. The
+box below lies wholly on that face, as the script's `--box` option reports and
+`tests/panorama-owners.test.ts` checks.
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-swissotel`
+downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
+entries, decoding in Chrome without colour management.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Curtain wall, south face | 2070, 372, 2077, 465 | all | 651 (100.0%) | `71, 80, 86` | 51–88 / 64–97 / 74–102 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `blue-green glass` `71, 80, 86`, the curtain wall's reflective glass as the photograph shows it,
+  seven pixels wide; `lit window` and `dim window` take it exactly, since no office lights show by
+  day.
+- `neutral` stays grey. The white podium is below Grant Park's trees in the photograph.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, the view sees a sliver of
+its south face beside the Buckingham, partly in its shadow: it renders `50, 56, 61` at its median
+against the photograph's `71, 80, 86`, 0.5 in linear light, and 0.75 where it is out of the shadow.

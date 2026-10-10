@@ -160,3 +160,75 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg (FID-COL-006)
+
+The colour trial's sunny day gains a fourth group: the towers the 2008 panorama shows north of
+Randolph Street, measured in it as the first three groups were (FID-COL-003 to FID-COL-005), and
+buildings it does not resolve, measured in daytime close-ups calibrated to it. All are shown at the
+same exposure.
+
+Sources:
+
+- [Edificio de la Chicago Athletic Association, Chicago, Illinois, Estados Unidos, 2012-10-20, DD 01.jpg](https://commons.wikimedia.org/wiki/File:Edificio_de_la_Chicago_Athletic_Association,_Chicago,_Illinois,_Estados_Unidos,_2012-10-20,_DD_01.jpg)
+  on Wikimedia Commons, Diego Delso's straight view of the Athletic Association's Michigan front on
+  20 October 2012 under an overcast sky, with the Gage Building's north edge at its left and
+  Willoughby Tower's front at its right (CC BY-SA 3.0; accessed 2026-10-10). Measured in Commons'
+  960 × 1556 px rendition,
+  `https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Edificio_de_la_Chicago_Athletic_Association%2C_Chicago%2C_Illinois%2C_Estados_Unidos%2C_2012-10-20%2C_DD_01.jpg/960px-Edificio_de_la_Chicago_Athletic_Association%2C_Chicago%2C_Illinois%2C_Estados_Unidos%2C_2012-10-20%2C_DD_01.jpg`
+  (SHA-256 `444f4531e9f9f138dd5f7905f979984fc2a7e55dffb3ad8b4113f5b874900cc7`).
+- [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg), Daniel Schwen's 2008 daytime
+  panorama the trial's colours come from (CC BY-SA 4.0), for the reference: Willoughby Tower's
+  limestone, sunlit there at `204, 189, 171` (`willoughby-tower-reference.md`, FID-COL-004).
+
+Neither photograph is in the repository. In the panorama Grant Park's trees cover this front but for
+its top 10–15 pixels.
+
+Method: each sample is a box in the close-up's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, and the per-channel sRGB
+median of those pixels (0–255), with their count, their share of the box and the quartiles of red,
+green and blue, as in the panorama. `bun scripts/sample-colours.ts day building-michigan-west-right` downloads the
+photographs once, checks their SHA-256, and reproduces these rows, the calibration and the palette's
+entries, decoding in Chrome without colour management.
+
+Calibration: the close-up's colours are carried into the panorama's light through a reference
+beside them, on the same front and in the same light, that the panorama shows sunlit. Each channel's
+ratio, in linear light, between the reference's median in the panorama and its median in the
+close-up scales the close-up's medians, and the colour is scaled back to white if it passes, keeping
+its hue: the same arithmetic as FID-COL-005's shade estimate (`scripts/lib/shade.ts`).
+`tests/colour-shade.test.ts` re-derives the palette's calibrated entries from the medians below. The
+calibration assumes the reference and the building share one light and that the reference's
+material reads the same on its two faces; it carries a close-up's exposure, white balance and
+light, not its viewpoint, so it is provisional, like the shade estimate.
+
+Here the reference is Willoughby Tower's limestone on the close-up's right edge, on the same front
+and under the same cloud as the Gage Building's north edge at the left: `179, 174, 166` there (box
+862, 0, 900, 780, sat 0–0.35, val 0.5–1; 25,332 pixels, 85.5%), against `204, 189, 171` in the
+panorama, a ratio of 1.34, 1.20 and 1.07 in red, green and blue.
+
+Identification: the close-up's left edge shows a front of white glazed terracotta blocks between
+windows, with Louis Sullivan's foliate ornament at each floor; the Gage Building is the Athletic
+Association's southern neighbour. The box takes its plain pier, clear of the windows, whose
+reflected sky is as light as the terracotta.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Terracotta pier, Michigan front, overcast | 44, 0, 72, 700 in the close-up | sat 0–0.35, val 0.5–1 | 18,820 (96.0%) | `204, 199, 193` | 194–209 / 189–205 / 181–200 |
+
+The Gage group close-up (`keith-ascher-reference.md`) shows this front sunlit too, but its windows
+reflect a bright sky that a rule on the terracotta cannot separate there, so it is not used.
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `white terracotta` `232, 216, 199`, calibrated from `204, 199, 193`: the front's cream terracotta;
+  the cartouches take it.
+- `common brick`, the side walls above the neighbours, stays grey: neither photograph shows them.
+- `glass`, `lit window` and `dim window` stay grey: under the overcast the windows reflect the cloud.
+- `neutral` stays grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, the view sees the top of
+the Michigan front, facing east into the scene's shade: it renders `156, 153, 150` against the
+calibrated sunlit `232, 216, 199`, 0.47 in linear light, and the grey south wall above the Keith
+Building beside it.

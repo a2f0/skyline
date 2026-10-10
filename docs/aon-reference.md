@@ -331,3 +331,11 @@ In the skyline view at 1600 × 900 under the day lights, the south piers render 
 the photograph's rule, 0.86 of the photograph's brightness in linear light; the granite just passes
 white at its own grey at this exposure. The east face renders `106, 122, 137` against the
 photograph's `129, 135, 136`, 0.83, and bluer, its shade lit by the sky's colour.
+
+## 2026-10-10 — Calibration reference for a close-up (FID-COL-006)
+
+The sampler's day study also measures Aon's granite in an overcast close-up of the Hyatt Regency
+from about 2007, `163, 165, 168` (box 530, 130, 610, 380, sat 0–0.12, val 0.6–1), as the reference
+that calibrates that close-up to the panorama for the Hyatt Regency's west tower
+(`hyatt-west-tower-reference.md`). `bun scripts/sample-colours.ts day layer3` prints that row after the
+FID-COL-003 rows; this building's palette entry is unchanged.
