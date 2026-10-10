@@ -122,7 +122,8 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   },
   // FID-COL-005, the Michigan Avenue wall. Its fronts face east, into the photograph's shade; where a
   // building shows only that front, its stone or terracotta is the shaded median's sunlit estimate,
-  // through the panorama's shade-to-sun factors (scripts/sample-colours.ts, the day study's shade).
+  // through the shade-to-sun ratio of the Railway Exchange's terracotta (scripts/sample-colours.ts,
+  // the day study's shade).
   // docs/borg-warner-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
   "building-200-south-michigan": {
     "blue enamel": 0x828a93,
@@ -141,19 +142,19 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   },
   // docs/lake-view-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg; limestone estimated.
   "building-lakeview": {
-    limestone: 0xc3bdb5,
+    limestone: 0xc8c4bb,
     ...glass(0x0c161e),
     neutral: null,
   },
   // docs/maclean-center-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg; limestone estimated.
   "building-maclean-center": {
-    limestone: 0xd1bfb0,
+    limestone: 0xd7c5b6,
     ...glass(0x2b3740),
     neutral: null,
   },
   // docs/monroe-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg; terracotta estimated.
   "building-monroe": {
-    "pink terracotta": 0xb7afa9,
+    "pink terracotta": 0xbdb5af,
     ...glass(0x353c43),
     "green tile": null,
     granite: null,
@@ -163,7 +164,9 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   "building-university-club": {
     limestone: 0xafa59e,
     slate: 0x5f6065,
-    ...glass(0x1d1510),
+    glass: null,
+    "lit window": null,
+    "dim window": null,
     neutral: null,
   },
   // docs/six-north-michigan-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
@@ -175,7 +178,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   },
   // docs/michigan-boulevard-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg; terracotta estimated.
   "building-six-north-far-east": {
-    "white terracotta": 0xd4c6b8,
+    "white terracotta": 0xdacdbe,
     "common brick": 0xa19085,
     ...glass(0x3b3f42),
     neutral: null,

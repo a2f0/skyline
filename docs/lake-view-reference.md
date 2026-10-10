@@ -126,12 +126,16 @@ wholly on the face it names, as the script's `--box` option reports.
 
 Shade: the Michigan fronts face east, into the photograph's shade, and the scene shades them too.
 Where a building shows only that front, its stone or terracotta is estimated as if sunlit, so the
-scene's own shade darkens it once: the shaded median times shade-to-sun factors of 3.05, 2.41 and
-1.95 for red, green and blue in linear light. They are the mean of the ratios between one
-terracotta's sunlit south face and shaded front on the Railway Exchange (3.25, 2.60, 2.09) and on
-Peoples Gas (2.86, 2.21, 1.81); the two pairs differ by up to 14%, which bounds the estimate's
-uncertainty. `bun scripts/sample-colours.ts day` measures both pairs and prints each estimate. Glass
-keeps its measured value: it reflects the sky rather than scattering the sun.
+scene's own shade darkens it once: the shaded median times shade-to-sun factors of 3.25, 2.60 and
+2.09 for red, green and blue in linear light, the ratio between the Railway Exchange's terracotta on
+its sunlit south face and its shaded Michigan front (FID-COL-003). That front is mostly terracotta,
+and its median moves about 8% as the brightness cutoff moves from 0.45 to 0.35. Other materials need
+not share the ratio, and two comparisons disagree with it: Peoples Gas's front is mostly windows at
+this scale, its terracotta 3% of the box above the cutoff, and its ratio runs from about 2.8 to 4.0
+in red as the cutoff moves; Six North's sunlit brick and shaded front differ by only about 1.5 to
+1.7, though that front's light pixels are partly lighter terracotta. So an estimate is uncertain by
+tens of percent. `bun scripts/sample-colours.ts day` measures the pair and prints each estimate.
+Glass keeps its measured value: it reflects the sky rather than scattering the sun.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
@@ -149,7 +153,7 @@ used.
 
 Decisions in `src/models/colour-palette.ts`:
 
-- `limestone` `195, 189, 181`, the sunlit estimate of the shaded front's `117, 127, 134`; the front
+- `limestone` `200, 196, 187`, the sunlit estimate of the shaded front's `117, 127, 134`; the front
   is nine pixels wide, so the value is uncertain.
 - `glass` `12, 22, 30`, the front's deep windows in shade; `lit window` and `dim window` take it
   exactly, since no office lights show by day.
@@ -158,4 +162,4 @@ Decisions in `src/models/colour-palette.ts`:
 Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
 layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
 its null ones grey. In the skyline view at 1600 × 900 under the day lights, the limestone renders
-`100, 111, 121` against the photograph's shaded front, 0.76 in linear light.
+`103, 115, 125` against the photograph's shaded front, 0.81 in linear light.

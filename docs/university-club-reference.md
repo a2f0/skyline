@@ -157,7 +157,7 @@ the values used.
 | Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |
 | Limestone, south face, sunlit | 1306, 438, 1317, 462 | sat 0–0.35, val 0.5–1 | 151 (57.2%) | `175, 165, 158` | 155–193 / 143–185 / 135–175 |
-| Glass, south face | 1306, 438, 1317, 462 | val 0–0.3 | 46 (17.4%) | `29, 21, 16` | 16–54 / 7–49 / 5–47 |
+| Dark pixels, south face, for comparison | 1306, 438, 1317, 462 | val 0–0.3 | 46 (17.4%) | `29, 21, 16` | 16–54 / 7–49 / 5–47 |
 | Slate roof | 1310, 428, 1332, 436 | all | 176 (100.0%) | `95, 96, 101` | 82–101 / 88–102 / 91–107 |
 
 Decisions in `src/models/colour-palette.ts`:
@@ -165,13 +165,14 @@ Decisions in `src/models/colour-palette.ts`:
 - `limestone` `175, 165, 158`, the sunlit south face's buff stone; the merlons and pinnacles take
   it.
 - `slate` `95, 96, 101`, the steep roof, all its pixels.
-- `glass` `29, 21, 16`, 17.4% of the box; `lit window` and `dim window` take it exactly, since no
-  office lights show by day.
+- `glass`, `lit window` and `dim window` stay grey: the south face's darkest pixels measure
+  `29, 21, 16`, a warm brown-black from 17.4% of the box, more likely the window reveals' shadowed
+  stone than glass.
 - `neutral` stays grey.
 
 Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
 layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
 its null ones grey. In the skyline view at 1600 × 900 under the day lights, the limestone renders
-`156, 148, 144` against the photograph's sunlit south face, 0.79 in linear light, and the roof
+`154, 146, 142` against the photograph's sunlit south face, 0.77 in linear light, and the roof
 `123, 121, 125` against `95, 96, 101`, 1.64: the scene's sun lights the roof's slope, which the
 photograph sees edge-on.

@@ -146,12 +146,16 @@ reports.
 
 Shade: the Michigan fronts face east, into the photograph's shade, and the scene shades them too.
 Where a building shows only that front, its stone or terracotta is estimated as if sunlit, so the
-scene's own shade darkens it once: the shaded median times shade-to-sun factors of 3.05, 2.41 and
-1.95 for red, green and blue in linear light. They are the mean of the ratios between one
-terracotta's sunlit south face and shaded front on the Railway Exchange (3.25, 2.60, 2.09) and on
-Peoples Gas (2.86, 2.21, 1.81); the two pairs differ by up to 14%, which bounds the estimate's
-uncertainty. `bun scripts/sample-colours.ts day` measures both pairs and prints each estimate. Glass
-keeps its measured value: it reflects the sky rather than scattering the sun.
+scene's own shade darkens it once: the shaded median times shade-to-sun factors of 3.25, 2.60 and
+2.09 for red, green and blue in linear light, the ratio between the Railway Exchange's terracotta on
+its sunlit south face and its shaded Michigan front (FID-COL-003). That front is mostly terracotta,
+and its median moves about 8% as the brightness cutoff moves from 0.45 to 0.35. Other materials need
+not share the ratio, and two comparisons disagree with it: Peoples Gas's front is mostly windows at
+this scale, its terracotta 3% of the box above the cutoff, and its ratio runs from about 2.8 to 4.0
+in red as the cutoff moves; Six North's sunlit brick and shaded front differ by only about 1.5 to
+1.7, though that front's light pixels are partly lighter terracotta. So an estimate is uncertain by
+tens of percent. `bun scripts/sample-colours.ts day` measures the pair and prints each estimate.
+Glass keeps its measured value: it reflects the sky rather than scattering the sun.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
@@ -171,7 +175,7 @@ the values used.
 Decisions in `src/models/colour-palette.ts`:
 
 - `common brick` `161, 144, 133`, the sunlit south wall above its neighbour.
-- `white terracotta` `212, 198, 184`, the sunlit estimate of the shaded Michigan front's
+- `white terracotta` `218, 205, 190`, the sunlit estimate of the shaded Michigan front's
   `128, 133, 136`, a cream; the parapet takes it.
 - `glass` `59, 63, 66`, 6.0% of the box; `lit window` and `dim window` take it exactly, since no
   office lights show by day.

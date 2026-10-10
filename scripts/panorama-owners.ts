@@ -160,7 +160,7 @@ const usage = `Usage: bun scripts/panorama-owners.ts [building-id...] [--box bui
   bearing, pixel count and column span, and the building's highest row. Each --box reports the
   share of its pixels (x0, y0, x1, y1, half-open) the building owns on the face within 20°.`;
 
-command(usage, { box: { type: "string", multiple: true } }, ({ values, positionals }) => {
+command(usage, { box: { type: "string", multiple: true } }, async ({ values, positionals }) => {
   const fit = fitPanorama();
   console.log(`Eye ${(fit.eye[0] - drawingEye[0]).toFixed(0)} m east and ${(fit.eye[1] - drawingEye[1]).toFixed(0)} m north of the drawing's fitted eye.`);
   console.log(`Column = ${fit.a.toFixed(1)} + ${fit.b.toFixed(3)} × bearing (degrees east of north); row = ${fit.c.toFixed(1)} + ${fit.d.toFixed(1)} × tan(elevation).`);
@@ -174,7 +174,7 @@ command(usage, { box: { type: "string", multiple: true } }, ({ values, positiona
     owner.forEach((row, y) => row.forEach((id, column) => {
       if (id !== building) return;
       topRow = Math.min(topRow, y);
-      const face = Math.round(facing[y]![column]! / 5) * 5, entry = faces.get(face) ?? { count: 0, min: Infinity, max: -Infinity };
+      const face = (Math.round(facing[y]![column]! / 5) * 5) % 360, entry = faces.get(face) ?? { count: 0, min: Infinity, max: -Infinity };
       entry.count += 1; entry.min = Math.min(entry.min, column + x0); entry.max = Math.max(entry.max, column + x0);
       faces.set(face, entry);
     }));
@@ -182,12 +182,14 @@ command(usage, { box: { type: "string", multiple: true } }, ({ values, positiona
     console.log(`\n${building}: highest row ${topRow}; ${listed.join("; ") || "not visible"}`);
   }
   for (const spec of (values["box"] as string[] | undefined) ?? []) {
-    const [building, face, ...corners] = spec.split(","), [bx0, by0, bx1, by1] = corners.map(Number) as [number, number, number, number];
+    const [building, face, ...edges] = spec.split(","), [bx0, by0, bx1, by1] = edges.map(Number) as [number, number, number, number];
+    if (!records.has(building ?? "") || edges.length !== 4 || ![face, ...edges].every((value) => Number.isFinite(Number(value)))) throw new Error(`Box "${spec}" is not building,face,x0,y0,x1,y1.`);
+    if (bx0 < x0 || bx1 > x1 || by0 < 0 || by1 > height || bx1 <= bx0 || by1 <= by0) throw new Error(`Box "${spec}" leaves columns ${x0}–${x1} and rows 0–${height}.`);
     let owned = 0;
     for (let y = by0; y < by1; y += 1) for (let x = bx0; x < bx1; x += 1) {
       const turn = Math.abs(((facing[y]![x - x0]! - Number(face)) % 360 + 540) % 360 - 180);
       if (owner[y]![x - x0] === building && turn < 20) owned += 1;
     }
-    console.log(`\nbox ${corners.join(", ")}: ${(owned / ((bx1 - bx0) * (by1 - by0)) * 100).toFixed(0)}% ${building} at ${face}°`);
+    console.log(`\nbox ${edges.join(", ")}: ${(owned / ((bx1 - bx0) * (by1 - by0)) * 100).toFixed(0)}% ${building} at ${face}°`);
   }
 });

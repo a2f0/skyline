@@ -43,7 +43,7 @@ interface Study {
   photo: string;
   samples: Record<string, Sample[]>;
   /** Pairs of one material's sunlit and shaded samples, by building and row, whose mean per-channel
-   *  ratio in linear light estimates a shaded sample's sunlit colour. */
+   *  ratio in linear light estimates a shaded sample's sunlit colour. One pair will do. */
   shade?: [building: string, sunlit: string, shaded: string][];
 }
 interface Result {
@@ -194,7 +194,7 @@ const day: Record<string, Sample[]> = {
   "building-peoples-gas": [
     { row: "Terracotta, south face, sunlit", material: "white terracotta", box: [1192, 408, 1207, 455], sat: [0, 0.35], val: [0.5, 1] },
     { row: "Glass, south face", material: "glass", box: [1192, 408, 1207, 455], val: [0, 0.3] },
-    { row: "Terracotta, Michigan front, shaded", material: null, box: [1210, 410, 1255, 455], sat: [0, 0.35], val: [0.45, 1] },
+    { row: "Terracotta, Michigan front, shaded, for comparison", material: null, box: [1210, 410, 1253, 455], sat: [0, 0.35], val: [0.45, 1] },
   ],
   "building-lakeview": [
     { row: "Limestone, Michigan front, shaded", material: "limestone", box: [1256, 420, 1263, 460], sat: [0, 0.35], val: [0.45, 1], shaded: true },
@@ -211,7 +211,7 @@ const day: Record<string, Sample[]> = {
   ],
   "building-university-club": [
     { row: "Limestone, south face, sunlit", material: "limestone", box: [1306, 438, 1317, 462], sat: [0, 0.35], val: [0.5, 1] },
-    { row: "Glass, south face", material: "glass", box: [1306, 438, 1317, 462], val: [0, 0.3] },
+    { row: "Dark pixels, south face, for comparison", material: null, box: [1306, 438, 1317, 462], val: [0, 0.3] },
     { row: "Slate roof", material: "slate", box: [1310, 428, 1332, 436] },
   ],
   "building-six-north-michigan": [
@@ -235,10 +235,10 @@ const studies: Record<string, Study> = {
   day: {
     photo: "chicago-2008.jpg",
     samples: day,
-    // One terracotta on a sunlit south face and a shaded Michigan front, on two buildings.
+    // One terracotta on a sunlit south face and a shaded Michigan front. Peoples Gas shows both too,
+    // but its front is mostly windows at this scale, so its pair is a comparison, not an input.
     shade: [
       ["building-railway-exchange", "Terracotta, Jackson front, sunlit", "Terracotta, Michigan front, shaded, for comparison"],
-      ["building-peoples-gas", "Terracotta, south face, sunlit", "Terracotta, Michigan front, shaded"],
     ],
   },
   night: { photo: "skyline.jpg", samples: night },
@@ -355,7 +355,7 @@ command(usage, {}, async ({ positionals }) => {
         console.log(`Shade pair ${building}: \`${bright!.median.join(", ")}\` sunlit, \`${dark!.median.join(", ")}\` shaded, ratio ${ratios.at(-1)!.map((ratio) => ratio.toFixed(2)).join(", ")}`);
       }
       factors = [0, 1, 2].map((index) => ratios.reduce((sum, ratio) => sum + ratio[index]!, 0) / ratios.length);
-      console.log(`Shade factors, the pairs' mean: ${factors.map((factor) => factor.toFixed(2)).join(", ")}`);
+      console.log(`Shade factors${ratios.length > 1 ? ", the pairs' mean" : ""}: ${factors.map((factor) => factor.toFixed(2)).join(", ")}`);
     }
     for (const id of chosen) {
       console.log(`\n${id}\n`);

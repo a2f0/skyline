@@ -124,9 +124,11 @@ Willoughby Tower reach 0.87 to 0.93, Millennium Park Plaza's precast and Kemper'
 the view sees Trump Tower's and the Heritage's glass in shade, at 0.25 and 0.36, and lights 330
 North Wabash's dark glass to 1.56. The Michigan Avenue wall faces east, into the photograph's shade;
 where a building shows only that front, its stone or terracotta is estimated as if sunlit through
-shade-to-sun factors measured where one terracotta shows both, on the Railway Exchange and Peoples
-Gas, and the wall renders 0.76 to 1.23 of the photograph's shaded fronts. The exposure is kept for
-all twenty-one. The scene's sun stands in the south-west, so the east faces the camera sees are in
+the shade-to-sun ratio of the Railway Exchange's terracotta, which shows both; two cross-checks
+disagree with it by tens of percent. The wall's shaded fronts render 0.81 to 1.21 of the
+photograph's shaded fronts and its sunlit south faces 0.77 to 0.86 of the photograph's, while the
+University Club's slate roof, lit by the scene's sun, renders 1.64. The exposure is kept for all
+twenty-one. The scene's sun stands in the south-west, so the east faces the camera sees are in
 shade, as the photograph's are, and bluer, lit by the sky. `scripts/sample-colours.ts day` measures
 every colour again from the photographs, and `scripts/panorama-owners.ts` locates the mapped
 buildings in the panorama, pixel by pixel and face by face; its `night` study keeps the first
