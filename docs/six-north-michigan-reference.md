@@ -136,3 +136,57 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-10 — Daytime colours from Chicago.jpg (FID-COL-005)
+
+The colour trial's sunny day gains a third group, the Michigan Avenue wall from the Borg-Warner
+Building to the Michigan Boulevard Building, measured in the same photograph as the first two
+(FID-COL-003 and FID-COL-004) and shown at the same exposure.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-10). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. It looks from nearly the drawing's viewpoint on a sunny day, five years before the 2013
+night panorama the drawing traces. No change to these materials between 2008 and 2013 is known to
+this audit. Grant Park's trees hide the wall's lower floors; every box stops above them.
+
+Identification: `bun scripts/panorama-owners.ts building-six-north-michigan` fits the rendition to
+the mapped buildings, with the photographer's eye 10 m east and 100 m south of the drawing's fitted
+eye, at 1.6 px RMS over seven tower silhouettes against the sky, four Michigan Avenue corners where
+a sunlit south face meets a shaded front, and four roofs. A ray from that eye through each pixel
+meets the nearest mapped part, which owns the pixel, and the face it meets gives the pixel's
+direction. This building shows its south face at x 1404–1419 and its Michigan front at x 1420–1437,
+its roof at row 410; each box below lies wholly on the face it names, as the script's `--box` option
+reports.
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-six-north-michigan`
+downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
+entries, decoding in Chrome without colour management. The building's visible faces are 34 pixels
+wide in all, so single pixels mix neighbouring materials, which the quartiles show; the medians are
+the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Brick, south face, sunlit | 1406, 412, 1420, 460 | sat 0–0.35, val 0.5–1 | 186 (27.7%) | `187, 170, 159` | 166–203 / 154–186 / 145–176 |
+| Glass, south face | 1406, 412, 1420, 460 | val 0–0.3 | 219 (32.6%) | `50, 54, 60` | 36–58 / 44–62 / 49–68 |
+| Michigan front, shaded, for comparison | 1422, 412, 1437, 460 | sat 0–0.35, val 0.45–1 | 156 (21.7%) | `147, 138, 131` | 119–184 / 117–170 / 119–160 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `buff brick` `187, 170, 159`, the sunlit south face's tan brick; `white terracotta`, the cornices,
+  takes its colour at their lighter grey. The shaded front measures `147, 138, 131`.
+- `glass` `50, 54, 60`; `lit window` and `dim window` take it exactly, since no office lights show
+  by day.
+- `neutral` stays grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, the view sees its south
+face, whose brick renders `174, 158, 149` against the photograph's sunlit `187, 170, 159`, 0.86 in
+linear light.

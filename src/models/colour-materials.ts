@@ -291,7 +291,9 @@ export const toneOf = (grey: number) => new THREE.Color(grey, grey, grey).getHex
 // Michigan front, not the sunlit Jackson front its colour is measured on; that front renders 0.82
 // of the photograph's shaded Michigan front. The seven measured next (FID-COL-004) spread wider,
 // 0.25 to 1.56 on their measured materials and 0.14 on Kemper's whole face, where the scene's sun
-// lights their faces differently from the photograph's; docs/viewer.md and their audits give each.
+// lights their faces differently from the photograph's; the Michigan Avenue wall (FID-COL-005),
+// its shaded fronts estimated as if sunlit, renders 0.76 to 1.23 of the photograph's shaded fronts.
+// docs/viewer.md and the audits give each.
 export const exposure = 1.4;
 
 // A measured colour in linear light, and the grey it is measured at: the most common grey of

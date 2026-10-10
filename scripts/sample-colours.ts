@@ -8,9 +8,11 @@
 // quartiles, with their count and their share of the box. A photograph from the web is
 // downloaded once into the repository's ignored node_modules/.cache, not a shared temporary
 // directory, and checked against its SHA-256; Chrome decodes each without colour management, so
-// the values are the file's own. Locate new boxes in skyline.jpg with scripts/measure-group.ts,
-// whose photo crop frames a building there, and in the others on a crop of the photograph with
-// a pixel grid drawn over it.
+// the values are the file's own. A sample on a face in shade can be marked shaded: the palette
+// then takes its sunlit estimate, through the shade factors the study's paired samples give.
+// Locate new boxes in skyline.jpg with scripts/measure-group.ts, whose photo crop frames a
+// building there, and in the day panorama with scripts/panorama-owners.ts, which reports the
+// share of a box a building owns on one face.
 import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -29,6 +31,8 @@ interface Sample {
   hue?: [number, number];
   sat?: [number, number];
   val?: [number, number];
+  /** Measured on a face in shade: the palette takes its sunlit estimate, through the study's shade factors. */
+  shaded?: boolean;
 }
 interface Photo {
   /** A path in the repository, or a URL to download. */
@@ -38,6 +42,9 @@ interface Photo {
 interface Study {
   photo: string;
   samples: Record<string, Sample[]>;
+  /** Pairs of one material's sunlit and shaded samples, by building and row, whose mean per-channel
+   *  ratio in linear light estimates a shaded sample's sunlit colour. */
+  shade?: [building: string, sunlit: string, shaded: string][];
 }
 interface Result {
   count: number;
@@ -177,6 +184,46 @@ const day: Record<string, Sample[]> = {
     { row: "Glass, south", material: "green glass", box: [2007, 290, 2032, 440], hue: [160, 230], sat: [0.1, 1], val: [0, 0.75] },
     { row: "Glass, east, for comparison", material: null, box: [2043, 270, 2060, 440] },
   ],
+  // FID-COL-005, the Michigan Avenue wall: its east fronts are in shade, so a front measured only
+  // there is marked shaded, and its south faces, where they show, are sunlit.
+  "building-200-south-michigan": [
+    { row: "Spandrels, south face, sunlit", material: "blue enamel", box: [1135, 416, 1163, 455], sat: [0, 0.35], val: [0.5, 1] },
+    { row: "Glass, south face", material: "glass", box: [1135, 416, 1163, 455], val: [0, 0.3] },
+    { row: "Spandrels, Michigan front, shaded, for comparison", material: null, box: [1166, 416, 1190, 455], sat: [0, 0.35], val: [0.45, 1] },
+  ],
+  "building-peoples-gas": [
+    { row: "Terracotta, south face, sunlit", material: "white terracotta", box: [1192, 408, 1207, 455], sat: [0, 0.35], val: [0.5, 1] },
+    { row: "Glass, south face", material: "glass", box: [1192, 408, 1207, 455], val: [0, 0.3] },
+    { row: "Terracotta, Michigan front, shaded", material: null, box: [1210, 410, 1255, 455], sat: [0, 0.35], val: [0.45, 1] },
+  ],
+  "building-lakeview": [
+    { row: "Limestone, Michigan front, shaded", material: "limestone", box: [1256, 420, 1263, 460], sat: [0, 0.35], val: [0.45, 1], shaded: true },
+    { row: "Glass, Michigan front", material: "glass", box: [1256, 420, 1263, 460], val: [0, 0.3] },
+  ],
+  "building-maclean-center": [
+    { row: "Limestone, Michigan front, shaded", material: "limestone", box: [1268, 415, 1281, 460], sat: [0, 0.35], val: [0.45, 1], shaded: true },
+    { row: "Glass, Michigan front", material: "glass", box: [1268, 415, 1281, 460], val: [0, 0.3] },
+  ],
+  "building-monroe": [
+    { row: "Terracotta, Michigan front, shaded", material: "pink terracotta", box: [1285, 431, 1304, 462], sat: [0, 0.35], val: [0.45, 1], shaded: true },
+    { row: "Glass, Michigan front", material: "glass", box: [1285, 431, 1304, 462], val: [0, 0.3] },
+    { row: "Roof, for comparison", material: null, box: [1285, 424, 1304, 431] },
+  ],
+  "building-university-club": [
+    { row: "Limestone, south face, sunlit", material: "limestone", box: [1306, 438, 1317, 462], sat: [0, 0.35], val: [0.5, 1] },
+    { row: "Glass, south face", material: "glass", box: [1306, 438, 1317, 462], val: [0, 0.3] },
+    { row: "Slate roof", material: "slate", box: [1310, 428, 1332, 436] },
+  ],
+  "building-six-north-michigan": [
+    { row: "Brick, south face, sunlit", material: "buff brick", box: [1406, 412, 1420, 460], sat: [0, 0.35], val: [0.5, 1] },
+    { row: "Glass, south face", material: "glass", box: [1406, 412, 1420, 460], val: [0, 0.3] },
+    { row: "Michigan front, shaded, for comparison", material: null, box: [1422, 412, 1437, 460], sat: [0, 0.35], val: [0.45, 1] },
+  ],
+  "building-six-north-far-east": [
+    { row: "Common brick, south wall, sunlit", material: "common brick", box: [1440, 418, 1466, 460], sat: [0, 0.35], val: [0.5, 1] },
+    { row: "Terracotta, Michigan front, shaded", material: "white terracotta", box: [1468, 418, 1485, 460], sat: [0, 0.35], val: [0.45, 1], shaded: true },
+    { row: "Glass, Michigan front", material: "glass", box: [1468, 418, 1485, 460], val: [0, 0.3] },
+  ],
   // The sky, for colour-palette.ts's daylightColours.
   sky: [
     { row: "Sky, top of the frame", material: null, box: [3300, 0, 3800, 25] },
@@ -184,7 +231,23 @@ const day: Record<string, Sample[]> = {
   ],
 };
 
-const studies: Record<string, Study> = { day: { photo: "chicago-2008.jpg", samples: day }, night: { photo: "skyline.jpg", samples: night } };
+const studies: Record<string, Study> = {
+  day: {
+    photo: "chicago-2008.jpg",
+    samples: day,
+    // One terracotta on a sunlit south face and a shaded Michigan front, on two buildings.
+    shade: [
+      ["building-railway-exchange", "Terracotta, Jackson front, sunlit", "Terracotta, Michigan front, shaded, for comparison"],
+      ["building-peoples-gas", "Terracotta, south face, sunlit", "Terracotta, Michigan front, shaded"],
+    ],
+  },
+  night: { photo: "skyline.jpg", samples: night },
+};
+
+// sRGB channels, 0–255, to linear light and back.
+const linear = (channel: number) => { const value = channel / 255; return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4; };
+const encoded = (value: number) => Math.round(255 * (value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055));
+const hex = (rgb: number[]) => `0x${rgb.map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
 
 // Runs in the page: one sample's pixels, chosen and summarised.
 async function measure({ sample, photo }: { sample: Sample; photo: string }): Promise<Result> {
@@ -276,6 +339,24 @@ command(usage, {}, async ({ positionals }) => {
     await page.goto(`${server.origin}/blank.html`);
     const number = (value: number) => value.toLocaleString("en-GB");
     const range = (value?: [number, number]) => value && `${value[0]}–${value[1]}`;
+    const find = (building: string, row: string) => {
+      const sample = study.samples[building]?.find((each) => each.row === row);
+      if (!sample) throw new Error(`No ${name} sample "${row}" for ${building}.`);
+      return sample;
+    };
+    // The shade factors, measured when a chosen sample needs them.
+    let factors: number[] | undefined;
+    if (chosen.some((id) => study.samples[id]!.some((sample) => sample.shaded))) {
+      if (!study.shade?.length) throw new Error(`The ${name} study has shaded samples but no shade pairs.`);
+      const ratios: number[][] = [];
+      for (const [building, sunlit, shaded] of study.shade) {
+        const [bright, dark] = await Promise.all([find(building, sunlit), find(building, shaded)].map((sample) => page.evaluate(measure, { sample, photo: sample.photo ?? study.photo })));
+        ratios.push(bright!.median.map((channel, index) => linear(channel) / linear(dark!.median[index]!)));
+        console.log(`Shade pair ${building}: \`${bright!.median.join(", ")}\` sunlit, \`${dark!.median.join(", ")}\` shaded, ratio ${ratios.at(-1)!.map((ratio) => ratio.toFixed(2)).join(", ")}`);
+      }
+      factors = [0, 1, 2].map((index) => ratios.reduce((sum, ratio) => sum + ratio[index]!, 0) / ratios.length);
+      console.log(`Shade factors, the pairs' mean: ${factors.map((factor) => factor.toFixed(2)).join(", ")}`);
+    }
     for (const id of chosen) {
       console.log(`\n${id}\n`);
       const entries: string[] = [];
@@ -283,7 +364,12 @@ command(usage, {}, async ({ positionals }) => {
         const result = await page.evaluate(measure, { sample, photo: sample.photo ?? study.photo });
         const rule = [sample.hue && `hue ${range(sample.hue)}`, sample.sat && `sat ${range(sample.sat)}`, sample.val && `val ${range(sample.val)}`].filter(Boolean).join(", ");
         console.log(`| ${sample.row} | ${sample.box.join(", ")}${sample.photo ? ` in ${sample.photo}` : ""} | ${rule || "all"} | ${number(result.count)} (${(result.share * 100).toFixed(1)}%) | \`${result.median.join(", ")}\` | ${result.quartiles.map(([low, high]) => `${low}–${high}`).join(" / ")} |`);
-        if (sample.material) entries.push(`    ${JSON.stringify(sample.material)}: 0x${result.median.map((channel) => channel.toString(16).padStart(2, "0")).join("")},`);
+        if (!sample.material) continue;
+        if (!sample.shaded) { entries.push(`    ${JSON.stringify(sample.material)}: ${hex(result.median)},`); continue; }
+        // The sunlit estimate: the shaded median times the factors in linear light, kept in hue if it passes white.
+        const lit = result.median.map((channel, index) => linear(channel) * factors![index]!), brightest = Math.max(1, ...lit);
+        const estimate = lit.map((value) => encoded(value / brightest));
+        entries.push(`    ${JSON.stringify(sample.material)}: ${hex(estimate)}, // sunlit estimate \`${estimate.join(", ")}\` of the shaded \`${result.median.join(", ")}\``);
       }
       console.log(`\n${entries.join("\n")}`);
     }
