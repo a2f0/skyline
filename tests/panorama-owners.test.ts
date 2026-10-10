@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { boxShare, drawingEye, fitPanorama, line, meet, owners, panoramaColumns, panoramaRows } from "../scripts/lib/panorama.js";
 
-// The colour trial's Michigan Avenue audits (FID-COL-005) quote this fit and place their samples
-// by its pixel owners; these keep a geography change from moving them unnoticed.
+// The colour trial's panorama audits (FID-COL-005 and FID-COL-006) quote this fit and place their
+// samples by its pixel owners; these keep a geography change from moving them unnoticed.
 const fit = fitPanorama();
 const [x0, x1] = panoramaColumns, map = owners(fit, x0, x1, panoramaRows);
 
@@ -16,7 +16,7 @@ describe("panorama fit", () => {
     expect(fit.eye[1] - drawingEye[1]).toBeCloseTo(-100, 6);
   });
 
-  test("gives every wall sample of the Michigan Avenue audits wholly to its building and face", () => {
+  test("gives every wall sample of those audits wholly to its building and face", () => {
     const boxes: [building: string, face: number, box: [number, number, number, number]][] = [
       ["building-200-south-michigan", 180, [1135, 416, 1163, 455]],
       ["building-200-south-michigan", 90, [1166, 416, 1190, 455]],
@@ -30,6 +30,12 @@ describe("panorama fit", () => {
       ["building-six-north-michigan", 90, [1422, 412, 1437, 460]],
       ["building-six-north-far-east", 180, [1440, 418, 1466, 460]],
       ["building-six-north-far-east", 90, [1468, 418, 1485, 460]],
+      ["building-the-buckingham", 180, [2086, 380, 2108, 465]],
+      ["building-the-buckingham", 90, [2114, 380, 2123, 465]],
+      ["building-buckingham-east", 180, [2129, 418, 2141, 466]],
+      ["building-swissotel", 180, [2070, 372, 2077, 465]],
+      ["building-michigan-plaza-front-middle", 180, [1612, 421, 1629, 465]],
+      ["building-hyatt-regency-west-tower", 180, [1885, 400, 1889, 434]],
     ];
     const short = boxes.filter(([building, face, box]) => boxShare(map, x0, building, face, box) < 1).map(([building, face]) => `${building} at ${face}°`);
     expect(short).toEqual([]);

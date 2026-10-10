@@ -116,3 +116,57 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-10 — Daytime colours from Chicago.jpg (FID-COL-006)
+
+The colour trial's sunny day gains a fourth group of nine buildings: four towers measured on sunlit
+faces in the 2008 panorama, as the first three groups were (FID-COL-003 to FID-COL-005), and five
+buildings the panorama does not resolve, measured in daytime close-ups calibrated to it. All are
+shown at the same exposure.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-10). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. No change to these materials between 2008 and the drawing's 2013 panorama is known to
+this audit.
+
+Identification: `bun scripts/panorama-owners.ts building-the-buckingham` places the building's south
+face at x 2079–2113 and its east face at x 2114–2122, its roof at row 369, with the photographer's
+eye fitted as for FID-COL-005, 10 m east and 100 m south of the drawing's fitted eye, at 1.6 px RMS:
+a ray from that eye through each pixel meets the nearest mapped part, which owns the pixel, and the
+face it meets gives the pixel's direction. The photograph shows a tower of white concrete bands and
+dark windows across exactly those columns, its south face lit and its east face in shade, under a
+white crown band at about row 357, some 12 pixels above the modelled roof: a rooftop screen the
+model leaves out, or a roof a few metres above the published 121.9 m. Each box below lies wholly on
+the face it names, as the script's `--box` option reports and `tests/panorama-owners.test.ts`
+checks.
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-the-buckingham`
+downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
+entries, decoding in Chrome without colour management.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Concrete, south face, sunlit | 2086, 380, 2108, 465 | sat 0–0.35, val 0.5–1 | 1,070 (57.2%) | `192, 190, 182` | 165–211 / 162–208 / 156–202 |
+| Glass, south face | 2086, 380, 2108, 465 | val 0–0.3 | 404 (21.6%) | `42, 41, 35` | 21–57 / 19–55 / 13–50 |
+| Concrete, east face, shaded, for comparison | 2114, 380, 2123, 465 | sat 0–0.35, val 0.4–1 | 287 (37.5%) | `100, 108, 114` | 93–107 / 102–117 / 109–122 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `concrete` `192, 190, 182`, the sunlit south face's bands; the shaded east face's light pixels
+  measure `100, 108, 114`.
+- `bronze glass` `42, 41, 35`; `lit window` and `dim window` take it exactly, since no office lights
+  show by day.
+- `neutral` stays grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, the view sees its south
+face at the right edge, whose concrete renders `172, 171, 164` against the photograph's sunlit
+`192, 190, 182`, 0.79 in linear light.

@@ -144,7 +144,7 @@ describe("colour trial", () => {
     expect(swatches.get("glass")).toEqual({ colour: linear(measured.glass as number), reference: 0.4 });
     expect(swatches.get("neutral"), "a null material stays grey").toBeNull();
     expect(swatches.get("marble"), "an unmeasured material stays grey").toBeNull();
-    expect(swatchesOf("building-swissotel", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
+    expect(swatchesOf("building-river-plaza", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
   });
 
   test("leaves null materials grey and paints every other in its own or its named material's hue", () => {
@@ -279,12 +279,22 @@ describe("colour trial", () => {
       "building-university-club": ["university-club", "FID-COL-005"],
       "building-six-north-michigan": ["six-north-michigan", "FID-COL-005"],
       "building-six-north-far-east": ["michigan-boulevard", "FID-COL-005"],
+      "building-the-buckingham": ["buckingham", "FID-COL-006"],
+      "building-buckingham-east": ["sheraton-grand", "FID-COL-006"],
+      "building-swissotel": ["swissotel", "FID-COL-006"],
+      "building-michigan-plaza-front-middle": ["north-michigan-180", "FID-COL-006"],
+      "building-chicago-athletic-association": ["chicago-athletic-association", "FID-COL-006"],
+      "building-michigan-west-right": ["gage", "FID-COL-006"],
+      "building-michigan-west-front": ["keith-ascher", "FID-COL-006"],
+      "building-30-south-michigan": ["keith-ascher", "FID-COL-006"],
+      "building-hyatt-regency-west-tower": ["hyatt-west-tower", "FID-COL-006"],
     };
     expect(Object.keys(audits).sort()).toEqual(Object.keys(measuredColours).sort());
     const read = (file: string) => readFileSync(new URL(`../docs/${file}`, import.meta.url), "utf8").replace(/\s+/g, " ");
     const rgb = (hex: number) => [hex >> 16, (hex >> 8) & 255, hex & 255].join(", ");
     for (const [id, measured] of Object.entries(measuredColours)) {
-      const [file, label] = audits[id]!, audit = read(`${file}-reference.md`), start = audit.indexOf(`Daytime colours from Chicago.jpg (${label})`);
+      // The entry is titled by its source: Chicago.jpg, or a close-up calibrated to it.
+      const [file, label] = audits[id]!, audit = read(`${file}-reference.md`), start = audit.search(new RegExp(`Daytime colours from (?:Chicago\\.jpg|a close-up calibrated to Chicago\\.jpg) \\(${label}\\)`));
       expect(start, `${id}'s audit has the daytime entry`).toBeGreaterThan(-1);
       const entry = audit.slice(start);
       // Each value is in the entry's decisions under a material measured at it; the day's windows

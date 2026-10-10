@@ -132,3 +132,82 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg (FID-COL-006)
+
+The colour trial's sunny day gains a fourth group of nine buildings: four towers measured on sunlit
+faces in the 2008 panorama, as the first three groups were (FID-COL-003 to FID-COL-005), and five
+buildings the panorama does not resolve, measured in daytime close-ups calibrated to it. All are
+shown at the same exposure.
+
+Sources:
+
+- [Gage Group Buildings.jpg](https://commons.wikimedia.org/wiki/File:Gage_Group_Buildings.jpg) on
+Wikimedia Commons, Teemu008's photograph of the Ascher, Keith and Gage Buildings' Michigan fronts in
+morning sun on 8 May 2012, from Flickr, with the University Club at its left and the Chicago
+Athletic Association at its right (CC BY-SA 2.0; accessed 2026-10-10). Measured in Commons' 1280 ×
+1567 px rendition,
+  `https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/Gage_Group_Buildings.jpg/1280px-Gage_Group_Buildings.jpg`
+  (SHA-256 `3156c19dee13fd217372d4972263e2e2cda1a77674d610aabf375a661afbb953`).
+- [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg), Daniel Schwen's 2008 daytime
+panorama the trial's colours come from (CC BY-SA 4.0), for the reference: the University Club's
+limestone, sunlit there at `175, 165, 158` (`university-club-reference.md`, FID-COL-005).
+
+Neither photograph is in the repository. In the panorama Grant Park's trees cover both fronts.
+
+Method: each sample is a box in the close-up's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, and the per-channel sRGB
+median of those pixels (0–255), with their count, their share of the box and the quartiles of red,
+green and blue, as in the panorama.
+`bun scripts/sample-colours.ts day building-michigan-west-front building-30-south-michigan`
+downloads the photographs once, checks their SHA-256, and reproduces these rows, the calibration and
+the palette's entries, decoding in Chrome without colour management.
+
+Calibration: the close-up's colours are carried into the panorama's light through a reference beside
+them, on the same front and in the same light, that the panorama shows sunlit. Each channel's ratio,
+in linear light, between the reference's median in the panorama and its median in the close-up
+scales the close-up's medians, and the colour is scaled back to white if it passes, keeping its hue:
+the same arithmetic as FID-COL-005's shade estimate (`scripts/lib/shade.ts`).
+`tests/colour-shade.test.ts` re-derives the palette's calibrated entries from the medians below. The
+calibration assumes the reference and the building share one light and that the reference's material
+reads the same on its two faces; it carries a close-up's exposure, white balance and light, not its
+viewpoint, so it is provisional, like the shade estimate.
+
+Here the reference is the University Club's limestone on the close-up's left edge, on the same
+Michigan front and in the same sun: `171, 162, 152` there (box 10, 480, 125, 800, sat 0–0.35, val
+0.5–1; 17,888 pixels, 48.6%), against `175, 165, 158` in the panorama, a ratio of 1.05, 1.04 and
+1.09 in red, green and blue. The rule keeps the stone's partly shaded pixels in its Gothic detail,
+as the panorama's coarser pixels mix them; the plain sunlit gable alone measures about
+`203, 193, 178`, which would give a ratio of 0.71–0.77, so the reference's detail is the
+calibration's largest uncertainty, up to about 30% in linear light.
+
+Identification: between the University Club and the Gage Building the close-up shows two red brick
+fronts of the same height and design. The narrower, two bays wide at x 85–300, is the Ascher
+Building, whose mapped outline has 14.3 m of frontage next to the University Club; the wider, three
+bays at x 300–640, is the Keith Building, with 19.8 m. Each box covers its front between the cornice
+and the shopfronts; the hue rule keeps the brick and drops the windows and the green copper cornice.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Keith, brick, Michigan front, sunlit | 305, 750, 640, 1390 in the close-up | hue 340–40, sat 0.25–1, val 0.3–1 | 60,817 (28.4%) | `134, 96, 83` | 97–169 / 59–121 / 52–104 |
+| Ascher, brick, Michigan front, sunlit | 90, 800, 295, 1390 in the close-up | hue 340–40, sat 0.25–1, val 0.3–1 | 38,875 (32.1%) | `133, 102, 92` | 99–176 / 69–139 / 59–123 |
+
+The quartiles span the sunlit brick and the shaded reveals of its piers, as the reference's span its
+stone's shade. The Athletic Association's brick at the close-up's right edge, calibrated the same
+way, comes within 8% of the overcast close-up's calibrated brick in total brightness
+(`chicago-athletic-association-reference.md`, FID-COL-006).
+
+Decisions in `src/models/colour-palette.ts`:
+
+- Keith `brick` `137, 98, 87`, calibrated from `134, 96, 83`.
+- Ascher `brick` `136, 104, 96`, calibrated from `133, 102, 92`.
+- `limestone`, the sills, stays grey on both: too small to measure here.
+- `glass`, `lit window` and `dim window` stay grey on both: the windows reflect the bright sky.
+- `neutral` stays grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, the Keith Building's
+front, facing east into the scene's shade, renders `97, 72, 70` against the calibrated sunlit
+`137, 98, 87`, 0.51 in linear light; the University Club hides most of the Ascher Building's front
+in that view.

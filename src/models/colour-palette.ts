@@ -14,7 +14,7 @@ import type { MaterialName } from "./colour-materials.js";
 export type Measurement = number | MaterialName | null;
 
 // By day no office lights show: lit and dim windows are the glass, in its measured colour.
-const glass = (colour: number, material: Extract<MaterialName, "glass" | "green glass" | "bronze glass"> = "glass"): Partial<Record<MaterialName, number>> =>
+const glass = (colour: number, material: Extract<MaterialName, "glass" | "green glass" | "blue-green glass" | "bronze glass"> = "glass"): Partial<Record<MaterialName, number>> =>
   ({ [material]: colour, "lit window": colour, "dim window": colour });
 
 export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<MaterialName, Measurement>>>>> = {
@@ -181,6 +181,88 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     "white terracotta": 0xdacdbe,
     "common brick": 0xa19085,
     ...glass(0x3b3f42),
+    neutral: null,
+  },
+  // FID-COL-006, four towers the panorama shows, measured on their sunlit south faces.
+  // docs/buckingham-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
+  "building-the-buckingham": {
+    concrete: 0xc0beb6,
+    ...glass(0x2a2923, "bronze glass"),
+    neutral: null,
+  },
+  // docs/sheraton-grand-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
+  "building-buckingham-east": {
+    precast: 0xdcdace,
+    ...glass(0x1d1d13),
+    maroon: null,
+    neutral: null,
+  },
+  // docs/swissotel-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
+  "building-swissotel": {
+    ...glass(0x475056, "blue-green glass"),
+    neutral: null,
+  },
+  // docs/north-michigan-180-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg. Only the
+  // stone top floor is sunlit; Crain's shadow covers the brick and windows below it.
+  "building-michigan-plaza-front-middle": {
+    limestone: 0xc2b1a2,
+    "brown brick": null,
+    glass: null,
+    "lit window": null,
+    "dim window": null,
+    neutral: null,
+  },
+  // Michigan Avenue fronts Grant Park's trees hide in the panorama: measured in a close-up under an
+  // overcast sky and calibrated to the panorama through Willoughby Tower's limestone beside them,
+  // its ratio in linear light between the two photographs (scripts/sample-colours.ts, the day
+  // study's references). Their glass, reflecting the overcast, stays grey.
+  // docs/chicago-athletic-association-reference.md, 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg.
+  "building-chicago-athletic-association": {
+    brick: 0xa1705b,
+    limestone: 0xcfbca5,
+    glass: null,
+    "lit window": null,
+    "dim window": null,
+    neutral: null,
+  },
+  // docs/gage-reference.md, 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg.
+  "building-michigan-west-right": {
+    "white terracotta": 0xe8d8c7,
+    "common brick": null,
+    glass: null,
+    "lit window": null,
+    "dim window": null,
+    neutral: null,
+  },
+  // The Keith and Ascher fronts, in a sunlit close-up calibrated through the University Club's
+  // limestone beside them; their stone trim is too small to measure.
+  // docs/keith-ascher-reference.md, 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg.
+  "building-michigan-west-front": {
+    brick: 0x896257,
+    limestone: null,
+    glass: null,
+    "lit window": null,
+    "dim window": null,
+    neutral: null,
+  },
+  // docs/keith-ascher-reference.md, 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg.
+  "building-30-south-michigan": {
+    brick: 0x886860,
+    limestone: null,
+    glass: null,
+    "lit window": null,
+    "dim window": null,
+    neutral: null,
+  },
+  // The Hyatt Regency's west tower, a few pixels wide in the panorama, in an overcast close-up
+  // calibrated through Aon's granite behind it.
+  // docs/hyatt-west-tower-reference.md, 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg.
+  "building-hyatt-regency-west-tower": {
+    "orange brick": 0x65554b,
+    "bronze glass": null,
+    "dark metal": null,
+    "lit window": null,
+    "dim window": null,
     neutral: null,
   },
 };
