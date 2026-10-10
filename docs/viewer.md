@@ -120,7 +120,7 @@ Jackson front its colour is measured on; that front renders 0.82 of the photogra
 higher exposure brightens only the darker materials. The second group spreads wider, because the
 scene's sun lights and shades their faces differently from the photograph's: 340 on the Park and
 Willoughby Tower reach 0.87 to 0.93, Millennium Park Plaza's precast and Kemper's marble 0.65, while
-the view sees Trump Tower's and the Heritage's glass in shade, at 0.28 and 0.36, and lights 330
+the view sees Trump Tower's and the Heritage's glass in shade, at 0.25 and 0.36, and lights 330
 North Wabash's dark glass to 1.56. The exposure is kept for all thirteen. The scene's sun stands in
 the south-west, so the east faces the camera sees are in shade, as the photograph's are, and bluer,
 lit by the sky. `scripts/sample-colours.ts day` measures every colour again from the photographs;

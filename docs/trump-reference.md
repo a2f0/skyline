@@ -218,6 +218,6 @@ Decisions in `src/models/colour-palette.ts`:
 Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
 layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
 its null ones grey. In the skyline view at 1600 × 900 under the day lights, the glass renders
-`51, 70, 85`, 0.28 of the photograph's brightness in linear light and 0.32 of its shaded right
-face's: the view sees both of the tower's faces in the scene's shade, and many of the model's panes
-are darker than the grey its colour is measured at.
+`49, 65, 79`, 0.25 of the photograph's brightness in linear light and 0.28 of its shaded right
+face's, with the grey mullions among its pixels: the view sees both of the tower's faces in the
+scene's shade, and many of the model's panes are darker than the grey its colour is measured at.
