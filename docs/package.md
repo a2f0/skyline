@@ -138,7 +138,8 @@ the scene's code cannot load, building details in a panel over the skyline, and
 reduced motion. `F`, pressed inside the viewer, shows its element fullscreen.
 
 The scene's control bar starts folded behind its star; set `controls: 'open'` to
-start it open, with no fold, from its first frame. Visitors can still fold it.
+start it open, with no fold, from its first frame, as the site's own viewer at
+skyline.devopsrockstars.com does. Visitors can still fold it.
 Open, the bar shows the camera hint and the OpenStreetMap credit for the streets
 and footprints. Set `attribution: false` to leave the credit out. OpenStreetMap's
 [licence](https://www.openstreetmap.org/copyright) requires crediting its contributors

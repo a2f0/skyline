@@ -276,6 +276,9 @@ window.mountFixture();
             };
           });
           expect(isolation).toEqual({ direction: "ltr", transform: "none", spacing: "normal", color: "rgb(221, 221, 221)", inset: "0px", hostLoading: ["static", "rgb(77, 77, 77)"] });
+          // A host's bar starts folded behind its star, though the site's own viewer opens it.
+          expect(await page.locator("#menu-toggle").getAttribute("aria-expanded")).toBe("false");
+          expect(await page.locator("#camera-views").isHidden()).toBe(true);
           await page.locator("#menu-toggle").click();
           expect(await page.locator("#show-original").isVisible()).toBe(true);
           expect(await page.locator("#show-original").evaluate((button) => parseFloat(getComputedStyle(button).fontSize))).toBeLessThan(20);
