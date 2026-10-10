@@ -160,7 +160,7 @@ a sunlit south face meets a shaded front, and four roofs. A ray from that eye th
 meets the nearest mapped part, which owns the pixel, and the face it meets gives the pixel's
 direction. This building shows its south face at x 1404–1419 and its Michigan front at x 1420–1437,
 its roof at row 410; each box below lies wholly on the face it names, as the script's `--box` option
-reports.
+reports and `tests/panorama-owners.test.ts` checks.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
@@ -180,7 +180,9 @@ the values used.
 Decisions in `src/models/colour-palette.ts`:
 
 - `buff brick` `187, 170, 159`, the sunlit south face's tan brick; `white terracotta`, the cornices,
-  takes its colour at their lighter grey. The shaded front measures `147, 138, 131`.
+  takes its colour at their lighter grey. The shaded front's light pixels measure `147, 138, 131`,
+  warm and light where the other shaded fronts read cool; they are likely its lighter terracotta
+  trim and frames rather than brick in shade, so they are a comparison, not a shade pair.
 - `glass` `50, 54, 60`; `lit window` and `dim window` take it exactly, since no office lights show
   by day.
 - `neutral` stays grey.

@@ -161,7 +161,7 @@ a sunlit south face meets a shaded front, and four roofs. A ray from that eye th
 meets the nearest mapped part, which owns the pixel, and the face it meets gives the pixel's
 direction. This building shows its south face at x 1132–1163 and its Michigan front at x 1164–1189,
 its roof at row 415; each box below lies wholly on the face it names, as the script's `--box` option
-reports.
+reports and `tests/panorama-owners.test.ts` checks.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the

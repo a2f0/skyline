@@ -123,7 +123,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   // FID-COL-005, the Michigan Avenue wall. Its fronts face east, into the photograph's shade; where a
   // building shows only that front, its stone or terracotta is the shaded median's sunlit estimate,
   // through the shade-to-sun ratio of the Railway Exchange's terracotta (scripts/sample-colours.ts,
-  // the day study's shade).
+  // the day study's shade): provisional, since cross-checks disagree with that ratio.
   // docs/borg-warner-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
   "building-200-south-michigan": {
     "blue enamel": 0x828a93,

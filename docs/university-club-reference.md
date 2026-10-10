@@ -143,7 +143,9 @@ at 1.6 px RMS over seven tower silhouettes against the sky, four Michigan Avenue
 sunlit south face meets a shaded front, and four roofs. A ray from that eye through each pixel meets
 the nearest mapped part, which owns the pixel, and the face it meets gives the pixel's direction.
 This building shows its south face at x 1304–1316 and its Michigan front at x 1317–1332, its roof at
-row 426; each box below lies wholly on the face it names, as the script's `--box` option reports.
+row 426; each wall box below lies wholly on the face it names, as the script's `--box` option
+reports and `tests/panorama-owners.test.ts` checks, while the roof box stands in the rows just above
+the walls' highest row, which the option cannot test.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the

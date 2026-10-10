@@ -72,7 +72,9 @@ Together they cover:
 - that the colour trial's materials table matches every building's batches and tones, that its
   sourced buildings measure every material they use and show those colours, that their audits
   record each measured colour, and that it restores the greys exactly
-  (`tests/colour-materials.test.ts`).
+  (`tests/colour-materials.test.ts`);
+- that the colour trial's panorama fit holds and gives each Michigan Avenue sample to its building
+  and face (`tests/panorama-owners.test.ts`).
 
 Screenshots are written to `/tmp/skyline-3d-*.png` and `/tmp/skyline-group-*.png`.
 

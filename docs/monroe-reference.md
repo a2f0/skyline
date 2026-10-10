@@ -139,8 +139,10 @@ buildings, with the photographer's eye 10 m east and 100 m south of the drawing'
 px RMS over seven tower silhouettes against the sky, four Michigan Avenue corners where a sunlit
 south face meets a shaded front, and four roofs. A ray from that eye through each pixel meets the
 nearest mapped part, which owns the pixel, and the face it meets gives the pixel's direction. This
-building shows its Michigan front at x 1283–1303, its roof at row 424; each box below lies wholly on
-the face it names, as the script's `--box` option reports.
+building shows its Michigan front at x 1283–1303, its roof at row 424; each wall box below lies
+wholly on the face it names, as the script's `--box` option reports and
+`tests/panorama-owners.test.ts` checks, while the roof box stands in the rows just above the walls'
+highest row, which the option cannot test.
 
 Shade: the Michigan fronts face east, into the photograph's shade, and the scene shades them too.
 Where a building shows only that front, its stone or terracotta is estimated as if sunlit, so the
@@ -151,9 +153,11 @@ and its median moves about 8% as the brightness cutoff moves from 0.45 to 0.35. 
 not share the ratio, and two comparisons disagree with it: Peoples Gas's front is mostly windows at
 this scale, its terracotta 3% of the box above the cutoff, and its ratio runs from about 2.8 to 4.0
 in red as the cutoff moves; Six North's sunlit brick and shaded front differ by only about 1.5 to
-1.7, though that front's light pixels are partly lighter terracotta. So an estimate is uncertain by
-tens of percent. `bun scripts/sample-colours.ts day` measures the pair and prints each estimate.
-Glass keeps its measured value: it reflects the sky rather than scattering the sun.
+1.7, half the Railway Exchange's ratio in linear light, though that front's light pixels are partly
+lighter terracotta. So the estimates are provisional: uncertain by up to a factor of two in linear
+light, until a second material showing both faces confirms the ratio.
+`bun scripts/sample-colours.ts day` measures the pair and prints each estimate. Glass keeps its
+measured value: it reflects the sky rather than scattering the sun.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
@@ -181,4 +185,6 @@ Decisions in `src/models/colour-palette.ts`:
 Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
 layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
 its null ones grey. In the skyline view at 1600 × 900 under the day lights, the terracotta renders
-`97, 106, 117` against the photograph's shaded front, 0.82 in linear light.
+`97, 106, 117` against the photograph's shaded front, 0.82 in linear light. That compares the
+scene's shade with the Railway Exchange's, which built the estimate, more than it tests the estimate
+itself.

@@ -329,7 +329,10 @@ command(usage, {}, async ({ positionals }) => {
   for (const id of chosen) if (!study.samples[id]) throw new Error(`No ${name} samples for ${id}; there are ${Object.keys(study.samples).join(", ")}.`);
   const directory = path.join(import.meta.dirname, "..", "node_modules", ".cache", "skyline-colour-photos");
   mkdirSync(directory, { recursive: true });
-  for (const photo of new Set(chosen.flatMap((id) => study.samples[id]!.map((sample) => sample.photo ?? study.photo)))) await fetchPhoto(photo, directory);
+  // The chosen samples' photographs, and the shade pairs' where a chosen sample is shaded.
+  const needed = chosen.flatMap((id) => study.samples[id]!);
+  if (needed.some((sample) => sample.shaded)) for (const [building, ...rows] of study.shade ?? []) needed.push(...(study.samples[building] ?? []).filter((sample) => rows.includes(sample.row)));
+  for (const photo of new Set(needed.map((sample) => sample.photo ?? study.photo))) await fetchPhoto(photo, directory);
   writeFileSync(path.join(directory, "blank.html"), "<!doctype html>");
   const server = await startServer(directory);
   let browser: Browser | undefined;
