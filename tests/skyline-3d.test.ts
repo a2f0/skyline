@@ -96,6 +96,8 @@ function viewerHooks() {
   Object.defineProperty(window, "__buildingStudy", { get: () => canvas(root(), ".skyline-3d > #viewport > #building"), configurable: true });
 }
 
+// The site's viewer starts the scene's bar open; tests that unfold it with the star load the
+// viewer with `?controls=closed`, as a host's starts.
 async function openScene(page: Page) {
   await page.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
   return page;
@@ -199,7 +201,7 @@ describe("full-screen 3D skyline", () => {
     for (const embedded of [false, true]) {
       const page = await browser.newPage({ viewport: embedded ? { width: 390, height: 844 } : { width: 1440, height: 900 }, hasTouch: embedded, reducedMotion: "reduce" });
       await watch(page);
-      await page.goto(`${origin}/${embedded ? "index.html" : "skyline-3d.html"}`);
+      await page.goto(`${origin}/${embedded ? "index.html?controls=closed" : "skyline-3d.html"}`);
       const scene = embedded ? await openScene(page) : page;
       await scene.waitForFunction(() => window.__buildingStudy?.ready);
       expect(await scene.locator("[data-celebration=pride]").count()).toBe(0);
@@ -318,7 +320,7 @@ describe("full-screen 3D skyline", () => {
   test("celebration buttons fit on touch screens and survive original-artwork comparison", async () => {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, reducedMotion: "reduce" });
     await watch(page);
-    await page.goto(`${origin}/`);
+    await page.goto(`${origin}/?controls=closed`);
     const scene = await openScene(page);
     await scene.locator("#menu-toggle").tap();
     for (const button of await scene.locator("[data-celebration]").all()) {
@@ -355,7 +357,7 @@ describe("full-screen 3D skyline", () => {
       const held = new Promise<void>((resolve) => { release = resolve; });
       await page.route("**/skyline-3d.js", async (route) => { await held; await route.continue(); });
       try {
-        await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${origin}/?controls=closed`, { waitUntil: "domcontentloaded" });
         const scene = page;
         const trace = scene.locator(".skyline-trace");
         await trace.waitFor({ state: "visible" });
@@ -569,7 +571,7 @@ describe("full-screen 3D skyline", () => {
     await watch(page);
     const requested: string[] = [];
     page.on("request", (request) => requested.push(new URL(request.url()).pathname));
-    await page.goto(`${origin}/index.html`);
+    await page.goto(`${origin}/index.html?controls=closed`);
     const scene = await openScene(page);
     expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
     expect(await page.locator("#drawing").isHidden()).toBe(true);
@@ -665,7 +667,7 @@ describe("full-screen 3D skyline", () => {
       const page = await browser.newPage({ viewport: { width, height }, reducedMotion: reduced ? "reduce" : "no-preference" });
       await watch(page);
       try {
-        await page.goto(`${origin}/index.html`);
+        await page.goto(`${origin}/index.html?controls=closed`);
         const scene = await openScene(page);
         const original = scene.locator("#show-original");
         const back = page.locator("#return-skyline-3d");
@@ -993,7 +995,7 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
-  test("starts with the controls open when its address or the viewer's asks, and folds them from there", async () => {
+  test("starts with the controls open on the site's viewer or when an address asks, and folds them from there", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     await watch(page);
     // On the scene's own page or in the viewer's shadow root.
@@ -1030,19 +1032,27 @@ describe("full-screen 3D skyline", () => {
       await page.waitForFunction(() => window.__buildingStudy?.ready);
       expect(await state(page), query).toEqual(closed);
     }
-    // The viewer, which takes the package's options from its own address, opens the scene's
-    // bar from its first frame too: as soon as the scene's markup shows, before its code.
+    // The site's viewer opens the scene's bar unasked, from its first frame too: as soon as the
+    // scene's markup shows, before its code.
     let releaseViewer!: () => void;
     const viewerHeld = new Promise<void>((resolve) => { releaseViewer = resolve; });
     await page.route("**/skyline-3d.js", async (route) => { await viewerHeld; await route.continue(); });
-    await page.goto(`${origin}/index.html?controls=open`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${origin}/index.html`, { waitUntil: "domcontentloaded" });
     await page.locator(".control-bar").waitFor();
     expect(await state(page)).toEqual(open);
     releaseViewer();
     expect(await state(await openScene(page))).toEqual(open);
     await page.unroute("**/skyline-3d.js");
-    await page.goto(`${origin}/index.html`);
-    expect(await state(await openScene(page))).toEqual(closed);
+    // It takes the package's options from its own address: `?controls=closed` folds the bar,
+    // and `?embed=1`, the viewer as a host shows it, starts it folded as `mountSkyline` does,
+    // unless it asks for it open. Any other value leaves each default.
+    for (const [query, expected] of [
+      ["?controls=closed", closed], ["?controls=open", open], ["?controls=wide", open],
+      ["?embed=1", closed], ["?embed=1&controls=wide", closed], ["?embed=1&controls=open", open],
+    ] as const) {
+      await page.goto(`${origin}/index.html${query}`);
+      expect(await state(await openScene(page)), query).toEqual(expected);
+    }
     await page.close();
   }, { timeout: 120_000 });
 
@@ -1115,7 +1125,7 @@ describe("full-screen 3D skyline", () => {
   test("keeps its skyline above the control bar on a phone, with views to tap through under reduced motion", async () => {
     const phone = await browser.newPage({ ...viewports[4].options, reducedMotion: "reduce" });
     await watch(phone);
-    await phone.goto(`${origin}/index.html`);
+    await phone.goto(`${origin}/index.html?controls=closed`);
     const scene = await openScene(phone);
     expect(await phone.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     // The drawing's frame is as wide as a portrait screen and stands on the bar.
@@ -1149,7 +1159,7 @@ describe("full-screen 3D skyline", () => {
   test("floats a building's detail over the skyline from its context menu, without leaving the viewer", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await watch(page);
-    await page.goto(`${origin}/index.html`);
+    await page.goto(`${origin}/index.html?controls=closed`);
     const scene = await openScene(page);
     const visits = await page.evaluate(() => history.length);
     const canvas = (await scene.locator("#building").boundingBox())!;
@@ -1206,7 +1216,7 @@ describe("full-screen 3D skyline", () => {
     const detail = page.locator(".detail-host");
     const openDetail = (name: string) => page.waitForFunction((name) => window.__detailStudy?.ready && window.__detailStudy.modelName === name, name, { timeout: 60_000 });
     await openDetail("Aon Center");
-    expect(page.url()).toBe(`${origin}/index.html`);
+    expect(page.url()).toBe(`${origin}/index.html?controls=closed`);
     expect(await page.evaluate(() => history.length)).toBe(visits);
     expect(await page.locator("iframe").count()).toBe(0);
     expect(await detail.locator("h1").textContent()).toBe("Aon Center");

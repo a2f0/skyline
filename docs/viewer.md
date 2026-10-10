@@ -53,9 +53,12 @@ window at least 1260 px wide; narrower windows put the groups under the star, at
 row or centred in a row each, and the scene stands on the taller bar while it is open. Reduced
 motion opens and closes it at once, and a window resized mid-fold settles the fold at once.
 
-The bar starts closed. `?controls=open` on the viewer's address, or on `skyline-3d.html` itself,
-starts it open from its first frame instead, with no fold, and the star folds it as usual; any
-other value leaves it closed. Open, the bar shows the camera hint and the OpenStreetMap credit;
+The site's own viewer, `index.html`, starts the bar open from its first frame, with no fold, to
+show what the scene can do, and the star folds it as usual. Everywhere else it starts closed: on
+`skyline-3d.html`, in a host's page through the package's `mountSkyline`, and under `?embed=1`,
+which shows the viewer as a host does. `?controls=open` on the viewer's address, or on
+`skyline-3d.html` itself, starts it open; `?controls=closed` on the viewer's address starts it
+closed; any other value leaves the page's default. Open, the bar shows the camera hint and the OpenStreetMap credit;
 `?attribution=hidden` leaves the credit out, for a host page that credits OpenStreetMap
 contributors itself, as its licence requires. On `skyline-3d.html`, a small inline script after
 the bar applies both before the scene's code arrives; the viewer applies its `controls` and
