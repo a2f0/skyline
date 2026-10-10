@@ -164,10 +164,11 @@ not share the ratio, and two comparisons disagree with it: Peoples Gas's front i
 this scale, its terracotta 3% of the box above the cutoff, and its ratio runs from about 2.8 to 4.0
 in red as the cutoff moves; Six North's sunlit brick and shaded front differ by only about 1.5 to
 1.7, half the Railway Exchange's ratio in linear light, though that front's light pixels are partly
-lighter terracotta. So the estimates are provisional: uncertain by up to a factor of two in linear
-light, until a second material showing both faces confirms the ratio.
-`bun scripts/sample-colours.ts day` measures the pair and prints each estimate. Glass keeps its
-measured value: it reflects the sky rather than scattering the sun.
+lighter terracotta. Borg-Warner's spandrels, sunlit and shaded, differ by only about 1.2, though
+glossy enamel reflects the sky as much as it scatters the sun. So the estimates are provisional,
+uncertain by a factor of two or more in linear light, until a second matte material showing both
+faces confirms the ratio. `bun scripts/sample-colours.ts day` measures the pair and prints each
+estimate. Glass keeps its measured value: it reflects the sky rather than scattering the sun.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the

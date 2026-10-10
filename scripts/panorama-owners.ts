@@ -29,7 +29,7 @@ command(usage, { box: { type: "string", multiple: true } }, async ({ values, pos
       faces.set(face, entry);
     }));
     const listed = [...faces].sort((p, q) => q[1].count - p[1].count).map(([face, { count, min, max }]) => `${face}° ×${count} at x ${min}–${max}`);
-    console.log(`\n${building}: highest row ${topRow}; ${listed.join("; ") || "not visible"}`);
+    console.log(`\n${building}: ${listed.length ? `highest row ${topRow}; ${listed.join("; ")}` : "not visible"}`);
   }
   for (const spec of (values["box"] as string[] | undefined) ?? []) {
     const [building, face, ...edges] = spec.split(","), [bx0, by0, bx1, by1] = edges.map(Number) as [number, number, number, number];

@@ -14,6 +14,8 @@ interface Prism { building: string; ring: Vec2[]; bottom: number; top: number }
 
 // The drawing's fitted eye (src/skyline-scene.ts), metres east and north of Crain's mapped centre.
 export const drawingEye: Vec2 = [1471.76, -1948.8];
+// The eye's height above the street datum, as the drawing's (src/skyline-scene.ts gives it as y).
+const eyeHeight = 2;
 // The part of the rendition the buildings span: its columns, x0 to x1, and its rows.
 export const panoramaColumns: [x0: number, x1: number] = [1040, 2200];
 export const panoramaRows = 551;
@@ -92,7 +94,7 @@ function rowFit(eye: Vec2): { line: [number, number]; points: [number, number][]
     // The parts reaching the roof's height, or, where the roof stands above every part, the footprint.
     const record = records.get(building)!, parts = prisms.filter((prism) => prism.building === building && prism.top >= record.height - 0.5);
     const rings = parts.length ? parts.map((prism) => prism.ring) : [record.footprint.coordinates.map(projectGround)];
-    return [(record.height - 2) / nearestDistance(rings, eye), row] as [number, number];
+    return [(record.height - eyeHeight) / nearestDistance(rings, eye), row] as [number, number];
   });
   return { line: line(points), points };
 }
@@ -111,7 +113,7 @@ export function fitPanorama(): Fit {
       // The parts a building shows at a row: those spanning the row's height at its distance.
       const partsAt = (building: string, row: number) => {
         const parts = prisms.filter((prism) => prism.building === building);
-        const height = 2 + (row - c) / d * nearestDistance(parts.map((prism) => prism.ring), eye);
+        const height = eyeHeight + (row - c) / d * nearestDistance(parts.map((prism) => prism.ring), eye);
         const spanning = parts.filter((prism) => prism.bottom <= height && height <= prism.top);
         return spanning.length ? spanning : parts;
       };
@@ -147,7 +149,7 @@ export function owners(fit: Fit, x0: number, x1: number, height: number) {
       const hit = meet(prism.ring, fit.eye, bearing);
       if (!hit) continue;
       const [distance, face] = hit;
-      const top = Math.max(0, Math.floor(fit.c + fit.d * (prism.top - 2) / distance + 0.5)), bottom = Math.min(height, Math.floor(fit.c + fit.d * (prism.bottom - 2) / distance + 0.5));
+      const top = Math.max(0, Math.floor(fit.c + fit.d * (prism.top - eyeHeight) / distance + 0.5)), bottom = Math.min(height, Math.floor(fit.c + fit.d * (prism.bottom - eyeHeight) / distance + 0.5));
       for (let y = top; y < bottom; y += 1) {
         if (depth[y]![x - x0]! <= distance) continue;
         depth[y]![x - x0] = distance; owner[y]![x - x0] = prism.building; facing[y]![x - x0] = face;
