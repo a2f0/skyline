@@ -166,11 +166,11 @@ each building's distance from the fitted eye, the white block's top implies 172 
 Plaza's published 159.7 m (OpenStreetMap puts its roof box at 166 m), and the dark grid's top 134 m
 against Two Illinois Center's published 114.3 m. The other towers measured in this group show their
 tops 9 to 13 m above their models in the same fit, so River Plaza's fits that pattern while Two
-Illinois Center's stands 7 to 10 m beyond it, as its lit floors in the 2013 panorama rise above its
-modelled roof too. The Two Illinois Center identification is therefore provisional. Its box lies
-wholly on its south face, as the script's `--box` option reports and `tests/panorama-owners.test.ts`
-checks; River Plaza's box is placed by row in the white block, above its modelled roof, so that test
-does not cover it.
+Illinois Center's stands about 7 to 11 m beyond it, as its lit floors in the 2013 panorama rise
+above its modelled roof too. The Two Illinois Center identification is therefore provisional. Its
+box lies wholly on its south face, as the script's `--box` option reports and
+`tests/panorama-owners.test.ts` checks; River Plaza's box is placed by row in the white block, above
+its modelled roof, so that test does not cover it.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the

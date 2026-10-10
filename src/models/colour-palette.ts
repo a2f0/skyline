@@ -214,7 +214,8 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   },
   // docs/river-plaza-two-illinois-center-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
   // Two Illinois Center's black curtain wall, its lighter and darker pixels apart, and River Plaza's
-  // white concrete, the top floors that show above it.
+  // white concrete, the top floors that show above it. Two Illinois Center's identification is
+  // provisional: its photographed top stands further above its model than the group's others.
   "building-office-west-of-aon": {
     "dark metal": 0x444c57,
     ...glass(0x2e3641, "bronze glass"),

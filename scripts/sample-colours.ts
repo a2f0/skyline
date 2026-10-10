@@ -462,7 +462,7 @@ command(usage, {}, async ({ positionals }) => {
         const rule = [sample.hue && `hue ${range(sample.hue)}`, sample.sat && `sat ${range(sample.sat)}`, sample.val && `val ${range(sample.val)}`].filter(Boolean).join(", ");
         console.log(`| ${sample.row} | ${sample.box.join(", ")}${sample.photo ? ` in ${sample.photo}` : ""} | ${rule || "all"} | ${number(result.count)} (${(result.share * 100).toFixed(1)}%) | \`${result.median.join(", ")}\` | ${result.quartiles.map(([low, high]) => `${low}–${high}`).join(" / ")} |`);
         // A comparison row in a calibrated close-up shows its calibrated value; the reference's own row would only give back the panorama's.
-        if (sample.photo && calibrations.has(sample.photo) && !sample.material && study.references?.[sample.photo]?.[2] !== sample.row) calibrated.push(`"${sample.row}" calibrated: \`${scaled(result.median, calibrations.get(sample.photo)!).join(", ")}\``);
+        if (sample.photo && calibrations.has(sample.photo) && !sample.material && !(study.references?.[sample.photo]?.[0] === id && study.references[sample.photo]![2] === sample.row)) calibrated.push(`"${sample.row}" calibrated: \`${scaled(result.median, calibrations.get(sample.photo)!).join(", ")}\``);
         if (!sample.material) continue;
         if (sample.photo && calibrations.has(sample.photo)) {
           const value = scaled(result.median, calibrations.get(sample.photo)!);
