@@ -144,7 +144,7 @@ describe("colour trial", () => {
     expect(swatches.get("glass")).toEqual({ colour: linear(measured.glass as number), reference: 0.4 });
     expect(swatches.get("neutral"), "a null material stays grey").toBeNull();
     expect(swatches.get("marble"), "an unmeasured material stays grey").toBeNull();
-    expect(swatchesOf("building-river-plaza", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
+    expect(swatchesOf("building-three-illinois-center", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
   });
 
   test("leaves null materials grey and paints every other in its own or its named material's hue", () => {
@@ -283,6 +283,8 @@ describe("colour trial", () => {
       "building-buckingham-east": ["sheraton-grand", "FID-COL-006"],
       "building-swissotel": ["swissotel", "FID-COL-006"],
       "building-michigan-plaza-front-middle": ["north-michigan-180", "FID-COL-006"],
+      "building-office-west-of-aon": ["river-plaza-two-illinois-center", "FID-COL-006"],
+      "building-river-plaza": ["river-plaza-two-illinois-center", "FID-COL-006"],
       "building-chicago-athletic-association": ["chicago-athletic-association", "FID-COL-006"],
       "building-michigan-west-right": ["gage", "FID-COL-006"],
       "building-michigan-west-front": ["keith-ascher", "FID-COL-006"],

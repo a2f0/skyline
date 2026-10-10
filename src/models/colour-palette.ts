@@ -183,7 +183,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     ...glass(0x3b3f42),
     neutral: null,
   },
-  // FID-COL-006, four towers the panorama shows, measured on their sunlit south faces.
+  // FID-COL-006, six towers the panorama shows, measured on their sunlit south faces.
   // docs/buckingham-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
   "building-the-buckingham": {
     concrete: 0xc0beb6,
@@ -211,6 +211,21 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     "lit window": null,
     "dim window": null,
     neutral: null,
+  },
+  // docs/river-plaza-two-illinois-center-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
+  // Two Illinois Center's black curtain wall, its lighter and darker pixels apart, and River Plaza's
+  // white concrete, the top floors that show above it. Two Illinois Center's identification is
+  // provisional: its photographed top stands further above its model than the group's others.
+  "building-office-west-of-aon": {
+    "dark metal": 0x444c57,
+    ...glass(0x2e3641, "bronze glass"),
+    neutral: null,
+  },
+  "building-river-plaza": {
+    concrete: 0xe5dfd3,
+    glass: null,
+    "lit window": null,
+    "dim window": null,
   },
   // Michigan Avenue fronts Grant Park's trees hide in the panorama: measured in a close-up under an
   // overcast sky and calibrated to the panorama through Willoughby Tower's limestone beside them,
@@ -255,7 +270,8 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     neutral: null,
   },
   // The Hyatt Regency's west tower, a few pixels wide in the panorama, in an overcast close-up
-  // calibrated through Aon's granite behind it.
+  // calibrated through Aon's granite behind it. Provisional: haze over Aon, and the panorama's
+  // brighter strip, say the brick may be up to twice as bright as this.
   // docs/hyatt-west-tower-reference.md, 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg.
   "building-hyatt-regency-west-tower": {
     "orange brick": 0x65554b,

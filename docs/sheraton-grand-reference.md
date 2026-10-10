@@ -162,7 +162,7 @@ Reference pages are research inputs only; the viewer downloads nothing from them
 
 ## 2026-10-10 — Daytime colours from Chicago.jpg (FID-COL-006)
 
-The colour trial's sunny day gains a fourth group of nine buildings: four towers measured on sunlit
+The colour trial's sunny day gains a fourth group of eleven buildings: six towers measured on sunlit
 faces in the 2008 panorama, as the first three groups were (FID-COL-003 to FID-COL-005), and five
 buildings the panorama does not resolve, measured in daytime close-ups calibrated to it. All are
 shown at the same exposure.
