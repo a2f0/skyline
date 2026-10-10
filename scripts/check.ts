@@ -49,6 +49,7 @@ async function main() {
   await suite("celebration-lighting.test.ts");
   await suite("colour-materials.test.ts");
   await suite("panorama-owners.test.ts");
+  await suite("colour-shade.test.ts");
   await suite("package.test.ts");
   // The browser suites exercise the compiled site: build first, then serve dist/.
   await timings.run("build:site", () => buildSite().then(() => undefined));

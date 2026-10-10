@@ -17,6 +17,7 @@ import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { Browser } from "playwright";
+import { hex, shadeFactors, sunlitEstimate } from "./lib/shade.js";
 import { startServer } from "./lib/static-server.js";
 import { launch, command } from "./lib/study-page.js";
 
@@ -244,11 +245,6 @@ const studies: Record<string, Study> = {
   night: { photo: "skyline.jpg", samples: night },
 };
 
-// sRGB channels, 0–255, to linear light and back.
-const linear = (channel: number) => { const value = channel / 255; return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4; };
-const encoded = (value: number) => Math.round(255 * (value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055));
-const hex = (rgb: number[]) => `0x${rgb.map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
-
 // Runs in the page: one sample's pixels, chosen and summarised.
 async function measure({ sample, photo }: { sample: Sample; photo: string }): Promise<Result> {
   // Each photograph is fetched once per page.
@@ -351,14 +347,14 @@ command(usage, {}, async ({ positionals }) => {
     let factors: number[] | undefined;
     if (chosen.some((id) => study.samples[id]!.some((sample) => sample.shaded))) {
       if (!study.shade?.length) throw new Error(`The ${name} study has shaded samples but no shade pairs.`);
-      const ratios: number[][] = [];
+      const pairs: [number[], number[]][] = [];
       for (const [building, sunlit, shaded] of study.shade) {
         const [bright, dark] = await Promise.all([find(building, sunlit), find(building, shaded)].map((sample) => page.evaluate(measure, { sample, photo: sample.photo ?? study.photo })));
-        ratios.push(bright!.median.map((channel, index) => linear(channel) / linear(dark!.median[index]!)));
-        console.log(`Shade pair ${building}: \`${bright!.median.join(", ")}\` sunlit, \`${dark!.median.join(", ")}\` shaded, ratio ${ratios.at(-1)!.map((ratio) => ratio.toFixed(2)).join(", ")}`);
+        pairs.push([bright!.median, dark!.median]);
+        console.log(`Shade pair ${building}: \`${bright!.median.join(", ")}\` sunlit, \`${dark!.median.join(", ")}\` shaded, ratio ${shadeFactors([pairs.at(-1)!]).map((ratio) => ratio.toFixed(2)).join(", ")}`);
       }
-      factors = [0, 1, 2].map((index) => ratios.reduce((sum, ratio) => sum + ratio[index]!, 0) / ratios.length);
-      console.log(`Shade factors${ratios.length > 1 ? ", the pairs' mean" : ""}: ${factors.map((factor) => factor.toFixed(2)).join(", ")}`);
+      factors = shadeFactors(pairs);
+      console.log(`Shade factors${pairs.length > 1 ? ", the pairs' mean" : ""}: ${factors.map((factor) => factor.toFixed(2)).join(", ")}`);
     }
     for (const id of chosen) {
       console.log(`\n${id}\n`);
@@ -369,9 +365,7 @@ command(usage, {}, async ({ positionals }) => {
         console.log(`| ${sample.row} | ${sample.box.join(", ")}${sample.photo ? ` in ${sample.photo}` : ""} | ${rule || "all"} | ${number(result.count)} (${(result.share * 100).toFixed(1)}%) | \`${result.median.join(", ")}\` | ${result.quartiles.map(([low, high]) => `${low}–${high}`).join(" / ")} |`);
         if (!sample.material) continue;
         if (!sample.shaded) { entries.push(`    ${JSON.stringify(sample.material)}: ${hex(result.median)},`); continue; }
-        // The sunlit estimate: the shaded median times the factors in linear light, kept in hue if it passes white.
-        const lit = result.median.map((channel, index) => linear(channel) * factors![index]!), brightest = Math.max(1, ...lit);
-        const estimate = lit.map((value) => encoded(value / brightest));
+        const estimate = sunlitEstimate(result.median, factors!);
         entries.push(`    ${JSON.stringify(sample.material)}: ${hex(estimate)}, // sunlit estimate \`${estimate.join(", ")}\` of the shaded \`${result.median.join(", ")}\``);
       }
       console.log(`\n${entries.join("\n")}`);

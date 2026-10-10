@@ -14,6 +14,9 @@ interface Prism { building: string; ring: Vec2[]; bottom: number; top: number }
 
 // The drawing's fitted eye (src/skyline-scene.ts), metres east and north of Crain's mapped centre.
 export const drawingEye: Vec2 = [1471.76, -1948.8];
+// The part of the rendition the buildings span: its columns, x0 to x1, and its rows.
+export const panoramaColumns: [x0: number, x1: number] = [1040, 2200];
+export const panoramaRows = 551;
 // Silhouettes against the sky: a building, a row, and its left and right edges in that row, where
 // the colour first leaves the sky walking in from open sky on either side. One Prudential's right
 // edge meets Two Prudential's, so only its left is read.

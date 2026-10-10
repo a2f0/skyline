@@ -1,19 +1,19 @@
 import { describe, expect, test } from "bun:test";
-import { boxShare, drawingEye, fitPanorama, line, meet, owners } from "../scripts/lib/panorama.js";
+import { boxShare, drawingEye, fitPanorama, line, meet, owners, panoramaColumns, panoramaRows } from "../scripts/lib/panorama.js";
 
 // The colour trial's Michigan Avenue audits (FID-COL-005) quote this fit and place their samples
 // by its pixel owners; these keep a geography change from moving them unnoticed.
 const fit = fitPanorama();
-const x0 = 1040, map = owners(fit, x0, 2200, 551);
+const [x0, x1] = panoramaColumns, map = owners(fit, x0, x1, panoramaRows);
 
 describe("panorama fit", () => {
   test("matches the silhouettes, corners and roofs within a few pixels, near the drawing's eye", () => {
     expect(fit.rms).toBeLessThan(2);
     expect(fit.residuals.filter(({ value }) => Math.abs(value) >= 4)).toEqual([]);
     expect(fit.residuals.map(({ label }) => label)).toContain("building-peoples-gas corner at row 432");
-    // The audits give the eye as 10 m east and 100 m south of the drawing's.
-    expect(Math.abs(fit.eye[0] - drawingEye[0] - 10)).toBeLessThanOrEqual(10);
-    expect(Math.abs(fit.eye[1] - drawingEye[1] + 100)).toBeLessThanOrEqual(10);
+    // The audits give the eye as 10 m east and 100 m south of the drawing's, a point of the fit's grid.
+    expect(fit.eye[0] - drawingEye[0]).toBeCloseTo(10, 6);
+    expect(fit.eye[1] - drawingEye[1]).toBeCloseTo(-100, 6);
   });
 
   test("gives every wall sample of the Michigan Avenue audits wholly to its building and face", () => {

@@ -3,7 +3,7 @@
 // scripts/lib/panorama.ts. It prints the fit and its residuals, each listed building's visible
 // faces, and, for a box, the share of its pixels one building owns on one face.
 import { command } from "./lib/command.js";
-import { boxShare, drawingEye, fitPanorama, owners, records } from "./lib/panorama.js";
+import { boxShare, drawingEye, fitPanorama, owners, panoramaColumns, panoramaRows, records } from "./lib/panorama.js";
 
 const usage = `Usage: bun scripts/panorama-owners.ts [building-id...] [--box building,face,x0,y0,x1,y1]...
   Prints the panorama fit and, for each building, its visible faces in the rendition: each face's
@@ -16,7 +16,7 @@ command(usage, { box: { type: "string", multiple: true } }, async ({ values, pos
   console.log(`Column = ${fit.a.toFixed(1)} + ${fit.b.toFixed(3)} × bearing (degrees east of north); row = ${fit.c.toFixed(1)} + ${fit.d.toFixed(1)} × tan(elevation).`);
   console.log(`Residual RMS ${fit.rms.toFixed(2)} px over the silhouettes, corners and roofs.`);
   for (const { label, value } of fit.residuals) console.log(`  ${label}: ${value >= 0 ? "+" : ""}${value.toFixed(1)}`);
-  const x0 = 1040, x1 = 2200, height = 551, { owner, facing } = owners(fit, x0, x1, height);
+  const [x0, x1] = panoramaColumns, height = panoramaRows, { owner, facing } = owners(fit, x0, x1, height);
   for (const building of positionals) {
     if (!records.has(building)) throw new Error(`No building ${building}.`);
     const faces = new Map<number, { count: number; min: number; max: number }>();
@@ -33,7 +33,7 @@ command(usage, { box: { type: "string", multiple: true } }, async ({ values, pos
   }
   for (const spec of (values["box"] as string[] | undefined) ?? []) {
     const [building, face, ...edges] = spec.split(","), [bx0, by0, bx1, by1] = edges.map(Number) as [number, number, number, number];
-    if (!records.has(building ?? "") || edges.length !== 4 || ![face, ...edges].every((value) => Number.isFinite(Number(value)))) throw new Error(`Box "${spec}" is not building,face,x0,y0,x1,y1.`);
+    if (!records.has(building ?? "") || edges.length !== 4 || ![face, ...edges].every((value) => value !== undefined && value.trim() !== "" && Number.isFinite(Number(value)))) throw new Error(`Box "${spec}" is not building,face,x0,y0,x1,y1.`);
     if (bx0 < x0 || bx1 > x1 || by0 < 0 || by1 > height || bx1 <= bx0 || by1 <= by0) throw new Error(`Box "${spec}" leaves columns ${x0}–${x1} and rows 0–${height}.`);
     const share = boxShare({ owner, facing }, x0, building!, Number(face), [bx0, by0, bx1, by1]);
     console.log(`\nbox ${edges.join(", ")}: ${(share * 100).toFixed(0)}% ${building} at ${face}°`);
