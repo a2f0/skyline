@@ -1,6 +1,6 @@
 {
   "name": "@a2f0/skyline",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Interactive Chicago skyline viewer and reusable Three.js building models",
   "license": "UNLICENSED",
   "repository": {
