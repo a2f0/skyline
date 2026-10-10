@@ -93,21 +93,22 @@ button, as in the studies, and leaves the view buttons.
 
 The skyline is drawn in greys at night. The **colour** toggle tries it in colour on a sunny day: a
 blue sky, fading to haze at the horizon, and a bright, slightly warm sun, with the ground and
-streets lighter in its light. Thirty buildings are sourced so far: the Railway Exchange, Crain, One
-and Two Prudential Plaza, Aon and Blue Cross first; then Willoughby Tower, the Heritage at
+streets lighter in its light. Thirty-two buildings are sourced so far: the Railway Exchange, Crain,
+One and Two Prudential Plaza, Aon and Blue Cross first; then Willoughby Tower, the Heritage at
 Millennium Park, Kemper, 330 North Wabash, Millennium Park Plaza, Trump Tower and 340 on the Park;
 then the Michigan Avenue wall, the Borg-Warner, Peoples Gas, Lake View, MacLean Center, Monroe,
 University Club, Six North Michigan and Michigan Boulevard buildings; then the Buckingham, Sheraton
-Grand, Swissôtel and 180 North Michigan, in the colours measured from Daniel Schwen's 2008 daytime
-panorama of the skyline from the Adler Planetarium, [Chicago.jpg on Wikimedia
-Commons](https://commons.wikimedia.org/wiki/File:Chicago.jpg), nearly the drawing's own viewpoint.
-The Chicago Athletic Association, Gage, Keith and Ascher fronts, behind Grant Park's trees there,
-and the Hyatt Regency's west tower, a few pixels wide there, come from daytime close-ups calibrated
-to the panorama through a building beside them that it shows sunlit. Blue Cross's crown, built after
-2008, comes from a 2022 close-up, and the glass of Trump Tower's crown, unfinished in the
-photograph, takes its tower's glass colour while its stainless spire stays grey. The other four stay
-grey until they are measured, so they keep their night greys under the day sky. Office windows show
-as glass: no lights show by day, though a celebration's message still lights the Blue Cross tower.
+Grand, Swissôtel, 180 North Michigan, River Plaza and Two Illinois Center, in the colours measured
+from Daniel Schwen's 2008 daytime panorama of the skyline from the Adler Planetarium, [Chicago.jpg
+on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Chicago.jpg), nearly the drawing's own
+viewpoint. The Chicago Athletic Association, Gage, Keith and Ascher fronts, behind Grant Park's
+trees there, and the Hyatt Regency's west tower, a few pixels wide there, come from daytime
+close-ups calibrated to the panorama through a building beside them that it shows sunlit. Blue
+Cross's crown, built after 2008, comes from a 2022 close-up, and the glass of Trump Tower's crown,
+unfinished in the photograph, takes its tower's glass colour while its stainless spire stays grey.
+The other two stay grey until they are measured, so they keep their night greys under the day sky.
+Office windows show as glass: no lights show by day, though a celebration's message still lights the
+Blue Cross tower.
 
 `models/colour-materials.ts` names the material of every surface of every building, by building ID,
 mesh batch and grey, and makes the day: the sky's gradient, the sun's, sky's and haze's lights, and
@@ -139,12 +140,12 @@ The wall's shaded fronts render 0.81 to 1.21 of the photograph's shaded fronts a
 faces 0.77 to 0.86 of the photograph's, while the University Club's slate roof, lit by the scene's
 sun, renders 1.64. The fourth group's sunlit faces render 0.79 (the Buckingham's concrete) to 0.98
 (the Hyatt's brick, against its calibrated colour, itself 0.47 of the panorama's few-pixel strip, so
-it may be up to twice too dark) of their photographs', 180 North Michigan's stone, lit by the
-scene's sun, 1.27, Swissôtel's sliver beside the Buckingham, partly in its shadow, 0.5, and the
-close-ups' Michigan fronts, in the scene's shade, 0.41 to 0.51 of their calibrated sunlit colours.
-The exposure is kept for all thirty. The scene's sun stands in the south-west, so the east faces the
-camera sees are in shade, as the photograph's are, and bluer, lit by the sky.
-`scripts/sample-colours.ts day` measures every colour again from the photographs, and
+it may be up to twice too dark) of their photographs', 180 North Michigan's stone and River Plaza's
+top, lit by the scene's sun, 1.27 and 1.21, Swissôtel's sliver beside the Buckingham, partly in its
+shadow, 0.5, and the close-ups' Michigan fronts, in the scene's shade, 0.41 to 0.51 of their
+calibrated sunlit colours. The exposure is kept for all thirty-two. The scene's sun stands in the
+south-west, so the east faces the camera sees are in shade, as the photograph's are, and bluer, lit
+by the sky. `scripts/sample-colours.ts day` measures every colour again from the photographs, and
 `scripts/panorama-owners.ts` locates the mapped buildings in the panorama, pixel by pixel and face
 by face. The sampler's `night` study keeps the first measurements, of the night panorama the drawing
 traces, which the day replaced.

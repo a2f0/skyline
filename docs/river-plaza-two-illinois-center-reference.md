@@ -135,3 +135,71 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-10 — Daytime colours from Chicago.jpg (FID-COL-006)
+
+The colour trial's sunny day gains a fourth group of eleven buildings: six towers measured on sunlit
+faces in the 2008 panorama, as the first three groups were (FID-COL-003 to FID-COL-005), and five
+buildings the panorama does not resolve, measured in daytime close-ups calibrated to it. All are
+shown at the same exposure.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-10). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. No change to these materials between 2008 and the drawing's 2013 panorama is known to
+this audit.
+
+Identification: between Two Prudential and Aon the rendition shows these two buildings in a slit at
+x 1797–1809. `bun scripts/panorama-owners.ts building-river-plaza building-office-west-of-aon` gives
+River Plaza rows 374–396 there and Two Illinois Center's south face from row 396 down, at x
+1802–1809, with the photographer's eye fitted as for FID-COL-005, 10 m east and 100 m south of the
+drawing's fitted eye, at 1.6 px RMS: a ray from that eye through each pixel meets the nearest mapped
+part, which owns the pixel, and the face it meets gives the pixel's direction. The photograph shows
+a white block with a small grey box on its roof at rows 362–378, and from row 378 down the dark grid
+of a black curtain wall. River Plaza's records give white concrete and one box on its roof; above,
+this audit's reading of the 2013 panorama puts Two Illinois Center in front on this sightline, its
+lit floors at Two Illinois Center's pitch, not River Plaza's. Both tops stand above their models: at
+each building's distance from the fitted eye, the white block's top implies 172 m against River
+Plaza's published 159.7 m (OpenStreetMap puts its roof box at 166 m), and the dark grid's top 134 m
+against Two Illinois Center's published 114.3 m. The other towers measured in this group show their
+tops 9 to 13 m above their models in the same fit, so River Plaza's fits that pattern while Two
+Illinois Center's stands 7 to 10 m beyond it, as its lit floors in the 2013 panorama rise above its
+modelled roof too. The Two Illinois Center identification is therefore provisional. Its box lies
+wholly on its south face, as the script's `--box` option reports and `tests/panorama-owners.test.ts`
+checks; River Plaza's box is placed by row in the white block, above its modelled roof, so that test
+does not cover it.
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue.
+`bun scripts/sample-colours.ts day building-office-west-of-aon building-river-plaza` downloads the
+photograph once, checks its SHA-256, and reproduces these rows and the palette's entries, decoding
+in Chrome without colour management. At these distances a pixel spans about 1.1 m.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Two Illinois Center, curtain wall, south face, lighter pixels | 1802, 400, 1809, 435 | val 0.3–1 | 133 (54.3%) | `68, 76, 87` | 63–74 / 71–81 / 82–91 |
+| Two Illinois Center, curtain wall, south face, darker pixels | 1802, 400, 1809, 435 | val 0–0.3 | 112 (45.7%) | `46, 54, 65` | 35–52 / 44–61 / 58–72 |
+| River Plaza, concrete, top floors, sunlit | 1799, 367, 1804, 376 | sat 0–0.35, val 0.5–1 | 45 (100.0%) | `229, 223, 211` | 220–242 / 212–236 / 201–224 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- Two Illinois Center: `dark metal` `68, 76, 87` and `bronze glass` `46, 54, 65`, the curtain wall's
+  lighter and darker pixels. At a metre a pixel the black steel and the tinted glass blend, so the
+  split by brightness is approximate; together they read as a black wall that reflects the sky.
+  `lit window` and `dim window` take the glass exactly, since no office lights show by day.
+  `neutral` stays grey.
+- River Plaza: `concrete` `229, 223, 211`, the white concrete of the top floors that show above Two
+  Illinois Center, a 45-pixel sample clear of the roof box. `glass`, `lit window` and `dim window`
+  stay grey: its windows are hidden.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, Two Illinois Center's
+south face renders `62, 69, 80` where the view sees it, against the photograph's `68, 76, 87`, 0.83
+in linear light, and River Plaza's top, lit by the scene's sun, `245, 241, 235` against
+`229, 223, 211`, 1.21.

@@ -248,7 +248,7 @@ const day: Record<string, Sample[]> = {
     { row: "Terracotta, Michigan front, shaded", material: "white terracotta", box: [1468, 418, 1485, 460], sat: [0, 0.35], val: [0.45, 1], shaded: true },
     { row: "Glass, Michigan front", material: "glass", box: [1468, 418, 1485, 460], val: [0, 0.3] },
   ],
-  // FID-COL-006, four towers the panorama shows, measured on their sunlit south faces.
+  // FID-COL-006, six towers the panorama shows, measured on their sunlit south faces.
   "building-the-buckingham": [
     { row: "Concrete, south face, sunlit", material: "concrete", box: [2086, 380, 2108, 465], sat: [0, 0.35], val: [0.5, 1] },
     { row: "Glass, south face", material: "bronze glass", box: [2086, 380, 2108, 465], val: [0, 0.3] },
@@ -265,6 +265,15 @@ const day: Record<string, Sample[]> = {
     { row: "Stone top floor, south face, sunlit", material: "limestone", box: [1619, 413, 1629, 420], sat: [0, 0.35], val: [0.5, 1] },
     { row: "Brick, south face, in Crain's shadow, for comparison", material: null, box: [1612, 421, 1629, 465], val: [0.15, 1] },
     { row: "Glass, south face, in Crain's shadow", material: null, box: [1612, 421, 1629, 465], val: [0, 0.15] },
+  ],
+  // Two Illinois Center's south face and River Plaza's white top, in the slit between Two Prudential
+  // and Aon; River Plaza's box is placed by row above its modelled roof.
+  "building-office-west-of-aon": [
+    { row: "Curtain wall, south face, lighter pixels", material: "dark metal", box: [1802, 400, 1809, 435], val: [0.3, 1] },
+    { row: "Curtain wall, south face, darker pixels", material: "bronze glass", box: [1802, 400, 1809, 435], val: [0, 0.3] },
+  ],
+  "building-river-plaza": [
+    { row: "Concrete, top floors, sunlit", material: "concrete", box: [1799, 367, 1804, 376], sat: [0, 0.35], val: [0.5, 1] },
   ],
   // FID-COL-006, Michigan Avenue fronts Grant Park's trees hide in the panorama, measured in a
   // close-up under an overcast sky and calibrated through a neighbour on the same front that the

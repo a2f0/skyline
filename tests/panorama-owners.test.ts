@@ -35,6 +35,7 @@ describe("panorama fit", () => {
       ["building-buckingham-east", 180, [2129, 418, 2141, 466]],
       ["building-swissotel", 180, [2070, 372, 2077, 465]],
       ["building-michigan-plaza-front-middle", 180, [1612, 421, 1629, 465]],
+      ["building-office-west-of-aon", 180, [1802, 400, 1809, 435]],
       ["building-hyatt-regency-west-tower", 180, [1885, 400, 1889, 434]],
     ];
     const short = boxes.filter(([building, face, box]) => boxShare(map, x0, building, face, box) < 1).map(([building, face]) => `${building} at ${face}°`);
