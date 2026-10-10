@@ -177,13 +177,13 @@ repository. No change to these materials between 2008 and the drawing's 2013 pan
 this audit.
 
 Identification: `bun scripts/panorama-owners.ts building-buckingham-east` places the hotel's south
-face at x 2127–2151 and its corner drum's faces at x 2152–2162, its roof at row 412, with the photographer's eye fitted as for FID-COL-005, 10 m east and 100 m
-south of the drawing's fitted eye, at 1.6 px RMS: a ray from that eye through each pixel meets the
-nearest mapped part, which owns the pixel, and the face it meets gives the pixel's direction. The
-photograph shows a white precast block with a grid of windows at x 2127–2142, its top at about row
-408; from x 2143 a taller tower the layout does not map stands in front of the rest. The box below
-lies wholly on the south face, as the script's `--box` option reports and
-`tests/panorama-owners.test.ts` checks.
+face at x 2127–2151 and its corner drum's faces at x 2152–2162, its roof at row 412, with the
+photographer's eye fitted as for FID-COL-005, 10 m east and 100 m south of the drawing's fitted eye,
+at 1.6 px RMS: a ray from that eye through each pixel meets the nearest mapped part, which owns the
+pixel, and the face it meets gives the pixel's direction. The photograph shows a white precast block
+with a grid of windows at x 2127–2142, its top at about row 408; from x 2143 a taller tower the
+layout does not map stands in front of the rest. The box below lies wholly on the south face, as the
+script's `--box` option reports and `tests/panorama-owners.test.ts` checks.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the

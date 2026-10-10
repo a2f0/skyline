@@ -93,8 +93,8 @@ button, as in the studies, and leaves the view buttons.
 
 The skyline is drawn in greys at night. The **colour** toggle tries it in colour on a sunny day: a
 blue sky, fading to haze at the horizon, and a bright, slightly warm sun, with the ground and
-streets lighter in its light. Thirty buildings are sourced so far: the Railway Exchange, Crain,
-One and Two Prudential Plaza, Aon and Blue Cross first; then Willoughby Tower, the Heritage at
+streets lighter in its light. Thirty buildings are sourced so far: the Railway Exchange, Crain, One
+and Two Prudential Plaza, Aon and Blue Cross first; then Willoughby Tower, the Heritage at
 Millennium Park, Kemper, 330 North Wabash, Millennium Park Plaza, Trump Tower and 340 on the Park;
 then the Michigan Avenue wall, the Borg-Warner, Peoples Gas, Lake View, MacLean Center, Monroe,
 University Club, Six North Michigan and Michigan Boulevard buildings; then the Buckingham, Sheraton
@@ -103,11 +103,11 @@ panorama of the skyline from the Adler Planetarium, [Chicago.jpg on Wikimedia
 Commons](https://commons.wikimedia.org/wiki/File:Chicago.jpg), nearly the drawing's own viewpoint.
 The Chicago Athletic Association, Gage, Keith and Ascher fronts, behind Grant Park's trees there,
 and the Hyatt Regency's west tower, a few pixels wide there, come from daytime close-ups calibrated
-to the panorama through a building beside them that it shows sunlit. Blue Cross's crown, built
-after 2008, comes from a 2022 close-up, and the glass of Trump Tower's crown, unfinished in the
+to the panorama through a building beside them that it shows sunlit. Blue Cross's crown, built after
+2008, comes from a 2022 close-up, and the glass of Trump Tower's crown, unfinished in the
 photograph, takes its tower's glass colour while its stainless spire stays grey. The other four stay
-grey until they are measured, so they keep their night greys under the day sky. Office windows show as glass: no lights show by day, though a
-celebration's message still lights the Blue Cross tower.
+grey until they are measured, so they keep their night greys under the day sky. Office windows show
+as glass: no lights show by day, though a celebration's message still lights the Blue Cross tower.
 
 `models/colour-materials.ts` names the material of every surface of every building, by building ID,
 mesh batch and grey, and makes the day: the sky's gradient, the sun's, sky's and haze's lights, and
@@ -117,35 +117,37 @@ where it shows one, which the building's reference audit records with the box, t
 the pixels and their count; and the sky's two colours, measured the same way. A building the
 panorama does not resolve is measured in a close-up instead, and its colours carried into the
 panorama's light by each channel's ratio, in linear light, between a reference material's medians in
-the panorama and in the close-up, beside it and in the same light. A material may take
-another's colour where the photograph does not show it, or stay grey. A material's most common grey
-shows its measured colour, scaled by the exposure below, and its other greys scale with their
-brightness against it, so darker surfaces stay darker; a colour pushed past white keeps its hue at
-its brightest. The exposure is 1.4, from the render-to-photograph brightness of the sourced
-buildings' main materials in the skyline view at 1600 × 900: Two Prudential's stone and Blue Cross's
-glass reach 0.97 and 0.96 of the photograph's in linear light, Aon's granite 0.86 and One
-Prudential's limestone 0.80, while Crain's nearly white aluminium, past white at this exposure,
-reaches 0.66. The Railway Exchange shows the view its shaded Michigan front rather than the sunlit
-Jackson front its colour is measured on; that front renders 0.82 of the photograph's shaded front. A
-higher exposure brightens only the darker materials. The second group spreads wider, because the
-scene's sun lights and shades their faces differently from the photograph's: 340 on the Park and
-Willoughby Tower reach 0.87 to 0.93, Millennium Park Plaza's precast and Kemper's marble 0.65, while
-the view sees Trump Tower's and the Heritage's glass in shade, at 0.25 and 0.36, and lights 330
-North Wabash's dark glass to 1.56. The Michigan Avenue wall faces east, into the photograph's shade;
-where a building shows only that front, its stone or terracotta is estimated as if sunlit through
-the shade-to-sun ratio of the Railway Exchange's terracotta, which shows both; three cross-checks
-disagree with it, by up to a factor of about three, though one is glossy enamel, so those estimates
-are provisional. The wall's shaded fronts render 0.81 to 1.21 of the photograph's shaded fronts and
-its sunlit south faces 0.77 to 0.86 of the photograph's, while the University Club's slate roof, lit
-by the scene's sun, renders 1.64. The fourth group's sunlit faces render 0.79 (the Buckingham's
-concrete) to 0.98 (the Hyatt's brick) of their photographs', 180 North Michigan's stone, lit by the
+the panorama and in the close-up, beside it and in the same light. A material may take another's
+colour where the photograph does not show it, or stay grey. A material's most common grey shows its
+measured colour, scaled by the exposure below, and its other greys scale with their brightness
+against it, so darker surfaces stay darker; a colour pushed past white keeps its hue at its
+brightest. The exposure is 1.4, from the render-to-photograph brightness of the sourced buildings'
+main materials in the skyline view at 1600 × 900: Two Prudential's stone and Blue Cross's glass
+reach 0.97 and 0.96 of the photograph's in linear light, Aon's granite 0.86 and One Prudential's
+limestone 0.80, while Crain's nearly white aluminium, past white at this exposure, reaches 0.66. The
+Railway Exchange shows the view its shaded Michigan front rather than the sunlit Jackson front its
+colour is measured on; that front renders 0.82 of the photograph's shaded front. A higher exposure
+brightens only the darker materials. The second group spreads wider, because the scene's sun lights
+and shades their faces differently from the photograph's: 340 on the Park and Willoughby Tower reach
+0.87 to 0.93, Millennium Park Plaza's precast and Kemper's marble 0.65, while the view sees Trump
+Tower's and the Heritage's glass in shade, at 0.25 and 0.36, and lights 330 North Wabash's dark
+glass to 1.56. The Michigan Avenue wall faces east, into the photograph's shade; where a building
+shows only that front, its stone or terracotta is estimated as if sunlit through the shade-to-sun
+ratio of the Railway Exchange's terracotta, which shows both; three cross-checks disagree with it,
+by up to a factor of about three, though one is glossy enamel, so those estimates are provisional.
+The wall's shaded fronts render 0.81 to 1.21 of the photograph's shaded fronts and its sunlit south
+faces 0.77 to 0.86 of the photograph's, while the University Club's slate roof, lit by the scene's
+sun, renders 1.64. The fourth group's sunlit faces render 0.79 (the Buckingham's concrete) to 0.98
+(the Hyatt's brick, against its calibrated colour, itself 0.47 of the panorama's few-pixel strip, so
+it may be up to twice too dark) of their photographs', 180 North Michigan's stone, lit by the
 scene's sun, 1.27, Swissôtel's sliver beside the Buckingham, partly in its shadow, 0.5, and the
-close-ups' Michigan fronts, in the scene's shade, 0.41 to 0.51 of their calibrated sunlit colours. The exposure is kept for all thirty. The scene's sun stands in
-the south-west, so the east faces the camera sees are in shade, as the photograph's are, and bluer,
-lit by the sky. `scripts/sample-colours.ts day` measures every colour again from the photographs,
-and `scripts/panorama-owners.ts` locates the mapped buildings in the panorama, pixel by pixel and
-face by face. The sampler's `night` study keeps the first measurements, of the night panorama the
-drawing traces, which the day replaced.
+close-ups' Michigan fronts, in the scene's shade, 0.41 to 0.51 of their calibrated sunlit colours.
+The exposure is kept for all thirty. The scene's sun stands in the south-west, so the east faces the
+camera sees are in shade, as the photograph's are, and bluer, lit by the sky.
+`scripts/sample-colours.ts day` measures every colour again from the photographs, and
+`scripts/panorama-owners.ts` locates the mapped buildings in the panorama, pixel by pixel and face
+by face. The sampler's `night` study keeps the first measurements, of the night panorama the drawing
+traces, which the day replaced.
 
 The sky's two colours are each the median of a clear box of the panorama's 3840 × 551 px rendition
 (SHA-256 `a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`), measured as the
@@ -166,10 +168,10 @@ step with the models, so a renamed batch or a retoned surface it names fails the
 material of a sourced building is measured, named or left grey, finds each measured colour on its
 building and in its audit's daytime entry, and checks the day's sky and lights. Removing the trial
 means deleting those three files, `scripts/sample-colours.ts` and `scripts/panorama-owners.ts` with
-their `scripts/lib/panorama.ts` and `scripts/lib/shade.ts`, the tests `tests/panorama-owners.test.ts`
-and `tests/colour-shade.test.ts` and their lines in `scripts/check.ts`, the toggle and its roads'
-daytime grey in `skyline-3d.ts`, the viewer's `setDaylight` with its `Daylight` type, and the
-exemption.
+their `scripts/lib/panorama.ts` and `scripts/lib/shade.ts`, the tests
+`tests/panorama-owners.test.ts` and `tests/colour-shade.test.ts` and their lines in
+`scripts/check.ts`, the toggle and its roads' daytime grey in `skyline-3d.ts`, the viewer's
+`setDaylight` with its `Daylight` type, and the exemption.
 
 The page shares `study-viewer.ts`, `study.css`, and `study-loader.ts` with the
 [studies](studies.md), and `skyline-3d.ts` holds only its settings: `createGeographicSkyline` in

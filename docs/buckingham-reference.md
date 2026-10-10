@@ -133,15 +133,16 @@ Commons' 3840 × 551 px rendition,
 repository. No change to these materials between 2008 and the drawing's 2013 panorama is known to
 this audit.
 
-Identification: `bun scripts/panorama-owners.ts building-the-buckingham` places the building's
-south face at x 2079–2113 and its east face at x 2114–2122, its roof at row 369, with the photographer's eye fitted as for FID-COL-005, 10 m east and 100 m
-south of the drawing's fitted eye, at 1.6 px RMS: a ray from that eye through each pixel meets the
-nearest mapped part, which owns the pixel, and the face it meets gives the pixel's direction. The
-photograph shows a tower of white concrete bands and dark windows across exactly those columns, its
-south face lit and its east face in shade, under a white crown band at about row 357, some 12 pixels
-above the modelled roof: a rooftop screen the model leaves out, or a roof a few metres above the
-published 121.9 m. Each box below lies wholly on the face it names, as the script's `--box` option
-reports and `tests/panorama-owners.test.ts` checks.
+Identification: `bun scripts/panorama-owners.ts building-the-buckingham` places the building's south
+face at x 2079–2113 and its east face at x 2114–2122, its roof at row 369, with the photographer's
+eye fitted as for FID-COL-005, 10 m east and 100 m south of the drawing's fitted eye, at 1.6 px RMS:
+a ray from that eye through each pixel meets the nearest mapped part, which owns the pixel, and the
+face it meets gives the pixel's direction. The photograph shows a tower of white concrete bands and
+dark windows across exactly those columns, its south face lit and its east face in shade, under a
+white crown band at about row 357, some 12 pixels above the modelled roof: a rooftop screen the
+model leaves out, or a roof a few metres above the published 121.9 m. Each box below lies wholly on
+the face it names, as the script's `--box` option reports and `tests/panorama-owners.test.ts`
+checks.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the

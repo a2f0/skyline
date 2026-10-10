@@ -181,8 +181,8 @@ photograph sees edge-on.
 
 ## 2026-10-10 — Calibration reference for a close-up (FID-COL-006)
 
-The sampler's day study also measures this club's limestone on its Michigan front in Teemu008's
-2012 sunlit close-up of the Gage group, `171, 162, 152` (box 10, 480, 125, 800, sat 0–0.35, val
-0.5–1), as the reference that calibrates that close-up to the panorama for the Keith and Ascher
-Buildings (`keith-ascher-reference.md`). `bun scripts/sample-colours.ts day building-university-club` prints that row after the
-FID-COL-005 rows; this building's palette entry is unchanged.
+The sampler's day study also measures this club's limestone on its Michigan front in Teemu008's 2012
+sunlit close-up of the Gage group, `171, 162, 152` (box 10, 480, 125, 800, sat 0–0.35, val 0.5–1),
+as the reference that calibrates that close-up to the panorama for the Keith and Ascher Buildings
+(`keith-ascher-reference.md`). `bun scripts/sample-colours.ts day building-university-club` prints
+that row after the FID-COL-005 rows; this building's palette entry is unchanged.

@@ -2,7 +2,7 @@
 // two measurements of one material in linear light: a colour measured on a face in shade, as it
 // would read in the sun, through the ratio between one material's sunlit and shaded faces; and a
 // colour measured in a second photograph, as the study's photograph would show it, through the
-// ratio between one material's medians in the two, under the same light as the colour it calibrates.
+// ratio between one material's medians in the two, in the same light as the colour it calibrates.
 
 // sRGB channels, 0–255, to linear light and back, and a colour as a palette hex literal.
 export const linear = (channel: number) => { const value = channel / 255; return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4; };

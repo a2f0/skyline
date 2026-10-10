@@ -126,23 +126,25 @@ repository. No change to these materials between 2008 and the drawing's 2013 pan
 this audit.
 
 Identification: `bun scripts/panorama-owners.ts building-michigan-plaza-front-middle` places the
-building's south face at x 1610–1629 below row 420, its modelled parapet, with the photographer's eye fitted as for FID-COL-005, 10 m east and 100 m
-south of the drawing's fitted eye, at 1.6 px RMS: a ray from that eye through each pixel meets the
-nearest mapped part, which owns the pixel, and the face it meets gives the pixel's direction. The photograph shows
-330 North Wabash's dark glass above row 412 and, below it at x 1618–1630, a sunlit band of light
-stone and arched windows, rows 412–420, over a face in shadow. Crain, 177 m tall and about 60 m to
-the south, casts that shadow under the high August sun, leaving only the top floors lit. The stone
-band stands about 8 pixels above the modelled parapet, which is read from the drawing because no
-height is published, so the top floor is likely a few metres higher than the model. The face's box
-lies wholly on the face, as the script's `--box` option reports and `tests/panorama-owners.test.ts`
-checks; the stone's box is placed by row above the modelled parapet, so that test does not cover it.
+building's south face at x 1610–1629 below row 420, its modelled parapet, with the photographer's
+eye fitted as for FID-COL-005, 10 m east and 100 m south of the drawing's fitted eye, at 1.6 px RMS:
+a ray from that eye through each pixel meets the nearest mapped part, which owns the pixel, and the
+face it meets gives the pixel's direction. The photograph shows 330 North Wabash's dark glass above
+row 412 and, below it at x 1618–1630, a sunlit band of light stone and arched windows, rows 412–420,
+over a face in shadow. Crain, 177 m tall and about 60 m to the south, casts that shadow under the
+high August sun, leaving only the top floors lit. The stone band stands about 8 pixels above the
+modelled parapet, which is read from the drawing because no height is published, so the top floor is
+likely a few metres higher than the model. The face's box lies wholly on the face, as the script's
+`--box` option reports and `tests/panorama-owners.test.ts` checks; the stone's box is placed by row
+above the modelled parapet, so that test does not cover it.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-michigan-plaza-front-middle`
-downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
-entries, decoding in Chrome without colour management.
+quartiles of red, green and blue.
+`bun scripts/sample-colours.ts day building-michigan-plaza-front-middle` downloads the photograph
+once, checks its SHA-256, and reproduces these rows and the palette's entries, decoding in Chrome
+without colour management.
 
 | Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |

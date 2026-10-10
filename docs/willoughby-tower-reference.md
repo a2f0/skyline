@@ -196,5 +196,5 @@ The sampler's day study also measures this tower's limestone on its Michigan fro
 2012 overcast close-up of the Chicago Athletic Association, `179, 174, 166` (box 862, 0, 900, 780,
 sat 0–0.35, val 0.5–1), as the reference that calibrates that close-up to the panorama for the
 Athletic Association and the Gage Building (`chicago-athletic-association-reference.md` and
-`gage-reference.md`). `bun scripts/sample-colours.ts day building-willoughby-tower` prints that row after the
-FID-COL-004 rows; this building's palette entry is unchanged.
+`gage-reference.md`). `bun scripts/sample-colours.ts day building-willoughby-tower` prints that row
+after the FID-COL-004 rows; this building's palette entry is unchanged.

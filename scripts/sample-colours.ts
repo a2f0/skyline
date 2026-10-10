@@ -248,8 +248,7 @@ const day: Record<string, Sample[]> = {
     { row: "Terracotta, Michigan front, shaded", material: "white terracotta", box: [1468, 418, 1485, 460], sat: [0, 0.35], val: [0.45, 1], shaded: true },
     { row: "Glass, Michigan front", material: "glass", box: [1468, 418, 1485, 460], val: [0, 0.3] },
   ],
-  // FID-COL-006, the towers north of the river and beside the Illinois Center, sunlit on their south
-  // faces where the panorama shows them.
+  // FID-COL-006, four towers the panorama shows, measured on their sunlit south faces.
   "building-the-buckingham": [
     { row: "Concrete, south face, sunlit", material: "concrete", box: [2086, 380, 2108, 465], sat: [0, 0.35], val: [0.5, 1] },
     { row: "Glass, south face", material: "bronze glass", box: [2086, 380, 2108, 465], val: [0, 0.3] },

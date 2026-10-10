@@ -153,15 +153,15 @@ shown at the same exposure.
 Sources:
 
 - [Edificio de la Chicago Athletic Association, Chicago, Illinois, Estados Unidos, 2012-10-20, DD 01.jpg](https://commons.wikimedia.org/wiki/File:Edificio_de_la_Chicago_Athletic_Association,_Chicago,_Illinois,_Estados_Unidos,_2012-10-20,_DD_01.jpg)
-  on Wikimedia Commons, Diego Delso's straight view of the Athletic Association's Michigan front on
-  20 October 2012 under an overcast sky, with the Gage Building's north edge at its left and
-  Willoughby Tower's front at its right (CC BY-SA 3.0; accessed 2026-10-10). Measured in Commons'
-  960 × 1556 px rendition,
+on Wikimedia Commons, Diego Delso's straight view of the Athletic Association's Michigan front on 20
+October 2012 under an overcast sky, with the Gage Building's north edge at its left and Willoughby
+Tower's front at its right (CC BY-SA 3.0; accessed 2026-10-10). Measured in Commons' 960 × 1556 px
+rendition,
   `https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Edificio_de_la_Chicago_Athletic_Association%2C_Chicago%2C_Illinois%2C_Estados_Unidos%2C_2012-10-20%2C_DD_01.jpg/960px-Edificio_de_la_Chicago_Athletic_Association%2C_Chicago%2C_Illinois%2C_Estados_Unidos%2C_2012-10-20%2C_DD_01.jpg`
   (SHA-256 `444f4531e9f9f138dd5f7905f979984fc2a7e55dffb3ad8b4113f5b874900cc7`).
 - [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg), Daniel Schwen's 2008 daytime
-  panorama the trial's colours come from (CC BY-SA 4.0), for the reference: Willoughby Tower's
-  limestone, sunlit there at `204, 189, 171` (`willoughby-tower-reference.md`, FID-COL-004).
+panorama the trial's colours come from (CC BY-SA 4.0), for the reference: Willoughby Tower's
+limestone, sunlit there at `204, 189, 171` (`willoughby-tower-reference.md`, FID-COL-004).
 
 Neither photograph is in the repository. In the panorama Grant Park's trees cover this front but for
 its top 10–15 pixels. The close-up predates the building's conversion to a hotel; no change to the
@@ -170,19 +170,20 @@ front between 2008 and 2012 is known to this audit.
 Method: each sample is a box in the close-up's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, and the per-channel sRGB
 median of those pixels (0–255), with their count, their share of the box and the quartiles of red,
-green and blue, as in the panorama. `bun scripts/sample-colours.ts day building-chicago-athletic-association` downloads the
-photographs once, checks their SHA-256, and reproduces these rows, the calibration and the palette's
-entries, decoding in Chrome without colour management.
+green and blue, as in the panorama.
+`bun scripts/sample-colours.ts day building-chicago-athletic-association` downloads the photographs
+once, checks their SHA-256, and reproduces these rows, the calibration and the palette's entries,
+decoding in Chrome without colour management.
 
-Calibration: the close-up's colours are carried into the panorama's light through a reference
-beside them, on the same front and in the same light, that the panorama shows sunlit. Each channel's
-ratio, in linear light, between the reference's median in the panorama and its median in the
-close-up scales the close-up's medians, and the colour is scaled back to white if it passes, keeping
-its hue: the same arithmetic as FID-COL-005's shade estimate (`scripts/lib/shade.ts`).
+Calibration: the close-up's colours are carried into the panorama's light through a reference beside
+them, on the same front and in the same light, that the panorama shows sunlit. Each channel's ratio,
+in linear light, between the reference's median in the panorama and its median in the close-up
+scales the close-up's medians, and the colour is scaled back to white if it passes, keeping its hue:
+the same arithmetic as FID-COL-005's shade estimate (`scripts/lib/shade.ts`).
 `tests/colour-shade.test.ts` re-derives the palette's calibrated entries from the medians below. The
-calibration assumes the reference and the building share one light and that the reference's
-material reads the same on its two faces; it carries a close-up's exposure, white balance and
-light, not its viewpoint, so it is provisional, like the shade estimate.
+calibration assumes the reference and the building share one light and that the reference's material
+reads the same on its two faces; it carries a close-up's exposure, white balance and light, not its
+viewpoint, so it is provisional, like the shade estimate.
 
 Here the reference is Willoughby Tower's limestone on the close-up's right edge, flush with the
 Athletic Association's front and under the same cloud: `179, 174, 166` there (box 862, 0, 900, 780,
@@ -206,8 +207,8 @@ Decisions in `src/models/colour-palette.ts`:
 - `brick` `161, 112, 91`, calibrated from `141, 103, 88`: the front's red brick, the attic's diaper
   pattern included.
 - `limestone` `207, 188, 165`, calibrated from `182, 173, 160`: the stone bands and frames.
-- `glass`, `lit window` and `dim window` stay grey: under the overcast the windows reflect the cloud,
-  which the panorama's sunlit glass does not.
+- `glass`, `lit window` and `dim window` stay grey: under the overcast the windows reflect the
+  cloud, which the panorama's sunlit glass does not.
 - `neutral` stays grey.
 
 Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
