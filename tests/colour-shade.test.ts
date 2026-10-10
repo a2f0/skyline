@@ -61,7 +61,7 @@ describe("close-up calibration", () => {
       const entry = (measuredColours[building] as Record<string, unknown>)[material];
       expect(hex(scaled(median, channelRatios([references[reference]!]))), `${building}'s ${material}`).toBe(`0x${(entry as number).toString(16).padStart(6, "0")}`);
       // The audit records the median and its reference's two.
-      const text = readFileSync(new URL(`../docs/${audit}-reference.md`, import.meta.url), "utf8");
+      const text = readFileSync(new URL(`../docs/${audit}-reference.md`, import.meta.url), "utf8").replace(/\s+/g, " ");
       for (const values of [median, ...references[reference]!]) expect(text, `${audit} records \`${values.join(", ")}\``).toContain(`\`${values.join(", ")}\``);
     }
   });

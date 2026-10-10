@@ -409,6 +409,7 @@ command(usage, {}, async ({ positionals }) => {
   mkdirSync(directory, { recursive: true });
   // The chosen samples' photographs, and the shade pairs' where a chosen sample is shaded.
   const needed = chosen.flatMap((id) => study.samples[id]!);
+  for (const sample of needed) if (sample.photo && sample.shaded) throw new Error(`"${sample.row}" is in ${sample.photo} and shaded; a second photograph's samples take its own light.`);
   if (needed.some((sample) => sample.shaded)) for (const [building, ...rows] of study.shade ?? []) needed.push(...(study.samples[building] ?? []).filter((sample) => rows.includes(sample.row)));
   for (const photo of new Set(needed.flatMap((sample) => sample.photo ? [sample.photo] : []))) {
     const reference = study.references?.[photo];
@@ -457,11 +458,11 @@ command(usage, {}, async ({ positionals }) => {
       console.log(`\n${id}\n`);
       const entries: string[] = [], calibrated: string[] = [];
       for (const sample of study.samples[id]!) {
-        if (sample.photo && sample.shaded) throw new Error(`"${sample.row}" is in ${sample.photo} and shaded; a second photograph's samples take its own light.`);
         const result = await page.evaluate(measure, { sample, photo: sample.photo ?? study.photo });
         const rule = [sample.hue && `hue ${range(sample.hue)}`, sample.sat && `sat ${range(sample.sat)}`, sample.val && `val ${range(sample.val)}`].filter(Boolean).join(", ");
         console.log(`| ${sample.row} | ${sample.box.join(", ")}${sample.photo ? ` in ${sample.photo}` : ""} | ${rule || "all"} | ${number(result.count)} (${(result.share * 100).toFixed(1)}%) | \`${result.median.join(", ")}\` | ${result.quartiles.map(([low, high]) => `${low}–${high}`).join(" / ")} |`);
-        if (sample.photo && calibrations.has(sample.photo) && !sample.material) calibrated.push(`"${sample.row}" calibrated: \`${scaled(result.median, calibrations.get(sample.photo)!).join(", ")}\``);
+        // A comparison row in a calibrated close-up shows its calibrated value; the reference's own row would only give back the panorama's.
+        if (sample.photo && calibrations.has(sample.photo) && !sample.material && study.references?.[sample.photo]?.[2] !== sample.row) calibrated.push(`"${sample.row}" calibrated: \`${scaled(result.median, calibrations.get(sample.photo)!).join(", ")}\``);
         if (!sample.material) continue;
         if (sample.photo && calibrations.has(sample.photo)) {
           const value = scaled(result.median, calibrations.get(sample.photo)!);

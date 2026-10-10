@@ -269,7 +269,8 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     neutral: null,
   },
   // The Hyatt Regency's west tower, a few pixels wide in the panorama, in an overcast close-up
-  // calibrated through Aon's granite behind it.
+  // calibrated through Aon's granite behind it. Provisional: haze over Aon, and the panorama's
+  // brighter strip, say the brick may be up to twice as bright as this.
   // docs/hyatt-west-tower-reference.md, 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg.
   "building-hyatt-regency-west-tower": {
     "orange brick": 0x65554b,
