@@ -139,7 +139,7 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
     piers: ["concrete"],
     "corner balconies": ["concrete"],
   },
-  // A grey precast slab.
+  // A warm white precast slab with bronze-tinted glass.
   "building-michigan-plaza-front-tall": {
     shell: ["neutral"],
     "walls and windows": ["glass", { ...windows(0x727272, 0x484848), 0x666666: "concrete" }],
@@ -289,7 +289,9 @@ export const toneOf = (grey: number) => new THREE.Color(grey, grey, grey).getHex
 // granite and Crain's aluminium pass white at their own greys here, so a higher factor would
 // brighten only the darker materials. The Railway Exchange is left out: the view shows its shaded
 // Michigan front, not the sunlit Jackson front its colour is measured on; that front renders 0.82
-// of the photograph's shaded Michigan front.
+// of the photograph's shaded Michigan front. The seven measured next (FID-COL-004) spread wider,
+// 0.25 to 1.56 on their measured materials and 0.14 on Kemper's whole face, where the scene's sun
+// lights their faces differently from the photograph's; docs/viewer.md and their audits give each.
 export const exposure = 1.4;
 
 // A measured colour in linear light, and the grey it is measured at: the most common grey of

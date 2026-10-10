@@ -107,7 +107,7 @@ const night: Record<string, Sample[]> = {
   ],
 };
 
-// FID-COL-003's sunny samples, as each building's reference audit records them.
+// FID-COL-003's and FID-COL-004's sunny samples, as each building's reference audit records them.
 const day: Record<string, Sample[]> = {
   "building-railway-exchange": [
     { row: "Terracotta, Jackson front, sunlit", material: "white terracotta", box: [1066, 412, 1084, 458], sat: [0, 0.3], val: [0.6, 1] },
@@ -143,6 +143,39 @@ const day: Record<string, Sample[]> = {
     { row: "Glass, looking up, for comparison", material: null, photo: "blue-cross-2022.jpg", box: [700, 900, 1300, 1150], hue: [190, 250], val: [0.15, 0.75] },
     { row: "Screen", material: "screen", photo: "blue-cross-2022.jpg", box: [720, 250, 1220, 300], val: [0, 0.5] },
     { row: "Band columns", material: "band lights", photo: "blue-cross-2022.jpg", box: [640, 630, 1290, 710], sat: [0, 0.2], val: [0.6, 1] },
+  ],
+  // FID-COL-004, the second group.
+  "building-willoughby-tower": [
+    { row: "Limestone, sunlit", material: "limestone", box: [1373, 357, 1386, 395], sat: [0, 0.35], val: [0.5, 1] },
+    { row: "Glass", material: "glass", box: [1373, 357, 1386, 395], val: [0, 0.4] },
+    { row: "Shaded face, for comparison", material: null, box: [1387, 357, 1395, 395] },
+  ],
+  "building-heritage-at-millennium-park": [
+    { row: "Frame, sunlit", material: "limestone", box: [1468, 315, 1480, 395], sat: [0, 0.15], val: [0.65, 1] },
+    { row: "Glass", material: "green glass", box: [1482, 315, 1514, 395], val: [0, 0.6] },
+  ],
+  "building-kemper": [
+    { row: "Marble, sunlit", material: "marble", box: [1517, 362, 1529, 450], sat: [0, 0.2], val: [0.6, 1] },
+    { row: "Glass", material: "glass", box: [1517, 362, 1529, 450], val: [0, 0.4] },
+    { row: "Face, all, for comparison", material: null, box: [1517, 362, 1529, 450] },
+    { row: "Darker face to the right, for comparison", material: null, box: [1532, 362, 1548, 450] },
+  ],
+  "building-330-north-wabash": [
+    { row: "Glass, spandrels and mullions", material: "bronze glass", box: [1612, 330, 1658, 372] },
+  ],
+  "building-michigan-plaza-front-tall": [
+    { row: "Precast, sunlit", material: "concrete", box: [1631, 385, 1645, 450], sat: [0, 0.3], val: [0.5, 1] },
+    { row: "Glass", material: "glass", box: [1631, 385, 1645, 450], val: [0, 0.35] },
+  ],
+  "building-trump-tower-only": [
+    { row: "Glass and spandrels, clad floors", material: "glass", box: [1690, 250, 1727, 318], hue: [180, 250], sat: [0.05, 1] },
+    { row: "Left face, for comparison", material: null, box: [1690, 250, 1699, 318], hue: [180, 250], sat: [0.05, 1] },
+    { row: "Right face, for comparison", material: null, box: [1708, 250, 1727, 318], hue: [180, 250], sat: [0.05, 1] },
+  ],
+  "building-340-on-the-park": [
+    { row: "Concrete frame, sunlit", material: "concrete", box: [1998, 270, 2040, 440], sat: [0, 0.15], val: [0.7, 1] },
+    { row: "Glass, south", material: "green glass", box: [2007, 290, 2032, 440], hue: [160, 230], sat: [0.1, 1], val: [0, 0.75] },
+    { row: "Glass, east, for comparison", material: null, box: [2043, 270, 2060, 440] },
   ],
   // The sky, for colour-palette.ts's daylightColours.
   sky: [

@@ -139,3 +139,53 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-09 — Daytime colours from Chicago.jpg (FID-COL-004)
+
+The colour trial's sunny day gains a second group of buildings, measured as the first was
+(FID-COL-003, in the [Railway Exchange's audit](railway-exchange-reference.md) and five others), in
+the same photograph and with the same exposure.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-09). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. It looks from nearly the drawing's viewpoint on a sunny day, five years before the 2013
+night panorama the drawing traces. No change to these materials between 2008 and 2013 is known to
+this audit.
+
+Identification: the building's bearing and roof height from the drawing's fitted eye (1471.76 m east
+and 1948.8 m south of Crain's mapped centre), fitted to the rendition through the six buildings
+measured first, place it at x 1373–1410 with its roof near y 358; the fit holds those six within
+about 25 pixels across and 4 pixels in height. It is the buff stone tower at x 1372–1395 whose roof
+stands at y 353; the paler tower with a green roof just right of it rises higher, behind it.
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-willoughby-tower`
+downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
+entries, decoding in Chrome without colour management. The building is about 23 pixels wide in the
+rendition, so single pixels mix neighbouring materials, which the quartiles show; the medians are
+the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Limestone, sunlit | 1373, 357, 1386, 395 | sat 0–0.35, val 0.5–1 | 393 (79.6%) | `204, 189, 171` | 188–217 / 173–202 / 159–189 |
+| Glass | 1373, 357, 1386, 395 | val 0–0.4 | 69 (14.0%) | `77, 69, 65` | 65–92 / 58–80 / 48–71 |
+| Shaded face, for comparison | 1387, 357, 1395, 395 | all | 304 (100.0%) | `74, 78, 84` | 60–88 / 65–92 / 71–96 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `limestone` `204, 189, 171`, the sunlit face, the buff Indiana limestone the audit records; the
+  pinnacles take it too. The shaded face, windows and all, measures `74, 78, 84`.
+- `glass` `77, 69, 65`, only 14.0% of the box, so mixed with stone; `lit window` and `dim window`
+  take it exactly, since no office lights show by day.
+- `dark granite`, the two-storey base, and `neutral` stay grey: trees hide the base.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, the limestone renders
+`189, 187, 170` under the photograph's rule, 0.93 of the photograph's brightness in linear light.

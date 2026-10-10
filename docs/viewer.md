@@ -90,13 +90,17 @@ button, as in the studies, and leaves the view buttons.
 
 The skyline is drawn in greys at night. The **colour** toggle tries it in colour on a sunny day: a
 blue sky, fading to haze at the horizon, and a bright, slightly warm sun, with the ground and
-streets lighter in its light. Six buildings are sourced so far, the Railway Exchange, Crain, One and
-Two Prudential Plaza, Aon and Blue Cross, in the colours measured from Daniel Schwen's 2008 daytime
-panorama of the skyline from the Adler Planetarium, [Chicago.jpg on Wikimedia
+streets lighter in its light. Thirteen buildings are sourced so far, the Railway Exchange, Crain,
+One and Two Prudential Plaza, Aon and Blue Cross first, then Willoughby Tower, the Heritage at
+Millennium Park, Kemper, 330 North Wabash, Millennium Park Plaza, Trump Tower and 340 on the Park,
+in the colours measured from Daniel Schwen's 2008 daytime panorama of the skyline from the Adler
+Planetarium, [Chicago.jpg on Wikimedia
 Commons](https://commons.wikimedia.org/wiki/File:Chicago.jpg), nearly the drawing's own viewpoint;
-Blue Cross's crown, built after 2008, comes from a 2022 close-up. The rest stay grey until they are
-measured, so the unsourced towers keep their night greys under the day sky. Office windows show as
-glass: no lights show by day, though a celebration's message still lights the Blue Cross tower.
+Blue Cross's crown, built after 2008, comes from a 2022 close-up, and the glass of Trump Tower's
+crown, unfinished in the photograph, takes its tower's glass colour while its stainless spire stays
+grey. The rest stay grey until they are measured, so the unsourced towers keep their night greys
+under the day sky. Office windows show as glass: no lights show by day, though a celebration's
+message still lights the Blue Cross tower.
 
 `models/colour-materials.ts` names the material of every surface of every building, by building ID,
 mesh batch and grey, and makes the day: the sky's gradient, the sun's, sky's and haze's lights, and
@@ -113,10 +117,15 @@ glass reach 0.97 and 0.96 of the photograph's in linear light, Aon's granite 0.8
 Prudential's limestone 0.80, while Crain's nearly white aluminium, past white at this exposure,
 reaches 0.66. The Railway Exchange shows the view its shaded Michigan front rather than the sunlit
 Jackson front its colour is measured on; that front renders 0.82 of the photograph's shaded front. A
-higher exposure brightens only the darker materials. The scene's sun stands in the south-west, so
-the east faces the camera sees are in shade, as the photograph's are, and bluer, lit by the sky.
-`scripts/sample-colours.ts day` measures every colour again from the photographs; its `night` study
-keeps the first measurements, of the night panorama the drawing traces, which the day replaced.
+higher exposure brightens only the darker materials. The second group spreads wider, because the
+scene's sun lights and shades their faces differently from the photograph's: 340 on the Park and
+Willoughby Tower reach 0.87 to 0.93, Millennium Park Plaza's precast and Kemper's marble 0.65, while
+the view sees Trump Tower's and the Heritage's glass in shade, at 0.25 and 0.36, and lights 330
+North Wabash's dark glass to 1.56. The exposure is kept for all thirteen. The scene's sun stands in
+the south-west, so the east faces the camera sees are in shade, as the photograph's are, and bluer,
+lit by the sky. `scripts/sample-colours.ts day` measures every colour again from the photographs;
+its `night` study keeps the first measurements, of the night panorama the drawing traces, which the
+day replaced.
 
 The sky's two colours are each the median of a clear box of the panorama's 3840 × 551 px rendition
 (SHA-256 `a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`), measured as the

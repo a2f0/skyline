@@ -144,7 +144,7 @@ describe("colour trial", () => {
     expect(swatches.get("glass")).toEqual({ colour: linear(measured.glass as number), reference: 0.4 });
     expect(swatches.get("neutral"), "a null material stays grey").toBeNull();
     expect(swatches.get("marble"), "an unmeasured material stays grey").toBeNull();
-    expect(swatchesOf("building-kemper", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
+    expect(swatchesOf("building-swissotel", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
   });
 
   test("leaves null materials grey and paints every other in its own or its named material's hue", () => {
@@ -256,20 +256,27 @@ describe("colour trial", () => {
   });
 
   test("records each measured colour in its building's audit, and the sky's in the viewer's notes", () => {
-    // The audit whose daytime entry each sourced building's colours come from.
-    const audits: Record<string, string> = {
-      "building-railway-exchange": "railway-exchange",
-      "building-crain-communications": "crain",
-      "building-one-prudential-plaza": "one-prudential",
-      "building-two-prudential-plaza": "two-prudential",
-      layer3: "aon",
-      "building-blue-cross-blue-shield": "blue-cross",
+    // The audit, and its dated entry, each sourced building's daytime colours come from.
+    const audits: Record<string, [file: string, entry: string]> = {
+      "building-railway-exchange": ["railway-exchange", "FID-COL-003"],
+      "building-crain-communications": ["crain", "FID-COL-003"],
+      "building-one-prudential-plaza": ["one-prudential", "FID-COL-003"],
+      "building-two-prudential-plaza": ["two-prudential", "FID-COL-003"],
+      layer3: ["aon", "FID-COL-003"],
+      "building-blue-cross-blue-shield": ["blue-cross", "FID-COL-003"],
+      "building-willoughby-tower": ["willoughby-tower", "FID-COL-004"],
+      "building-heritage-at-millennium-park": ["heritage-geographic", "FID-COL-004"],
+      "building-kemper": ["kemper-geographic", "FID-COL-004"],
+      "building-330-north-wabash": ["north-wabash", "FID-COL-004"],
+      "building-michigan-plaza-front-tall": ["millennium-park-plaza", "FID-COL-004"],
+      "building-trump-tower-only": ["trump", "FID-COL-004"],
+      "building-340-on-the-park": ["340-on-the-park", "FID-COL-004"],
     };
     expect(Object.keys(audits).sort()).toEqual(Object.keys(measuredColours).sort());
     const read = (file: string) => readFileSync(new URL(`../docs/${file}`, import.meta.url), "utf8").replace(/\s+/g, " ");
     const rgb = (hex: number) => [hex >> 16, (hex >> 8) & 255, hex & 255].join(", ");
     for (const [id, measured] of Object.entries(measuredColours)) {
-      const audit = read(`${audits[id]}-reference.md`), start = audit.indexOf("Daytime colours from Chicago.jpg (FID-COL-003)");
+      const [file, label] = audits[id]!, audit = read(`${file}-reference.md`), start = audit.indexOf(`Daytime colours from Chicago.jpg (${label})`);
       expect(start, `${id}'s audit has the daytime entry`).toBeGreaterThan(-1);
       const entry = audit.slice(start);
       // Each value is in the entry's decisions under a material measured at it; the day's windows

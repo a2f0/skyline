@@ -95,3 +95,51 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-09 — Daytime colours from Chicago.jpg (FID-COL-004)
+
+The colour trial's sunny day gains a second group of buildings, measured as the first was
+(FID-COL-003, in the [Railway Exchange's audit](railway-exchange-reference.md) and five others), in
+the same photograph and with the same exposure.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-09). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. It looks from nearly the drawing's viewpoint on a sunny day, five years before the 2013
+night panorama the drawing traces. No change to these materials between 2008 and 2013 is known to
+this audit.
+
+Identification: the building's bearing and roof height from the drawing's fitted eye (1471.76 m east
+and 1948.8 m south of Crain's mapped centre), fitted to the rendition through the six buildings
+measured first, place it at x 1633–1696 with its roof near y 383; the fit holds those six within
+about 25 pixels across and 4 pixels in height. It is the light tower at x 1630–1646, roof at y 381,
+in front of 330 North Wabash; only its sunlit narrow face shows clear of its neighbours.
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue.
+`bun scripts/sample-colours.ts day building-michigan-plaza-front-tall` downloads the photograph
+once, checks its SHA-256, and reproduces these rows and the palette's entries, decoding in Chrome
+without colour management. The building is about 14 pixels wide in the rendition, so single pixels
+mix neighbouring materials, which the quartiles show; the medians are the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Precast, sunlit | 1631, 385, 1645, 450 | sat 0–0.3, val 0.5–1 | 656 (72.1%) | `229, 214, 201` | 211–243 / 200–228 / 186–212 |
+| Glass | 1631, 385, 1645, 450 | val 0–0.35 | 145 (15.9%) | `60, 52, 42` | 45–77 / 35–68 / 23–59 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `concrete` `229, 214, 201`, the precast walls, a warm white.
+- `glass` `60, 52, 42`, a bronze tint, 15.9% of the box; `lit window` and `dim window` take it
+  exactly, since no office lights show by day.
+- `neutral` stays grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, the precast renders
+`185, 176, 170` under the photograph's rule, 0.65 of the photograph's brightness in linear light.

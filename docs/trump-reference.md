@@ -164,3 +164,60 @@ that spaces the rows about 1.5% tighter than the landmarks above them allow.
   photograph shows it.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-09 — Daytime colours from Chicago.jpg (FID-COL-004)
+
+The colour trial's sunny day gains a second group of buildings, measured as the first was
+(FID-COL-003, in the [Railway Exchange's audit](railway-exchange-reference.md) and five others), in
+the same photograph and with the same exposure.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-09). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. It looks from nearly the drawing's viewpoint on a sunny day, five years before the 2013
+night panorama the drawing traces. In August 2008 the tower was still under construction: its upper
+floors stand as open frame under two tower cranes up to about y 209, the crown and spire not yet
+built, and a red hoist runs up its face (observed). The glass is measured on the clad floors below,
+between y 250 and One Prudential's roof.
+
+Identification: the building's bearing and roof height from the drawing's fitted eye (1471.76 m east
+and 1948.8 m south of Crain's mapped centre), fitted to the rendition through the six buildings
+measured first, place it at x 1682–1765 with its roof near y 157; the fit holds those six within
+about 25 pixels across and 4 pixels in height. Its clad floors show at x 1689–1730 above One
+Prudential.
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-trump-tower-only`
+downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
+entries, decoding in Chrome without colour management. The building is about 40 pixels wide in the
+rendition, so single pixels mix neighbouring materials, which the quartiles show; the medians are
+the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Glass and spandrels, clad floors | 1690, 250, 1727, 318 | hue 180–250, sat 0.05–1 | 2,226 (88.5%) | `111, 131, 142` | 95–141 / 113–154 / 127–166 |
+| Left face, for comparison | 1690, 250, 1699, 318 | hue 180–250, sat 0.05–1 | 611 (99.8%) | `151, 164, 172` | 138–164 / 151–177 / 159–187 |
+| Right face, for comparison | 1708, 250, 1727, 318 | hue 180–250, sat 0.05–1 | 1,191 (92.2%) | `104, 123, 135` | 91–113 / 112–136 / 127–153 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `glass` `111, 131, 142`, the clad floors' glass and brushed stainless spandrels together, both
+  faces, the hoist left out by its hue; `lit window` and `dim window` take it exactly, since no
+  office lights show by day. The sunlit left face measures `151, 164, 172` and the right
+  `104, 123, 135`.
+- `stainless`, the projecting mullions, the crown's mullions and the spire, stays grey: brushed and
+  polished steel is near neutral, the rendition does not resolve the mullions, and the crown and
+  spire did not yet exist. Taking the glass's colour at their light greys pushed them past white
+  into a pale cyan.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, the glass renders
+`49, 65, 79`, 0.25 of the photograph's brightness in linear light and 0.28 of its shaded right
+face's, with the grey mullions among its pixels: the view sees both of the tower's faces in the
+scene's shade, and many of the model's panes are darker than the grey its colour is measured at.
