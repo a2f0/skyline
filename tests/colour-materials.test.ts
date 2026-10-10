@@ -271,6 +271,14 @@ describe("colour trial", () => {
       "building-michigan-plaza-front-tall": ["millennium-park-plaza", "FID-COL-004"],
       "building-trump-tower-only": ["trump", "FID-COL-004"],
       "building-340-on-the-park": ["340-on-the-park", "FID-COL-004"],
+      "building-200-south-michigan": ["borg-warner", "FID-COL-005"],
+      "building-peoples-gas": ["peoples-gas", "FID-COL-005"],
+      "building-lakeview": ["lake-view", "FID-COL-005"],
+      "building-maclean-center": ["maclean-center", "FID-COL-005"],
+      "building-monroe": ["monroe", "FID-COL-005"],
+      "building-university-club": ["university-club", "FID-COL-005"],
+      "building-six-north-michigan": ["six-north-michigan", "FID-COL-005"],
+      "building-six-north-far-east": ["michigan-boulevard", "FID-COL-005"],
     };
     expect(Object.keys(audits).sort()).toEqual(Object.keys(measuredColours).sort());
     const read = (file: string) => readFileSync(new URL(`../docs/${file}`, import.meta.url), "utf8").replace(/\s+/g, " ");

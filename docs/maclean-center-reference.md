@@ -128,3 +128,73 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-10 — Daytime colours from Chicago.jpg (FID-COL-005)
+
+The colour trial's sunny day gains a third group, the Michigan Avenue wall from the Borg-Warner
+Building to the Michigan Boulevard Building, measured in the same photograph as the first two
+(FID-COL-003 and FID-COL-004) and shown at the same exposure.
+
+Source: [Chicago.jpg](https://commons.wikimedia.org/wiki/File:Chicago.jpg) on Wikimedia Commons,
+Daniel Schwen's panorama of the skyline from the Adler Planetarium, photographed on 16 August 2008
+from 22 frames on a Canon EOS 5D with a 150 mm lens (CC BY-SA 4.0; accessed 2026-10-10). Measured in
+Commons' 3840 × 551 px rendition,
+`https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg` (SHA-256
+`a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`); the photograph is not in the
+repository. It looks from nearly the drawing's viewpoint on a sunny day, five years before the 2013
+night panorama the drawing traces. No change to these materials between 2008 and 2013 is known to
+this audit. Grant Park's trees hide the wall's lower floors; every box stops above them.
+
+Identification: `bun scripts/panorama-owners.ts building-maclean-center` fits the rendition to the
+mapped buildings, with the photographer's eye 10 m east and 100 m south of the drawing's fitted eye,
+at 1.6 px RMS over seven tower silhouettes against the sky, four Michigan Avenue corners where a
+sunlit south face meets a shaded front, and four roofs. A ray from that eye through each pixel meets
+the nearest mapped part, which owns the pixel, and the face it meets gives the pixel's direction.
+This building shows its Michigan front at x 1264–1280, its roof at row 413; each box below lies
+wholly on the face it names, as the script's `--box` option reports and
+`tests/panorama-owners.test.ts` checks.
+
+Shade: the Michigan fronts face east, into the photograph's shade, and the scene shades them too.
+Where a building shows only that front, its stone or terracotta is estimated as if sunlit, so the
+scene's own shade darkens it once: the shaded median times shade-to-sun factors of 3.25, 2.60 and
+2.09 for red, green and blue in linear light, the ratio between the Railway Exchange's terracotta on
+its sunlit south face and its shaded Michigan front (FID-COL-003). That front is mostly terracotta,
+and its median moves about 8% as the brightness cutoff moves from 0.45 to 0.35. Other materials need
+not share the ratio, and two comparisons disagree with it: Peoples Gas's front is mostly windows at
+this scale, its terracotta 3% of the box above the cutoff, and its ratio runs from about 2.8 to 4.0
+in red as the cutoff moves; Six North's sunlit brick and shaded front differ by only about 1.5 to
+1.7, half the Railway Exchange's ratio in linear light, though that front's light pixels are partly
+lighter terracotta. Borg-Warner's spandrels, sunlit and shaded, differ by only about 1.2, though
+glossy enamel reflects the sky as much as it scatters the sun. So the estimates are provisional,
+uncertain by a factor of two or more in linear light, until a second matte material showing both
+faces confirms the ratio. `bun scripts/sample-colours.ts day` measures the pair and prints each
+estimate. Glass keeps its measured value: it reflects the sky rather than scattering the sun.
+
+Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
+(degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
+per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
+quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-maclean-center`
+downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
+entries, decoding in Chrome without colour management. The building's visible faces are 17 pixels
+wide in all, so single pixels mix neighbouring materials, which the quartiles show; the medians are
+the values used.
+
+| Material | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Limestone, Michigan front, shaded | 1268, 415, 1281, 460 | sat 0–0.35, val 0.45–1 | 47 (8.0%) | `126, 128, 130` | 108–182 / 114–171 / 120–167 |
+| Glass, Michigan front | 1268, 415, 1281, 460 | val 0–0.3 | 148 (25.3%) | `43, 55, 64` | 34–55 / 46–63 / 56–71 |
+
+Decisions in `src/models/colour-palette.ts`:
+
+- `limestone` `215, 197, 182`, the sunlit estimate of the shaded front's `126, 128, 130`, from only
+  8.0% of the box with wide quartiles: uncertain.
+- `glass` `43, 55, 64`; `lit window` and `dim window` take it exactly, since no office lights show
+  by day.
+- `neutral` stays grey.
+
+Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
+layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
+its null ones grey. In the skyline view at 1600 × 900 under the day lights, the limestone renders
+`111, 116, 122` against the photograph's shaded front, 0.82 in linear light. That compares the
+scene's shade with the Railway Exchange's, which built the estimate, more than it tests the estimate
+itself.
