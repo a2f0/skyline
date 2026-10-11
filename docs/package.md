@@ -5,6 +5,11 @@ modules. Package builds emit ordinary ESM JavaScript and TypeScript declarations
 consumers of the published package do not compile repository sources or run installation
 scripts. Browser code and Node/Bun build helpers have separate entrypoints.
 
+To start an embed in sunny-day colour, pass `colour: true` to `mountSkyline` alongside
+`assetsUrl`. Its toolbar can return to greyscale, and building details inherit and share its mode.
+Omitting `colour` keeps the existing greyscale default. The setting belongs to that instance;
+it does not use storage or affect another embed. The standalone viewer accepts `?colour=1`.
+
 ## Install from npm
 
 ```sh

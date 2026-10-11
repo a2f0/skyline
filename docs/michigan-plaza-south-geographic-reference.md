@@ -70,3 +70,42 @@ exact grade vertex set. Ground extents use vertices at grade: facade relief
 and the base course above grade must not redefine the street footprint.
 Visual review includes the ground plan, height comparison, and elevated
 orthographic views.
+
+## 2026-10-10 — Daytime colours from an uncalibrated close-up (FID-COL-007)
+
+Source: Alanscottwalker, [*205 N Michigan*](https://commons.wikimedia.org/wiki/File:205_N_Michigan.JPG),
+22 December 2014; accessed 10 October 2026. The tall tower at the Lake/Michigan corner is the
+modelled south tower, with the shorter north tower at left. The sky is visibly daylight; the
+EXIF clock says 23:27 with unknown timezone/accuracy. The inspected
+[960 × 1280 rendition](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/205_N_Michigan.JPG/960px-205_N_Michigan.JPG)
+has SHA-256 `5210415ed386fb01fdf97e62c20fdec0bcbeb6ca3677fb0ca52c981a7a2f38b5`.
+
+The box is on the tall tower's broad west face, above the traffic lights and below its upper
+shaft. Dark pixels select the frame/spandrels, while blue pixels select sky-facing panes and
+exclude warm office lights and reflected neighbouring masonry. Boxes are half-open in this
+rendition, medians and quartiles in sRGB. Reproduce with
+`bun scripts/sample-colours.ts day building-michigan-plaza-south-tower`.
+
+| Sample | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Dark frame and spandrels | 460, 620, 570, 780 | val 0–0.3 | 3,389 (19.3%) | `29, 39, 54` | 18–42 / 29–51 / 40–65 |
+| Sky-facing glass | 460, 620, 570, 780 | hue 180–250, sat 0.15–1, val 0.35–0.9 | 9,635 (54.7%) | `99, 133, 162` | 77–112 / 91–152 / 104–184 |
+
+Decision: `aluminium` `29, 39, 54`; `glass` `99, 133, 162`. Lit/dim window classes share the
+same daytime glass colour. The mapped shell behind the separate panes is classified as metal,
+so the dark spandrels and mullions stay matte instead of reflecting like glass. No geometry,
+nighttime tone, pane spacing, footprint, or draw order changes.
+
+**Provisional:** the photograph measures apparent colour in a different sky from Chicago.jpg,
+without a common matte reference. Its glass is a reflection, not intrinsic blue pigment, and
+some dark pixels may be shaded interiors. The broad glass quartiles quantify that variation.
+The [building manager's current gallery](https://michiganplaza.com/gallery/) (Transwestern;
+photographer/date unspecified, accessed 10 October 2026), particularly its courtyard photographs,
+also shows dark framing and blue sky reflections. Those later photographs corroborate the material
+separation but do not calibrate these numbers or alter the model's 2013-era geometry. Neither
+reference becomes a runtime dependency.
+
+Acceptance: the material tests require a palette for all 34 models, find these values, keep the
+frame outside the reflection mask and restore exact grey colours/shaders. The comparison script
+captures this tower from its standalone front and the elevated skyline. FID-COL-002 remains open
+for matched sunny-light calibration; FID-COL-007 closes only the entirely uncoloured-building gap.

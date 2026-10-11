@@ -2,6 +2,7 @@ import * as THREE from "../vendor/three-r186.js";
 import type { BuildingModel } from "./building-kit.js";
 import { daylightColours, measuredColours } from "./colour-palette.js";
 import type { Daylight } from "../study-types.js";
+import { glassReflection } from "./colour-reflections.js";
 
 // The colour trial (https://github.com/a2f0/skyline/issues/115): which named material each
 // surface of each building is, and a layer that shows the colours measured for those materials
@@ -70,7 +71,7 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
     "bronze mullions and columns": ["bronze"],
   },
   "building-michigan-plaza-south-tower": {
-    "mapped tower shell": ["glass"],
+    "mapped tower shell": ["aluminium"],
     "mullions and bands": ["aluminium"],
     "lit glazing": ["lit window"],
     "dim glazing": ["dim window"],
@@ -403,11 +404,13 @@ interface FlatBatch {
 // another batch already took, since the builder lets batches share them.
 export function createSkylineColour(models: readonly BuildingModel[]): SkylineColour {
   const painted: PaintedBatch[] = [], flat: FlatBatch[] = [], taken = new Set<object>();
+  const reflections: ((enabled: boolean) => void)[] = [];
+  const glassMaterials = new Set<MaterialName>(["glass", "green glass", "blue-green glass", "bronze glass", "crown glass", "lit window", "dim window"]);
   for (const model of models) {
     const buildingId = String(model.building.userData["buildingId"]);
     if (!measuredColours[buildingId]) continue;
     // The building's batches, and how many vertices of each grey each material holds.
-    const surfaces: { material: THREE.MeshToonMaterial; colours: { attribute: THREE.BufferAttribute; array: Float32Array } | null; materialOf(grey: number): MaterialName }[] = [];
+    const surfaces: { geometry: THREE.BufferGeometry; material: THREE.MeshToonMaterial; colours: { attribute: THREE.BufferAttribute; array: Float32Array } | null; materialOf(grey: number): MaterialName }[] = [];
     const greys = new Map<MaterialName, Map<number, number>>();
     const count = (material: MaterialName, grey: number, vertices: number) => {
       const held = greys.get(material) ?? new Map<number, number>();
@@ -429,15 +432,28 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
         const vertices = new Map<number, number>();
         for (let vertex = 0; vertex < attribute.count; vertex += 1) vertices.set(attribute.array[vertex * 3]!, (vertices.get(attribute.array[vertex * 3]!) ?? 0) + 1);
         vertices.forEach((n, grey) => count(materialOf(grey), grey, n));
-        surfaces.push({ material, colours: { attribute, array: attribute.array }, materialOf });
+        surfaces.push({ geometry: mesh.geometry, material, colours: { attribute, array: attribute.array }, materialOf });
       } else if (!taken.has(material)) {
         taken.add(material);
         count(materialOf(material.color.r), material.color.r, mesh.geometry.getAttribute("position").count);
-        surfaces.push({ material, colours: null, materialOf });
+        surfaces.push({ geometry: mesh.geometry, material, colours: null, materialOf });
       }
     });
     const swatches = swatchesOf(buildingId, greys);
-    for (const { material, colours, materialOf } of surfaces) {
+    for (const { geometry, material, colours, materialOf } of surfaces) {
+      const mask = new Float32Array(geometry.getAttribute("position").count);
+      const reflecting = new Map<number, number>();
+      for (let vertex = 0; vertex < mask.length; vertex += 1) {
+        const grey = colours ? colours.array[vertex * 3]! : material.color.r;
+        let reflects = reflecting.get(grey);
+        if (reflects === undefined) {
+          const name = materialOf(grey);
+          reflects = glassMaterials.has(name) && swatches.get(name) ? 1 : 0;
+          reflecting.set(grey, reflects);
+        }
+        mask[vertex] = reflects;
+      }
+      if (mask.some((value) => value > 0)) reflections.push(glassReflection(material, geometry, mask));
       const colourOf = (grey: number): [number, number, number] => {
         const swatch = swatches.get(materialOf(grey));
         return swatch ? paint(grey, swatch) : [grey, grey, grey];
@@ -477,6 +493,7 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
         batch.attribute.needsUpdate = true;
       }
       for (const { material, grey, colour } of flat) material.color.copy(next ? colour : grey);
+      for (const reflect of reflections) reflect(next);
     },
     refresh() {
       if (!enabled) return;

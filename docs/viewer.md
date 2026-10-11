@@ -93,7 +93,7 @@ button, as in the studies, and leaves the view buttons.
 
 The skyline is drawn in greys at night. The **colour** toggle tries it in colour on a sunny day: a
 blue sky, fading to haze at the horizon, and a bright, slightly warm sun, with the ground and
-streets lighter in its light. Thirty-two buildings are sourced so far: the Railway Exchange, Crain,
+streets lighter in its light. All 34 buildings have palettes. The first 32 sources cover the Railway Exchange, Crain,
 One and Two Prudential Plaza, Aon and Blue Cross first; then Willoughby Tower, the Heritage at
 Millennium Park, Kemper, 330 North Wabash, Millennium Park Plaza, Trump Tower and 340 on the Park;
 then the Michigan Avenue wall, the Borg-Warner, Peoples Gas, Lake View, MacLean Center, Monroe,
@@ -106,7 +106,9 @@ trees there, and the Hyatt Regency's west tower, a few pixels wide there, come f
 close-ups calibrated to the panorama through a building beside them that it shows sunlit. Blue
 Cross's crown, built after 2008, comes from a 2022 close-up, and the glass of Trump Tower's crown,
 unfinished in the photograph, takes its tower's glass colour while its stainless spire stays grey.
-The other two stay grey until they are measured, so they keep their night greys under the day sky.
+Three Illinois Center and Michigan Plaza South complete coverage of all 34 buildings with direct
+2014 daylight close-ups. These last two palettes are provisional and uncalibrated to the panorama;
+their audits record that limitation and the outstanding calibration work.
 Office windows show as glass: no lights show by day, though a celebration's message still lights the
 Blue Cross tower.
 
@@ -122,7 +124,8 @@ the panorama and in the close-up, beside it and in the same light. A material ma
 colour where the photograph does not show it, or stay grey. A material's most common grey shows its
 measured colour, scaled by the exposure below, and its other greys scale with their brightness
 against it, so darker surfaces stay darker; a colour pushed past white keeps its hue at its
-brightest. The exposure is 1.4, from the render-to-photograph brightness of the sourced buildings'
+brightest. The exposure is 1.4. The following brightness comparisons were recorded before the sky-reflection
+layer was added; glass now varies with the camera. The original render-to-photograph brightness of the sourced buildings'
 main materials in the skyline view at 1600 × 900: Two Prudential's stone and Blue Cross's glass
 reach 0.97 and 0.96 of the photograph's in linear light, Aon's granite 0.86 and One Prudential's
 limestone 0.80, while Crain's nearly white aluminium, past white at this exposure, reaches 0.66. The
@@ -143,7 +146,7 @@ sun, renders 1.64. The fourth group's sunlit faces render 0.79 (the Buckingham's
 it may be up to twice too dark) of their photographs', 180 North Michigan's stone and River Plaza's
 top, lit by the scene's sun, 1.27 and 1.21, Swissôtel's sliver beside the Buckingham, partly in its
 shadow, 0.5, and the close-ups' Michigan fronts, in the scene's shade, 0.41 to 0.51 of their
-calibrated sunlit colours. The exposure is kept for all thirty-two. The scene's sun stands in the
+calibrated sunlit colours. The exposure is kept for all thirty-four. The scene's sun stands in the
 south-west, so the east faces the camera sees are in shade, as the photograph's are, and bluer, lit
 by the sky. `scripts/sample-colours.ts day` measures every colour again from the photographs, and
 `scripts/panorama-owners.ts` locates the mapped buildings in the panorama, pixel by pixel and face
@@ -161,17 +164,34 @@ buildings' are; `bun scripts/sample-colours.ts day sky` reproduces them. The sun
 | Sky, near the horizon | 3000, 420, 3800, 470 | all | 40,000 (100.0%) | `196, 209, 225` | 194–199 / 207–211 / 223–227 |
 
 Pressing the toggle again restores every grey and the night exactly. The models themselves are
-untouched, and celebratory lights work in either mode. The building detail panel stays in grey.
+untouched, and celebratory lights work in either mode. The building detail panel inherits the scene's mode; either colour toggle updates both views.
+A standalone detail has its own colour toggle. Add `?colour=1` to the viewer or 3D page, or
+`&colour=1` to a building detail URL, to open in daylight. The building menu's separate-page link
+carries the active mode. Embeds can pass `colour: true` to `mountSkyline`; the default remains grey.
+The mode belongs to each viewer instance and does not change other embeds or browser storage.
+
+`models/colour-reflections.ts` adds a restrained, camera-dependent reflection of the sky/horizon
+and neutral ground to sourced glass only, with stronger reflection at grazing angles. It uses a
+per-vertex mask to keep stone, metal frames, signs and roof surfaces matte even inside mixed mesh
+batches. This is an illustrated open-sky reflection, not nearby-building reflections or calibrated
+PBR. The original toon shading, shadows and geometry remain. The measured glass colours already
+contain the source photograph's reflection, so the added reflection is intentionally modest.
+Turning colour off restores the original shader callbacks and cache keys as well as every grey.
+The mask is reused across toggles and released with its geometry. No environment image is fetched.
+
+Run `bun scripts/render-colours.ts` for matching grey/day skyline and elevated comparisons,
+mobile views and close-ups, written to `/tmp/skyline-colours` by default.
 
 `colour-palette.ts` is the one source file `tests/grayscale.test.ts` exempts; the audits give the
 measured colours as red, green and blue values. `tests/colour-materials.test.ts` keeps the table in
 step with the models, so a renamed batch or a retoned surface it names fails there, checks every
 material of a sourced building is measured, named or left grey, finds each measured colour on its
 building and in its audit's daytime entry, and checks the day's sky and lights. Removing the trial
-means deleting those three files, `scripts/sample-colours.ts` and `scripts/panorama-owners.ts` with
+means deleting the palette, materials, reflection layer and their tests, `scripts/sample-colours.ts` and `scripts/panorama-owners.ts` with
 their `scripts/lib/panorama.ts` and `scripts/lib/shade.ts`, the tests
 `tests/panorama-owners.test.ts` and `tests/colour-shade.test.ts` and their lines in
-`scripts/check.ts`, the toggle and its roads' daytime grey in `skyline-3d.ts`, the viewer's
+`scripts/check.ts`, the colour options and toggles in the viewer and building details, the roads' daytime grey in `skyline-3d.ts`,
+`scripts/render-colours.ts`, the viewer's
 `setDaylight` with its `Daylight` type, and the exemption.
 
 The page shares `study-viewer.ts`, `study.css`, and `study-loader.ts` with the

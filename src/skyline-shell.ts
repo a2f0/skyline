@@ -21,6 +21,8 @@ export interface ViewerContext {
   readonly signal: AbortSignal;
   /** Start the 3D scene's control bar open, rather than folded behind its star. */
   readonly controls: "open" | "closed";
+  /** Start the scene and its building details in sunny-day colour. */
+  readonly colour?: boolean;
   /** Show the OpenStreetMap credit with the scene's controls. */
   readonly attribution: boolean;
   /**

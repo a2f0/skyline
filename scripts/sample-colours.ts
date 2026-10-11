@@ -63,6 +63,14 @@ interface Result {
 }
 
 const photos: Record<string, Photo> = {
+  "east-wacker-2014.jpg": {
+    source: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/East_Wacker_2.JPG/960px-East_Wacker_2.JPG",
+    sha256: "7be176786577bbf0a8a9ca7eeef33a362e2f0d68df55a094b15211fc305e0a49",
+  },
+  "michigan-plaza-2014.jpg": {
+    source: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/205_N_Michigan.JPG/960px-205_N_Michigan.JPG",
+    sha256: "5210415ed386fb01fdf97e62c20fdec0bcbeb6ca3677fb0ca52c981a7a2f38b5",
+  },
   "skyline.jpg": { source: "src/skyline.jpg", sha256: "f6001e46471ea59f6fc07ae0eb9e7d5d8d243666f57d96d7efc6f59f2d7d5db4" },
   // Commons serves its files' thumbnails at fixed widths; these are the 3840 and 1920 px ones.
   "chicago-2008.jpg": { source: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Chicago.jpg/3840px-Chicago.jpg", sha256: "a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41" },
@@ -137,6 +145,16 @@ const night: Record<string, Sample[]> = {
 
 // FID-COL-003's and FID-COL-004's sunny samples, as each building's reference audit records them.
 const day: Record<string, Sample[]> = {
+  // FID-COL-007: direct close-up measurements, deliberately uncalibrated. Neither photograph
+  // supplies a reliable matte reference shared with the sunny panorama; see the two audits.
+  "building-three-illinois-center": [
+    { row: "Bronze penthouse panels", material: "bronze", photo: "east-wacker-2014.jpg", box: [385, 347, 450, 360] },
+    { row: "Sky-facing glass", material: "bronze glass", photo: "east-wacker-2014.jpg", box: [370, 405, 450, 500], hue: [180, 250], sat: [0.12, 1], val: [0.35, 0.9] },
+  ],
+  "building-michigan-plaza-south-tower": [
+    { row: "Dark frame and spandrels", material: "aluminium", photo: "michigan-plaza-2014.jpg", box: [460, 620, 570, 780], val: [0, 0.3] },
+    { row: "Sky-facing glass", material: "glass", photo: "michigan-plaza-2014.jpg", box: [460, 620, 570, 780], hue: [180, 250], sat: [0.15, 1], val: [0.35, 0.9] },
+  ],
   "building-railway-exchange": [
     { row: "Terracotta, Jackson front, sunlit", material: "white terracotta", box: [1066, 412, 1084, 458], sat: [0, 0.3], val: [0.6, 1] },
     { row: "Glass, Jackson front", material: "glass", box: [1066, 412, 1084, 458], val: [0, 0.4] },

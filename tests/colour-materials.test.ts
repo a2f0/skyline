@@ -38,6 +38,44 @@ const materialsOf = (id: string) => new Set(Object.values(colourMaterials[id]!).
 const sourced = models.filter((model) => measuredColours[idOf(model)]);
 
 describe("colour trial", () => {
+  test("reflects only sourced glass and restores shaders without touching geometry or ownership", () => {
+    const before = models.flatMap(meshesOf).map((mesh) => ({ mesh,
+      position: mesh.geometry.getAttribute("position"), normal: mesh.geometry.getAttribute("normal"), index: mesh.geometry.index,
+      compile: toonOf(mesh).onBeforeCompile, key: toonOf(mesh).customProgramCacheKey, owner: mesh.userData["buildingId"],
+      greys: coloursOf(mesh).map(([grey]) => grey),
+    }));
+    const colour = createSkylineColour(models);
+    let glass = 0, stone = 0;
+    for (let cycle = 0; cycle < 3; cycle += 1) {
+      colour.set(true);
+      for (const { mesh, position, normal, index, owner, greys } of before) {
+        expect(mesh.geometry.getAttribute("position")).toBe(position);
+        expect(mesh.geometry.getAttribute("normal")).toBe(normal);
+        expect(mesh.geometry.index).toBe(index);
+        expect(mesh.userData["buildingId"]).toBe(owner);
+        const mask = mesh.geometry.getAttribute("skylineGlass");
+        if (!mask) continue;
+        const model = models.find((entry) => meshesOf(entry).includes(mesh))!;
+        const [base, tones = {}] = batchOf(idOf(model), mesh.name)!;
+        for (let vertex = 0; vertex < mask.count; vertex += 1) {
+          const name = tones[toneOf(greys[toonOf(mesh).vertexColors ? vertex : 0]!)] ?? base;
+          if (mask.getX(vertex)) {
+            expect(["glass", "green glass", "blue-green glass", "bronze glass", "crown glass", "lit window", "dim window"]).toContain(name);
+            expect(measuredColours[idOf(model)]![name]).not.toBeNull();
+            glass += 1;
+          } else if (name === "granite" || name === "limestone" || name === "aluminium") stone += 1;
+        }
+      }
+      colour.set(false);
+      for (const { mesh, compile, key } of before) {
+        expect(toonOf(mesh).onBeforeCompile).toBe(compile);
+        expect(toonOf(mesh).customProgramCacheKey).toBe(key);
+      }
+    }
+    expect(glass).toBeGreaterThan(0);
+    expect(stone, "mixed batches keep masonry and metal matte").toBeGreaterThan(0);
+  });
+
   test("names a material for every batch of every building, and nothing the models lack", () => {
     expect(Object.keys(colourMaterials).sort()).toEqual(models.map(idOf).sort());
     const unmatched: string[] = [], used = new Set<string>();
@@ -80,7 +118,7 @@ describe("colour trial", () => {
   });
 
   test("measures every material its sourced buildings use, and only those", () => {
-    expect(sourced.length).toBeGreaterThan(0);
+    expect(sourced.length, "all mapped buildings have a colour palette").toBe(models.length);
     for (const [id, measured] of Object.entries(measuredColours)) {
       expect(colourMaterials[id], `${id} is a building the table knows`).toBeDefined();
       const uses = materialsOf(id), entries = measured as Partial<Record<MaterialName, unknown>>;
@@ -144,7 +182,7 @@ describe("colour trial", () => {
     expect(swatches.get("glass")).toEqual({ colour: linear(measured.glass as number), reference: 0.4 });
     expect(swatches.get("neutral"), "a null material stays grey").toBeNull();
     expect(swatches.get("marble"), "an unmeasured material stays grey").toBeNull();
-    expect(swatchesOf("building-three-illinois-center", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unsourced building has no swatches").toBe(0);
+    expect(swatchesOf("unknown-building", new Map([["marble", new Map([[0.5, 1]])]])).size, "an unknown building has no swatches").toBe(0);
   });
 
   test("leaves null materials grey and paints every other in its own or its named material's hue", () => {
@@ -258,6 +296,8 @@ describe("colour trial", () => {
   test("records each measured colour in its building's audit, and the sky's in the viewer's notes", () => {
     // The audit, and its dated entry, each sourced building's daytime colours come from.
     const audits: Record<string, [file: string, entry: string]> = {
+      "building-three-illinois-center": ["three-illinois-center", "FID-COL-007"],
+      "building-michigan-plaza-south-tower": ["michigan-plaza-south-geographic", "FID-COL-007"],
       "building-railway-exchange": ["railway-exchange", "FID-COL-003"],
       "building-crain-communications": ["crain", "FID-COL-003"],
       "building-one-prudential-plaza": ["one-prudential", "FID-COL-003"],
@@ -296,7 +336,7 @@ describe("colour trial", () => {
     const rgb = (hex: number) => [hex >> 16, (hex >> 8) & 255, hex & 255].join(", ");
     for (const [id, measured] of Object.entries(measuredColours)) {
       // The entry is titled by its source: Chicago.jpg, or a close-up calibrated to it.
-      const [file, label] = audits[id]!, audit = read(`${file}-reference.md`), start = audit.search(new RegExp(`Daytime colours from (?:Chicago\\.jpg|a close-up calibrated to Chicago\\.jpg) \\(${label}\\)`));
+      const [file, label] = audits[id]!, audit = read(`${file}-reference.md`), start = audit.search(new RegExp(`Daytime colours from (?:Chicago\\.jpg|a close-up calibrated to Chicago\\.jpg|an uncalibrated close-up) \\(${label}\\)`));
       expect(start, `${id}'s audit has the daytime entry`).toBeGreaterThan(-1);
       const entry = audit.slice(start);
       // Each value is in the entry's decisions under a material measured at it; the day's windows

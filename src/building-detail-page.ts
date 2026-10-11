@@ -8,6 +8,7 @@ try {
     id: new URLSearchParams(location.search).get("building"),
     frame: document.querySelector<HTMLElement>(".detail-root")!,
     signal: life.signal,
+    colour: new URLSearchParams(location.search).get("colour") === "1",
   });
 } catch (error) {
   // A detail that fails part way releases what it started; study-loader.js says why.

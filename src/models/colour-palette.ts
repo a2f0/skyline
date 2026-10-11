@@ -18,6 +18,18 @@ const glass = (colour: number, material: Extract<MaterialName, "glass" | "green 
   ({ [material]: colour, "lit window": colour, "dim window": colour });
 
 export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<MaterialName, Measurement>>>>> = {
+  // FID-COL-007: provisional, direct 2014 daytime close-ups, WITHOUT the panorama's light
+  // calibration. These measure appearance (sky reflections included), not intrinsic albedo.
+  // docs/three-illinois-center-reference.md and docs/michigan-plaza-south-geographic-reference.md.
+  "building-three-illinois-center": {
+    bronze: 0x55585f,
+    ...glass(0x707d8e, "bronze glass"),
+    neutral: null,
+  },
+  "building-michigan-plaza-south-tower": {
+    aluminium: 0x1d2736,
+    ...glass(0x6385a2),
+  },
   // docs/railway-exchange-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
   "building-railway-exchange": {
     "white terracotta": 0xc8c1b3,

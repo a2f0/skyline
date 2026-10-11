@@ -995,6 +995,61 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
+  test("starts in colour by URL and keeps building details, links and toggles in sync", async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+    await watch(page);
+    const shaderErrors: string[] = [];
+    page.on("console", (message) => { if (message.type() === "error") shaderErrors.push(message.text()); });
+    for (const route of ["index.html", "skyline-3d.html"]) {
+      await page.goto(`${origin}/${route}?colour=1&controls=open`);
+      await openScene(page);
+      const toggle = page.locator(".control-bar #colour");
+      expect(await toggle.getAttribute("aria-pressed")).toBe("true");
+      expect(await chroma(page)).toBeGreaterThan(40);
+      // Exercise the glass shader in perspective and orthographic cameras, including wireframe.
+      for (const view of ["quarter", "top", "skyline"]) {
+        await page.locator(`[data-view="${view}"]`).click();
+        await settle(page);
+      }
+      await page.locator("#wireframe").click();
+      await settle(page);
+      await page.locator("#wireframe").click();
+      await settle(page);
+      const canvas = page.locator("#building"), box = (await canvas.boundingBox())!;
+      const record = geographicBuildings.find(({ id }) => id === "layer3")!;
+      const { center } = footprintMetrics(record.footprint.coordinates);
+      const [u, v] = await page.evaluate((point) => window.__buildingStudy!.projectPoint("layer3", point), [center[0], record.height / 2, -center[1]]);
+      await page.mouse.click(box.x + u * box.width, box.y + v * box.height, { button: "right" });
+      const link = page.locator("#building-detail-link");
+      expect(await link.getAttribute("href")).toBe(`${origin}/building-detail.html?building=layer3&colour=1`);
+      await link.click();
+      await page.waitForFunction(() => window.__detailStudy?.ready);
+      const detail = page.locator(".detail-host"), detailToggle = detail.locator("#colour");
+      expect(await detailToggle.getAttribute("aria-pressed")).toBe("true");
+      await detailToggle.click();
+      expect(await toggle.getAttribute("aria-pressed")).toBe("false");
+      await settle(page);
+      const grey = await detail.locator("canvas").screenshot();
+      await toggle.click();
+      expect(await detailToggle.getAttribute("aria-pressed")).toBe("true");
+      await settle(page);
+      expect((await detail.locator("canvas").screenshot()).equals(grey)).toBe(false);
+      await toggle.click();
+      await settle(page);
+      expect((await detail.locator("canvas").screenshot()).equals(grey), "detail returns to exactly the same greys").toBe(true);
+      await page.locator("#detail-close").click();
+    }
+    await page.goto(`${origin}/building-detail.html?building=building-three-illinois-center&colour=1`);
+    await openScene(page);
+    expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("true");
+    expect(await chroma(page)).toBeGreaterThan(40);
+    await page.locator("#colour").click();
+    await settle(page);
+    expect(await chroma(page)).toBe(0);
+    expect(shaderErrors).toEqual([]);
+    await page.close();
+  }, { timeout: 120_000 });
+
   test("starts with the controls open on the site's viewer or when an address asks, and folds them from there", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     await watch(page);

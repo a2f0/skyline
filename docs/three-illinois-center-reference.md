@@ -121,3 +121,39 @@ Omitted:
   Every mesh is closed.
 
 Reference pages are research inputs only; the viewer downloads nothing from them.
+
+## 2026-10-10 — Daytime colours from an uncalibrated close-up (FID-COL-007)
+
+Source: Alanscottwalker, [*East Wacker 2*](https://commons.wikimedia.org/wiki/File:East_Wacker_2.JPG),
+22 December 2014; accessed 10 October 2026. The visibly daylight photograph shows the tower
+between Swissôtel and 233 East Wacker, including its original opaque penthouse. The EXIF clock
+says 23:16; its timezone/accuracy is unknown, so it does not establish the sun's direction.
+The inspected [960 × 1316 rendition](https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/East_Wacker_2.JPG/960px-East_Wacker_2.JPG)
+has SHA-256 `7be176786577bbf0a8a9ca7eeef33a362e2f0d68df55a094b15211fc305e0a49`.
+No photograph is shipped with the viewer.
+
+The unbroken band above the top window row anchors the bronze sample. The glass box is on the
+broad face below it; the rule selects its blue sky reflections, excluding the dark spandrels.
+Boxes use half-open pixel coordinates in that rendition. Medians and quartiles are sRGB.
+Reproduce with `bun scripts/sample-colours.ts day building-three-illinois-center`.
+
+| Sample | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | --- | ---: | --- | --- |
+| Bronze penthouse panels | 385, 347, 450, 360 | all | 845 (100.0%) | `85, 88, 95` | 79–92 / 82–95 / 89–102 |
+| Sky-facing glass | 370, 405, 450, 500 | hue 180–250, sat 0.12–1, val 0.35–0.9 | 5,800 (76.3%) | `112, 125, 142` | 93–128 / 107–149 / 123–177 |
+
+Decision: `bronze` `85, 88, 95`; `bronze glass` `112, 125, 142`. Daytime lit and dim window
+classes take the glass measurement. Roof/neutral surfaces stay grey. Geometry and the 2013-era
+penthouse remain unchanged. The palette describes the photographed appearance: the nominally
+bronze finish reads cool under this sky; it is not a measurement of the metal's intrinsic colour.
+
+**Provisional:** these are direct close-up measurements, without a panorama calibration. The
+nearby Swissôtel offers glass, whose reflections cannot serve as a matte light reference; 233
+East Wacker has no measured panorama palette. Applying this one view to every face is an inference,
+and the box's glass brightness varies substantially. This fills the visible grey gap, but does
+not close the light-calibration question in FID-COL-002. A future same-light matte reference or
+matched sunny photograph should replace these values, not an arbitrary exposure multiplier.
+
+Acceptance: every mapped building has a palette; the material tests find these measured colours,
+keep bronze outside the glass-reflection mask, and restore exact grey colours and shaders.
+The colour comparison script includes a close-up of this tower and its skyline placement.
