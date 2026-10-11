@@ -133,3 +133,69 @@ dark panes cover far more of each face than the building's windows do, so it rea
 tower where the photograph shows a white one. If the darker face to the right is this tower's east
 face in shade, the fairer comparison is with its `95, 101, 110`, 0.47. FID-KEM-002 records the gap,
 provisionally until that face is identified.
+
+## 2026-10-11 — Marble piers and opaque panels (FID-KEM-002)
+
+The first grayscale/colour skill pass assessed Kemper's facade coverage. It
+replaces the earlier narrow-pier estimate with observed proportions; the
+original drawing-fit model, mapped footprint, floor pitch and crown stay as before.
+
+New inputs, accessed 2026-10-11:
+
+- IvoShandor, [Kemper Building-Chicago.JPG](https://commons.wikimedia.org/wiki/File:Kemper_Building-Chicago.JPG),
+  photographed 2012-10-13 from 330 North Wabash. The 1216 × 2400 original,
+  `https://upload.wikimedia.org/wikipedia/commons/1/19/Kemper_Building-Chicago.JPG`,
+  SHA-256 `2673ea03af87c19054666aa10c3c9f85f8950d802f61650c9f7dae956b27b03d`,
+  shows the north elevation before the drawing's 2013 date. At y=600, 700 and
+  800, x=275–925, transitions at mean sRGB 130 separate 25–27 px dark columns
+  from 53–55 px repeats (about 48%). At x=408 and 516, y=430–835, mean sRGB
+  105 separates roughly 38 px glass from 35–38 px lighter panels (about 52%
+  glass per floor). Boundaries are uncertain by about 2 px; these are ratios,
+  not metre measurements or calibrated colours. The visible north face has
+  twelve window columns; the mapped-run bay counts remain a separate task.
+- Chris Light, [Kemper P8190415.jpg](https://commons.wikimedia.org/wiki/File:Kemper_P8190415.jpg),
+  2011-08-19, 618 × 1413 crop, SHA-256
+  `f1c8d94236543e276eadf272d56fffc86c11daa07779c9d558ecc5947c23f849`:
+  east/north corner corroborates uninterrupted pale piers and alternating panes/panels.
+- MusikAnimal, [Kemper Building, Chicago in May 2016.jpg](https://commons.wikimedia.org/wiki/File:Kemper_Building,_Chicago_in_May_2016.jpg),
+  2016-05-22, 3121 × 5642 original, SHA-256
+  `1aca90d4d65c06d4c02495af09c1be6c1369521801dfc603ce79c805ab21bfd7`:
+  north/west corner corroborates the same rhythm after 2013, not a new facade era.
+
+Decision: ordinary tower openings occupy 48% of a bay and glass 52% of a
+floor pitch, with 1 cm edge clearance. Broad raised marble piers replace the
+thin mullions and full-width white floor stripes. Closed opaque panel strips
+back the windows. Applying the north-face ratios to every face is an inference
+supported by the corner views. Their composition and calibrated hue are unknown:
+`opaque spandrel` explicitly stays grey in the colour palette, without glass
+reflections (FID-KEM-003). Marble and glass keep the existing measured colours;
+lighting/exposure is unchanged. This corrects excessive glass area independently
+of the still-unresolved panorama face identification (FID-KEM-004).
+
+Validation:
+
+- Raycasts over ordinary floors require 44–52% opening coverage and 47–58%
+  glass within those columns, against the photographic ratios. The panel batch
+  remains matte with colour enabled. Existing roof, footprint and relief probes
+  also pass; building-kit checks find closed meshes and no coplanar overlaps.
+- Paired [before](fidelity/kemper-proportions-before.png) and
+  [after](fidelity/kemper-proportions-after.png) front views retain the 1600 × 1000
+  viewport and reduced motion. Both modes now read as vertical marble piers
+  around smaller windows; daylight no longer reads as an almost continuous
+  glass wall. This is visual acceptance of the proportions, not a claim that
+  the earlier whole-face panorama brightness ratio is now calibrated.
+- `bun scripts/render-colours.ts --out /tmp/skyline-fidelity-oct11/pass-one-after building-kemper`
+  also captured and inspected the side view, skyline and elevated context;
+  the baseline is `pass-one-before` in the same temporary directory. Detail URLs
+  are `building-detail.html?building=building-kemper`, front/side presets, toggled
+  to daylight; context is `skyline-3d.html?controls=open`, skyline/quarter presets.
+  Colour-off restores both grayscale canvases byte for byte. Placement and
+  occlusion remain unchanged. Browser console/page errors: none.
+- Targeted geography, building-kit, colour-materials and skill-copy checks pass.
+  The full shipping check is recorded with the PR.
+
+Remaining: FID-KEM-001 retains the uncertain bay counts, crown and row rhythm;
+FID-KEM-003 needs same-face calibration of the opaque panels; FID-KEM-004 needs
+the panorama's dark neighbouring face identified before reusing its brightness
+comparison. The photographs were inspected from temporary storage, not added
+as runtime assets.

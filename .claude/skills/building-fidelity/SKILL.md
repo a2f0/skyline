@@ -1,6 +1,6 @@
 ---
 name: building-fidelity
-description: Find, research, and improve fidelity gaps in Skyline's existing geographic 3D buildings, maintaining a source-controlled opportunity queue and evidence. Use for building-detail accuracy or ongoing fidelity audits, not discovering or adding buildings.
+description: Find, research, and improve fidelity gaps in Skyline's existing geographic 3D buildings in grayscale and sunny-day colour, maintaining a source-controlled opportunity queue and evidence. Use for building-detail accuracy or ongoing fidelity audits, not discovering or adding buildings.
 ---
 
 # Building Fidelity
@@ -8,13 +8,20 @@ description: Find, research, and improve fidelity gaps in Skyline's existing geo
 Improve buildings already in `geographicBuildings` in
 `src/models/skyline-geography-data.ts`. Read repository policy, then
 `docs/building-fidelity.md`, the selected building's reference audit, and its
-factory in `src/models/skyline-geography.ts`. Paths here are relative to the repo
-root, not this skill directory.
+factory in `src/models/skyline-geography.ts`. Include both the default grayscale
+view and the opt-in sunny-day colour trial unless the user narrows the scope.
+Read `docs/viewer.md` (Colour trial), `src/models/colour-materials.ts` and
+`src/models/colour-palette.ts` for the affected surfaces. Paths here are relative
+to the repo root, not this skill directory.
 
 ## Find the next useful improvement
 
 Revisit open opportunities and inspect existing geometry and renders for
 missing or inaccurate massing, setbacks, roofs, bays, materials, and relief.
+Assess colour gaps too: material identity, measured hue, glass versus opaque
+surfaces, and the visible area each material occupies. A dark-looking facade
+can be a geometry or material-assignment error, not a palette error; compare
+both modes before deciding what to change.
 Compare the model with its audit and with the tags of every mapped part of its
 building, not only the parts it uses; a dense window grid is not evidence of
 accuracy. Rank specific discrepancies by visible impact, strength of obtainable
@@ -58,6 +65,25 @@ runtime network dependencies. Preserve earlier dated findings and explain
 superseded assumptions. Distinguish the 2013 panorama from later renovations;
 record the era represented by a change rather than silently mixing dates.
 
+## Colour evidence and material decisions
+
+Keep the 2013 building form and the colour trial's sunny-day lighting distinct.
+Use `scripts/sample-colours.ts day <building-id>` and its source records when
+revisiting measured colours; `scripts/panorama-owners.ts` can check which mapped
+face owns a panorama sample. Record the exact image/rendition, sample boxes,
+pixel rules/counts, face orientation, light/shade, and any calibration reference
+alongside RGB results. Photograph pixels are appearance measurements, not
+intrinsic paint or glass colours. Do not transfer a shaded or overcast sample
+into the sunny palette without documenting its calibration or provisional status.
+
+Keep chromatic literals in `src/models/colour-palette.ts`, the repository's
+single source-code exception to grayscale. Match new or renamed mesh batches
+and tone overrides in `colour-materials.ts`; classify glass separately from
+stone, metal and opaque spandrels so reflections reach only intended surfaces.
+Retain an explicit grey fallback for unknown colours, document inferred aliases,
+and leave unresolved colour opportunities open. Do not adjust shared exposure
+or lighting to hide a building-specific geometry or material error.
+
 ## Apply and verify
 
 For an implementation request, make the correction in the geographic factory
@@ -67,23 +93,36 @@ changing it. Retain geographic coordinates, metre scale, +x east / +z south,
 height datums, hover ownership, and local assets. Follow building-kit rules for
 closed geometry and covered faces.
 
-Capture a baseline and compare the same camera after the change. Use
-`building-detail.html?building=<existing-id>` with reduced motion for a close
-view, plus `skyline-study.html?layout=geographic` or `skyline-3d.html` for placement
-and occlusion. Inspect other faces when affected. The current
+Capture before/after pairs in **both modes**, with the same camera, viewport,
+and reduced motion within each pair. Use
+`building-detail.html?building=<existing-id>` and the same URL with `&colour=1`
+for close views; use `skyline-3d.html` and `skyline-3d.html?colour=1` for placement
+and occlusion. Inspect other faces when affected. `bun scripts/render-colours.ts --out <directory> <building-id ...>`
+captures paired skyline/elevated views and front/side close-ups of the selected
+buildings, checking that colour-off restores each grayscale canvas. Without IDs
+it uses a default sample; name the buildings assessed in this pass. The current
 `scripts/render-study.ts` renders the **original** layout; its output alone
-cannot validate a geographic correction.
+cannot validate a geographic correction. The geographic study is useful for
+placement but does not substitute for the colour-enabled pages.
+
+Inspect material coverage and relief in grayscale, then material identity,
+colour and glass reflections in daylight. Toggle colour off again and verify
+restoration of the original greys and shader state. Check the embedded detail
+inherits the scene's mode when changing colour integration. Record the URLs,
+view presets, artifact paths and observations for each mode; a passing palette
+unit test alone is not visual acceptance.
 
 Add meaningful regressions against independent source observations, such as
 raycast-visible bay counts, setback heights, or relief. Do not merely assert
 exported constants against themselves. Run relevant geometry checks and the
-repository's required checks for shipping. Record actual outcomes, including
+repository's required checks for shipping, including grayscale and colour
+material/reflection coverage when those paths change. Record actual outcomes, including
 limits, in the audit; leave unvalidated work open.
 
 ## Maintain the queue
 
 Update `docs/building-fidelity.md` in the same change: stable ID, existing
-building ID, specific gap, priority/rationale, status, last assessed date,
+building ID, specific gap (geometry, material or colour), priority/rationale, status, last assessed date,
 evidence link, and next action. Use `open`, `researching`, `ready`, `implemented`,
 `blocked` (with missing evidence), or `withdrawn` (removed by the owner's
 decision; keep the row and evidence, and reinstate only on request). Close

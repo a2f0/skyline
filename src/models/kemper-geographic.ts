@@ -7,7 +7,8 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // outlines; the 159 m top is OSM's height tag (522 ft in the 1962 record).
 // The marble shell, window bays, raised mullions, dark crown band with light
 // fins, and projecting cap reuse the fitted model's vocabulary at meter scale.
-// Window-row, bay, and crown spacings are estimates; see
+// Window-column and pane proportions follow a 2012 photograph; bay counts,
+// window-row and crown spacings remain estimates. See
 // docs/kemper-geographic-reference.md. Units are meters; +x is east, +z south.
 export const kemperGeographicLevels = Object.freeze({
   podium: 7.8, // OSM way 685494067: two floors at the tower's average floor height
@@ -29,6 +30,7 @@ export function createKemperGeographicBuilding(record: GeoBuilding, projectPlan:
   // with scattered lit units, pale mullions and fins.
   const marble = kit.batch("Kemper · marble shell", kit.material(0x929292));
   const mullions = kit.batch("Kemper · mullions and bands", kit.material(0x9b9b9b));
+  const spandrels = kit.batch("Kemper · opaque spandrels", kit.material(0x626262));
   const crownGlass = kit.batch("Kemper · crown glazing", kit.material(0x1c1c1c));
   const crownFins = kit.batch("Kemper · crown fins", kit.material(0xa3a3a3));
   const cap = kit.batch("Kemper · roof cap", kit.material(0xa8a8a8));
@@ -63,21 +65,25 @@ export function createKemperGeographicBuilding(record: GeoBuilding, projectPlan:
     kit.box(batch, run.at((from + to) / 2), run.normal(0), (to - from) / 2, back, front, y0, y1);
   };
 
-  // Tower facade: one pane per bay per row between full-height mullions, with
-  // a spandrel at each floor line. Mullions stand proudest of the tower detail.
+  // FID-KEM-002: the 2012 north-face photograph gives openings about 48% of
+  // each bay and glass about 52% of each floor pitch. Opaque panels continue
+  // the narrow columns between windows; the marble piers stay uninterrupted.
   tower.forEach((run, side) => {
     const bays = Math.max(1, Math.round(run.length / 3.1));
     const width = run.length / bays;
+    const inset = width * 0.26;
+    for (let bay = 0; bay < bays; bay += 1) {
+      strip(spandrels, run, bay * width + inset, (bay + 1) * width - inset, h.podium, crownBase, 0.01, 0.04);
+    }
     for (let floor = 3; floor <= 39; floor += 1) {
       const bottom = floorHeight(floor), top = floorHeight(floor + 1);
       for (let bay = 0; bay < bays; bay += 1) {
-        strip(paneTone(floor, bay, side), run, bay * width + 0.16, (bay + 1) * width - 0.16, bottom + 0.26, top - 0.24, 0.02, 0.07);
+        strip(paneTone(floor, bay, side), run, bay * width + inset + 0.01, (bay + 1) * width - inset - 0.01, bottom + pitch * 0.24, top - pitch * 0.24, 0.02, 0.07);
       }
-      strip(mullions, run, 0.015, run.length - 0.015, top - 0.15, top + 0.05, 0.03, 0.12);
     }
     for (let i = 0; i <= bays; i += 1) {
       const s = Math.max(0.18, Math.min(run.length - 0.18, i * width));
-      strip(mullions, run, s - 0.06, s + 0.06, h.podium + 0.02, crownBase - 0.05, 0.05, 0.16);
+      strip(mullions, run, s - inset, s + inset, h.podium + 0.02, crownBase - 0.05, 0.05, 0.16);
     }
     strip(mullions, run, 0.015, run.length - 0.015, h.podium - 0.05, h.podium + 0.35, 0.06, 0.18);
   });
