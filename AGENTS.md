@@ -115,6 +115,11 @@ directories, and manifest together.
 Use `update-dependencies` for repository dependency upgrades, including the
 vendored engine regeneration in `src/vendor/README.md`; `docs/development.md`
 covers its preview and compatibility requirements.
+Keep reusable upgrade procedures and active constraints in that existing
+maintenance section, updating entries in place and removing resolved ones.
+Put run-specific version inventories, audits, validation, previews, and held
+groups in the upgrade PR. Keep README a short overview with links; do not add
+upgrade reports or create a competing maintenance journal.
 `bun run agents:check` checks drift without writing; the check runner and
 installed pre-push hook run it too. Reinstall hooks after changing their source.
 This gate checks the current checkout, not arbitrary pushed refs or every

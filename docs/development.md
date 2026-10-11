@@ -255,6 +255,14 @@ including base-freshness checks and branch cleanup.
 
 ## Updating dependencies
 
+This section is the maintenance record for reusable procedures and active
+constraints. Update entries in place and remove resolved ones; link supporting
+evidence and the condition for revisiting an exception. Record each run's selected
+versions, audits, validation, warnings, previews, and held groups in its upgrade
+PR, rather than appending a journal here or in README. Historical audit results
+are not fresh findings. Keep private logs, credentials, state, and plans out of
+public reports.
+
 Invoke `$update-dependencies` in Codex or `/update-dependencies` in Claude Code.
 The managed skill inventories package and toolchain dependencies, CI pins and
 infrastructure providers, follows upstream migrations and validates compatible
