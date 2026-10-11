@@ -204,13 +204,14 @@ as runtime assets.
 ## 2026-10-11 — Paired render evidence
 
 The render-evidence skill pass re-inspected the
-[front grayscale/daylight pair](fidelity/kemper-proportions-after.png) from
-`02dacf9`, using `building-detail.html?building=building-kemper`, the front
+[front grayscale/daylight pair](fidelity/kemper-panel-colour-after.png) after
+integrating `8574bb2`, using `building-detail.html?building=building-kemper`, the front
 preset, a 1600 × 1000 viewport and reduced motion. The retained image shows
 continuous marble piers around narrower openings in both modes, with warm
 marble distinct from dark glazing in daylight. It is reused because this
-verification pass makes no model correction. Its panels are still neutral;
-the separate FID-KEM-003 entry below records their subsequent colour change.
+verification pass makes no model correction. The panels use the calibrated
+colour documented in the separate FID-KEM-003 entry below; its remaining
+sunny-face calibration uncertainty stays open as FID-KEM-005.
 
 Reinspection of the dated 2012 photograph above supports the established
 coverage correction but supplies no new calibration here. FID-KEM-001's bay
