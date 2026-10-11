@@ -106,7 +106,9 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     marble: 0xc3c0b6,
     ...glass(0x535455),
     aluminium: null,
-    "opaque spandrel": null,
+    // FID-KEM-003: 2012 north-face panels calibrated through adjacent marble;
+    // docs/kemper-geographic-reference.md. Provisional overcast-to-sun transfer.
+    "opaque spandrel": 0x82898a,
   },
   // docs/north-wabash-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
   "building-330-north-wabash": {

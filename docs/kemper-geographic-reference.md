@@ -199,3 +199,68 @@ FID-KEM-003 needs same-face calibration of the opaque panels; FID-KEM-004 needs
 the panorama's dark neighbouring face identified before reusing its brightness
 comparison. The photographs were inspected from temporary storage, not added
 as runtime assets.
+
+## 2026-10-11 — Calibrated opaque-panel colour (FID-KEM-003)
+
+The second skill pass, after shipping FID-KEM-002, assessed the new panels in
+both modes. It replaces their explicit grey fallback with a provisional
+measured daytime appearance. No geometry, default greys or exposure changes.
+
+Sources reopened 2026-10-11: IvoShandor's
+[2012 north-face photograph](https://commons.wikimedia.org/wiki/File:Kemper_Building-Chicago.JPG)
+and Daniel Schwen's [2008 Chicago panorama](https://commons.wikimedia.org/wiki/File:Chicago.jpg).
+Dates, exact downloads, dimensions and hashes are recorded above. The close-up
+shows opaque panels immediately above and below dark windows; marble beside
+each panel supplies a same-face, same-overcast-light reference. Small interior
+boxes avoid the edges and glass. These samples represent the pre-2013 facade;
+no replacement-panel history is established.
+
+`bun scripts/sample-colours.ts day building-kemper` now reproduces the following
+half-open pixel boxes in the 1216 × 2400 close-up, selecting **all** pixels:
+
+| Surface | Box x0, y0, x1, y1 | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | ---: | --- | --- |
+| Marble reference | 427, 440, 446, 466 | 494 (100%) | `172, 172, 167` | 171–175 / 170–176 / 164–173 |
+| Opaque panel | 400, 440, 419, 466 | 494 (100%) | `114, 122, 126` | 111–116 / 119–124 / 123–129 |
+| Panel 2 | 507, 515, 526, 540 | 475 (100%) | `110, 121, 127` | 109–113 / 119–123 / 124–129 |
+| Marble 2 | 535, 515, 554, 540 | 475 (100%) | `167, 167, 165` | 164–170 / 163–172 / 160–169 |
+| Panel 3 | 400, 589, 419, 612 | 437 (100%) | `109, 120, 125` | 107–110 / 118–121 / 122–126 |
+| Marble 3 | 427, 589, 446, 612 | 437 (100%) | `171, 172, 169` | 168–175 / 168–176 / 163–174 |
+
+Calibration: divide the panorama marble's linear-light channels (`195, 192,
+182`, remeasured unchanged) by the close-up reference's channels, giving about
+1.32, 1.28, 1.21; multiply the panel channels by those factors and encode sRGB.
+The result is `opaque spandrel` `130, 137, 138` in
+`src/models/colour-palette.ts`. The sampler's comparison rows use that same
+reference, giving `125, 136, 139` and `124, 134, 137`. Calibrating each check panel
+through its own adjacent marble instead gives `129, 140, 140` and `125, 134,
+135`: linear luminance varies from the chosen result by about −5.4% to +3.5%.
+
+This bounds local sampling variation only. The transfer assumes the same marble
+on north and south faces and similar diffuse response from panels and marble;
+photograph haze, possible office-window tint, surface gloss and differing
+illumination remain systematic uncertainties. The result is an inferred sunny
+appearance, not intrinsic reflectance or proof of a particular cladding material.
+The generic material name and matte classification are retained. FID-KEM-005
+keeps independent sunny-face calibration open; the existing glass and marble
+palette entries remain unchanged.
+
+Validation: the [first pass's final pair](fidelity/kemper-proportions-after.png)
+is this pass's baseline; the [new pair](fidelity/kemper-panel-colour-after.png)
+shows lighter, subtly cool panels between the dark windows in colour. Front
+and side close-ups, skyline and elevated context were inspected at the same
+1600 × 1000 viewport with reduced motion, using the preceding pass's URLs and
+presets. Artifacts are in `/tmp/skyline-fidelity-oct11/pass-two-before` and
+`pass-two-after`. All four grayscale before/after PNGs compare byte for byte;
+both detail canvases also restore exactly after toggling colour off. There
+were no browser page/console errors. The existing material tests verify the
+measured hue is applied to the actual batch, its audit record, grey restoration
+and shader isolation; the geographic test verifies the coloured panels still
+have no glass shader. Targeted checks pass; the full shipping run accompanies
+the PR.
+
+Dogfooding refinement: the skill now asks for nearby sample/reference checks
+and before/after grayscale comparisons for colour-only edits. The first PR's
+review note about restoring shared test materials on assertion failure is
+also addressed with `try/finally`, and a missed facade ray now reports its
+probe coordinates.
