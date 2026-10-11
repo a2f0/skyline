@@ -168,7 +168,8 @@ thin mullions and full-width white floor stripes. Closed opaque panel strips
 back the windows. Applying the north-face ratios to every face is an inference
 supported by the corner views. Their composition and calibrated hue are unknown:
 `opaque spandrel` explicitly stays grey in the colour palette, without glass
-reflections (FID-KEM-003). Marble and glass keep the existing measured colours;
+reflections (FID-KEM-003). This fallback was superseded by the calibrated
+FID-KEM-003 entry below later on 2026-10-11. Marble and glass keep the existing measured colours;
 lighting/exposure is unchanged. This corrects excessive glass area independently
 of the still-unresolved panorama face identification (FID-KEM-004).
 
@@ -202,30 +203,85 @@ as runtime assets.
 
 ## 2026-10-11 — Paired render evidence
 
-Dogfooding the revised skill on the model from `02dacf9` inspected front/side
-grayscale/daylight pairs plus skyline and elevated context. The earlier
-[front pair](fidelity/kemper-proportions-after.png) already preserves this
-unchanged model in both modes; it is reused here instead of adding a duplicate.
-This is current-state verification, not another geometry correction. The front and side show continuous
-marble piers around the narrower openings in both modes; daylight separates
-the warm marble from the dark glazing. Panels remain neutral in these captures.
+The render-evidence skill pass re-inspected the
+[front grayscale/daylight pair](fidelity/kemper-proportions-after.png) from
+`02dacf9`, using `building-detail.html?building=building-kemper`, the front
+preset, a 1600 × 1000 viewport and reduced motion. The retained image shows
+continuous marble piers around narrower openings in both modes, with warm
+marble distinct from dark glazing in daylight. It is reused because this
+verification pass makes no model correction. Its panels are still neutral;
+the separate FID-KEM-003 entry below records their subsequent colour change.
+
 Reinspection of the dated 2012 photograph above supports the established
-coverage correction but supplies no new calibration here.
+coverage correction but supplies no new calibration here. FID-KEM-001's bay
+counts and FID-KEM-004's panorama face identification remain unresolved.
+Rendering-tool checks and the additional views sampled during this pass are
+recorded in the [fidelity queue](building-fidelity.md#coverage-and-priorities).
 
-Command: `bun scripts/render-colours.ts --out /tmp/skyline-fidelity-evidence/pass-two building-kemper building-three-illinois-center`.
-The detail URL is `building-detail.html?building=building-kemper`, using front
-and side presets; context uses `skyline-3d.html?controls=open`, skyline and
-quarter presets. All pairs use 1600 × 1000 and reduced motion, with colour
-toggled on the same page. Colour changes each canvas and colour-off restores
-it byte for byte, now including context views. No browser errors occurred.
-The mobile daylight view at 390 × 844 also loaded with its controls visible.
-The retained front comparison is linked above. Additional side/context captures
-remain in the command's temporary output directory; `captures.json` records
-the raw filenames and successful toggle checks. No new geometry or colour
-correction relies on those temporary views as its sole evidence.
+## 2026-10-11 — Calibrated opaque-panel colour (FID-KEM-003)
 
-This pass fixes the capture helper's missing skyline restoration check and
-the skill's durable-evidence guidance. A deliberate skyline canvas mismatch
-made the helper fail and removed an older success record. It leaves
-FID-KEM-001, FID-KEM-003 and FID-KEM-004 open; passing these rendering checks
-does not establish calibrated material colour or resolve the panorama's face.
+The second skill pass, after shipping FID-KEM-002, assessed the new panels in
+both modes. It replaces their explicit grey fallback with a provisional
+measured daytime appearance. No geometry, default greys or exposure changes.
+
+Sources reopened 2026-10-11: IvoShandor's
+[2012 north-face photograph](https://commons.wikimedia.org/wiki/File:Kemper_Building-Chicago.JPG)
+and Daniel Schwen's [2008 Chicago panorama](https://commons.wikimedia.org/wiki/File:Chicago.jpg).
+Dates, exact downloads, dimensions and hashes are recorded above. The close-up
+shows opaque panels immediately above and below dark windows; marble beside
+each panel supplies a same-face, same-overcast-light reference. Small interior
+boxes avoid the edges and glass. These samples represent the pre-2013 facade;
+no replacement-panel history is established.
+
+`bun scripts/sample-colours.ts day building-kemper` now reproduces the following
+half-open pixel boxes in the 1216 × 2400 close-up, selecting **all** pixels:
+
+| Surface | Box x0, y0, x1, y1 | Pixels (share) | Median R, G, B | Quartiles R / G / B |
+| --- | --- | ---: | --- | --- |
+| Marble reference | 427, 440, 446, 466 | 494 (100%) | `172, 172, 167` | 171–175 / 170–176 / 164–173 |
+| Opaque panel | 400, 440, 419, 466 | 494 (100%) | `114, 122, 126` | 111–116 / 119–124 / 123–129 |
+| Panel 2 | 507, 515, 526, 540 | 475 (100%) | `110, 121, 127` | 109–113 / 119–123 / 124–129 |
+| Marble 2 | 535, 515, 554, 540 | 475 (100%) | `167, 167, 165` | 164–170 / 163–172 / 160–169 |
+| Panel 3 | 400, 589, 419, 612 | 437 (100%) | `109, 120, 125` | 107–110 / 118–121 / 122–126 |
+| Marble 3 | 427, 589, 446, 612 | 437 (100%) | `171, 172, 169` | 168–175 / 168–176 / 163–174 |
+
+Calibration: divide the panorama marble's linear-light channels (`195, 192,
+182`, remeasured unchanged) by the close-up reference's channels, giving about
+1.32, 1.28, 1.21; multiply the panel channels by those factors and encode sRGB.
+The result is `opaque spandrel` `130, 137, 138` in
+`src/models/colour-palette.ts`. The sampler's comparison rows use that same
+reference, giving `125, 136, 139` and `124, 134, 137`. Calibrating each check panel
+through its own adjacent marble instead gives `129, 140, 140` and `125, 134,
+135`: linear luminance varies from the chosen result by about −5.4% to +3.5%.
+
+This bounds local sampling variation only. The transfer assumes the same marble
+on north and south faces and similar diffuse response from panels and marble;
+photograph haze, possible office-window tint, surface gloss and differing
+illumination remain systematic uncertainties. The result is an inferred sunny
+appearance, not intrinsic reflectance or proof of a particular cladding material.
+The generic material name and matte classification are retained. FID-KEM-005
+keeps independent sunny-face calibration open; the existing glass and marble
+palette entries remain unchanged.
+
+Validation: the [first pass's final pair](fidelity/kemper-proportions-after.png)
+is this pass's baseline; the [new pair](fidelity/kemper-panel-colour-after.png)
+shows lighter, subtly cool panels between the dark windows in colour. Front
+and side close-ups, skyline and elevated context were inspected at the same
+1600 × 1000 viewport with reduced motion, using the preceding pass's URLs and
+presets. Artifacts are in `/tmp/skyline-fidelity-oct11/pass-two-before` and
+`pass-two-after`. The committed composites contain both modes: the grayscale half of
+`kemper-panel-colour-after.png` is identical to that of
+`kemper-proportions-after.png`. All four standalone grayscale before/after PNGs
+also compare byte for byte;
+both detail canvases also restore exactly after toggling colour off. There
+were no browser page/console errors. The existing material tests verify the
+measured hue is applied to the actual batch, its audit record, grey restoration
+and shader isolation; the geographic test verifies the coloured panels still
+have no glass shader. Targeted checks pass; the full shipping run accompanies
+the PR.
+
+Dogfooding refinement: the skill now asks for nearby sample/reference checks
+and before/after grayscale comparisons for colour-only edits. The first PR's
+review note about restoring shared test materials on assertion failure is
+also addressed with `try/finally`, and a missed facade ray now reports its
+probe coordinates.

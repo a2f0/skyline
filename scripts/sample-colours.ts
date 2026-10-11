@@ -63,6 +63,10 @@ interface Result {
 }
 
 const photos: Record<string, Photo> = {
+  "kemper-2012.jpg": {
+    source: "https://upload.wikimedia.org/wikipedia/commons/1/19/Kemper_Building-Chicago.JPG",
+    sha256: "2673ea03af87c19054666aa10c3c9f85f8950d802f61650c9f7dae956b27b03d",
+  },
   "east-wacker-2014.jpg": {
     source: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/East_Wacker_2.JPG/960px-East_Wacker_2.JPG",
     sha256: "7be176786577bbf0a8a9ca7eeef33a362e2f0d68df55a094b15211fc305e0a49",
@@ -207,6 +211,15 @@ const day: Record<string, Sample[]> = {
     { row: "Glass", material: "glass", box: [1517, 362, 1529, 450], val: [0, 0.4] },
     { row: "Face, all, for comparison", material: null, box: [1517, 362, 1529, 450] },
     { row: "Darker face to the right, for comparison", material: null, box: [1532, 362, 1548, 450] },
+    // FID-KEM-003: opaque panels between windows on the 2012 north face,
+    // calibrated through the adjacent marble. The two other panels and their
+    // local marble references bound sampling variation, not absolute accuracy.
+    { row: "Marble, north face, overcast", material: null, photo: "kemper-2012.jpg", box: [427, 440, 446, 466] },
+    { row: "Opaque panel, north face, overcast", material: "opaque spandrel", photo: "kemper-2012.jpg", box: [400, 440, 419, 466] },
+    { row: "Panel 2, for comparison", material: null, photo: "kemper-2012.jpg", box: [507, 515, 526, 540] },
+    { row: "Marble 2, for comparison", material: null, photo: "kemper-2012.jpg", box: [535, 515, 554, 540] },
+    { row: "Panel 3, for comparison", material: null, photo: "kemper-2012.jpg", box: [400, 589, 419, 612] },
+    { row: "Marble 3, for comparison", material: null, photo: "kemper-2012.jpg", box: [427, 589, 446, 612] },
   ],
   "building-330-north-wabash": [
     { row: "Glass, spandrels and mullions", material: "bronze glass", box: [1612, 330, 1658, 372] },
@@ -337,6 +350,7 @@ const studies: Record<string, Study> = {
     // Association and the Gage Building, the University Club's beside the Ascher and Keith
     // Buildings, and Aon's granite behind the Hyatt Regency.
     references: {
+      "kemper-2012.jpg": ["building-kemper", "Marble, sunlit", "Marble, north face, overcast"],
       "athletic-association-2012.jpg": ["building-willoughby-tower", "Limestone, sunlit", "Limestone, Michigan front, overcast"],
       "gage-group-2012.jpg": ["building-university-club", "Limestone, south face, sunlit", "Limestone, Michigan front, sunlit"],
       "hyatt-regency-2007.jpg": ["layer3", "Granite, sunlit", "Granite, overcast"],

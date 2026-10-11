@@ -21,7 +21,8 @@ command("Usage: bun scripts/render-colours.ts [--out directory] [building-id ...
   const errors: string[] = [];
   try {
     browser = await launch();
-    const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, reducedMotion: "reduce" });
+    const viewport = { width: 1600, height: 1000 }, mobileViewport = { width: 390, height: 844 };
+    const page = await browser.newPage({ viewport, reducedMotion: "reduce" });
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
     const pairs: { name: string; url: string; view: string; grey: Buffer; day: Buffer }[] = [];
@@ -52,7 +53,7 @@ command("Usage: bun scripts/render-colours.ts [--out directory] [building-id ...
     for (const id of ids) for (const view of ["front", "side"]) {
       await capturePair(`${id}-${view}`, `building-detail.html?building=${id}`, view);
     }
-    await page.setViewportSize({ width: 390, height: 844 });
+    await page.setViewportSize(mobileViewport);
     await page.goto(`${server.origin}/index.html?colour=1`);
     await page.locator('#viewer > [role="region"]:not([aria-busy="true"])').waitFor();
     await page.locator('#colour[aria-pressed="true"]').waitFor();
@@ -68,12 +69,11 @@ command("Usage: bun scripts/render-colours.ts [--out directory] [building-id ...
     }
     if (errors.length) throw new Error(errors.join("\n"));
     writeFileSync(path.join(out, "captures.json"), `${JSON.stringify({
-      buildings: ids, viewport: { width: 1600, height: 1000 }, reducedMotion: "reduce",
+      buildings: ids, viewport, reducedMotion: "reduce",
       pairs: pairs.map(({ name, url, view }) => ({
         url, view, grey: `${name}-grey.png`, day: `${name}-day.png`, comparison: `${name}-comparison.png`,
-        colourChanged: true, grayscaleRestored: true,
       })),
-      mobile: { url: "index.html?colour=1", viewport: { width: 390, height: 844 }, image: "mobile-day.png" },
+      mobile: { url: "index.html?colour=1", viewport: mobileViewport, image: "mobile-day.png" },
     }, null, 2)}\n`);
     console.log(`Colour review renders: ${out}`);
   } finally {

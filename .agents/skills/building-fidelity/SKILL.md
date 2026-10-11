@@ -73,7 +73,9 @@ revisiting measured colours; `scripts/panorama-owners.ts` can check which mapped
 face owns a panorama sample. Record the exact image/rendition, sample boxes,
 pixel rules/counts, face orientation, light/shade, and any calibration reference
 alongside RGB results. Photograph pixels are appearance measurements, not
-intrinsic paint or glass colours. Do not transfer a shaded or overcast sample
+intrinsic paint or glass colours. Cross-check nearby clean samples and their
+references to distinguish sampling variation from uncertainty in the lighting
+transfer. Do not transfer a shaded or overcast sample
 into the sunny palette without documenting its calibration or provisional status.
 
 Keep chromatic literals in `src/models/colour-palette.ts`, the repository's
@@ -112,7 +114,8 @@ colour and glass reflections in daylight. Toggle colour off again and verify
 restoration of the original greys and shader state. Check the embedded detail
 inherits the scene's mode when changing colour integration. Record the URLs,
 view presets, artifact paths and observations for each mode; a passing palette
-unit test alone is not visual acceptance.
+unit test alone is not visual acceptance. For a colour-only correction, also
+compare the before/after grayscale renders to verify that appearance is retained.
 
 Retain the comparisons supporting an implemented correction in the building's
 audit, with repository-relative links to original renders in `docs/fidelity/`

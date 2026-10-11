@@ -335,7 +335,9 @@ describe("colour trial", () => {
     const read = (file: string) => readFileSync(new URL(`../docs/${file}`, import.meta.url), "utf8").replace(/\s+/g, " ");
     const rgb = (hex: number) => [hex >> 16, (hex >> 8) & 255, hex & 255].join(", ");
     for (const [id, measured] of Object.entries(measuredColours)) {
-      // The entry is titled by its source: Chicago.jpg, or a close-up calibrated to it.
+      // The label marks the start of daytime evidence, not an exclusive section:
+      // dated follow-ups append new/revised decisions (Kemper FID-KEM-003, for
+      // example). Keep the chronological audit from that heading onward.
       const [file, label] = audits[id]!, audit = read(`${file}-reference.md`), start = audit.search(new RegExp(`Daytime colours from (?:Chicago\\.jpg|a close-up calibrated to Chicago\\.jpg|an uncalibrated close-up) \\(${label}\\)`));
       expect(start, `${id}'s audit has the daytime entry`).toBeGreaterThan(-1);
       const entry = audit.slice(start);

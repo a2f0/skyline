@@ -23,8 +23,26 @@ buildings' night colours from the panorama (FID-COL-001), then, at the owner's r
 day, their daytime colours from a 2008 panorama (FID-COL-003), which replaced them; seven more
 followed from the same panorama (FID-COL-004), and on 2026-10-10 eight on the Michigan Avenue wall
 (FID-COL-005), then eleven more, five of them from daytime close-ups calibrated to the panorama
-(FID-COL-006), and two provisional, uncalibrated daylight close-ups (FID-COL-007). On 2026-10-11 a grayscale/colour pass reassessed Kemper: broad marble piers and opaque panels replace excessive glass coverage (FID-KEM-002); panel colour and panorama identification remain separate gaps. Other buildings are not yet reassessed. Existing detailed facades are not a claim of
+(FID-COL-006), and two provisional, uncalibrated daylight close-ups (FID-COL-007). On 2026-10-11 a grayscale/colour pass reassessed Kemper: broad marble piers and opaque panels replace excessive glass coverage (FID-KEM-002); the subsequent pass calibrated opaque-panel colour through adjacent marble (FID-KEM-003), retaining independent sunny-face calibration and panorama identification as separate gaps. Other buildings are not yet reassessed. Existing detailed facades are not a claim of
 survey accuracy. This is a curated queue, not a score for all 34.
+
+The 2026-10-11 render-evidence pass inspected Kemper and Three Illinois Center
+in front/side close-ups and the skyline/quarter context, in grayscale and colour.
+It found a tooling gap: skyline captures skipped the colour-off restoration
+check used by close-ups. The common capture path now verifies colour-on and
+restoration for all six pairs and records successful runs in `captures.json`.
+The retained detail comparisons and observations are in the
+[Kemper](kemper-geographic-reference.md#2026-10-11--paired-render-evidence)
+and [Three Illinois Center](three-illinois-center-reference.md#2026-10-11--paired-render-evidence)
+audits. This verifies the rendering workflow; it does not close the remaining
+material-calibration, bay-count or panorama-identification opportunities.
+The command was `bun scripts/render-colours.ts --out /tmp/skyline-fidelity-evidence/pass-two building-kemper building-three-illinois-center`.
+All six pairs changed on colour-on and restored grayscale byte for byte; the
+390 × 844 mobile daylight view loaded with controls visible. No browser errors
+occurred. The context captures showed the same silhouettes and placement in
+both modes; these temporary views are a tooling smoke check, not new geometric
+acceptance evidence. A deliberate skyline canvas mismatch was rejected and
+removed an older success record.
 
 High priority means a visible discrepancy with usable evidence. Medium means a
 visible gap whose dimensions or interpretation still need research. Low means
@@ -41,8 +59,9 @@ stronger evidence and bounded implementation.
 | FID-COL-005 | Borg-Warner, Peoples Gas, Lake View, MacLean Center, Monroe, University Club, Six North Michigan, Michigan Boulevard | The Michigan Avenue wall in colour mode, measured above Grant Park's trees in the same 2008 panorama, each box placed by ray-casting the mapped parts from a refitted eye, and shaded fronts estimated as if sunlit through the Railway Exchange's shade-to-sun ratio, provisionally, since three cross-checks contradict it, one of them glossy enamel, by up to a factor of about three. | Medium | implemented | 2026-10-10 | Each building's audit, under 2026-10-10 — Daytime colours from Chicago.jpg (FID-COL-005); [the trial](viewer.md#colour-trial). Lake View's front is nine pixels wide and MacLean's limestone a 47-pixel sample; Monroe's green tile roof reads grey and the University Club's dark pixels look like shadowed stone, so both stay grey. A second material showing sunlit and shaded faces would test the shade ratio. |
 | FID-COL-006 | The Buckingham, Sheraton Grand, Swissôtel, 180 North Michigan, River Plaza, Two Illinois Center, Chicago Athletic Association, Gage, Keith, Ascher, Hyatt Regency West Tower | The next eleven buildings in colour mode: six towers measured on sunlit south faces in the same 2008 panorama, located by `scripts/panorama-owners.ts`, and five buildings the panorama does not resolve measured in Commons close-ups, each calibrated to the panorama through a reference beside it, on the same front and in the same light, that the panorama shows sunlit: Willoughby Tower for the Athletic Association and Gage, the University Club for Keith and Ascher, and Aon for the Hyatt's west tower. Provisional, like FID-COL-005's shade estimate. | Medium | implemented | 2026-10-10 | Each building's audit, under 2026-10-10 — Daytime colours from Chicago.jpg (FID-COL-006), or from a close-up calibrated to it; [the trial](viewer.md#colour-trial). Two close-ups calibrated through different references agree on the Athletic Association's brick within 8% in brightness; the University Club reference's Gothic detail leaves up to about 30%, and haze over Aon may darken the Hyatt's brick. 180 North Michigan's brick lies in Crain's shadow and stays grey, its stone top floor measured; Sheraton Grand's maroon fins and every close-up's glass stay grey. Two Illinois Center's top stands about 7–11 m further above its model than the group's others in the panorama, so its identification is provisional, though the 2013 panorama agrees. |
 | FID-KEM-002 | Kemper / `building-kemper` | Oversized dark panes hid the marble piers in both modes. Dated close-ups support about 48% window-column width and 52% glass height, with opaque panels between floors. | Medium | implemented | 2026-10-11 | [Measurements, paired renders and checks](kemper-geographic-reference.md#2026-10-11--marble-piers-and-opaque-panels-fid-kem-002). Bay/crown counts remain FID-KEM-001; colour and panorama comparison remain below. |
-| FID-KEM-003 | Kemper / `building-kemper` | Newly separated opaque spandrels remain grey in daylight; the old glass-heavy facade concealed this missing colour. | Medium | open | 2026-10-11 | [Panel decision](kemper-geographic-reference.md#2026-10-11--marble-piers-and-opaque-panels-fid-kem-002). Sample a dated close-up with marble in the same face/light, calibrate to the panorama's marble, and document uncertainty before tinting. |
+| FID-KEM-003 | Kemper / `building-kemper` | The newly separated opaque panels now use a measured, marble-calibrated daytime colour instead of a grey fallback. | Medium | implemented | 2026-10-11 | [Samples, calibration and both-mode checks](kemper-geographic-reference.md#2026-10-11--calibrated-opaque-panel-colour-fid-kem-003). Nearby pairs vary by about 6% in brightness; systematic lighting uncertainty remains in FID-KEM-005. |
 | FID-KEM-004 | Kemper / `building-kemper` | The dark face next to Kemper in the 2008 panorama still has uncertain ownership; the old whole-face brightness comparison cannot establish exposure accuracy. | Low | open | 2026-10-11 | [Original ambiguity](kemper-geographic-reference.md#2026-10-09--daytime-colours-from-chicagojpg-fid-col-004). Resolve the photographed face with map projection and a dated south/east view before comparing rendered brightness again. |
+| FID-KEM-005 | Kemper / `building-kemper` | Test the opaque panels' provisional overcast-to-sun calibration against a separate dated sunny close-up. | Low | open | 2026-10-11 | [Calibration limits](kemper-geographic-reference.md#2026-10-11--calibrated-opaque-panel-colour-fid-kem-003). Find unclipped panel and marble samples on the same sunlit face; distinguish gloss/window tint from diffuse hue before revising the palette. |
 | FID-AON-001 | Aon Center / `layer3` | Mapped model had 14 window slots per face; source plan and photograph show 15. Repeated full-height detail makes this conspicuous in close views. | High | implemented | 2026-10-04 | [Dated evidence and validation](aon-reference.md#2026-10-04-fifteen-bays-on-the-geographic-model-fid-aon-001). Retain the count independently of map notch depth. |
 | FID-CRAIN-001 | Crain / `building-crain-communications` | Crown used office glazing through its metal tips and mechanical bands. Added two louver bands, three crown shadow strips and solid tips from architect photographs. | High | implemented | 2026-10-04 | [Evidence, estimates and validation](crain-reference.md#2026-10-04--crown-detail-and-roof-grid-fid-crain-001-fid-crain-002). Counts are observed; elevations remain approximate. |
 | FID-CRAIN-002 | Crain / `building-crain-communications` | Roof grid followed street axes instead of downslope mullions and level crossbars. | High | implemented | 2026-10-04 | [Architect’s aerial photograph and acceptance checks](crain-reference.md#2026-10-04--crown-detail-and-roof-grid-fid-crain-001-fid-crain-002). Geographic orientation corrected; original drawing fit retained. |
@@ -62,17 +81,6 @@ River Plaza's frame and rooftop box were inspected; no new bounded correction
 was established in this pass, so no speculative task was added for it.
 
 ## Maintaining the record
-
-The 2026-10-11 render-evidence pass inspected Kemper and Three Illinois Center
-in front/side close-ups and the skyline/quarter context, in grayscale and colour.
-It found a tooling gap: skyline captures skipped the colour-off restoration
-check used by close-ups. The common capture path now verifies colour-on and
-restoration for all six pairs and records successful runs in `captures.json`.
-Durable comparisons and observations are in the
-[Kemper](kemper-geographic-reference.md#2026-10-11--paired-render-evidence)
-and [Three Illinois Center](three-illinois-center-reference.md#2026-10-11--paired-render-evidence)
-audits. This verifies the rendering workflow; it does not close the remaining
-material-calibration, bay-count or panorama-identification opportunities.
 
 Keep IDs stable and retain implemented rows. Each pass updates assessed dates,
 status, evidence and next action, then adds dated evidence to the building's
