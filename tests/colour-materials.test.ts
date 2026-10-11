@@ -241,6 +241,46 @@ describe("colour trial", () => {
     }
   });
 
+  test("keeps Blue Cross's spandrels and pale framing out of the glass reflection mask", () => {
+    const model = createGeographicBuilding(geographicBuildings.find(({ id }) => id === "building-blue-cross-blue-shield")!);
+    const before = snapshotOf([model]);
+    const colour = createSkylineColour([model]);
+    colour.set(true);
+    const wall = model.building.getObjectByName("Blue Cross · glass, spandrels and bands") as THREE.Mesh;
+    const positions = wall.geometry.getAttribute("position"), normals = wall.geometry.getAttribute("normal");
+    const mask = wall.geometry.getAttribute("skylineGlass");
+    const painted = wall.geometry.getAttribute("color"), opaqueTones: number[] = [], glassTones: number[] = [];
+    // The first office floor starts at 10.26 m, with its opaque strip to 11.16 m.
+    // Probe by physical height, independently of the material lookup table.
+    let opaque = 0, glass = 0;
+    for (let vertex = 0; vertex < positions.count; vertex += 3) {
+      if (normals.getZ(vertex) < 0.9) continue;
+      const heights = [0, 1, 2].map((i) => positions.getY(vertex + i));
+      const y = heights.reduce((sum, height) => sum + height, 0) / 3;
+      if (y > 10.4 && y < 11) { expect(mask.getX(vertex)).toBe(0); opaque += 1; opaqueTones.push(painted.getX(vertex)); }
+      // Exclude the closed skin's end fans, which span several rows.
+      if (Math.min(...heights) > 11.15 && Math.max(...heights) < 13.93 && y > 11.5 && y < 13.5) {
+        expect(mask.getX(vertex)).toBe(1); glass += 1; glassTones.push(painted.getX(vertex));
+      }
+    }
+    expect(opaque).toBeGreaterThan(0);
+    expect(glass).toBeGreaterThan(0);
+    expect(Math.max(...opaqueTones), "opaque ribbons retain their darker contrast in daylight").toBeLessThan(Math.min(...glassTones));
+    const panels = model.building.getObjectByName("Blue Cross · south band infill") as THREE.Mesh;
+    const panelMask = panels.geometry.getAttribute("skylineGlass"), panelPositions = panels.geometry.getAttribute("position");
+    let crown = 0, bandGlass = 0;
+    for (let vertex = 0; vertex < panelMask.count; vertex += 1) {
+      if (panelPositions.getY(vertex) > 212.8) { expect(panelMask.getX(vertex)).toBe(0); crown += 1; }
+      else if (panelMask.getX(vertex)) bandGlass += 1;
+    }
+    expect(crown).toBeGreaterThan(0);
+    expect(bandGlass).toBeGreaterThan(0);
+    const rails = model.building.getObjectByName("Blue Cross · south transoms") as THREE.Mesh;
+    expect(rails.geometry.getAttribute("skylineGlass")).toBeUndefined();
+    colour.set(false);
+    expect(snapshotOf([model])).toEqual(before);
+  });
+
   test("recolours a facade that window illumination resets, and restores its lit greys", () => {
     const model = models.find((each) => idOf(each) === "building-blue-cross-blue-shield")!;
     const wall = model.building.getObjectByName("Blue Cross · glass, spandrels and bands") as THREE.Mesh;

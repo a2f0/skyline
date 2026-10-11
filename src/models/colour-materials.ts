@@ -122,10 +122,12 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
     "antenna mast": ["stainless"],
   },
   "building-blue-cross-blue-shield": {
-    shell: ["glass", { 0x3a3a3a: "neutral" }],
-    "glass, spandrels and bands": ["glass", { ...windows(0x8a8a8a, 0x5c5c5c), 0x2a2a2a: "neutral", 0x3e3e3e: "screen" }],
+    shell: ["glass", { 0x3a3a3a: "neutral", 0x383838: "opaque spandrel" }],
+    "glass, spandrels and bands": ["glass", { ...windows(0x8a8a8a, 0x5c5c5c), 0x383838: "opaque spandrel", 0x2a2a2a: "neutral", 0x3e3e3e: "screen" }],
     mullions: ["dark metal"],
     "band columns and emblems": ["band lights"],
+    "south band infill": ["glass", { 0x383838: "opaque spandrel", 0x3e3e3e: "screen", 0xb4b4b4: "aluminium" }],
+    "south transoms": ["aluminium"],
   },
   // Blue-green glass, and the south face's white concrete frame.
   "building-340-on-the-park": {
@@ -283,7 +285,7 @@ export function batchOf(buildingId: string, meshName: string): Batch | undefined
 // A grey's tone: the hex the model wrote it as, from its linear channel.
 export const toneOf = (grey: number) => new THREE.Color(grey, grey, grey).getHex();
 
-// Historical comparisons below predate sky reflections and FID-KEM-002/003.
+// Historical comparisons below predate sky reflections, FID-KEM-002/003 and FID-BCBS-003.
 // The measured colours scale to the scene by this factor in linear light, so the skyline view's
 // faces show about the photograph's brightness under the day's lights. At 1.4 the skyline view's
 // 1600 x 900 render, its pixels chosen by each photograph sample's rule, reaches 0.97 (Two

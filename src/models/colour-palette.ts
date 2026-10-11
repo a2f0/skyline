@@ -79,8 +79,14 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   // docs/blue-cross-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg and a close-up.
   "building-blue-cross-blue-shield": {
     ...glass(0x7d8992),
+    // FID-BCBS-003: the panorama mixes panes and opaque spandrels. Retain its
+    // measured hue provisionally for both, keeping their grey contrast and
+    // separate reflection masks through the shared glass swatch.
+    "opaque spandrel": "glass",
     screen: 0x334a60,
     "band lights": 0xb0bdcd,
+    // Inferred same pale metal as the columns; independent calibration is open.
+    aluminium: "band lights",
     "dark metal": null,
     neutral: null,
   },
