@@ -43,7 +43,8 @@ command("Usage: bun scripts/render-colours.ts [--out directory]", { out: { type:
     }
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${server.origin}/index.html?colour=1`);
-    await page.locator("#loading").waitFor({ state: "hidden" });
+    await page.locator('#viewer > [role="region"]:not([aria-busy="true"])').waitFor();
+    await page.locator('#colour[aria-pressed="true"]').waitFor();
     await settle(page);
     await page.screenshot({ path: path.join(out, "mobile-day.png") });
     // Lay out the untouched screenshots side by side, with labels, as one review artifact.
