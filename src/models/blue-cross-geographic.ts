@@ -42,6 +42,7 @@ const messageTopFloors = zones.map(([, , count], zone) => h.floors.slice(0, zone
   + Math.floor((count + 5) / 2) - 1).reverse().slice(0, 3);
 export const blueCrossFloors = [...zones.flatMap(([from, to, count]) => Array.from({ length: count }, (_, i) => from + (to - from) * i / count)), h.occupied];
 const spandrelBelow = 0.3, spandrelAbove = 0.9;
+const southInfillFront = 0.52, emblemClearance = 0.1;
 
 const color = (hex: number) => new THREE.Color(hex);
 const glassTones = [0x414141, 0x464646, 0x3c3c3c, 0x4a4a4a].map(color);
@@ -202,16 +203,17 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
   // sides follow the outline's edges.
   const emblem = (centre: Vec2, t: Vec2, n: Vec2, y: number, shape: Vec2[]) => {
     // The corrected screen panels stand ahead of the old backing plane.
-    const point = ([u, v]: Vec2, depth: number): Vec3 => [centre[0] + t[0] * u + n[0] * (depth + 0.55), y + v, centre[1] + t[1] * u + n[1] * (depth + 0.55)];
+    const point = ([u, v]: Vec2, depth: number): Vec3 => [centre[0] + t[0] * u + n[0] * depth, y + v, centre[1] + t[1] * u + n[1] * depth];
+    const backDepth = southInfillFront + emblemClearance, frontDepth = backDepth + 0.23;
     const out: Vec3 = [n[0], 0, n[1]], back: Vec3 = [-n[0], 0, -n[1]];
     shape.forEach((p, i) => {
       const q = shape[(i + 1) % shape.length]!;
-      kit.triangle(bars, [point([0, 0], 0.3), point(p, 0.3), point(q, 0.3)], [out, out, out]);
-      kit.triangle(bars, [point([0, 0], 0.07), point(q, 0.07), point(p, 0.07)], [back, back, back]);
+      kit.triangle(bars, [point([0, 0], frontDepth), point(p, frontDepth), point(q, frontDepth)], [out, out, out]);
+      kit.triangle(bars, [point([0, 0], backDepth), point(q, backDepth), point(p, backDepth)], [back, back, back]);
       // The edge's side faces away from the centre.
       const sign = Math.sign((q[1] - p[1]) * (p[0] + q[0]) - (q[0] - p[0]) * (p[1] + q[1])), length = Math.hypot(q[0] - p[0], q[1] - p[1]);
       const [across, up] = [sign * (q[1] - p[1]) / length, -sign * (q[0] - p[0]) / length];
-      kit.quad(bars, [point(p, 0.07), point(q, 0.07), point(q, 0.3), point(p, 0.3)], [[t[0] * across, up, t[1] * across]]);
+      kit.quad(bars, [point(p, backDepth), point(q, backDepth), point(q, frontDepth), point(p, frontDepth)], [[t[0] * across, up, t[1] * across]]);
     });
   };
   // The company's emblems, 4.2 m tall: a cross, its arms a third of its span, and a shield,
@@ -269,7 +271,7 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
         for (let bay = 0; bay <= 8; bay += 1) {
           const s0 = bay === 0 ? 0.02 : (bay - 0.5) * pitch + 0.95;
           const s1 = bay === 8 ? chain.length - 0.02 : (bay + 0.5) * pitch - 0.95;
-          panel(infill, s0, s1, levels, [s0, s0 + 0.12, s1 - 0.12, s1], 0.2, 0.52,
+          panel(infill, s0, s1, levels, [s0, s0 + 0.12, s1 - 0.12, s1], 0.2, southInfillFront,
             (cell, row) => cell === 1 || cell === 3 ? aluminium : paints[row]!, aluminium);
         }
       }
@@ -280,9 +282,9 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
           panel(transoms, 0.02, chain.length - 0.02, [lo, hi], [], 0.17, 0.22, () => aluminium, aluminium);
         }
       }
+      // The south face runs west to east; the emblems stand in its first two bays.
+      [cross, shield].forEach((shape, i) => emblem(at((i + 1) * pitch), t, n, h.roof + 6.7, shape));
     }
-    // The south face runs west to east; the emblems stand in its first two bays.
-    if (n[1] > 0.9) [cross, shield].forEach((shape, i) => emblem(at((i + 1) * pitch), t, n, h.roof + 6.7, shape));
   });
 
   const model = kit.finish({ height: h.top, outlines: [shell, mullions], opacity: 0.16 });

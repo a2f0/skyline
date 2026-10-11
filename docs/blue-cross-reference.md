@@ -235,7 +235,8 @@ Decisions in `src/models/colour-palette.ts`:
 Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, at the colour
 layer's exposure of 1.4, on the building's surfaces of that material, and leaves its null ones grey.
 In the skyline view at 1600 × 900 under the day lights, the curtain wall renders `124, 134, 142`,
-0.96 of the photograph's brightness in linear light.
+0.96 of the photograph's brightness in linear light. This is the original comparison,
+before the sky-reflection layer and FID-BCBS-003 material split, not a current calibration.
 
 ## 2026-10-11 — South facade and materials (FID-BCBS-002/003)
 
@@ -294,9 +295,10 @@ boxes, HSV rules, sunlit south orientation, sample shares and quartiles are unch
 The conflicting upward-looking glass sample remains a comparison, not the palette.
 
 `colour-materials.ts` now classifies the opaque floor strips independently of vision
-glass, including the shell's exposed strip tone. Their RGB remains the mixed panorama
-measurement, copied provisionally into `opaque spandrel`; it is **not** a separately
-measured spandrel colour. The classification suppresses the illustrative sky-reflection
+glass, including the shell's exposed strip tone. `opaque spandrel` aliases `glass`,
+borrowing the mixed panorama hue and the glass swatch's brightness reference. This keeps
+the opaque strips darker than panes according to their original greys; it is **not** a
+separately measured spandrel colour. The classification suppresses the illustrative sky-reflection
 shader on these opaque areas. Glass in the mechanical infill retains reflections;
 crown screen, slot backing and metal do not.
 
@@ -305,13 +307,17 @@ The new pale framing uses `aluminium`, an **inferred material family**, borrowin
 calibration to the sunny panorama. It is an existing provisional colour transferred
 to visually similar framing, not proof of the metal alloy or its daylight reflectance.
 Unknown roofing, recess and dark mullion colours keep their explicit grey fallbacks.
-Shared lighting and exposure are unchanged. FID-BCBS-004 stays open for independently
+Shared lighting and exposure are unchanged. Splitting the material pool changes the most
+common glass grey used as its brightness reference, so the historical 0.96 rendered ratio
+above no longer describes the result. No new absolute render-to-photo ratio is claimed;
+the accepted result preserves darker opaque ribbons, unlike an independently normalized
+spandrel swatch, which flattened their contrast in the initial review. FID-BCBS-004 stays open for independently
 resolved glass/spandrel samples and calibrated framing colour.
 
 ### Paired visual acceptance and regressions
 
 Captured with `bun scripts/render-colours.ts --out /tmp/blue-cross-fidelity/before
-building-blue-cross-blue-shield` and the corresponding `after` directory. Each run
+building-blue-cross-blue-shield` and the final `after-review` directory. Each run
 used **1600 × 1000**, reduced motion, identical `front` / `side` detail presets
 and `skyline` / `quarter` skyline presets. The successful runs' `captures.json`
 records the originals in those temporary directories; the durable comparisons below
@@ -335,8 +341,9 @@ Regression acceptance: south-face raycasts find eight separated slots and eight
 columns at each band and crown, 1.9 m slot widths within sampling tolerance, panels
 ahead of the backing, eight internal crown rails, visible emblems, unchanged grade
 outline and open middle end bays. Independent height probes distinguish opaque
-floor strips from glass in the reflection mask; new metal and crown surfaces do not
-reflect. Colour restoration and celebration-pane ownership remain covered. The
+floor strips from glass in the reflection mask and verify that the strips remain darker
+than panes in daylight; new metal and crown surfaces do not reflect. The slot scan uses
+0.1 m steps and requires width error below 0.3 m. Colour restoration and celebration-pane ownership remain covered. The
 building-kit checks pass for closed geometry, winding and no coplanar overlaps.
 
 Remaining work: FID-BCBS-001 retains the north lobby detail gap; FID-BCBS-005 calls

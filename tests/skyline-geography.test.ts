@@ -989,16 +989,16 @@ describe("mapped skyline geography", () => {
       for (const y of [69, 122.5, 173.3, 224]) {
         const slots: number[] = [];
         let width = 0, columns = 0, inColumn = false;
-        for (let x = southWest[0] + 0.2; x < southEast[0] - 0.2; x += 0.25) {
+        for (let x = southWest[0] + 0.2; x < southEast[0] - 0.2; x += 0.1) {
           const name = front(x, y)!.object.name;
-          if (name !== "Blue Cross · south band infill") width += 0.25;
+          if (name !== "Blue Cross · south band infill") width += 0.1;
           else if (width > 0) { slots.push(width); width = 0; }
           const column = name === "Blue Cross · band columns and emblems";
           if (column && !inColumn) columns += 1;
           inColumn = column;
         }
         expect(slots.length, `eight column slots at ${y} m`).toBe(8);
-        for (const span of slots) expect(span).toBeCloseTo(1.9, 0);
+        for (const span of slots) expect(Math.abs(span - 1.9)).toBeLessThan(0.3);
         expect(columns).toBe(8);
       }
       // The crown photograph resolves nine courses between its upper and lower

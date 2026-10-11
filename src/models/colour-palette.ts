@@ -80,8 +80,9 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   "building-blue-cross-blue-shield": {
     ...glass(0x7d8992),
     // FID-BCBS-003: the panorama mixes panes and opaque spandrels. Retain its
-    // measured RGB provisionally for both, with separate reflection masks.
-    "opaque spandrel": 0x7d8992,
+    // measured hue provisionally for both, keeping their grey contrast and
+    // separate reflection masks through the shared glass swatch.
+    "opaque spandrel": "glass",
     screen: 0x334a60,
     "band lights": 0xb0bdcd,
     // Inferred same pale metal as the columns; independent calibration is open.
