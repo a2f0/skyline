@@ -63,6 +63,17 @@ was established in this pass, so no speculative task was added for it.
 
 ## Maintaining the record
 
+The 2026-10-11 render-evidence pass inspected Kemper and Three Illinois Center
+in front/side close-ups and the skyline/quarter context, in grayscale and colour.
+It found a tooling gap: skyline captures skipped the colour-off restoration
+check used by close-ups. The common capture path now verifies colour-on and
+restoration for all six pairs and records successful runs in `captures.json`.
+Durable comparisons and observations are in the
+[Kemper](kemper-geographic-reference.md#2026-10-11--paired-render-evidence)
+and [Three Illinois Center](three-illinois-center-reference.md#2026-10-11--paired-render-evidence)
+audits. This verifies the rendering workflow; it does not close the remaining
+material-calibration, bay-count or panorama-identification opportunities.
+
 Keep IDs stable and retain implemented rows. Each pass updates assessed dates,
 status, evidence and next action, then adds dated evidence to the building's
 existing reference audit. Link sources to individual claims and record access

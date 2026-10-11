@@ -199,3 +199,32 @@ FID-KEM-003 needs same-face calibration of the opaque panels; FID-KEM-004 needs
 the panorama's dark neighbouring face identified before reusing its brightness
 comparison. The photographs were inspected from temporary storage, not added
 as runtime assets.
+
+## 2026-10-11 — Paired render evidence
+
+Dogfooding the revised skill on the model from `02dacf9` retained
+[front](fidelity/kemper-evidence-front.png) and
+[side](fidelity/kemper-evidence-side.png) grayscale/daylight pairs, plus
+[skyline](fidelity/evidence-skyline.png) and
+[elevated](fidelity/evidence-quarter.png) context. These are current-state
+captures, not another geometry correction. The front and side show continuous
+marble piers around the narrower openings in both modes; daylight separates
+the warm marble from the dark glazing. Panels remain neutral in these captures.
+Reinspection of the dated 2012 photograph above supports the established
+coverage correction but supplies no new calibration here.
+
+Command: `bun scripts/render-colours.ts --out /tmp/skyline-fidelity-evidence/pass-two building-kemper building-three-illinois-center`.
+The detail URL is `building-detail.html?building=building-kemper`, using front
+and side presets; context uses `skyline-3d.html?controls=open`, skyline and
+quarter presets. All pairs use 1600 × 1000 and reduced motion, with colour
+toggled on the same page. Colour changes each canvas and colour-off restores
+it byte for byte, now including context views. No browser errors occurred.
+The mobile daylight view at 390 × 844 also loaded with its controls visible.
+Original comparison PNGs are retained above; the run's temporary `captures.json`
+records the raw filenames and successful toggle checks.
+
+This pass fixes the capture helper's missing skyline restoration check and
+the skill's durable-evidence guidance. A deliberate skyline canvas mismatch
+made the helper fail and removed an older success record. It leaves
+FID-KEM-001, FID-KEM-003 and FID-KEM-004 open; passing these rendering checks
+does not establish calibrated material colour or resolve the panorama's face.
