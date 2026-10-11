@@ -11,7 +11,8 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // The marble shell, window bays, raised mullions, dark crown band with light
 // fins, and projecting cap reuse the fitted model's vocabulary at meter scale.
 // Window columns follow dated photographs: twelve north/south, fourteen
-// east/west. Window-row and crown spacings remain estimates. See
+// east/west, with a shallow top-floor band. Row pitch and crown pane counts
+// remain estimates. See
 // docs/kemper-geographic-reference.md. Units are meters; +x is east, +z south.
 export const kemperGeographicLevels = Object.freeze({
   podium: 7.8, // OSM way 685494067: two floors at the tower's average floor height
@@ -22,10 +23,11 @@ const h = kemperGeographicLevels;
 // Floors 1-2 are the podium; the tower pitch follows the published 41 floors.
 const pitch = (h.roof - h.podium) / (h.floors - 2);
 const floorHeight = (floor: number) => h.podium + (floor - 3) * pitch;
-// The crown band spans the 40th and 41st floors up to the roof: dark glazing
-// behind light fins, capped by a projecting parapet.
-const crownBase = floorHeight(40);
+// FID-KEM-008: the 2012 north elevation shows a shallow top-floor band,
+// about 0.6–0.7 of an ordinary floor repeat, not two full floors. The 0.7
+// assembly includes the small clearances around the glass below the cap.
 const shaftTop = h.roof - 0.5;
+const crownBase = shaftTop - 0.7 * pitch;
 
 export function createKemperGeographicBuilding(record: GeoBuilding, projectPlan: (coordinates: [number, number][]) => Plan, offset: [number, number]): BuildingModel {
   const kit = createBuilder(record.name, record.id);
@@ -97,7 +99,7 @@ export function createKemperGeographicBuilding(record: GeoBuilding, projectPlan:
     for (let bay = 0; bay < bays; bay += 1) {
       faceStrip(spandrels, face, bay * width + inset, (bay + 1) * width - inset, h.podium, crownBase, 0.01, 0.04);
     }
-    for (let floor = 3; floor <= 39; floor += 1) {
+    for (let floor = 3; floor <= 40; floor += 1) {
       const bottom = floorHeight(floor), top = floorHeight(floor + 1);
       for (let bay = 0; bay < bays; bay += 1) {
         faceStrip(paneTone(floor, bay, side), face, bay * width + inset + 0.01, (bay + 1) * width - inset - 0.01, bottom + pitch * 0.24, top - pitch * 0.24, 0.02, 0.07);
@@ -109,7 +111,7 @@ export function createKemperGeographicBuilding(record: GeoBuilding, projectPlan:
     faceStrip(mullions, face, 0.015, face.length - 0.015, h.podium - 0.05, h.podium + 0.35, 0.06, 0.18);
   });
 
-  // The crown: dark glazing between light fins over the top two floors, then
+  // The crown: a shallow top-floor glazing band with slender frames, then
   // a projecting closed cap at the 159 m roof. The mapped outline carries
   // sub-meter tracing jogs on its north and west edges; the prisms keep them,
   // but a closed band cannot turn their concave corners, so the cap ring drops
@@ -122,7 +124,7 @@ export function createKemperGeographicBuilding(record: GeoBuilding, projectPlan:
     const count = Math.max(1, Math.round(run.length / 1.05));
     for (let i = 0; i < count; i += 1) {
       const s = (i + 0.5) * run.length / count;
-      strip(crownFins, run, s - 0.13, s + 0.13, crownBase - 0.05, shaftTop - 0.2, 0.04, 0.28);
+      strip(crownFins, run, s - 0.05, s + 0.05, crownBase - 0.05, shaftTop - 0.2, 0.04, 0.28);
     }
   });
   const simplified = tower.map((run) => run.at(0));
