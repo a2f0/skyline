@@ -122,10 +122,12 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
     "antenna mast": ["stainless"],
   },
   "building-blue-cross-blue-shield": {
-    shell: ["glass", { 0x3a3a3a: "neutral" }],
-    "glass, spandrels and bands": ["glass", { ...windows(0x8a8a8a, 0x5c5c5c), 0x2a2a2a: "neutral", 0x3e3e3e: "screen" }],
+    shell: ["glass", { 0x3a3a3a: "neutral", 0x383838: "opaque spandrel" }],
+    "glass, spandrels and bands": ["glass", { ...windows(0x8a8a8a, 0x5c5c5c), 0x383838: "opaque spandrel", 0x2a2a2a: "neutral", 0x3e3e3e: "screen" }],
     mullions: ["dark metal"],
     "band columns and emblems": ["band lights"],
+    "south band infill": ["glass", { 0x383838: "opaque spandrel", 0x3e3e3e: "screen", 0xb4b4b4: "aluminium" }],
+    "south transoms": ["aluminium"],
   },
   // Blue-green glass, and the south face's white concrete frame.
   "building-340-on-the-park": {

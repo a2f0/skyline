@@ -236,3 +236,109 @@ Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, 
 layer's exposure of 1.4, on the building's surfaces of that material, and leaves its null ones grey.
 In the skyline view at 1600 × 900 under the day lights, the curtain wall renders `124, 134, 142`,
 0.96 of the photograph's brightness in linear light.
+
+## 2026-10-11 — South facade and materials (FID-BCBS-002/003)
+
+Assessed **Blue Cross only**, in default grayscale and sunny-day colour. This pass
+corrects the south face's continuous dark mechanical strips and missing horizontal
+framing, and removes the vision-glass reflection treatment from opaque spandrels.
+The earlier description of an entirely dark recess between columns is superseded
+on the south face. The footprint, heights, office floors and middle-band end-bay
+openings retain the 2013 reconstruction. North/east geometry remains provisional.
+
+### Evidence and measurements
+
+All sources below were accessed on **2026-10-11**. Photographs remain outside Git
+and are never runtime dependencies.
+
+| Source / locator | Date, status and supported claim | Decision / uncertainty |
+| --- | --- | --- |
+| Alanscottwalker, [Blue Cross Blue Shield Tower in Grant Park](https://commons.wikimedia.org/wiki/File:Blue_Cross_Blue_Shield_Tower_in_Grant_Park.JPG), [original 1265 × 2102 JPEG](https://upload.wikimedia.org/wikipedia/commons/3/3c/Blue_Cross_Blue_Shield_Tower_in_Grant_Park.JPG), whole south elevation; crown crop `(290,130)` to `(940,310)`, middle band `(290,915)` to `(940,1055)` in original pixels | Photographed 2010-09-30, CC BY-SA 3.0. **Observed:** eight narrow slots with pale columns at each band and crown, glazed fields between the band slots, pale horizontal rails, two/three/two glazed rows in lower/middle/upper bands, and nine shallow crown courses. | This post-expansion, pre-panorama view anchors the 2013 form. The open end bays remain open; only the central south band fields get infill. |
+| Goettsch Partners, [300 East Randolph](https://www.gpchicago.com/architecture/300-east-randolph/), gallery image 1, [9027-46.9171.max-1600x1200.jpg](https://gop-prod.s3.amazonaws.com/media/images/9027-46.9171.max-1600x1200.jpg), 868 × 1200 | Page publication and photograph dates unknown. **Observed:** south infill and horizontal framing agree with the dated 2010 photograph. **Documented:** 1997/2010 phases and a north atrium with five 40 × 30 ft structural bays. | Cross-check only for form; do not infer north geometry by repeating the south face's eight slots. No new colour sampling from this differently lit image. |
+| Jules Verne Times Two, [2022 close-up](https://commons.wikimedia.org/wiki/File:Blue_Cross_Blue_Shield_Tower,_Chicago,_Illinois,_US_(PPL1-Corrected)_julesvernex2.jpg), exact 1920 × 1214 rendition and SHA-256 recorded in FID-COL-003 above; crown at `(700,245)`–`(1215,300)`, middle band at `(550,630)`–`(1300,715)` | Photographed 2022-07-28. **Observed in the downloaded image:** narrow slots, projecting pale panels/rails and recessed columns agree with 2010. The Commons metadata page failed to open in this pass; provenance/date remain the previously recorded attribution, not a fresh page verification. | Later photograph corroborates existing form; no post-2013 renovation is imported. Perspective makes absolute relief uncertain. |
+| OpenStreetMap API: [outline 95486960](https://api.openstreetmap.org/api/0.6/way/95486960.json), [part 284779637](https://api.openstreetmap.org/api/0.6/way/284779637.json), [part 284779635](https://api.openstreetmap.org/api/0.6/way/284779635.json) | Retrieved versions **16, 4, 5**, matching the registry. **Documented tags:** central part 54 levels / 227 m / glass; wider part 212 m / concrete; both flat concrete roofs and colour `#7D9199`. Outline has no independent height. | Every mapped part was checked. The wider part's coarse concrete label conflicts with visibly glazed end-bay walls; photographs win for facade surfaces. No footprint, material hue or height is copied from the coarse tags. |
+
+Inspected binary hashes (SHA-256):
+
+- 2010 original: `98d4ea7ebfba7b50d805da26f7a3821e0ca45b031acb723f6acf04154069d179`.
+- Architect gallery image: `bd392c328b4527a470f4343920115108bd9d30e2c52b925aea78e9d6bc722720`.
+- 2022 rendition: `0bbb057c7adae72dc5456c546b5109df56cec0f91bf81911f0f2bcb39f117edf`.
+
+Method: visually count slots between the two south block edges in the 2010 image,
+then count horizontal fields away from the emblems. The crown occupies approximately
+x **323–920**, y **163–270**. Eight slot centres are approximately x **368, 441,
+514, 587, 660, 732, 805, 878** (±3 px). Compare their 14–17 px widths with the
+597 px facade width and its mapped 75.7 m width: roughly **1.8–2.2 m**. The model
+uses **1.9 m**, with ±0.4 m photographic uncertainty, retaining the existing eight
+column positions. Slot centres are not surveyed; uniform spacing differs by up to
+about a metre at the outer half bays. The nine crown fields have about 12 px vertical
+pitch; eight internal rails separate them. Perspective and image sharpening limit
+thin-rail measurements to about 1–2 px, so **0.12–0.18 m** framing is an inferred
+illustration thickness, not a fabrication specification.
+
+The band infill stands 0.52 m off the existing shell plane, in front of the
+columns' 0.4 m face; backing remains at 0.07 m. This **inferred relief ordering**
+matches the 2022 oblique view; the absolute depths are unmeasured. Closed panels
+follow the mapped chain across its tracing joints. Office rails sit at 0.22 m,
+ahead of the 0.16 m mullions. Emblems move forward with the new screen so they remain
+visible. All new solids are closed; the existing shell and window-light vertices
+remain in place.
+
+### Colour decisions and limits
+
+Re-ran `bun scripts/sample-colours.ts day building-blue-cross-blue-shield`; its
+hash-checked sources reproduce the FID-COL-003 rows above exactly: 6,300 panorama
+pixels give **125, 137, 146** for mixed glass/spandrels, 13,759 close-up screen
+pixels give **51, 74, 96**, and 2,846 column pixels give **176, 189, 205**. The
+boxes, HSV rules, sunlit south orientation, sample shares and quartiles are unchanged.
+The conflicting upward-looking glass sample remains a comparison, not the palette.
+
+`colour-materials.ts` now classifies the opaque floor strips independently of vision
+glass, including the shell's exposed strip tone. Their RGB remains the mixed panorama
+measurement, copied provisionally into `opaque spandrel`; it is **not** a separately
+measured spandrel colour. The classification suppresses the illustrative sky-reflection
+shader on these opaque areas. Glass in the mechanical infill retains reflections;
+crown screen, slot backing and metal do not.
+
+The new pale framing uses `aluminium`, an **inferred material family**, borrowing
+`band lights` through an explicit palette alias. The 2022 column sample has no neutral
+calibration to the sunny panorama. It is an existing provisional colour transferred
+to visually similar framing, not proof of the metal alloy or its daylight reflectance.
+Unknown roofing, recess and dark mullion colours keep their explicit grey fallbacks.
+Shared lighting and exposure are unchanged. FID-BCBS-004 stays open for independently
+resolved glass/spandrel samples and calibrated framing colour.
+
+### Paired visual acceptance and regressions
+
+Captured with `bun scripts/render-colours.ts --out /tmp/blue-cross-fidelity/before
+building-blue-cross-blue-shield` and the corresponding `after` directory. Each run
+used **1600 × 1000**, reduced motion, identical `front` / `side` detail presets
+and `skyline` / `quarter` skyline presets. The successful runs' `captures.json`
+records the originals in those temporary directories; the durable comparisons below
+contain the original captures side by side, grayscale left and sunny colour right.
+
+| View / URL | Before | After | Visual acceptance |
+| --- | --- | --- | --- |
+| `building-detail.html?building=building-blue-cross-blue-shield`, `front` | [Both modes](fidelity/blue-cross-front-before.png) | [Both modes](fidelity/blue-cross-front-after.png) | South bands read as framed panels with narrow slots; crown courses and emblems remain legible. Grayscale shows the new relief/framing; colour shows pale metal, blue-grey glass and a darker crown. |
+| Same URL, `side` | [Both modes](fidelity/blue-cross-side-before.png) | [Both modes](fidelity/blue-cross-side-after.png) | Opposite-face geometry and open end-bay gap retained. Colour no longer gives opaque strips the glass reflection; north/east continuous dark bands remain a known gap. |
+| `skyline-3d.html?controls=open`, `skyline` | [Both modes](fidelity/blue-cross-skyline-before.png) | [Both modes](fidelity/blue-cross-skyline-after.png) | New south band treatment is visible beside Aon; geographic silhouette and neighbour occlusion are retained. |
+| Same URL, `quarter` | [Both modes](fidelity/blue-cross-quarter-before.png) | [Both modes](fidelity/blue-cross-quarter-after.png) | Elevated context retains massing, placement and roof heights in both modes. |
+
+Colour was enabled with each page's toggle (equivalent to adding `&colour=1` to
+the URLs above). All four pairs in **both** runs changed their canvas on colour-on
+and restored grayscale **byte for byte** on colour-off. Both runs also loaded the
+390 × 844 embedded `index.html?colour=1` view with controls visible and reported no
+browser errors. This is visual acceptance of the bounded corrections, not a claim
+that all elevations or material colours are resolved.
+
+Regression acceptance: south-face raycasts find eight separated slots and eight
+columns at each band and crown, 1.9 m slot widths within sampling tolerance, panels
+ahead of the backing, eight internal crown rails, visible emblems, unchanged grade
+outline and open middle end bays. Independent height probes distinguish opaque
+floor strips from glass in the reflection mask; new metal and crown surfaces do not
+reflect. Colour restoration and celebration-pane ownership remain covered. The
+building-kit checks pass for closed geometry, winding and no coplanar overlaps.
+
+Remaining work: FID-BCBS-001 retains the north lobby detail gap; FID-BCBS-005 calls
+for era-appropriate north/east elevation evidence, especially the architect's
+five-bay atrium, before those faces receive equivalent geometric correction.

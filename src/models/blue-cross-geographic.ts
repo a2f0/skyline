@@ -87,6 +87,9 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
   const wall = kit.batch("Blue Cross · glass, spandrels and bands", kit.material(0xffffff, { vertexColors: true }));
   const mullions = kit.batch("Blue Cross · mullions", kit.material(0x2c2c2c));
   const bars = kit.batch("Blue Cross · band columns and emblems", kit.material(0xb4b4b4));
+  const infill = kit.batch("Blue Cross · south band infill", kit.material(0xffffff, { vertexColors: true }));
+  const transoms = kit.batch("Blue Cross · south transoms", kit.material(0xb4b4b4));
+  const aluminium = color(0xb4b4b4);
   const windows: WindowCell[] = [];
   let windowColumns = 0;
   const outline = (way: number) => orient(polygonOf(projectPlan(record.parts.find((part) => part.way === way)!.coordinates)));
@@ -194,11 +197,12 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
     skin(bay, middle[1], h.wings, i + 1, (run) => !lies(run, block));
   });
 
-  // An emblem: a plate standing 7 to 30 cm off the screen, cut to an outline given across and
+  // An emblem: a plate standing ahead of the screen infill, cut to an outline given across and
   // up from its centre. Its faces fan from the centre, which sees the whole outline, and its
   // sides follow the outline's edges.
   const emblem = (centre: Vec2, t: Vec2, n: Vec2, y: number, shape: Vec2[]) => {
-    const point = ([u, v]: Vec2, depth: number): Vec3 => [centre[0] + t[0] * u + n[0] * depth, y + v, centre[1] + t[1] * u + n[1] * depth];
+    // The corrected screen panels stand ahead of the old backing plane.
+    const point = ([u, v]: Vec2, depth: number): Vec3 => [centre[0] + t[0] * u + n[0] * (depth + 0.55), y + v, centre[1] + t[1] * u + n[1] * (depth + 0.55)];
     const out: Vec3 = [n[0], 0, n[1]], back: Vec3 = [-n[0], 0, -n[1]];
     shape.forEach((p, i) => {
       const q = shape[(i + 1) % shape.length]!;
@@ -228,6 +232,54 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
     const pitch = length / 8;
     for (let i = 0; i < 8; i += 1) {
       for (const [lo, hi] of [...h.bands, [h.roof + 0.4, h.top - 0.3]] as [number, number][]) kit.box(bars, at((i + 0.5) * pitch), n, 0.45, 0.07, 0.4, lo + 0.1, hi - 0.1);
+    }
+    if (n[1] > 0.9) {
+      // FID-BCBS-002: the 2010 south elevation has eight narrow column slots,
+      // with curtain-wall panels between them, not an uninterrupted dark band.
+      // Restrict this reconstruction to the photographed face: the north atrium
+      // has a different structural rhythm. Keep the mapped chain's small bends.
+      const panel = (target: typeof infill, s0: number, s1: number, levels: number[],
+        columns: number[], back: number, front: number, paint: (cell: number, row: number) => THREE.Color, sides: THREE.Color) => {
+        const k0 = chain.starts.findLastIndex((s) => s <= s0);
+        const k1 = chain.starts.findLastIndex((s) => s < s1);
+        chainSkin(kit, target, plan, chain, k0, k1, s0, s1, columns, levels, back, front, paint, sides);
+      };
+      // Two, three and two glazed rows in the mechanical bands; nine shallow
+      // courses in the crown. The 1.9 m slots and thin framing are photo ratios,
+      // not surveyed dimensions (docs/blue-cross-reference.md).
+      const bands: [number, number, number, boolean][] = [
+        ...h.bands.map(([lo, hi], i): [number, number, number, boolean] => [lo, hi, i === 1 ? 3 : 2, false]),
+        [h.roof, h.top, 9, true],
+      ];
+      for (const [lo, hi, count, crown] of bands) {
+        const levels = [lo + 0.02], paints: THREE.Color[] = [];
+        const append = (height: number, paint: THREE.Color) => { levels.push(height); paints.push(paint); };
+        append(lo + 0.18, aluminium);
+        for (let row = 1; row < count; row += 1) {
+          const y = lo + (hi - lo) * row / count;
+          append(y - (crown ? 0.08 : 0.55), crown ? screen : glassTones[1]!);
+          if (!crown) {
+            append(y - 0.4, aluminium);
+            append(y + 0.4, spandrel);
+          }
+          append(y + (crown ? 0.08 : 0.55), aluminium);
+        }
+        append(hi - 0.18, crown ? screen : glassTones[1]!);
+        append(hi - 0.02, aluminium);
+        for (let bay = 0; bay <= 8; bay += 1) {
+          const s0 = bay === 0 ? 0.02 : (bay - 0.5) * pitch + 0.95;
+          const s1 = bay === 8 ? chain.length - 0.02 : (bay + 0.5) * pitch - 0.95;
+          panel(infill, s0, s1, levels, [s0, s0 + 0.12, s1 - 0.12, s1], 0.2, 0.52,
+            (cell, row) => cell === 1 || cell === 3 ? aluminium : paints[row]!, aluminium);
+        }
+      }
+      // Pale rails frame the office ribbons. They sit just ahead of the vertical
+      // mullions and never cross the exposed column slots or celebration panes.
+      for (const row of rows.filter(({ kind }) => kind === "glass")) {
+        for (const [lo, hi] of [[row.lo - 0.18, row.lo], [row.hi, row.hi + 0.18]] as const) {
+          panel(transoms, 0.02, chain.length - 0.02, [lo, hi], [], 0.17, 0.22, () => aluminium, aluminium);
+        }
+      }
     }
     // The south face runs west to east; the emblems stand in its first two bays.
     if (n[1] > 0.9) [cross, shield].forEach((shape, i) => emblem(at((i + 1) * pitch), t, n, h.roof + 6.7, shape));
