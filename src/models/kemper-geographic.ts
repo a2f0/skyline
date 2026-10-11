@@ -1,3 +1,6 @@
+import * as THREE from "../vendor/three-r186.js";
+import { chainSkin, chainsOf } from "./facade-grid.js";
+import type { Chain } from "./facade-grid.js";
 import { createBuilder, inside, line, polygonOf } from "./building-kit.js";
 import type { BatchData, BuildingModel, Plan, Run } from "./building-kit.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
@@ -7,8 +10,8 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // outlines; the 159 m top is OSM's height tag (522 ft in the 1962 record).
 // The marble shell, window bays, raised mullions, dark crown band with light
 // fins, and projecting cap reuse the fitted model's vocabulary at meter scale.
-// Window-column and pane proportions follow a 2012 photograph; bay counts,
-// window-row and crown spacings remain estimates. See
+// Window columns follow dated photographs: twelve north/south, fourteen
+// east/west. Window-row and crown spacings remain estimates. See
 // docs/kemper-geographic-reference.md. Units are meters; +x is east, +z south.
 export const kemperGeographicLevels = Object.freeze({
   podium: 7.8, // OSM way 685494067: two floors at the tower's average floor height
@@ -68,24 +71,42 @@ export function createKemperGeographicBuilding(record: GeoBuilding, projectPlan:
   // FID-KEM-002: the 2012 north-face photograph gives openings about 48% of
   // each bay and glass about 52% of each floor pitch. Opaque panels continue
   // the narrow columns between windows; the marble piers stay uninterrupted.
-  tower.forEach((run, side) => {
-    const bays = Math.max(1, Math.round(run.length / 3.1));
-    const width = run.length / bays;
+  // Keep one rhythm across the map's almost-collinear tracing vertices. The
+  // 15° tolerance includes the short east-wall jog, but not the four corners.
+  const faces = chainsOf(tower, Math.PI / 12);
+  if (faces.length !== 4) throw new Error("Kemper's tower must have four facade chains.");
+  const white = new THREE.Color(0xffffff);
+  const faceStrip = (batch: BatchData, face: Chain, from: number, to: number, y0: number, y1: number, back: number, front: number) => {
+    const clearance = Math.max(Math.abs(back), Math.abs(front)) + 0.025;
+    from = Math.max(from, clearance);
+    to = Math.min(to, face.length - clearance);
+    if (to - from < 0.03 || y1 <= y0) return;
+    const first = face.starts.findLastIndex((s) => s <= from);
+    const last = face.starts.findLastIndex((s) => s < to);
+    // A single closed skin mitres internal joints; neither a new bay nor a
+    // visible gap is introduced where the OSM tracing splits a physical face.
+    chainSkin(kit, batch, tower, face, first, last, from, to, [], [y0, y1], back, front, () => white, white);
+  };
+  faces.forEach((face, side) => {
+    // Twelve north columns in 2012; fourteen west columns in 2016. Matching
+    // counts on the opposite faces are an explicit symmetry inference.
+    const normal = tower[face.runs[0]!]!.normal(0);
+    const bays = Math.abs(normal[0]) > Math.abs(normal[1]) ? 14 : 12;
+    const width = face.length / bays;
     const inset = width * 0.26;
     for (let bay = 0; bay < bays; bay += 1) {
-      strip(spandrels, run, bay * width + inset, (bay + 1) * width - inset, h.podium, crownBase, 0.01, 0.04);
+      faceStrip(spandrels, face, bay * width + inset, (bay + 1) * width - inset, h.podium, crownBase, 0.01, 0.04);
     }
     for (let floor = 3; floor <= 39; floor += 1) {
       const bottom = floorHeight(floor), top = floorHeight(floor + 1);
       for (let bay = 0; bay < bays; bay += 1) {
-        strip(paneTone(floor, bay, side), run, bay * width + inset + 0.01, (bay + 1) * width - inset - 0.01, bottom + pitch * 0.24, top - pitch * 0.24, 0.02, 0.07);
+        faceStrip(paneTone(floor, bay, side), face, bay * width + inset + 0.01, (bay + 1) * width - inset - 0.01, bottom + pitch * 0.24, top - pitch * 0.24, 0.02, 0.07);
       }
     }
     for (let i = 0; i <= bays; i += 1) {
-      const s = Math.max(0.18, Math.min(run.length - 0.18, i * width));
-      strip(mullions, run, s - inset, s + inset, h.podium + 0.02, crownBase - 0.05, 0.05, 0.16);
+      faceStrip(mullions, face, i * width - inset, i * width + inset, h.podium + 0.02, crownBase - 0.05, 0.05, 0.16);
     }
-    strip(mullions, run, 0.015, run.length - 0.015, h.podium - 0.05, h.podium + 0.35, 0.06, 0.18);
+    faceStrip(mullions, face, 0.015, face.length - 0.015, h.podium - 0.05, h.podium + 0.35, 0.06, 0.18);
   });
 
   // The crown: dark glazing between light fins over the top two floors, then

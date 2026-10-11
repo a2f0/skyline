@@ -286,3 +286,62 @@ and before/after grayscale comparisons for colour-only edits. The first PR's
 review note about restoring shared test materials on assertion failure is
 also addressed with `try/finally`, and a missed facade ray now reports its
 probe coordinates.
+
+
+## 2026-10-11 — Continuous twelve/fourteen-column faces (FID-KEM-006)
+
+This further pass assessed Kemper in grayscale and sunny colour. Reopened and
+inspected the three Commons photographs cited under FID-KEM-002 on 2026-10-11:
+IvoShandor's 2012 north elevation, Chris Light's 2011 east/north view, and
+MusikAnimal's 2016 north/west view. Original dimensions, download locators and
+SHA-256 hashes above identify the measured versions. The exact 2016 download is
+`https://upload.wikimedia.org/wikipedia/commons/6/62/Kemper_Building%2C_Chicago_in_May_2016.jpg`.
+
+Observed counts, counting dark window columns between the two outer marble
+corners rather than counting marble strips:
+
+| Face | Image locator in original pixels | Observation |
+| --- | --- | --- |
+| North | 2012 image, x=275–925, y=600–800 | Twelve columns, consistent at three horizontal slices; ordinary floors below the sign. |
+| West | 2016 image, crop x=1480–2550, y=250–1950 | Fourteen columns, traced down from the fourteen dark top openings; their upper centres are approximately x=1531,1597,1662,1727,1789,1853,1915,1975,2035,2093,2150,2208,2263,2315. Perspective changes their y coordinates. |
+
+Boundaries are uncertain by about 2–3 pixels, but no column is hidden in either
+count. The 2011 oblique photograph corroborates the repeated pier/panel system;
+its cropped east face is not used for an exact count. The north count is observed
+before 2013. Carrying the 2016 west count back to 2013 is an inference from the
+matching cladding system, not a dated west elevation. Twelve south and fourteen
+east columns are symmetry inferences; those faces still need independent counts.
+
+The old factory rounded each OSM run separately at 3.1 m. Its north face had
+11 columns and west face 13, and the tracing joints reset the rhythm. The new
+factory follows four chains of nearly collinear mapped runs, with twelve bays
+on north/south and fourteen on east/west. Each opening and pier is a closed,
+mitred skin across internal tracing joints. The existing mapped coordinates and
+159 m roof are retained. This gives about 2.87 m north and 3.00 m west pitches;
+they are map-derived intervals, not surveyed dimensions. The 48% opening and
+52% pane-height proportions remain those measured in FID-KEM-002.
+
+Colour assessment: all existing batch/material identities are retained, including
+matte opaque panels and reflective glass. The new rhythm is visible in both modes;
+there is no new colour measurement or palette/exposure adjustment. FID-KEM-004
+and FID-KEM-005 remain unresolved. FID-KEM-001 now focuses on the crown and row
+rhythm; opposite-face/era confirmation is tracked separately as FID-KEM-007.
+
+Validation and retained evidence:
+
+- New surface raycasts count twelve north and fourteen west openings over the
+  complete faces, including their tracing joints, independently of the factory's
+  constants. Existing photographic coverage, matte-panel, footprint, cap and
+  facade-relief checks pass. Geometry and colour-material checks accompany the PR.
+- Paired front views [before](fidelity/kemper-bays-before.png) and
+  [after](fidelity/kemper-bays-after.png), and paired side views
+  [before](fidelity/kemper-bays-side-before.png) and
+  [after](fidelity/kemper-bays-side-after.png), retain both modes. The piers now
+  maintain one regular rhythm across each face instead of restarting at map vertices.
+- `bun scripts/render-colours.ts --out /tmp/skyline-more-fidelity/round-one-after building-kemper`
+  captured front/side detail, skyline/quarter context, and mobile daylight;
+  `round-one-before` is the baseline. URLs/presets and 1600 × 1000 viewport are
+  recorded in each run's `captures.json`, with reduced motion. All four paired
+  canvases changed in colour and restored grayscale exactly; no page/console errors.
+  Skyline and quarter views preserve placement and occlusion. The original drawing
+  model is unchanged. The full shipping check and independent review accompany the PR.
