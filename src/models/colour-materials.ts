@@ -283,6 +283,7 @@ export function batchOf(buildingId: string, meshName: string): Batch | undefined
 // A grey's tone: the hex the model wrote it as, from its linear channel.
 export const toneOf = (grey: number) => new THREE.Color(grey, grey, grey).getHex();
 
+// Historical comparisons below predate sky reflections and FID-KEM-002/003.
 // The measured colours scale to the scene by this factor in linear light, so the skyline view's
 // faces show about the photograph's brightness under the day's lights. At 1.4 the skyline view's
 // 1600 x 900 render, its pixels chosen by each photograph sample's rule, reaches 0.97 (Two

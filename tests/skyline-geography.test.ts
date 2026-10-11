@@ -251,7 +251,9 @@ describe("mapped skyline geography", () => {
         const t = (x + 0.5) / 80;
         const east = a[0] + (b[0] - a[0]) * t, north = a[1] + (b[1] - a[1]) * t;
         ray.set(new THREE.Vector3(east - 10, 70 + (y + 0.5) * 20 / 40, -north), new THREE.Vector3(1, 0, 0));
-        const surface = ray.intersectObjects(meshes, false)[0]!.object.name;
+        const hit = ray.intersectObjects(meshes, false)[0];
+        expect(hit, `Facade probe ${x}, ${y} hits Kemper`).toBeDefined();
+        const surface = hit!.object.name;
         if (/glazing/.test(surface)) counts.glass += 1;
         else if (/spandrels/.test(surface)) counts.panel += 1;
         else if (/marble|mullions/.test(surface)) counts.marble += 1;
@@ -265,10 +267,13 @@ describe("mapped skyline geography", () => {
       const panel = meshes.find((mesh) => mesh.name.endsWith("opaque spandrels"))!;
       const compile = (panel.material as THREE.MeshToonMaterial).onBeforeCompile;
       const controller = createSkylineColour([model]);
-      controller.set(true);
-      expect(Array.from(panel.geometry.getAttribute("skylineGlass")?.array ?? []).every((value) => value === 0)).toBe(true);
-      expect((panel.material as THREE.MeshToonMaterial).onBeforeCompile).toBe(compile);
-      controller.set(false);
+      try {
+        controller.set(true);
+        expect(Array.from(panel.geometry.getAttribute("skylineGlass")?.array ?? []).every((value) => value === 0)).toBe(true);
+        expect((panel.material as THREE.MeshToonMaterial).onBeforeCompile).toBe(compile);
+      } finally {
+        controller.set(false);
+      }
     }, { timeout: 30_000 });
 
     test("keeps the mapped podium, tower roof, cap and glazed facades", () => {
