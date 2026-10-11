@@ -202,12 +202,11 @@ as runtime assets.
 
 ## 2026-10-11 — Paired render evidence
 
-Dogfooding the revised skill on the model from `02dacf9` retained
-[front](fidelity/kemper-evidence-front.png) and
-[side](fidelity/kemper-evidence-side.png) grayscale/daylight pairs, plus
-[skyline](fidelity/evidence-skyline.png) and
-[elevated](fidelity/evidence-quarter.png) context. These are current-state
-captures, not another geometry correction. The front and side show continuous
+Dogfooding the revised skill on the model from `02dacf9` inspected front/side
+grayscale/daylight pairs plus skyline and elevated context. The earlier
+[front pair](fidelity/kemper-proportions-after.png) already preserves this
+unchanged model in both modes; it is reused here instead of adding a duplicate.
+This is current-state verification, not another geometry correction. The front and side show continuous
 marble piers around the narrower openings in both modes; daylight separates
 the warm marble from the dark glazing. Panels remain neutral in these captures.
 Reinspection of the dated 2012 photograph above supports the established
@@ -220,8 +219,10 @@ quarter presets. All pairs use 1600 × 1000 and reduced motion, with colour
 toggled on the same page. Colour changes each canvas and colour-off restores
 it byte for byte, now including context views. No browser errors occurred.
 The mobile daylight view at 390 × 844 also loaded with its controls visible.
-Original comparison PNGs are retained above; the run's temporary `captures.json`
-records the raw filenames and successful toggle checks.
+The retained front comparison is linked above. Additional side/context captures
+remain in the command's temporary output directory; `captures.json` records
+the raw filenames and successful toggle checks. No new geometry or colour
+correction relies on those temporary views as its sole evidence.
 
 This pass fixes the capture helper's missing skyline restoration check and
 the skill's durable-evidence guidance. A deliberate skyline canvas mismatch
