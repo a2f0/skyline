@@ -180,7 +180,10 @@ Turning colour off restores the original shader callbacks and cache keys as well
 The mask is reused across toggles and released with its geometry. No environment image is fetched.
 
 Run `bun scripts/render-colours.ts` for matching grey/day skyline and elevated comparisons,
-mobile views and close-ups, written to `/tmp/skyline-colours` by default.
+mobile views and front/side close-ups, written to `/tmp/skyline-colours` by default. Pass building IDs as positional arguments
+to select close-ups, for example `bun scripts/render-colours.ts building-kemper`;
+`--out <directory>` keeps before/after runs separate. Each close-up also checks
+that toggling colour off restores its grayscale canvas exactly.
 
 `colour-palette.ts` is the one source file `tests/grayscale.test.ts` exempts; the audits give the
 measured colours as red, green and blue values. `tests/colour-materials.test.ts` keeps the table in

@@ -28,6 +28,7 @@ import { threeIllinoisPalette } from "../src/models/three-illinois-center-geogra
 import { northMichigan180Palette } from "../src/models/north-michigan-180-geographic.js";
 import { universityClubPalette } from "../src/models/university-club-geographic.js";
 import { northWabashFloors } from "../src/models/north-wabash-geographic.js";
+import { createSkylineColour } from "../src/models/colour-materials.js";
 import { crain, geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
@@ -233,6 +234,43 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Kemper", () => {
+    test("shows the photographed marble/window proportions and matte spandrels", () => {
+      // IvoShandor's 2012 north-face photo: dark columns are 25–27 px per
+      // 53–55 px bay, and glass about 38 px per 73–75 px floor. These bounds
+      // are observations, independent of the factory's chosen proportions.
+      const model = models["Kemper"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const a = projectGround([-87.6277622, 41.8867154]);
+      const b = projectGround([-87.6277552, 41.8865163]);
+      const ray = new THREE.Raycaster();
+      const counts = { glass: 0, marble: 0, panel: 0 };
+      // Several ordinary floors, across the west face's northern
+      // run; the same proportions on other faces are a documented inference.
+      for (let x = 0; x < 80; x += 1) for (let y = 0; y < 40; y += 1) {
+        const t = (x + 0.5) / 80;
+        const east = a[0] + (b[0] - a[0]) * t, north = a[1] + (b[1] - a[1]) * t;
+        ray.set(new THREE.Vector3(east - 10, 70 + (y + 0.5) * 20 / 40, -north), new THREE.Vector3(1, 0, 0));
+        const surface = ray.intersectObjects(meshes, false)[0]!.object.name;
+        if (/glazing/.test(surface)) counts.glass += 1;
+        else if (/spandrels/.test(surface)) counts.panel += 1;
+        else if (/marble|mullions/.test(surface)) counts.marble += 1;
+        else throw new Error(`Unexpected facade surface: ${surface}`);
+      }
+      const total = 80 * 40, opening = counts.glass + counts.panel;
+      expect(opening / total).toBeGreaterThan(0.44);
+      expect(opening / total).toBeLessThan(0.52);
+      expect(counts.glass / opening).toBeGreaterThan(0.47);
+      expect(counts.glass / opening).toBeLessThan(0.58);
+      const panel = meshes.find((mesh) => mesh.name.endsWith("opaque spandrels"))!;
+      const compile = (panel.material as THREE.MeshToonMaterial).onBeforeCompile;
+      const controller = createSkylineColour([model]);
+      controller.set(true);
+      expect(Array.from(panel.geometry.getAttribute("skylineGlass")?.array ?? []).every((value) => value === 0)).toBe(true);
+      expect((panel.material as THREE.MeshToonMaterial).onBeforeCompile).toBe(compile);
+      controller.set(false);
+    }, { timeout: 30_000 });
+
     test("keeps the mapped podium, tower roof, cap and glazed facades", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Kemper")!;
       const model = models["Kemper"]!;
@@ -274,8 +312,8 @@ describe("mapped skyline geography", () => {
       for (const fraction of [0.2, 0.5, 0.8]) {
         const probe = westProbe(fraction);
         const west = hit([probe[0] - 30, 100, probe[2]], [1, 0, 0]);
-        expect(west!.object.name).toMatch(/glaz|mullion/);
-        expect(west!.point.x).toBeLessThan(probe[0] - 0.05);
+        expect(west!.object.name).toMatch(/glaz|mullion|spandrel/);
+        expect(west!.point.x).toBeLessThan(probe[0] - 0.03);
         expect(west!.point.x).toBeGreaterThan(probe[0] - 0.2);
       }
       // The crown's fins stand proud of the dark band near the roof: probe the

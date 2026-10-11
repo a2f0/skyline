@@ -106,6 +106,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
     marble: 0xc3c0b6,
     ...glass(0x535455),
     aluminium: null,
+    "opaque spandrel": null,
   },
   // docs/north-wabash-reference.md, 2026-10-09 — Daytime colours from Chicago.jpg.
   "building-330-north-wabash": {

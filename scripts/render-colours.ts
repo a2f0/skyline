@@ -6,8 +6,11 @@ import path from "node:path";
 import { buildSite, dist } from "./build-site.js";
 import { startServer } from "./lib/static-server.js";
 import { launch, settle, command } from "./lib/study-page.js";
+import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 
-command("Usage: bun scripts/render-colours.ts [--out directory]", { out: { type: "string" } }, async ({ values }) => {
+command("Usage: bun scripts/render-colours.ts [--out directory] [building-id ...]", { out: { type: "string" } }, async ({ values, positionals }) => {
+  const ids = positionals.length ? [...new Set(positionals)] : ["building-three-illinois-center", "building-michigan-plaza-south-tower", "building-crain-communications", "building-chicago-athletic-association"];
+  for (const id of ids) if (!geographicBuildings.some((record) => record.id === id)) throw new Error(`Unknown geographic building: ${id}`);
   const out = path.resolve(values["out"] as string || path.join(os.tmpdir(), "skyline-colours"));
   mkdirSync(out, { recursive: true });
   await buildSite();
@@ -31,16 +34,22 @@ command("Usage: bun scripts/render-colours.ts [--out directory]", { out: { type:
       const day = await page.screenshot({ path: path.join(out, `${view}-day.png`) });
       pairs.push({ name: view, grey, day });
     }
-    for (const id of ["building-three-illinois-center", "building-michigan-plaza-south-tower", "building-crain-communications", "building-chicago-athletic-association"]) {
+    for (const id of ids) for (const view of ["front", "side"]) {
       await page.goto(`${server.origin}/building-detail.html?building=${id}`);
       await page.waitForFunction(() => window.__buildingStudy?.ready);
-      await page.locator('[data-view="front"]').click();
+      await page.locator(`[data-view="${view}"]`).click();
       await settle(page);
-      const grey = await page.screenshot({ path: path.join(out, `${id}-grey.png`) });
+      const name = `${id}-${view}`;
+      const grey = await page.screenshot({ path: path.join(out, `${name}-grey.png`) });
+      const greyCanvas = await page.locator("canvas").screenshot();
       await page.locator("#colour").click();
       await settle(page);
-      const day = await page.screenshot({ path: path.join(out, `${id}-day.png`) });
-      pairs.push({ name: id, grey, day });
+      const day = await page.screenshot({ path: path.join(out, `${name}-day.png`) });
+      await page.locator("#colour").click();
+      await settle(page);
+      const restored = await page.locator("canvas").screenshot();
+      if (!greyCanvas.equals(restored)) throw new Error(`${name}: colour off did not restore the grayscale render`);
+      pairs.push({ name, grey, day });
     }
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${server.origin}/index.html?colour=1`);

@@ -15,7 +15,7 @@ export const materialNames = [
   "neutral", "glass", "green glass", "blue-green glass", "bronze glass", "lit window", "dim window", "lamp",
   "limestone", "marble", "white granite", "granite", "dark granite", "slate",
   "white terracotta", "pink terracotta", "green tile", "brick", "common brick", "orange brick", "brown brick", "buff brick", "glazed brick",
-  "concrete", "precast", "copper", "maroon", "blue enamel", "bronze", "dark metal", "aluminium", "stainless",
+  "concrete", "precast", "copper", "maroon", "blue enamel", "bronze", "dark metal", "aluminium", "stainless", "opaque spandrel",
   // Parts the photographs show on their own, named as the night first showed them: crown glass
   // and crown lights, an emblem screen and the lights in its bands, a sign's board and letters,
   // and a lit cap.
@@ -44,6 +44,7 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
   "building-kemper": {
     "marble shell": ["marble"],
     "mullions and bands": ["marble"],
+    "opaque spandrels": ["opaque spandrel"],
     "crown glazing": ["glass"],
     "crown fins": ["aluminium"],
     "roof cap": ["marble"],
