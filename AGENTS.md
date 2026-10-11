@@ -129,6 +129,15 @@ never let an inherited upstream send feature work to the base branch. Read the
 selected skill before running it.
 
 Use `bun run agent-tool` for shared CLI commands in Skyline.
+Wrap finite, noisy checks and hook-bearing pushes with `bun run agent:run
+--label <label> -- <command> [args...]`. For the required shipping check, use
+`SKYLINE_BASE_SHA=<pinned-base-sha> bun run agent:run --label skyline-check -- bun run check`.
+The harness keeps full stdout and stderr in a private local log, prints a compact
+status with its path, and preserves the command's exit status. Inspect failures
+with `bun run agent-tool logs <log-path>` and targeted searches; never infer a
+pass from a quiet log. Read review verdicts and findings directly. The required
+timing table still comes from `bun scripts/show-timings.ts --branch <branch>
+--since <start-iso>` and must appear in the shipping report.
 Merge through `bun scripts/merge-pr.ts <reviewed-head> <base-branch>
 <reviewed-base-sha>` instead of invoking the generic merge command directly.
 
