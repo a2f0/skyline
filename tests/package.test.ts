@@ -72,7 +72,7 @@ export function mount(container: HTMLElement): SkylineInstance {
   const element: HTMLElement = skyline.element;
   const ready: Promise<void> = skyline.ready;
   void element; void ready;
-  return mountSkyline(container, { assetsUrl: new URL('https://example.com/skyline/'), title: 'Skyline', controls: 'open', attribution: false, three: engine });
+  return mountSkyline(container, { assetsUrl: new URL('https://example.com/skyline/'), title: 'Skyline', controls: 'open', colour: true, attribution: false, three: engine });
 }
 const shared: SkylineThree = engine;
 const building: BuildingModel = createCrainBuilding();
@@ -336,6 +336,14 @@ window.mountFixture();
           expect(await settled(page)).toBe("ready");
           expect(await page.locator("#menu-toggle").getAttribute("aria-expanded")).toBe("true");
           expect(await page.locator("#camera-views").isVisible()).toBe(true);
+          expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("false");
+          await mount(page, { controls: "open", colour: true });
+          expect(await settled(page)).toBe("ready");
+          expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("true");
+          await page.locator("#colour").click();
+          expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("false");
+          expect(await page.evaluate(() => { try { (window as unknown as Hooked).mountFixture({ colour: "true" }); return ""; } catch (error) { return String(error); } }))
+            .toBe("TypeError: Skyline colour must be a boolean.");
           await mount(page, { controls: "open", attribution: false, title: "Chicago at night" });
           expect(await settled(page)).toBe("ready");
           expect(await page.locator("#host > [role=region]").getAttribute("aria-label")).toBe("Chicago at night");

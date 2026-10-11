@@ -35,7 +35,7 @@ function element<K extends keyof HTMLElementTagNameMap>(document: Document, tag:
   return created;
 }
 
-export function mount(root: ShadowRoot, { assets, signal, controls, attribution, navigation, page, three }: ViewerContext): Promise<void> {
+export function mount(root: ShadowRoot, { assets, signal, controls, colour, attribution, navigation, page, three }: ViewerContext): Promise<void> {
   const document = root.ownerDocument;
   const host = root.host as HTMLElement;
   const listening = { signal };
@@ -182,6 +182,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, attribution,
           frame: scene,
           assets,
           signal: sceneLife.signal,
+          colour,
           onShowOriginal: showOriginal,
           onReady() {
             sceneUnavailable = false;

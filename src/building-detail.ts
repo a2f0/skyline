@@ -4,6 +4,7 @@ import { skylineAzimuth } from "./skyline-comparison.js";
 import { geographicBuildings } from "./models/skyline-geography-data.js";
 import type { GeoBuilding } from "./models/skyline-geography-data.js";
 import { createGeographicBuilding, footprintMetrics } from "./models/skyline-geography.js";
+import { createDaylight, createSkylineColour } from "./models/colour-materials.js";
 
 export interface BuildingDetailOptions {
   /** The detail's markup: building-detail.html's own document, or the panel's shadow root. */
@@ -14,21 +15,30 @@ export interface BuildingDetailOptions {
   readonly frame: HTMLElement;
   /** Aborts when the detail closes; it then releases its renderer and listeners. */
   readonly signal: AbortSignal;
+  /** The parent scene's colour mode, or the standalone page's query setting. */
+  readonly colour?: boolean;
+  /** A panel's toggle also updates its parent scene. */
+  readonly onColourChange?: (enabled: boolean) => void;
+}
+
+export interface BuildingDetail {
+  setColour(enabled: boolean): void;
 }
 
 // One mapped building of the 3D skyline, alone on its own platform, as the building study
 // shows Crain: building-detail.html?building=<id>, and the panel the 3D skyline floats over
 // the skyline from a building's context menu.
-export function showBuildingDetail({ root, id, frame, signal }: BuildingDetailOptions): void {
+export function showBuildingDetail({ root, id, frame, signal, colour = false, onColourChange }: BuildingDetailOptions): BuildingDetail | undefined {
   const record = geographicBuildings.find((entry) => entry.id === id);
-  if (record) showBuilding(record, root, frame, signal);
+  if (record) return showBuilding(record, root, frame, signal, colour, onColourChange);
   else {
     root.querySelector<HTMLElement>("#loading")!.textContent = "No mapped building by that name. Right-click a building on the 3D skyline to see its detail.";
     root.querySelectorAll<HTMLButtonElement>("button").forEach((button) => { button.disabled = true; });
   }
+  return undefined;
 }
 
-function showBuilding(record: GeoBuilding, root: Document | ShadowRoot, frame: HTMLElement, signal: AbortSignal) {
+function showBuilding(record: GeoBuilding, root: Document | ShadowRoot, frame: HTMLElement, signal: AbortSignal, initiallyColoured: boolean, onColourChange?: (enabled: boolean) => void): BuildingDetail {
   const footprint = footprintMetrics(record.footprint.coordinates);
   // Centred on its mapped outline: ground coordinates are east and north, the scene's x and -z.
   const model = createGeographicBuilding(record, [-footprint.center[0], footprint.center[1]]);
@@ -75,7 +85,7 @@ function showBuilding(record: GeoBuilding, root: Document | ShadowRoot, frame: H
     quarter: { azimuth: skylineAzimuth + 0.22, polar: Math.PI / 2 - 0.15, label: "three-quarter view" },
     side: { azimuth: skylineAzimuth + Math.PI / 2, polar: Math.PI / 2 - 0.12, label: "side view" },
   };
-  createBuildingStudy({
+  const viewer = createBuildingStudy({
     root,
     frame,
     signal,
@@ -91,6 +101,22 @@ function showBuilding(record: GeoBuilding, root: Document | ShadowRoot, frame: H
     // button stops.
     turntable: true,
   });
+  const colour = createSkylineColour([model]), button = root.querySelector<HTMLButtonElement>("#colour")!;
+  let daylight: ReturnType<typeof createDaylight> | undefined;
+  signal.addEventListener("abort", () => daylight?.sky.dispose(), { once: true });
+  function setColour(enabled: boolean) {
+    colour.set(enabled);
+    if (enabled) daylight ??= createDaylight();
+    viewer.setDaylight(enabled ? daylight! : null);
+    button.setAttribute("aria-pressed", String(enabled));
+    button.title = enabled ? "Restore the building's greyscale view" : "Show the building in sunny-day colour";
+  }
+  button.addEventListener("click", () => {
+    setColour(!colour.enabled);
+    onColourChange?.(colour.enabled);
+  }, { signal });
+  if (initiallyColoured) setColour(true);
+  return { setColour };
 }
 
 // Sources open beside the page, so a detail floated over the skyline stays where it is.

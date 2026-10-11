@@ -15,6 +15,7 @@ mountViewer(document.querySelector<HTMLElement>("#viewer")!, {
   title: "Chicago skyline",
   controls: controls === "open" || controls === "closed" ? controls : embedded ? "closed" : "open",
   attribution: settings.get("attribution") !== "hidden",
+  colour: settings.get("colour") === "1",
   navigation: !embedded,
   page: true,
 });

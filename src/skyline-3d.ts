@@ -6,6 +6,7 @@ import type { BuildingModel } from "./models/building-kit.js";
 import { celebrations, type CelebrationId } from "./models/celebrations.js";
 import { createDaylight, createSkylineColour, daylightGround } from "./models/colour-materials.js";
 import { loadMarkup, loadStylesheet } from "./markup.js";
+import type { BuildingDetail } from "./building-detail.js";
 
 export interface SkylineSceneOptions {
   /** The scene's markup: skyline-3d.html's own document, or the viewer's shadow root. */
@@ -19,6 +20,8 @@ export interface SkylineSceneOptions {
   readonly assets: URL;
   /** Aborts when the scene leaves; it then releases everything it holds. */
   readonly signal: AbortSignal;
+  /** Start in sunny-day colour; the toolbar can still restore greyscale. */
+  readonly colour?: boolean | undefined;
   /** Shows the control bar's show original shortcut, which calls this. */
   readonly onShowOriginal?: (() => void) | undefined;
   /** The first frame has rendered. */
@@ -31,7 +34,7 @@ export interface SkylineSceneOptions {
 // drawing's own camera and framed as the viewer frames the drawing, so each tower stands
 // where its drawn one does until the camera moves. It renders into skyline-3d.html's own
 // document, or into the viewer's shadow root, from the same markup.
-export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, onReady, onUnavailable }: SkylineSceneOptions): void {
+export function startSkyline3d({ root, frame, assets, signal, colour: initiallyColoured = false, onShowOriginal, onReady, onUnavailable }: SkylineSceneOptions): void {
   const document = root instanceof Document ? root : root.ownerDocument;
   const listening = { signal };
   const { models, ground, settings, drawingView, comparisonViews, labels } = createGeographicSkyline();
@@ -134,14 +137,21 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
   // The colour trial's toggle, pressed while the scene shows a sunny day, the measured buildings in
   // their colours over the greys; pressed again, it restores the night and every grey exactly.
   const colourButton = root.querySelector<HTMLButtonElement>("#colour")!;
-  const daylight = createDaylight(), roadway = roads.material as THREE.MeshToonMaterial;
-  signal.addEventListener("abort", () => daylight.sky.dispose(), { once: true });
-  colourButton.addEventListener("click", () => {
-    colour.set(!colour.enabled);
+  const roadway = roads.material as THREE.MeshToonMaterial;
+  let daylight: ReturnType<typeof createDaylight> | undefined;
+  let detailView: BuildingDetail | undefined;
+  signal.addEventListener("abort", () => daylight?.sky.dispose(), { once: true });
+  function setColour(enabled: boolean) {
+    colour.set(enabled);
+    if (enabled) daylight ??= createDaylight();
     roadway.color.setHex(colour.enabled ? daylightGround.roads : nightRoads);
-    viewer.setDaylight(colour.enabled ? daylight : null);
+    viewer.setDaylight(colour.enabled ? daylight! : null);
     colourButton.setAttribute("aria-pressed", String(colour.enabled));
-  }, listening);
+    colourButton.title = enabled ? "Restore the greyscale skyline" : "Show the skyline in sunny-day colour";
+    detailView?.setColour(enabled);
+  }
+  colourButton.addEventListener("click", () => setColour(!colour.enabled), listening);
+  if (initiallyColoured) setColour(true);
   // The star in the middle of the bar opens and closes the toolbar. Each group unfolds from
   // the star: clipped open from its `--fold` inset while it fades in, one beside the star
   // slides out from it to its edge of the bar, and it folds back the same way before it hides. A toggle mid-way reverses the moving
@@ -239,7 +249,7 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
   function openMenu(building: BuildingModel, x: number, y: number) {
     menuBuilding = building.building.userData["buildingId"];
     menuTitle.textContent = building.building.userData["geography"]?.name ?? building.building.name;
-    detailLink.href = new URL(`building-detail.html?building=${encodeURIComponent(menuBuilding)}`, assets).href;
+    detailLink.href = new URL(`building-detail.html?building=${encodeURIComponent(menuBuilding)}${colour.enabled ? "&colour=1" : ""}`, assets).href;
     lightingMenu.replaceChildren();
     lightingMenu.hidden = !building.illumination;
     if (building.illumination) {
@@ -378,6 +388,7 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
   function clearDetail() {
     detail?.abort();
     detail = null;
+    detailView = undefined;
     detailPanel.querySelector(".detail-host")?.remove();
   }
   function openDetail(id: string, name: string) {
@@ -400,7 +411,7 @@ export function startSkyline3d({ root, frame, assets, signal, onShowOriginal, on
       // The panel names the detail and closes it, so the detail leaves out its own links.
       markup.classList.add("framed");
       detailRoot.append(document.importNode(markup, true));
-      showBuildingDetail({ root: detailRoot, id, frame: detailRoot.querySelector<HTMLElement>(".detail-root")!, signal: controller.signal });
+      detailView = showBuildingDetail({ root: detailRoot, id, frame: detailRoot.querySelector<HTMLElement>(".detail-root")!, signal: controller.signal, colour: colour.enabled, onColourChange: setColour });
     }).catch((error: unknown) => {
       if (controller.signal.aborted) return;
       // A detail that fails part way is released at once, renderer and listeners included,
