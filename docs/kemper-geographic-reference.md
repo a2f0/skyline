@@ -168,7 +168,8 @@ thin mullions and full-width white floor stripes. Closed opaque panel strips
 back the windows. Applying the north-face ratios to every face is an inference
 supported by the corner views. Their composition and calibrated hue are unknown:
 `opaque spandrel` explicitly stays grey in the colour palette, without glass
-reflections (FID-KEM-003). Marble and glass keep the existing measured colours;
+reflections (FID-KEM-003). This fallback was superseded by the calibrated
+FID-KEM-003 entry below later on 2026-10-11. Marble and glass keep the existing measured colours;
 lighting/exposure is unchanged. This corrects excessive glass area independently
 of the still-unresolved panorama face identification (FID-KEM-004).
 
@@ -251,7 +252,10 @@ shows lighter, subtly cool panels between the dark windows in colour. Front
 and side close-ups, skyline and elevated context were inspected at the same
 1600 × 1000 viewport with reduced motion, using the preceding pass's URLs and
 presets. Artifacts are in `/tmp/skyline-fidelity-oct11/pass-two-before` and
-`pass-two-after`. All four grayscale before/after PNGs compare byte for byte;
+`pass-two-after`. The committed composites contain both modes: the grayscale half of
+`kemper-panel-colour-after.png` is identical to that of
+`kemper-proportions-after.png`. All four standalone grayscale before/after PNGs
+also compare byte for byte;
 both detail canvases also restore exactly after toggling colour off. There
 were no browser page/console errors. The existing material tests verify the
 measured hue is applied to the actual batch, its audit record, grey restoration

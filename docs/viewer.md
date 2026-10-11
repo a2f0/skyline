@@ -122,7 +122,7 @@ panorama does not resolve is measured in a close-up instead, and its colours car
 panorama's light by each channel's ratio, in linear light, between a reference material's medians in
 the panorama and in the close-up, beside it and in the same light. A material may take another's
 colour where the photograph does not show it, or stay grey. Kemper's opaque
-spandrels use a provisional blue-gray measured in a 2012 north-face close-up and
+spandrels use a provisional blue-grey measured in a 2012 north-face close-up and
 calibrated through adjacent marble; [its audit](kemper-geographic-reference.md#2026-10-11--calibrated-opaque-panel-colour-fid-kem-003)
 records sample sensitivity and lighting limits. A material's most common grey shows its
 measured colour, scaled by the exposure below, and its other greys scale with their brightness
