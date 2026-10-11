@@ -12,9 +12,10 @@ command("Usage: bun scripts/render-colours.ts [--out directory]", { out: { type:
   mkdirSync(out, { recursive: true });
   await buildSite();
   const server = await startServer(dist);
-  const browser = await launch();
+  let browser: Awaited<ReturnType<typeof launch>> | undefined;
   const errors: string[] = [];
   try {
+    browser = await launch();
     const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, reducedMotion: "reduce" });
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
@@ -58,7 +59,7 @@ command("Usage: bun scripts/render-colours.ts [--out directory]", { out: { type:
     if (errors.length) throw new Error(errors.join("\n"));
     console.log(`Colour review renders: ${out}`);
   } finally {
-    await browser.close();
-    await server.close();
+    try { await browser?.close(); }
+    finally { await server.close(); }
   }
 });
