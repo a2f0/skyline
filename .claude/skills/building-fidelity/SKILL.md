@@ -101,7 +101,9 @@ and reduced motion within each pair. Use
 for close views; use `skyline-3d.html` and `skyline-3d.html?colour=1` for placement
 and occlusion. Inspect other faces when affected. `bun scripts/render-colours.ts --out <directory> <building-id ...>`
 captures paired skyline/elevated views and front/side close-ups of the selected
-buildings, checking that colour-off restores each grayscale canvas. Without IDs
+buildings, checking that colour-on changes each canvas and colour-off restores
+it in both detail and skyline views. `captures.json` records the successful
+run's URLs, presets, viewport and artifact names. Without IDs
 it uses a default sample; name the buildings assessed in this pass. The current
 `scripts/render-study.ts` renders the **original** layout; its output alone
 cannot validate a geographic correction. The geographic study is useful for
@@ -114,6 +116,14 @@ inherits the scene's mode when changing colour integration. Record the URLs,
 view presets, artifact paths and observations for each mode; a passing palette
 unit test alone is not visual acceptance. For a colour-only correction, also
 compare the before/after grayscale renders to verify that appearance is retained.
+
+Retain the comparisons supporting an implemented correction in the building's
+audit, with repository-relative links to original renders in `docs/fidelity/`
+or a durable PR attachment. Include both modes in the before/after evidence;
+temporary render directories alone do not preserve a reviewable result. A
+verification-only pass can retain the current paired views without duplicating
+unchanged images as before/after. Report the buildings and views actually
+inspected, and distinguish a successful capture from visual acceptance.
 
 Add meaningful regressions against independent source observations, such as
 raycast-visible bay counts, setback heights, or relief. Do not merely assert

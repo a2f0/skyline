@@ -201,6 +201,24 @@ the panorama's dark neighbouring face identified before reusing its brightness
 comparison. The photographs were inspected from temporary storage, not added
 as runtime assets.
 
+## 2026-10-11 — Paired render evidence
+
+The render-evidence skill pass re-inspected the
+[front grayscale/daylight pair](fidelity/kemper-panel-colour-after.png) after
+integrating `8574bb2`, using `building-detail.html?building=building-kemper`, the front
+preset, a 1600 × 1000 viewport and reduced motion. The retained image shows
+continuous marble piers around narrower openings in both modes, with warm
+marble distinct from dark glazing in daylight. It is reused because this
+verification pass makes no model correction. The panels use the calibrated
+colour documented in the separate FID-KEM-003 entry below; its remaining
+sunny-face calibration uncertainty stays open as FID-KEM-005.
+
+Reinspection of the dated 2012 photograph above supports the established
+coverage correction but supplies no new calibration here. FID-KEM-001's bay
+counts and FID-KEM-004's panorama face identification remain unresolved.
+Rendering-tool checks and the additional views sampled during this pass are
+recorded in the [fidelity queue](building-fidelity.md#coverage-and-priorities).
+
 ## 2026-10-11 — Calibrated opaque-panel colour (FID-KEM-003)
 
 The second skill pass, after shipping FID-KEM-002, assessed the new panels in

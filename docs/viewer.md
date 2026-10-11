@@ -185,8 +185,15 @@ The mask is reused across toggles and released with its geometry. No environment
 Run `bun scripts/render-colours.ts` for matching grey/day skyline and elevated comparisons,
 mobile views and front/side close-ups, written to `/tmp/skyline-colours` by default. Pass building IDs as positional arguments
 to select close-ups, for example `bun scripts/render-colours.ts building-kemper`;
-`--out <directory>` keeps before/after runs separate. Each close-up also checks
-that toggling colour off restores its grayscale canvas exactly.
+`--out <directory>` keeps before/after runs separate. Every close-up and skyline
+pair checks that colour changes the canvas and that toggling it off restores
+the grayscale canvas exactly within that browser run. A successful run writes
+`captures.json` with the selected buildings, URLs, camera presets, viewport,
+motion setting and artifact names for the verified pairs; a failed rerun removes the
+old success record. Inspect the images before recording visual acceptance,
+and retain the relevant original comparisons with the building's audit. Use a
+fresh output directory for each pass: old PNGs are not removed on a failed rerun;
+without a new `captures.json`, the directory is not a completed review run.
 
 `colour-palette.ts` is the one source file `tests/grayscale.test.ts` exempts; the audits give the
 measured colours as red, green and blue values. `tests/colour-materials.test.ts` keeps the table in

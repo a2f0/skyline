@@ -157,3 +157,22 @@ matched sunny photograph should replace these values, not an arbitrary exposure 
 Acceptance: every mapped building has a palette; the material tests find these measured colours,
 keep bronze outside the glass-reflection mask, and restore exact grey colours and shaders.
 The colour comparison script includes a close-up of this tower and its skyline placement.
+
+## 2026-10-11 — Paired render evidence
+
+The render-evidence skill pass inspected the current
+[front](fidelity/three-illinois-evidence-front.png) and
+[side](fidelity/three-illinois-evidence-side.png) grayscale/daylight pairs.
+The bronze frame and opaque penthouse remain dark while the glazing reflects
+the blue sky in daylight; the grayscale view retains its scattered lit panes.
+The penthouse stays opaque in both views. This is visual verification of the
+existing material separation, not a new colour measurement: FID-COL-002's
+same-light calibration remains open and FID-COL-007 remains provisional.
+
+The command and rendering-tool outcomes are recorded in the
+[fidelity queue](building-fidelity.md#coverage-and-priorities).
+This building uses `building-detail.html?building=building-three-illinois-center`
+with front and side presets, 1600 × 1000 and reduced motion. Both canvases
+change when colour is enabled and return byte for byte when disabled; no
+browser errors occurred. The linked original PNG comparisons preserve the
+reviewed views. No geometry, palette, lighting or era decision changed.
