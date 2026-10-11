@@ -26,13 +26,14 @@ construction model.
 | --- | ---: | --- |
 | Grade | 0 m | Shared flat geographic datum |
 | Podium top | 7.8 m | OSM part 685494067, two floors at the tower's average floor height |
-| Crown band base | 151.25 m | Bottom of the 40th floor (top of the 39th) at the 41-floor pitch |
+| Crown band base | 155.79 m | FID-KEM-008: shallow photographed band below the shaft top; previously 151.25 m |
 | Shaft top | 158.5 m | Below the projecting cap |
 | Roof | 159 m | OSM height tag on way 64389514 |
 
 The tower pitch is (159 − 7.8) / 39 ≈ 3.88 m, so the podium's two floors and
-the 39 tower floors read as the published 41 floors. The crown band spans the
-40th and 41st floors with the cap above them.
+the 39 tower floors read as the published 41 floors. FID-KEM-008 supersedes the
+initial two-floor crown: ordinary rows continue through floor 40, with a shallow
+top-floor band below the cap. The average row pitch remains an estimate.
 
 ## Plan and detail choices
 
@@ -345,3 +346,80 @@ Validation and retained evidence:
   canvases changed in colour and restored grayscale exactly; no page/console errors.
   Skyline and quarter views preserve placement and occlusion. The original drawing
   model is unchanged. The full shipping check and independent review accompany the PR.
+
+
+## 2026-10-11 — Shallow crown band and slender frames (FID-KEM-008)
+
+The next pass, after shipping FID-KEM-006, assessed the crown in both modes.
+It replaces the old two-floor band and heavy frame-width estimate with ratios
+observed in IvoShandor's 2012 north elevation. The source page was reopened and
+its original pixels inspected on 2026-10-11; its exact download and SHA-256 are
+recorded under FID-KEM-002. No new photo colour calibration is claimed.
+
+Measurements in the 1216 × 2400 original:
+
+- Crown glazing lies approximately between y=199 and y=247 at x=760–925,
+  outside the sign. Its 46–50 px height is about 0.62–0.68 of the 73–75 px
+  ordinary-floor repeat measured lower down at x=408/516, y=430–835.
+  Edge uncertainty is about 2 px. The near-frontal view limits perspective
+  error, but this remains a dimensionless estimate, not an elevation survey.
+- Narrow crown frames near x=782,809,836,863,891,917 span roughly 2–4 px
+  in approximately 27 px intervals. Their visible share is about 7–15%,
+  rather than the old factory's roughly 25%. Their colour and depth are not
+  established by this measurement. Reflections and the end bays make an exact
+  whole-face pane count less certain; that count stays under FID-KEM-001.
+- MusikAnimal's 2016 north/west photograph (same original/hash as above)
+  corroborates a shallow strip with slender frames below the cap. Its upward
+  perspective is not used for the height ratio or a pre-2013 dimension.
+
+A new primary account, Thomas Campone's
+[Open House Chicago 2013](https://www.thomascamponephotography.com/blog/2013/10/open-house-chicago-2013),
+published 2013-10-24 and accessed 2026-10-11, describes photographing through
+windows wrapping the 41st floor. The paragraph after the first photograph
+supports identifying this as top-floor glazing; it does not give its dimensions.
+The two-floor interpretation inherited from the drawing is superseded by the
+near-frontal pre-2013 photograph.
+
+Implementation: the crown assembly is 0.7 of the existing floor pitch below
+158.5 m, including glass clearances; the visible glass is about 2.41 m high,
+0.62 of the 3.88 m repeat. The band begins at 155.79 m. Ordinary facade rows
+now include floor 40 so the reduced crown does not leave a blank marble/panel
+storey. Frame width drops from 0.26 to 0.10 m, giving about 10% visible share
+at the existing estimated spacing. Roof, cap and mapped outline are retained.
+Absolute floor datums, frame depth and pane count remain estimates. In particular,
+this is not evidence for an exact crown elevation to the centimetre.
+
+Colour assessment: the shallow glazed strip remains glass, with sky reflection
+in the sunny trial; the slender frames retain the explicit grey fallback for
+unmeasured aluminium. Existing marble, glass and opaque-panel colours and shared
+exposure are retained. Both modes now show a slim cap-level strip above the
+ordinary facade. FID-KEM-004/005 remain open.
+
+Validation:
+
+- A vertical surface scan measures the crown's visible height against repeated
+  ordinary-window starts, accepting a ratio of 0.55–0.75 to allow photo and
+  sampling uncertainty. It also requires the last ordinary row near the band.
+  Horizontal rays require 6–16% frame coverage. The previous tall/heavy crown
+  fails these observation-derived bounds. Footprint, roof, closed-mesh,
+  coplanar-overlap and material checks pass.
+- The previous pass's [front](fidelity/kemper-bays-after.png) and
+  [side](fidelity/kemper-bays-side-after.png) pairs are the retained baselines.
+  New [front](fidelity/kemper-crown-after.png) and
+  [side](fidelity/kemper-crown-side-after.png) pairs show both grayscale and
+  sunny colour after the change. All use a 1600 × 1000 viewport and reduced
+  motion. Skyline/quarter context and mobile daylight were also inspected.
+- Reproduce with `bun scripts/render-colours.ts --out /tmp/skyline-more-fidelity/round-two-after building-kemper`;
+  `round-two-before` records the merged first pass. Each run's `captures.json`
+  records URLs/presets. Colour changes all four canvases; switching it off
+  restores each grayscale canvas exactly. Browser page/console errors: none.
+  Existing original-layout and hover/occlusion regressions accompany the full check.
+
+Follow-up from the first independent review: column probes now cover all four
+faces, clearly labelling south/east as inferences, and use `opening` instead of
+shadowing `window`. Both north and west have internal tracing joints (three and
+two runs respectively); the review's contrary west-face note was checked against
+the mapped coordinates. End piers currently centre on chain ends and stop short
+of corners for relief clearance, backed by the original marble prism. Their
+width is less than a full interior pier; precise corner widths remain a
+photographic/elevation opportunity under FID-KEM-009, not an observed correction.

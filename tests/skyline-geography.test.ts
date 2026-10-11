@@ -276,7 +276,7 @@ describe("mapped skyline geography", () => {
       }
     }, { timeout: 30_000 });
 
-    test("has twelve north and fourteen west window columns across tracing joints", () => {
+    test("keeps photographed north/west counts and inferred opposite-face counts across tracing joints", () => {
       // Counts observed in the 2012 north-face and 2016 north-west photos;
       // probe rendered surfaces, not factory metadata or spacing constants.
       const model = models["Kemper"]!;
@@ -286,6 +286,9 @@ describe("mapped skyline geography", () => {
       const faces = [
         { a: [-87.6273478, 41.8867197], b: [-87.6277622, 41.8867154], direction: [0, 0, 1], count: 12 },
         { a: [-87.6277622, 41.8867154], b: [-87.6277499, 41.8863375], direction: [1, 0, 0], count: 14 },
+        // Opposite-face counts are documented symmetry inferences.
+        { a: [-87.6277499, 41.8863375], b: [-87.6273407, 41.8863436], direction: [0, 0, -1], count: 12 },
+        { a: [-87.6273407, 41.8863436], b: [-87.6273478, 41.8867197], direction: [-1, 0, 0], count: 14 },
       ] as const;
       for (const face of faces) {
         const a = projectGround([...face.a]), b = projectGround([...face.b]);
@@ -297,12 +300,51 @@ describe("mapped skyline geography", () => {
           ray.set(point.addScaledVector(direction, -10), direction);
           const hit = ray.intersectObjects(meshes, false)[0];
           expect(hit, `Column probe ${face.count}:${i} hits Kemper`).toBeDefined();
-          const window = /glazing|spandrels/.test(hit!.object.name);
-          if (window && !previous) columns += 1;
-          previous = window;
+          const opening = /glazing|spandrels/.test(hit!.object.name);
+          if (opening && !previous) columns += 1;
+          previous = opening;
         }
         expect(columns).toBe(face.count);
       }
+    }, { timeout: 30_000 });
+
+    test("shows the photographed shallow crown band and slender frames", () => {
+      // North elevation, 2012: crown glass ~46–50 px against ~73–75 px
+      // ordinary-floor repeats; frames ~2–4 px in ~27 px crown intervals.
+      const model = models["Kemper"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const a = projectGround([-87.6277622, 41.8867154]);
+      const b = projectGround([-87.6277499, 41.8863375]);
+      const surface = (t: number, y: number) => {
+        ray.set(new THREE.Vector3(a[0] + (b[0] - a[0]) * t - 10, y, -a[1] - (b[1] - a[1]) * t), new THREE.Vector3(1, 0, 0));
+        const hit = ray.intersectObjects(meshes, false)[0];
+        expect(hit, `Crown probe ${t}, ${y} hits Kemper`).toBeDefined();
+        return hit!.object.name;
+      };
+      const starts: number[] = [], crown: number[] = [];
+      let previous = false;
+      // An ordinary window column, clear of a crown frame. Read both floor
+      // repeat and crown height from visible surfaces instead of level constants.
+      for (let i = 0; i < 680; i += 1) {
+        const y = 125 + i * 0.05, name = surface(0.03, y);
+        const glass = /glazing/.test(name) && !name.includes("crown");
+        if (glass && !previous) starts.push(y);
+        previous = glass;
+        if (name === "Kemper · crown glazing") crown.push(y);
+      }
+      expect(starts.length).toBeGreaterThan(5);
+      const repeat = starts[2]! - starts[1]!;
+      const crownHeight = crown.at(-1)! - crown[0]!;
+      expect(crownHeight / repeat).toBeGreaterThan(0.55);
+      expect(crownHeight / repeat).toBeLessThan(0.75);
+      // The last ordinary row continues nearly up to the shallow band.
+      expect(crown[0]! - starts.at(-1)!).toBeLessThan(repeat);
+      let frames = 0;
+      for (let i = 0; i < 600; i += 1) if (surface((i + 0.5) / 600, 157) === "Kemper · crown fins") frames += 1;
+      expect(frames / 600).toBeGreaterThan(0.06);
+      expect(frames / 600).toBeLessThan(0.16);
     }, { timeout: 30_000 });
 
     test("keeps the mapped podium, tower roof, cap and glazed facades", () => {
@@ -357,7 +399,7 @@ describe("mapped skyline geography", () => {
       const finLength = Math.hypot(crownKink[0] - crownCorner[0], crownKink[2] - crownCorner[2]);
       const finCount = Math.max(1, Math.round(finLength / 1.05));
       const finProbe = crownCorner.map((v, axis) => v + (crownKink[axis]! - v) * (finCount - 0.5) / finCount) as Vec3;
-      const fin = hit([finProbe[0] - 30, 152, finProbe[2]], [1, 0, 0]);
+      const fin = hit([finProbe[0] - 30, 157, finProbe[2]], [1, 0, 0]);
       expect(fin!.object.name).toBe("Kemper · crown fins");
       near(fin!.point.x, finProbe[0] - 0.28, 0.02);
       // Facade relief above grade must not redefine the street footprint.
