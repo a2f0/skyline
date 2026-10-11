@@ -276,6 +276,35 @@ describe("mapped skyline geography", () => {
       }
     }, { timeout: 30_000 });
 
+    test("has twelve north and fourteen west window columns across tracing joints", () => {
+      // Counts observed in the 2012 north-face and 2016 north-west photos;
+      // probe rendered surfaces, not factory metadata or spacing constants.
+      const model = models["Kemper"]!;
+      model.building.updateMatrixWorld(true);
+      const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
+      const ray = new THREE.Raycaster();
+      const faces = [
+        { a: [-87.6273478, 41.8867197], b: [-87.6277622, 41.8867154], direction: [0, 0, 1], count: 12 },
+        { a: [-87.6277622, 41.8867154], b: [-87.6277499, 41.8863375], direction: [1, 0, 0], count: 14 },
+      ] as const;
+      for (const face of faces) {
+        const a = projectGround([...face.a]), b = projectGround([...face.b]);
+        const direction = new THREE.Vector3(...face.direction);
+        let columns = 0, previous = false;
+        for (let i = 0; i < 600; i += 1) {
+          const t = (i + 0.5) / 600;
+          const point = new THREE.Vector3(a[0] + (b[0] - a[0]) * t, 80, -a[1] - (b[1] - a[1]) * t);
+          ray.set(point.addScaledVector(direction, -10), direction);
+          const hit = ray.intersectObjects(meshes, false)[0];
+          expect(hit, `Column probe ${face.count}:${i} hits Kemper`).toBeDefined();
+          const window = /glazing|spandrels/.test(hit!.object.name);
+          if (window && !previous) columns += 1;
+          previous = window;
+        }
+        expect(columns).toBe(face.count);
+      }
+    }, { timeout: 30_000 });
+
     test("keeps the mapped podium, tower roof, cap and glazed facades", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Kemper")!;
       const model = models["Kemper"]!;
