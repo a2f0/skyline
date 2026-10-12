@@ -968,6 +968,36 @@ describe("mapped skyline geography", () => {
       const side = hit([slabWest - 10, 122.5, (blockNorth + blockSouth) / 2], [1, 0, 0])!;
       expect(side.point.x, "the side wall through the opening").toBeGreaterThan(slabWest + 5);
       expect(side.object.name).toBe("Blue Cross · glass, spandrels and bands");
+      // The 2012 oblique photographs show glazing on BOTH end wings at the
+      // lower/upper band heights. Only the middle level pulls back to the block.
+      // Scan visible courses, not the model's exported row table.
+      const [[, slabEast], [slabNorth]] = bounds(slab);
+      for (const direction of [-1, 1]) {
+        const from = direction === 1 ? slabWest - 10 : slabEast + 10;
+        // The 0.37 m offset keeps this independent world-coordinate probe clear
+        // of the vertical mullions; diagnose a future grid collision explicitly.
+        const probe = (y: number) => hit([from, y, (slabNorth + slabSouth) / 2 + 0.37], [direction, 0, 0])!;
+        expect(probe(100).object.name, "side probe must be between vertical mullions").toBe("Blue Cross · glass, spandrels and bands");
+        const outer = probe(100).point.x;
+        const rail = probe(66.12);
+        expect(rail.object.name, "visible frame at the side band's first glass row").toBe("Blue Cross · transoms");
+        expect((outer - rail.point.x) * direction, "rail stands ahead of the glazing").toBeGreaterThan(0.1);
+        expect(Math.abs(probe(122.5).point.x - outer), "middle band remains recessed").toBeGreaterThan(5);
+        for (const [lo, hi] of [[65.7, 72.1], [170.1, 176.6]] as const) {
+          let glassRuns = 0, wasGlass = false;
+          for (let y = lo + 0.05; y < hi - 0.05; y += 0.1) {
+            const face = probe(y);
+            expect(Math.abs(face.point.x - outer), "no lower/upper side setback").toBeLessThan(0.3);
+            const colours = (face.object as THREE.Mesh).geometry.getAttribute("color");
+            const tone = colours?.getX(face.face!.a) ?? 0;
+            expect(tone, "no continuous dark backing on the wing").not.toBeCloseTo(new THREE.Color(0x2a2a2a).r, 4);
+            const glass = face.object.name === "Blue Cross · glass, spandrels and bands" && tone > new THREE.Color(0x383838).r + 0.001;
+            if (glass && !wasGlass) glassRuns += 1;
+            wasGlass = glass;
+          }
+          expect(glassRuns, "two glazed courses through each outer band").toBe(2);
+        }
+      }
       // The 2010 south photograph shows glazed infill between eight narrow slots,
       // with pale columns recessed behind the infill's frame (FID-BCBS-002).
       const southWest = block.reduce((best, p) => (p[1] - p[0] > best[1] - best[0] ? p : best));
@@ -975,7 +1005,7 @@ describe("mapped skyline geography", () => {
       const pitch = (southEast[0] - southWest[0]) / 8;
       for (const y of [69, 122.5, 173.3]) {
         const panel = front(southWest[0] + pitch, y)!;
-        expect(panel.object.name).toBe("Blue Cross · south band infill");
+        expect(panel.object.name).toBe("Blue Cross · band infill");
         const recess = front(southWest[0] + pitch / 2 + 0.72, y)!;
         expect(recess.object.name, `the band's recess at ${y} m`).toBe("Blue Cross · glass, spandrels and bands");
         const colors = (recess.object as THREE.Mesh).geometry.getAttribute("color");
@@ -991,7 +1021,7 @@ describe("mapped skyline geography", () => {
         let width = 0, columns = 0, inColumn = false;
         for (let x = southWest[0] + 0.2; x < southEast[0] - 0.2; x += 0.1) {
           const name = front(x, y)!.object.name;
-          if (name !== "Blue Cross · south band infill") width += 0.1;
+          if (name !== "Blue Cross · band infill") width += 0.1;
           else if (width > 0) { slots.push(width); width = 0; }
           const column = name === "Blue Cross · band columns and emblems";
           if (column && !inColumn) columns += 1;
@@ -1000,6 +1030,29 @@ describe("mapped skyline geography", () => {
         expect(slots.length, `eight column slots at ${y} m`).toBe(8);
         for (const span of slots) expect(Math.abs(span - 1.9)).toBeLessThan(0.3);
         expect(columns).toBe(8);
+      }
+      // The northeast photograph resolves six exterior slots on the rear
+      // elevation too. Interior atrium bays must not determine this count.
+      const northWest = block.reduce((best, p) => p[0] + p[1] < best[0] + best[1] ? p : best);
+      const northEast = block.reduce((best, p) => p[0] - p[1] > best[0] - best[1] ? p : best);
+      for (const y of [69, 122.5, 173.3, 224]) {
+        let slots = 0, inSlot = false, panels = 0;
+        for (let x = northWest[0] + 0.2; x < northEast[0] - 0.2; x += 0.1) {
+          const surface = hit([x, y, blockNorth - 10], [0, 0, 1])!;
+          const slot = surface.object.name !== "Blue Cross · band infill";
+          if (slot && !inSlot) slots += 1;
+          if (!slot) panels += 1;
+          inSlot = slot;
+        }
+        expect(slots, `six north slots at ${y} m`).toBe(6);
+        expect(panels / ((northEast[0] - northWest[0] - 0.4) / 0.1), "rear band is mostly infill").toBeGreaterThan(0.7);
+      }
+      // North runs east to west. These would be the emblem centres if the
+      // south-only guard were lost; actual north infill must remain visible.
+      const northPitch = (northEast[0] - northWest[0]) / 6;
+      for (const bay of [1, 2]) {
+        expect(hit([northEast[0] - bay * northPitch, 219.5, blockNorth - 10], [0, 0, 1])!.object.name,
+          "no emblem plates on the north crown").toBe("Blue Cross · band infill");
       }
       // The crown photograph resolves nine courses between its upper and lower
       // borders. At a panel's centre, eight internal pale rails divide them.
@@ -1020,7 +1073,7 @@ describe("mapped skyline geography", () => {
       expect([emblem(1.5, 1.5, 1), emblem(-1.5, -1.5, 1)], "clear of the cross between its arms").toEqual([false, false]);
       expect([emblem(0, 0, 2), emblem(-1.5, 1.8, 2), emblem(1.5, 1.8, 2)], "the shield and its shoulders").toEqual([true, true, true]);
       expect([emblem(-1.5, -1.8, 2), emblem(1.5, -1.8, 2)], "the shield's point").toEqual([false, false]);
-      expect(front(southWest[0] + 3 * pitch, 219.5)!.object.name, "no emblem past the second bay").toBe("Blue Cross · south band infill");
+      expect(front(southWest[0] + 3 * pitch, 219.5)!.object.name, "no emblem past the second bay").toBe("Blue Cross · band infill");
       // The exact mapped outline at grade.
       const shell = meshes.find((mesh) => mesh.name === "Blue Cross · shell")!.geometry.getAttribute("position");
       const grade = new Set<string>();
@@ -1030,7 +1083,7 @@ describe("mapped skyline geography", () => {
         return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
       }));
       expect(grade).toEqual(mapped);
-    }, { timeout: 30_000 });
+    }, { timeout: 60_000 });
   });
 
   describe("340 on the Park", () => {
