@@ -43,6 +43,7 @@ const messageTopFloors = zones.map(([, , count], zone) => h.floors.slice(0, zone
 export const blueCrossFloors = [...zones.flatMap(([from, to, count]) => Array.from({ length: count }, (_, i) => from + (to - from) * i / count)), h.occupied];
 const spandrelBelow = 0.3, spandrelAbove = 0.9;
 const infillFront = 0.52, emblemClearance = 0.1;
+const transom = { height: 0.18, back: 0.17, front: 0.22, cornerClearance: 0.25 };
 
 const color = (hex: number) => new THREE.Color(hex);
 const glassTones = [0x414141, 0x464646, 0x3c3c3c, 0x4a4a4a].map(color);
@@ -183,13 +184,13 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
           // Close each rail as a thin box following the mapped chain. Keep rails
           // off the skin's top/bottom planes and ahead of its vertical mullions.
           // Leave corner clearance for rails on adjoining/reentrant faces.
-          const railStart = s0 + 0.25, railEnd = s1 - 0.25;
+          const railStart = s0 + transom.cornerClearance, railEnd = s1 - transom.cornerClearance;
           const railK0 = chain.starts.findLastIndex((s) => s <= railStart);
           const railK1 = chain.starts.findLastIndex((s) => s < railEnd);
           for (const row of cuts.filter(({ kind }) => kind === "glass")) {
-            for (const y of [row.lo, row.hi]) {
-              if (railEnd <= railStart || y - 0.09 <= heights[0]! || y + 0.09 >= hi) continue;
-              chainSkin(kit, transoms, plan, chain, railK0, railK1, railStart, railEnd, [], [y - 0.09, y + 0.09], 0.17, 0.22, () => aluminium, aluminium);
+            for (const [bottom, top] of [[row.lo - transom.height, row.lo], [row.hi, row.hi + transom.height]] as const) {
+              if (railEnd <= railStart || bottom <= heights[0]! || top >= hi) continue;
+              chainSkin(kit, transoms, plan, chain, railK0, railK1, railStart, railEnd, [], [bottom, top], transom.back, transom.front, () => aluminium, aluminium);
             }
           }
         }
@@ -309,8 +310,8 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
       // Pale rails frame the office ribbons. They sit just ahead of the vertical
       // mullions and never cross the exposed column slots or celebration panes.
       for (const row of rows.filter(({ kind }) => kind === "glass")) {
-        for (const [lo, hi] of [[row.lo - 0.18, row.lo], [row.hi, row.hi + 0.18]] as const) {
-          panel(transoms, 0.02, chain.length - 0.02, [lo, hi], [], 0.17, 0.22, () => aluminium, aluminium);
+        for (const [lo, hi] of [[row.lo - transom.height, row.lo], [row.hi, row.hi + transom.height]] as const) {
+          panel(transoms, 0.02, chain.length - 0.02, [lo, hi], [], transom.back, transom.front, () => aluminium, aluminium);
         }
       }
       // The south face runs west to east; the emblems stand in its first two bays.

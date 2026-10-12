@@ -420,3 +420,17 @@ same-facing coplanar overlaps. Corner clearances on the new side rails prevent
 intersections at the mapped reentrant corners. The side-band raycast regression,
 reflection-mask checks and typecheck pass; shipping additionally requires the
 full repository check, including its managed browser server.
+
+Review follow-up: side rails now follow the same outside-glass vertical bounds
+as the long-face rails. Closed rails deliberately stop 0.27 m short of side-chain
+corners (0.02 m skin margin plus 0.25 m clearance); these small corner gaps avoid
+coplanar intersections at reentrant joints. Fully joined/mitred corner framing
+remains part of FID-BCBS-006, rather than an asserted construction detail.
+
+The **middle opening's volume is retained**, while its exposed central-block side
+wall now has three glazed courses and rails instead of a single dark backing.
+The 2012 oblique view shows recessed curtain wall beneath the wing overhang;
+three evenly divided courses and their strip widths are **inferred** from the
+existing middle-band height/floor reconstruction, not separately measured there.
+New raycasts also check that the side rails are visible ahead of glazing and that
+no emblem plates appear on the north crown.

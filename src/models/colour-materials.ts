@@ -127,7 +127,7 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
     mullions: ["dark metal"],
     "band columns and emblems": ["band lights"],
     "band infill": ["glass", { 0x383838: "opaque spandrel", 0x3e3e3e: "screen", 0xb4b4b4: "aluminium" }],
-    "transoms": ["aluminium"],
+    transoms: ["aluminium"],
   },
   // Blue-green glass, and the south face's white concrete frame.
   "building-340-on-the-park": {

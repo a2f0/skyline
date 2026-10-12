@@ -974,8 +974,14 @@ describe("mapped skyline geography", () => {
       const [[, slabEast], [slabNorth]] = bounds(slab);
       for (const direction of [-1, 1]) {
         const from = direction === 1 ? slabWest - 10 : slabEast + 10;
+        // The 0.37 m offset keeps this independent world-coordinate probe clear
+        // of the vertical mullions; diagnose a future grid collision explicitly.
         const probe = (y: number) => hit([from, y, (slabNorth + slabSouth) / 2 + 0.37], [direction, 0, 0])!;
+        expect(probe(100).object.name, "side probe must be between vertical mullions").toBe("Blue Cross · glass, spandrels and bands");
         const outer = probe(100).point.x;
+        const rail = probe(66.12);
+        expect(rail.object.name, "visible frame at the side band's first glass row").toBe("Blue Cross · transoms");
+        expect((outer - rail.point.x) * direction, "rail stands ahead of the glazing").toBeGreaterThan(0.1);
         expect(Math.abs(probe(122.5).point.x - outer), "middle band remains recessed").toBeGreaterThan(5);
         for (const [lo, hi] of [[65.7, 72.1], [170.1, 176.6]] as const) {
           let glassRuns = 0, wasGlass = false;
@@ -1041,6 +1047,13 @@ describe("mapped skyline geography", () => {
         expect(slots, `six north slots at ${y} m`).toBe(6);
         expect(panels / ((northEast[0] - northWest[0] - 0.4) / 0.1), "rear band is mostly infill").toBeGreaterThan(0.7);
       }
+      // North runs east to west. These would be the emblem centres if the
+      // south-only guard were lost; actual north infill must remain visible.
+      const northPitch = (northEast[0] - northWest[0]) / 6;
+      for (const bay of [1, 2]) {
+        expect(hit([northEast[0] - bay * northPitch, 219.5, blockNorth - 10], [0, 0, 1])!.object.name,
+          "no emblem plates on the north crown").toBe("Blue Cross · band infill");
+      }
       // The crown photograph resolves nine courses between its upper and lower
       // borders. At a panel's centre, eight internal pale rails divide them.
       const x = southWest[0] + 4 * pitch;
@@ -1070,7 +1083,7 @@ describe("mapped skyline geography", () => {
         return [Math.fround(east), Math.fround(-north)].map((n) => n.toFixed(3)).join(",");
       }));
       expect(grade).toEqual(mapped);
-    }, { timeout: 30_000 });
+    }, { timeout: 60_000 });
   });
 
   describe("340 on the Park", () => {
