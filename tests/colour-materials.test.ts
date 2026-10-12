@@ -266,7 +266,25 @@ describe("colour trial", () => {
     expect(opaque).toBeGreaterThan(0);
     expect(glass).toBeGreaterThan(0);
     expect(Math.max(...opaqueTones), "opaque ribbons retain their darker contrast in daylight").toBeLessThan(Math.min(...glassTones));
-    const panels = model.building.getObjectByName("Blue Cross · south band infill") as THREE.Mesh;
+    // The side's lower band now has two glazed courses. Its intervening opaque
+    // strip must stay out of the reflection mask, in both east/west orientations.
+    for (const sign of [-1, 1]) {
+      let sideGlass = 0, sideOpaque = 0;
+      for (let vertex = 0; vertex < positions.count; vertex += 3) {
+        if (normals.getX(vertex) * sign < 0.9) continue;
+        const heights = [0, 1, 2].map((i) => positions.getY(vertex + i));
+        const y = heights.reduce((sum, height) => sum + height, 0) / 3;
+        if (Math.min(...heights) > 66.19 && Math.max(...heights) < 68.76) {
+          expect(mask.getX(vertex), "side-band panes reflect").toBe(1); sideGlass += 1;
+        }
+        if (Math.min(...heights) > 68.74 && Math.max(...heights) < 69.56 && y > 68.8) {
+          expect(mask.getX(vertex), "side-band opaque strips do not reflect").toBe(0); sideOpaque += 1;
+        }
+      }
+      expect(sideGlass).toBeGreaterThan(0);
+      expect(sideOpaque).toBeGreaterThan(0);
+    }
+    const panels = model.building.getObjectByName("Blue Cross · band infill") as THREE.Mesh;
     const panelMask = panels.geometry.getAttribute("skylineGlass"), panelPositions = panels.geometry.getAttribute("position");
     let crown = 0, bandGlass = 0;
     for (let vertex = 0; vertex < panelMask.count; vertex += 1) {
@@ -275,7 +293,7 @@ describe("colour trial", () => {
     }
     expect(crown).toBeGreaterThan(0);
     expect(bandGlass).toBeGreaterThan(0);
-    const rails = model.building.getObjectByName("Blue Cross · south transoms") as THREE.Mesh;
+    const rails = model.building.getObjectByName("Blue Cross · transoms") as THREE.Mesh;
     expect(rails.geometry.getAttribute("skylineGlass")).toBeUndefined();
     colour.set(false);
     expect(snapshotOf([model])).toEqual(before);

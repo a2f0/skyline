@@ -349,3 +349,74 @@ building-kit checks pass for closed geometry, winding and no coplanar overlaps.
 Remaining work: FID-BCBS-001 retains the north lobby detail gap; FID-BCBS-005 calls
 for era-appropriate north/east elevation evidence, especially the architect's
 five-bay atrium, before those faces receive equivalent geometric correction.
+
+## 2026-10-12 — Side and rear bands (FID-BCBS-005)
+
+Assessed **Blue Cross only**, following the reported three dark stripes in the
+side view. They were an error in the reconstruction: the same undivided recess
+colour was assigned around every elevation. The previous south-only correction
+left that error on the end wings and north face. This entry supersedes that
+remaining band treatment, not the mapped footprint or height datums.
+
+### Evidence and decisions
+
+Sources accessed **2026-10-12**; downloaded photographs stay outside Git.
+
+| Source and locator | Observation and decision | Limits |
+| --- | --- | --- |
+| Chicago Architecture Today, [Exterior 8](https://commons.wikimedia.org/wiki/File:Exterior_8_(7883045392).jpg), photographed **2012-07-03 10:31**, CC BY 2.0; [2448 × 3264 original](https://upload.wikimedia.org/wikipedia/commons/2/2b/Exterior_8_%287883045392%29.jpg), west side at left of the south facade | **Observed:** vertical side glazing continues through the lower and upper south-band levels; the substantial side opening occurs at the middle level. Follow the two band lines around the front/side corner and compare the wing above/below them. Replace the two solid dark side belts with two glazed courses and opaque floor strips, retaining the middle opening. | Perspective supports continuity and the opening's location, not surveyed pier widths or absolute relief. Course heights follow the existing measured band bounds; 0.8 m opaque strips and 0.18 m rails are inferred illustration dimensions. |
+| Goettsch Partners, [300 East Randolph](https://www.gpchicago.com/architecture/300-east-randolph/), gallery image 12, [1600 × 1068 original](https://gop-prod.s3.amazonaws.com/media/images/9027-45.5521_GP_adjust.max-1600x1200.jpg); photo/publication date unknown | **Observed:** the west wing, immediately left of the south face, has continuous vertical glazing at the outer band heights and a dark middle opening. Cross-checks the dated 2012 image. | No dimensions or colour values are taken from this image. |
+| TonyTheTiger, [20220525 Lakeshore East from Cascade](https://commons.wikimedia.org/wiki/File:20220525_Lakeshore_East_from_Cascade.jpg), photographed **2022-05-25 17:31:29**, CC BY-SA 4.0; [1920 × 2560 rendition](https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/20220525_Lakeshore_East_from_Cascade.jpg/1920px-20220525_Lakeshore_East_from_Cascade.jpg). Building at left of Aon; north elevation approximately `(460,480)`–`(615,1590)` in rendition pixels | **Observed:** framed infill between narrow exterior slots on the north facade, especially the crown and middle band; the east wing has vertical glazing. The crown resolves six slots, counted between its two long-face edges, following their converging verticals. Extend framed band/crown infill and office transoms to the north. | Later corroboration of the completed tower, not proof that every detail was unchanged in 2013. The six-slot count is observed at the crown and carried down to the bands by inference. The north's two/three/two band courses, nine crown courses, 1.9 m slots and relief borrow the south reconstruction and remain **inferred**. Oblique perspective, shade and intervening buildings limit lower-band detail. The Commons page was read through a direct HTML download after the browser fetch failed. |
+| Goettsch Partners project text, same page | **Documented:** five internal north atrium structural bays. These are not a count of exterior band slots; the photograph independently resolves six exterior crown slots. Keep the interior/lobby opportunity separate from this exterior correction. | The atrium is not reconstructed in this pass. |
+| OpenStreetMap API, [outline 95486960](https://api.openstreetmap.org/api/0.6/way/95486960.json), [central part 284779637](https://api.openstreetmap.org/api/0.6/way/284779637.json), [wider part 284779635](https://api.openstreetmap.org/api/0.6/way/284779635.json) | Rechecked **all three**, still versions **16, 4, 5**. No mapped geometry/height changes. | The wider part's coarse concrete tag still loses to the photographed glazed facade, as recorded on 2026-10-11. |
+
+SHA-256 of inspected binaries:
+
+- Exterior 8 original: `b1b669185ccc91899928d8babc1d1280f3f9da1f7876f0cf49ac6bc334bea497`.
+- Architect gallery image 12: `d44832f04f3ffdef77784a4075f79f84b0fe78611d9c22dd4b9d7750422675ff`.
+- Cascade rendition: `20e0c332fe5d58e4c651d622e72373486f7fba6992dc513eea59dac7dcb00ea5`.
+
+No new hue sampling or lighting calibration is claimed. The new panes use the
+existing glass palette/reflection mask, opaque strips remain nonreflective, and
+rails use the existing provisional aluminium alias. Renamed `band infill` and
+`transoms` batches now describe all the elevations they serve. Neutral recesses
+and roofing retain grey fallbacks. FID-BCBS-004 retains the colour-calibration gap.
+
+### Visual acceptance and regression checks
+
+Before/after captures use **1600 × 1000**, reduced motion, identical cameras,
+and each comparison places grayscale left and sunny colour right. Front, side,
+skyline and quarter were captured with `scripts/render-colours.ts`; the two
+additional detail cameras use `front` followed by 18 ArrowRight steps (north)
+or 9 ArrowLeft steps (west), each step 10 degrees. The focused canvas was blurred
+before screenshots to exclude its keyboard focus ring from toggle comparisons.
+Temporary originals/manifests: `/tmp/blue-cross-sides/{before,after}`.
+
+| URL / camera | Before | After | Inspection |
+| --- | --- | --- | --- |
+| `building-detail.html?building=building-blue-cross-blue-shield`, `front` | [Both modes](fidelity/blue-cross-sides-front-before.png) | [Both modes](fidelity/blue-cross-sides-front-after.png) | South treatment remains legible; the east wing no longer has dark lower/upper belts. |
+| Same URL, `side` | [Both modes](fidelity/blue-cross-sides-side-before.png) | [Both modes](fidelity/blue-cross-sides-side-after.png) | East wing glazing continues through the outer bands; north bands read as framed panels/slots rather than black stripes. |
+| Same URL, north orbit | [Both modes](fidelity/blue-cross-sides-north-before.png) | [Both modes](fidelity/blue-cross-sides-north-after.png) | North infill and crown courses are visible; middle wing openings remain. |
+| Same URL, west orbit | [Both modes](fidelity/blue-cross-sides-west-before.png) | [Both modes](fidelity/blue-cross-sides-west-after.png) | West wing receives the same continuity correction; the middle recess is retained. |
+| `skyline-3d.html?controls=open`, `skyline` | [Both modes](fidelity/blue-cross-sides-skyline-before.png) | [Both modes](fidelity/blue-cross-sides-skyline-after.png) | Placement and neighbouring occlusion remain consistent in both modes. |
+| Same URL, `quarter` | [Both modes](fidelity/blue-cross-sides-quarter-before.png) | [Both modes](fidelity/blue-cross-sides-quarter-after.png) | Elevated context retains roofs and massing. |
+
+All six before/after camera pairs changed on colour-on and restored grayscale
+canvas bytes exactly on colour-off. The standard capture also checked the mobile
+390 × 844 embedded colour view without browser errors. These views were visually
+inspected, beyond successful capture. This accepts the belt correction, not a
+complete reconstruction of the side piers or north atrium (FID-BCBS-006).
+
+Raycast regressions independently scan both end wings at the two outer bands:
+two glazed courses, no dark recess paint, and no setback at those heights;
+the middle level remains set back by more than 5 m. The rear bands/crown must
+have six narrow slots with more than 70% infill. Material checks probe actual
+side-band heights and opposing normals to distinguish reflective glass from
+opaque strips, then verify complete colour restoration. Existing south slots,
+emblems, celebration panes and mapped-outline tests remain in place.
+
+Targeted geometry checks pass for closed meshes, winding, covered faces and no
+same-facing coplanar overlaps. Corner clearances on the new side rails prevent
+intersections at the mapped reentrant corners. The side-band raycast regression,
+reflection-mask checks and typecheck pass; shipping additionally requires the
+full repository check, including its managed browser server.

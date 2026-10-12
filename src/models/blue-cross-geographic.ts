@@ -42,7 +42,7 @@ const messageTopFloors = zones.map(([, , count], zone) => h.floors.slice(0, zone
   + Math.floor((count + 5) / 2) - 1).reverse().slice(0, 3);
 export const blueCrossFloors = [...zones.flatMap(([from, to, count]) => Array.from({ length: count }, (_, i) => from + (to - from) * i / count)), h.occupied];
 const spandrelBelow = 0.3, spandrelAbove = 0.9;
-const southInfillFront = 0.52, emblemClearance = 0.1;
+const infillFront = 0.52, emblemClearance = 0.1;
 
 const color = (hex: number) => new THREE.Color(hex);
 const glassTones = [0x414141, 0x464646, 0x3c3c3c, 0x4a4a4a].map(color);
@@ -81,6 +81,20 @@ const rows: Row[] = [];
   push(h.roof, h.top, "screen", -1);
 }
 const rowsBetween = (lo: number, hi: number) => rows.filter((row) => row.lo >= lo - 1e-6 && row.hi <= hi + 1e-6);
+// The end wings carry their curtain wall through the lower and upper bands.
+// Only the middle level is an open setback. Subdivide the old band backing into
+// normal glazing/spandrel courses on the wings and exposed short block returns.
+// FID-BCBS-005: 2012 oblique photographs, docs/blue-cross-reference.md.
+const glazedBandRows = (cuts: Row[]): Row[] => cuts.flatMap((row) => {
+  if (row.kind !== "band") return [row];
+  const band = h.bands.find(([, hi]) => hi === row.hi)!;
+  const count = band === h.bands[1] ? 3 : 2;
+  return Array.from({ length: count }, (_, i): Row[] => {
+    const lo = row.lo + (row.hi - row.lo) * i / count;
+    const hi = row.lo + (row.hi - row.lo) * (i + 1) / count;
+    return [{ lo, hi: lo + 0.8, kind: "spandrel", floor: -1 }, { lo: lo + 0.8, hi, kind: "glass", floor: -1 }];
+  }).flat();
+});
 
 export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPlan: (coordinates: [number, number][]) => Plan, offset: [number, number]): BuildingModel {
   const kit = createBuilder(record.name, record.id);
@@ -88,8 +102,8 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
   const wall = kit.batch("Blue Cross · glass, spandrels and bands", kit.material(0xffffff, { vertexColors: true }));
   const mullions = kit.batch("Blue Cross · mullions", kit.material(0x2c2c2c));
   const bars = kit.batch("Blue Cross · band columns and emblems", kit.material(0xb4b4b4));
-  const infill = kit.batch("Blue Cross · south band infill", kit.material(0xffffff, { vertexColors: true }));
-  const transoms = kit.batch("Blue Cross · south transoms", kit.material(0xb4b4b4));
+  const infill = kit.batch("Blue Cross · band infill", kit.material(0xffffff, { vertexColors: true }));
+  const transoms = kit.batch("Blue Cross · transoms", kit.material(0xb4b4b4));
   const aluminium = color(0xb4b4b4);
   const windows: WindowCell[] = [];
   let windowColumns = 0;
@@ -137,10 +151,13 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
   // every row, and mullions one module apart on the office floors. Each unbroken stretch of
   // kept runs along a chain is one box, held 2 cm clear of its ends.
   const skin = (corners: Vec2[], lo: number, hi: number, seed: number, keep: (run: Run) => boolean, lift = 0) => {
-    const plan = planOf(corners), cuts = rowsBetween(lo, hi);
-    const heights = [cuts[0]!.lo + lift, ...cuts.map((row) => row.hi)];
+    const plan = planOf(corners);
     const top = Math.min(hi, h.roof) - 0.05;
     chainsOf(plan).forEach((chain, index) => {
+      const shortFace = Math.abs(plan[chain.runs[0]!]!.normal(0)[0]) > 0.9;
+      const sideGlazing = seed !== 0 || shortFace;
+      const cuts = sideGlazing ? glazedBandRows(rowsBetween(lo, hi)) : rowsBetween(lo, hi);
+      const heights = [cuts[0]!.lo + lift, ...cuts.map((row) => row.hi)];
       const count = Math.max(1, Math.round(chain.length / h.module));
       const stations = Array.from({ length: count + 1 }, (_, i) => chain.length * i / count);
       const messageFace = seed === 0 && plan[chain.runs[0]!]!.normal(0)[1] > 0.9 && chain.length > 50;
@@ -162,6 +179,20 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
           if (row.kind === "screen") return screen;
           return spandrel;
         }, spandrel);
+        if (sideGlazing) {
+          // Close each rail as a thin box following the mapped chain. Keep rails
+          // off the skin's top/bottom planes and ahead of its vertical mullions.
+          // Leave corner clearance for rails on adjoining/reentrant faces.
+          const railStart = s0 + 0.25, railEnd = s1 - 0.25;
+          const railK0 = chain.starts.findLastIndex((s) => s <= railStart);
+          const railK1 = chain.starts.findLastIndex((s) => s < railEnd);
+          for (const row of cuts.filter(({ kind }) => kind === "glass")) {
+            for (const y of [row.lo, row.hi]) {
+              if (railEnd <= railStart || y - 0.09 <= heights[0]! || y + 0.09 >= hi) continue;
+              chainSkin(kit, transoms, plan, chain, railK0, railK1, railStart, railEnd, [], [y - 0.09, y + 0.09], 0.17, 0.22, () => aluminium, aluminium);
+            }
+          }
+        }
         // Mullions on each office run, whole on one run and held clear of its ends. Their
         // backs stand a centimetre off the wall: on the block's side walls the middle band's
         // mullions start just inside the end bays, whose closing walls lie in that plane and
@@ -204,7 +235,7 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
   const emblem = (centre: Vec2, t: Vec2, n: Vec2, y: number, shape: Vec2[]) => {
     // The corrected screen panels stand ahead of the old backing plane.
     const point = ([u, v]: Vec2, depth: number): Vec3 => [centre[0] + t[0] * u + n[0] * depth, y + v, centre[1] + t[1] * u + n[1] * depth];
-    const backDepth = southInfillFront + emblemClearance, frontDepth = backDepth + 0.23;
+    const backDepth = infillFront + emblemClearance, frontDepth = backDepth + 0.23;
     const out: Vec3 = [n[0], 0, n[1]], back: Vec3 = [-n[0], 0, -n[1]];
     shape.forEach((p, i) => {
       const q = shape[(i + 1) % shape.length]!;
@@ -222,8 +253,8 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
     [-0.7, -2.1], [-0.7, -0.7], [-2.1, -0.7], [-2.1, 0.7], [-0.7, 0.7], [-0.7, 2.1]];
   const shield: Vec2[] = [[-1.8, 2.1], [1.8, 2.1], [1.8, 0.3], [1.6, -0.7], [1.0, -1.5], [0, -2.1], [-1.0, -1.5], [-1.6, -0.7], [-1.8, 0.3]];
 
-  // The block's columns, exposed in each band and in the screen on its long faces: eight
-  // across each, one to a structural bay. The emblems stand in the screen's first two
+  // The block's columns, exposed in each band and in the screen on its long faces:
+  // eight south, six north. The emblems stand in the screen's first two south
   // bays at the south face's west end, the cross west of the shield.
   const faces = chainsOf(planOf(block)).filter(({ length }) => length > 50);
   faces.forEach((chain) => {
@@ -231,15 +262,15 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
     const a = run.at(0), b = last.at(last.length), n = run.normal(0), length = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const t: Vec2 = [(b[0] - a[0]) / length, (b[1] - a[1]) / length];
     const at = (s: number): Vec2 => [a[0] + t[0] * s, a[1] + t[1] * s];
-    const pitch = length / 8;
-    for (let i = 0; i < 8; i += 1) {
+    const slotCount = n[1] > 0.9 ? 8 : 6, pitch = length / slotCount;
+    for (let i = 0; i < slotCount; i += 1) {
       for (const [lo, hi] of [...h.bands, [h.roof + 0.4, h.top - 0.3]] as [number, number][]) kit.box(bars, at((i + 0.5) * pitch), n, 0.45, 0.07, 0.4, lo + 0.1, hi - 0.1);
     }
-    if (n[1] > 0.9) {
-      // FID-BCBS-002: the 2010 south elevation has eight narrow column slots,
+    if (Math.abs(n[1]) > 0.9) {
+      // FID-BCBS-002/005: the long elevations have narrow column slots,
       // with curtain-wall panels between them, not an uninterrupted dark band.
-      // Restrict this reconstruction to the photographed face: the north atrium
-      // has a different structural rhythm. Keep the mapped chain's small bends.
+      // The northeast photograph resolves six on the north crown. The five
+      // internal north atrium bays alone do not establish facade spacing.
       const panel = (target: typeof infill, s0: number, s1: number, levels: number[],
         columns: number[], back: number, front: number, paint: (cell: number, row: number) => THREE.Color, sides: THREE.Color) => {
         const k0 = chain.starts.findLastIndex((s) => s <= s0);
@@ -268,10 +299,10 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
         }
         append(hi - 0.18, crown ? screen : glassTones[1]!);
         append(hi - 0.02, aluminium);
-        for (let bay = 0; bay <= 8; bay += 1) {
+        for (let bay = 0; bay <= slotCount; bay += 1) {
           const s0 = bay === 0 ? 0.02 : (bay - 0.5) * pitch + 0.95;
-          const s1 = bay === 8 ? chain.length - 0.02 : (bay + 0.5) * pitch - 0.95;
-          panel(infill, s0, s1, levels, [s0, s0 + 0.12, s1 - 0.12, s1], 0.2, southInfillFront,
+          const s1 = bay === slotCount ? chain.length - 0.02 : (bay + 0.5) * pitch - 0.95;
+          panel(infill, s0, s1, levels, [s0, s0 + 0.12, s1 - 0.12, s1], 0.2, infillFront,
             (cell, row) => cell === 1 || cell === 3 ? aluminium : paints[row]!, aluminium);
         }
       }
@@ -283,7 +314,7 @@ export function createBlueCrossGeographicBuilding(record: GeoBuilding, projectPl
         }
       }
       // The south face runs west to east; the emblems stand in its first two bays.
-      [cross, shield].forEach((shape, i) => emblem(at((i + 1) * pitch), t, n, h.roof + 6.7, shape));
+      if (n[1] > 0.9) [cross, shield].forEach((shape, i) => emblem(at((i + 1) * pitch), t, n, h.roof + 6.7, shape));
     }
   });
 
