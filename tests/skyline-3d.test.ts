@@ -420,6 +420,7 @@ describe("full-screen 3D skyline", () => {
     const loading = page.locator("#loading");
     await page.waitForFunction(() => document.querySelector("#loading")!.textContent!.includes("WebGL 2"));
     expect(await loading.isVisible()).toBe(true);
+    expect(await page.locator("#time-of-day").isDisabled()).toBe(true);
     expect(await loading.locator("svg").count()).toBe(0);
     expect(await loading.evaluate((element) => getComputedStyle(element).display)).not.toBe("grid");
 
@@ -429,6 +430,7 @@ describe("full-screen 3D skyline", () => {
     const scene = page;
     await scene.waitForFunction(() => window.__viewerRoot?.querySelector("#loading")?.textContent!.includes("WebGL 2"));
     expect(await scene.locator("#menu-toggle").isDisabled()).toBe(true);
+    expect(await scene.locator("#time-of-day").isDisabled()).toBe(true);
     await page.locator("#toggle-skyline").click();
     await page.locator("#return-skyline-3d").press("Enter");
     expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);

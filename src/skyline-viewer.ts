@@ -201,7 +201,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, attr
       // As the scene's own page says it: its controls stay, disabled, and the drawing one
       // press away.
       scene.querySelector<HTMLElement>("#loading")!.textContent = SCENE_FAILURE;
-      scene.querySelectorAll<HTMLButtonElement | HTMLInputElement>("button, input").forEach((button) => { button.disabled = true; });
+      scene.querySelectorAll<HTMLButtonElement | HTMLInputElement>("button, input").forEach((control) => { control.disabled = true; });
       throw error;
     }
   }

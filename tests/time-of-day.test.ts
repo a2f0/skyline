@@ -53,9 +53,9 @@ describe("Chicago time and sunlight", () => {
     expect(texture.version).toBeGreaterThan(version);
     expect(night.sun[1]).toBe(0);
     expect([...pixels].every((channel) => channel === 0)).toBe(true);
-    const twilight = light.update(new Date("2026-10-15T23:20:00Z"), false);
-    expect(pixels[3]).toBeGreaterThan(0);
-    expect(pixels[3]).toBeLessThan(255);
+    const twilight = light.update(new Date("2026-10-15T23:50:00Z"), false);
+    expect(pixels[3]).toBeGreaterThan(100);
+    expect(pixels[3]).toBeLessThan(220);
     for (let i = 0; i < pixels.length; i += 4) expect([pixels[i], pixels[i + 1], pixels[i + 2]]).toEqual([pixels[i], pixels[i], pixels[i]]);
     for (const hex of [twilight.sun[0], twilight.ambient[0], twilight.fill[0], ...Object.values(twilight.reflections)]) {
       expect((hex >> 16) & 255).toBe((hex >> 8) & 255);

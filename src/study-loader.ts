@@ -2,7 +2,7 @@
   const entry = document.currentScript!.dataset["study"]!;
   function showStudyError(message: string) {
     document.querySelector<HTMLElement>("#loading")!.textContent = message;
-    document.querySelectorAll<HTMLButtonElement>("button").forEach((button) => { button.disabled = true; });
+    document.querySelectorAll<HTMLButtonElement | HTMLInputElement>("button, input").forEach((control) => { control.disabled = true; });
   }
   if (location.protocol === "file:") {
     const page = location.pathname.split("/").pop();
