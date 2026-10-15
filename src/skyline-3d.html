@@ -57,8 +57,8 @@
         <button type="button" id="turntable" aria-pressed="false" aria-describedby="motion-status">turntable</button>
         <button type="button" id="show-original" title="Compare with the original skyline SVG" hidden>show original</button>
         <div class="time-controls">
-          <label for="time-of-day">Chicago time<span id="time-date"></span></label>
-          <input id="time-of-day" type="range" min="0" max="1439" step="1" value="0" aria-describedby="time-date" />
+          <label for="time-of-day"><span id="time-caption">Chicago time</span> <span id="time-date"></span></label>
+          <input id="time-of-day" type="range" min="0" max="1439" step="1" value="0" aria-labelledby="time-caption" />
           <output id="time-value" for="time-of-day" aria-live="off">original night</output>
           <button type="button" id="reset-light" disabled title="Restore the original lighting preset">reset light</button>
         </div>

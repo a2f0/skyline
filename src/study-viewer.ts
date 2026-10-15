@@ -660,6 +660,7 @@ export function createBuildingStudy({
     base.position.set(platform.x || 0, -1.1, platform.z || 0);
     baseEdges.position.copy(base.position);
     keyLight.position.fromArray(lightPosition);
+    keyLight.target.position.set(0, 80, 0);
     Object.assign(keyLight.shadow.camera, shadowCamera);
     keyLight.shadow.camera.updateProjectionMatrix();
     const nextView = previousView && previousView !== defaultView ? previousView : next.defaultView || defaultView;

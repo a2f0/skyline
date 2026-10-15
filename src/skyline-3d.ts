@@ -2,7 +2,7 @@ import type * as THREE from "./vendor/three-r186.js";
 import { createBuildingStudy, frameBox } from "./study-viewer.js";
 import { createGeographicSkyline } from "./skyline-scene.js";
 import { chicagoDay, chicagoTime } from "./solar-time.js";
-import { createTimeLighting, type TimeLighting } from "./time-of-day.js";
+import { createTimeLighting } from "./time-of-day.js";
 import { createGeographicRoads, geographicOrigin } from "./models/skyline-geography.js";
 import type { BuildingModel } from "./models/building-kit.js";
 import { celebrations, type CelebrationId } from "./models/celebrations.js";
@@ -148,20 +148,18 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
   timeInput.max = String(day.minutes - 1);
   const timeLight = createTimeLighting(geographicOrigin[1], geographicOrigin[0], root instanceof ShadowRoot);
   let selectedTime: Date | null = null;
-  let lighting: TimeLighting | null = null;
   let daylight: ReturnType<typeof createDaylight> | undefined;
   let detailView: BuildingDetail | undefined;
   signal.addEventListener("abort", () => { daylight?.sky.dispose(); timeLight.dispose(); }, { once: true });
   function setColour(enabled: boolean) {
     colour.set(enabled);
     if (selectedTime) {
-      lighting = timeLight.update(selectedTime, enabled);
+      const lighting = timeLight.update(selectedTime, enabled);
       colour.setSky(lighting.reflections);
       roadway.color.setHex(lighting.roads);
       viewer.setDaylight(lighting);
       timeOutput.value = chicagoTime(selectedTime);
     } else {
-      lighting = null;
       if (enabled) daylight ??= createDaylight();
       colour.setSky(null);
       roadway.color.setHex(enabled ? daylightGround.roads : nightRoads);
@@ -174,8 +172,7 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
     colourButton.setAttribute("aria-pressed", String(enabled));
     colourButton.title = selectedTime ? (enabled ? "Show this time in greyscale" : "Show this time in colour")
       : enabled ? "Restore the greyscale skyline" : "Show the skyline in sunny-day colour";
-    detailView?.setTimeLighting(lighting);
-    detailView?.setColour(enabled);
+    detailView?.setTime(selectedTime, enabled);
   }
   timeInput.addEventListener("input", () => {
     const firstPreview = selectedTime === null;
@@ -445,7 +442,7 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
       markup.classList.add("framed");
       detailRoot.append(document.importNode(markup, true));
       detailView = showBuildingDetail({ root: detailRoot, id, frame: detailRoot.querySelector<HTMLElement>(".detail-root")!, signal: controller.signal, colour: colour.enabled, onColourChange: setColour });
-      detailView?.setTimeLighting(lighting);
+      detailView?.setTime(selectedTime, colour.enabled);
     }).catch((error: unknown) => {
       if (controller.signal.aborted) return;
       // A detail that fails part way is released at once, renderer and listeners included,

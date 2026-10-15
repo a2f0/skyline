@@ -335,14 +335,16 @@ describe("full-screen 3D skyline", () => {
     expect(await scene.evaluate(() => window.__buildingStudy!.illuminations.find(({ building }) => building === "building-blue-cross-blue-shield")!.active)).toBe("bears");
     await scene.locator("[data-celebration=bears]").tap();
     expect(await scene.evaluate(() => window.__buildingStudy!.illuminations.find(({ building }) => building === "building-blue-cross-blue-shield")!.litWindows)).toBe(0);
-    // Even with the original-artwork shortcut, wide screens keep one toolbar
-    // row and the same viewport when opening or closing the controls.
+    // The time slider adds two rows to the desktop display group. Folding it
+    // returns that space to the canvas, including with the original-artwork shortcut.
     await page.setViewportSize({ width: 1440, height: 900 });
     await settle(scene);
-    const expanded = await scene.locator(".control-bar").boundingBox();
+    expect((await scene.locator(".control-bar").boundingBox())!.height).toBe(100);
+    const expandedCanvas = (await scene.locator("#building").boundingBox())!.height;
     await scene.locator("#menu-toggle").tap();
     await settle(scene);
-    expect((await scene.locator(".control-bar").boundingBox())!.height).toBe(expanded!.height);
+    expect((await scene.locator(".control-bar").boundingBox())!.height).toBe(39);
+    expect((await scene.locator("#building").boundingBox())!.height).toBe(expandedCanvas + 61);
     await page.close();
   }, { timeout: 60_000 });
 
@@ -858,7 +860,7 @@ describe("full-screen 3D skyline", () => {
           if (size.width < 1440) near(layout.displayEnd.right, size.width - 12, 0.5);
         }
         if (!open) closedHeights.add(layout.bar.height);
-        if (open && size.width >= 1440) expect(layout.bar.height, `compact controls with time slider ${at}`).toBeLessThan(110);
+        if (open && size.width >= 1440) expect(layout.bar.height, `three display rows beside the star ${at}`).toBe(100);
         expect(layout.overflow, `the page does not scroll ${at}`).toBe(false);
       }
       if (!open) expect([...closedHeights], "the closed bar is one height at every size").toEqual([39]);
@@ -1064,6 +1066,16 @@ describe("full-screen 3D skyline", () => {
       const { center } = footprintMetrics(record.footprint.coordinates);
       const [u, v] = await page.evaluate((point) => window.__buildingStudy!.projectPoint("layer3", point), [center[0], record.height / 2, -center[1]]);
       await page.mouse.click(box.x + u * box.width, box.y + v * box.height, { button: "right" });
+      await page.evaluate(async () => {
+        const { DataTexture } = await import(new URL("vendor/three-r186.js", location.href).href) as typeof THREE;
+        const dispose = DataTexture.prototype.dispose;
+        const counts = window as unknown as { disposedSkies: number };
+        counts.disposedSkies = 0;
+        DataTexture.prototype.dispose = function (this: THREE.DataTexture) {
+          if (this.image.width === 1 && this.image.height === 256) counts.disposedSkies += 1;
+          dispose.call(this);
+        };
+      });
       await page.locator("#building-detail-link").click();
       await page.waitForFunction(() => window.__detailStudy?.ready);
       await settle(page);
@@ -1073,6 +1085,10 @@ describe("full-screen 3D skyline", () => {
       await settle(page);
       expect(await page.evaluate(() => window.__detailStudy!.sunIntensity)).toBe(await page.evaluate(() => window.__buildingStudy!.sunIntensity));
       await page.locator("#detail-close").click();
+      expect(await page.evaluate(() => (window as unknown as { disposedSkies: number }).disposedSkies), "closing the detail releases both its day and time-preview textures").toBe(2);
+      await slider.fill("720");
+      await settle(page);
+      expect(await page.evaluate(() => window.__buildingStudy!.sunIntensity), "the parent sky survives closing its detail").toBeGreaterThan(0);
       await slider.focus();
       await page.keyboard.press("Escape");
       expect(await slider.isVisible()).toBe(false);

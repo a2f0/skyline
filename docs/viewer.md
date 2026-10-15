@@ -48,10 +48,12 @@ Closed, the bar shows only a muted grey six-pointed star in its middle, white un
 Chicago's, redrawn in `skyline-3d.html` from the one in devopsrockstars' `white-star-only.svg`.
 Pressing the star unfolds the toolbar outward from it, camera views sliding out to the bar's left
 edge and model display to its right edge, and the camera hint appears over the scene; pressing it
-again, or `Escape` in the bar, folds them back. The bar keeps one height closed, and open on a
-window at least 1260 px wide; narrower windows put the groups under the star, at the edges of one
-row or centred in a row each, and the scene stands on the taller bar while it is open. Reduced
-motion opens and closes it at once, and a window resized mid-fold settles the fold at once.
+again, or `Escape` in the bar, folds them back. Closed, the bar is 39 px tall. At desktop
+widths of at least 1440 px, the open bar is 100 px tall, with model toggles, the time slider,
+and lighting badges in three rows beside the star. Narrower windows put the groups under
+the star, at the edges of one row or centred in a row each. The scene resizes above the bar
+when it opens. Reduced motion opens and closes it at once, and a window resized mid-fold
+settles the fold at once.
 
 The site's own viewer, `index.html`, starts the bar open from its first frame, with no fold, to
 show what the scene can do, and the star folds it as usual. Everywhere else it starts closed: on
@@ -263,8 +265,9 @@ ambient/fill light and ground colours. These sky colours are illustrated, not me
 weather. The existing office-window and celebration controls remain as before; this preview
 does not simulate occupancy, moonlight, clouds or a visible sun disk.
 
-Each viewer reuses one small sky texture. Its premultiplied alpha reveals the viewer's
-existing stars through twilight, while buildings remain opaque. Glass reflection uniforms
+Each viewer and open building detail owns and reuses one small sky texture, disposed when
+that view closes. In the viewer, its premultiplied alpha reveals the existing stars through
+twilight, while buildings remain opaque. Glass reflection uniforms
 follow the same sky without shader recompilation or rewriting building geometry. The
 shadow camera encloses both buildings and platform for any sun direction, including low
 winter sun. Details inherit the same direction while fitting their own shadow bounds.
