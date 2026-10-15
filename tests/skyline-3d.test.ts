@@ -732,7 +732,7 @@ describe("full-screen 3D skyline", () => {
     await page.goto(`${origin}/skyline-3d.html`);
     await page.waitForFunction(() => window.__buildingStudy?.ready);
     // The 3D skyline adds footprints, show original and the colour trial's toggle.
-    expect((await page.locator(".control-bar .button-group button:not([data-celebration])").allTextContents()).filter((label) => !["footprints", "show original", "colour"].includes(label))).toEqual(toolbar);
+    expect((await page.locator(".control-bar .button-group button:not([data-celebration])").allTextContents()).filter((label) => !["footprints", "show original", "colour", "reset light"].includes(label))).toEqual(toolbar);
     expect(await page.locator("#show-original").isHidden(), "the shortcut belongs to the index viewer").toBe(true);
     const star = page.locator("#menu-toggle");
     const groups = () => page.locator(".control-bar .button-group").evaluateAll((elements) => elements.map((element) => getComputedStyle(element).display));
@@ -858,7 +858,7 @@ describe("full-screen 3D skyline", () => {
           if (size.width < 1440) near(layout.displayEnd.right, size.width - 12, 0.5);
         }
         if (!open) closedHeights.add(layout.bar.height);
-        if (open && size.width >= 1440) expect(layout.bar.height, `one row ${at}, as tall as the closed bar`).toBe([...closedHeights][0]!);
+        if (open && size.width >= 1440) expect(layout.bar.height, `compact controls with time slider ${at}`).toBeLessThan(110);
         expect(layout.overflow, `the page does not scroll ${at}`).toBe(false);
       }
       if (!open) expect([...closedHeights], "the closed bar is one height at every size").toEqual([39]);
@@ -994,6 +994,119 @@ describe("full-screen 3D skyline", () => {
     expect(await page.locator(".control-bar").boundingBox().then((bar) => bar!.height)).toBe(39);
     await page.close();
   }, { timeout: 180_000 });
+
+  test("scrubs Chicago sunlight, sky and reflections without moving the camera, and restores presets", async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce", timezoneId: "Asia/Tokyo" });
+    await watch(page);
+    await page.clock.setFixedTime(new Date("2026-10-15T17:00:00Z"));
+    const shaderErrors: string[] = [];
+    page.on("console", (message) => { if (message.type() === "error") shaderErrors.push(message.text()); });
+    for (const route of ["index.html", "skyline-3d.html"]) {
+      await page.goto(`${origin}/${route}?colour=1&controls=open`);
+      await openScene(page);
+      const slider = page.getByRole("slider", { name: "Chicago time" });
+      expect(await page.locator("#time-date").textContent()).toBe("Oct 15, 2026");
+      const canvas = page.locator("#building");
+      const snapshot = () => canvas.screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
+      const preset = await snapshot();
+      const originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
+      const skies: number[][] = [];
+      for (const minutes of [480, 720, 1020, 1100, 0]) {
+        await slider.fill(String(minutes));
+        await settle(page);
+        const { direction, intensity, bounds, camera } = await page.evaluate(() => ({ direction: window.__buildingStudy!.sunDirection,
+          intensity: window.__buildingStudy!.sunIntensity, bounds: window.__buildingStudy!.shadowBounds, camera: window.__buildingStudy!.cameraPosition }));
+        expect(camera).toEqual(originalCamera);
+        if (minutes === 480) expect(direction[0]!).toBeGreaterThan(0);
+        if (minutes === 1020) expect(direction[0]!).toBeLessThan(0);
+        if (minutes === 0) expect(intensity).toBe(0);
+        if (intensity > 0) {
+          expect(bounds.min.every((value) => value >= -1), `casters inside shadow camera at ${minutes}`).toBe(true);
+          expect(bounds.max.every((value) => value <= 1), `receivers inside shadow camera at ${minutes}`).toBe(true);
+        }
+        skies.push(await pixelAt(page, await snapshot(), 0.5, 0.1));
+      }
+      expect(new Set(skies.map((pixel) => pixel.join(","))).size).toBe(5);
+      expect(await slider.getAttribute("aria-valuetext")).toContain("12:00 AM CDT, Oct 15, 2026, Chicago");
+      await slider.focus();
+      await page.keyboard.press("End");
+      expect(await slider.inputValue()).toBe("1439");
+      expect(await page.locator("#time-value").textContent()).toBe("11:59 PM CDT");
+      await page.keyboard.press("Home");
+      await page.keyboard.press("ArrowRight");
+      expect(await slider.inputValue()).toBe("1");
+      expect(await page.evaluate(() => window.__buildingStudy!.cameraPosition)).toEqual(originalCamera);
+      await slider.fill("1080");
+      await page.locator(".control-bar #colour").click();
+      await settle(page);
+      expect(await chroma(page), "greyscale preview keeps the chosen time").toBe(0);
+      expect(await page.locator("#time-value").textContent()).toBe("6:00 PM CDT");
+      await page.locator(".control-bar #colour").click();
+      await page.locator('[data-celebration="cubs"]').click();
+      expect(await page.evaluate(() => window.__buildingStudy!.illuminations.some((light) => light.active === "cubs"))).toBe(true);
+      await page.locator('[data-celebration="cubs"]').click();
+      await page.locator("#reset-light").click();
+      await settle(page);
+      expect((await snapshot()).equals(preset), "reset restores the exact sunny preset, including reflections and shadows").toBe(true);
+      expect(await page.locator("#time-value").textContent()).toBe("sunny day");
+      await page.locator(".control-bar #colour").click();
+      await settle(page);
+      const grey = await snapshot();
+      await slider.fill("720");
+      expect(await page.locator(".control-bar #colour").getAttribute("aria-pressed"), "first scrub enables colour").toBe("true");
+      await page.locator(".control-bar #colour").click();
+      await page.locator("#reset-light").click();
+      await settle(page);
+      expect((await snapshot()).equals(grey), "reset restores the exact original night").toBe(true);
+      await slider.fill("720");
+      const box = (await canvas.boundingBox())!;
+      const record = geographicBuildings.find(({ id }) => id === "layer3")!;
+      const { center } = footprintMetrics(record.footprint.coordinates);
+      const [u, v] = await page.evaluate((point) => window.__buildingStudy!.projectPoint("layer3", point), [center[0], record.height / 2, -center[1]]);
+      await page.mouse.click(box.x + u * box.width, box.y + v * box.height, { button: "right" });
+      await page.locator("#building-detail-link").click();
+      await page.waitForFunction(() => window.__detailStudy?.ready);
+      await settle(page);
+      const sceneSun = await page.evaluate(() => window.__buildingStudy!.sunDirection);
+      (await page.evaluate(() => window.__detailStudy!.sunDirection)).forEach((value, axis) => near(value, sceneSun[axis]!, 1e-12));
+      await slider.fill("1080");
+      await settle(page);
+      expect(await page.evaluate(() => window.__detailStudy!.sunIntensity)).toBe(await page.evaluate(() => window.__buildingStudy!.sunIntensity));
+      await page.locator("#detail-close").click();
+      await slider.focus();
+      await page.keyboard.press("Escape");
+      expect(await slider.isVisible()).toBe(false);
+      expect(await page.locator("#menu-toggle").getAttribute("aria-expanded")).toBe("false");
+    }
+    expect(shaderErrors).toEqual([]);
+    await page.close();
+  }, { timeout: 180_000 });
+
+  test("lets touch and mouse scrub time in compact viewports under reduced motion", async () => {
+    for (const [width, height, touch] of [[390, 844, true], [844, 390, false]] as const) {
+      const page = await browser.newPage({ viewport: { width, height }, hasTouch: touch, reducedMotion: "reduce" });
+      await watch(page);
+      await page.clock.setFixedTime(new Date("2026-10-15T17:00:00Z"));
+      await page.goto(`${origin}/index.html?controls=open`);
+      await openScene(page);
+      const slider = page.locator("#time-of-day"), box = (await slider.boundingBox())!;
+      expect(box.width).toBeGreaterThan(200);
+      expect(box.x >= 0 && box.x + box.width <= width && box.y + box.height <= height).toBe(true);
+      if (touch) await page.touchscreen.tap(box.x + box.width * 0.6, box.y + box.height / 2);
+      else {
+        await page.mouse.move(box.x + 8, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(box.x + box.width * 0.6, box.y + box.height / 2, { steps: 6 });
+        await page.mouse.up();
+      }
+      expect(Number(await slider.inputValue())).toBeGreaterThan(700);
+      expect(Number(await slider.inputValue())).toBeLessThan(1000);
+      expect(await slider.getAttribute("aria-valuetext")).toContain("PM CDT");
+      expect(await page.locator("#reset-light").isEnabled()).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight)).toBe(false);
+      await page.close();
+    }
+  }, { timeout: 90_000 });
 
   test("starts in colour by URL and keeps building details, links and toggles in sync", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });

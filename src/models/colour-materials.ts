@@ -2,7 +2,7 @@ import * as THREE from "../vendor/three-r186.js";
 import type { BuildingModel } from "./building-kit.js";
 import { daylightColours, measuredColours } from "./colour-palette.js";
 import type { Daylight } from "../study-types.js";
-import { glassReflection } from "./colour-reflections.js";
+import { glassReflection, daylightReflections, type ReflectionColours, type GlassReflection } from "./colour-reflections.js";
 
 // The colour trial (https://github.com/a2f0/skyline/issues/115): which named material each
 // surface of each building is, and a layer that shows the colours measured for those materials
@@ -380,6 +380,8 @@ export interface SkylineColour {
   readonly enabled: boolean;
   /** Shows the colours, or restores the greys exactly. */
   set(enabled: boolean): void;
+  /** Updates reflection uniforms without rewriting geometry or recompiling shaders. */
+  setSky(colours: ReflectionColours | null): void;
   /**
    * Recolours vertices another writer has since rewritten in grey, such as window
    * illumination resetting a facade for a celebration.
@@ -408,7 +410,7 @@ interface FlatBatch {
 // another batch already took, since the builder lets batches share them.
 export function createSkylineColour(models: readonly BuildingModel[]): SkylineColour {
   const painted: PaintedBatch[] = [], flat: FlatBatch[] = [], taken = new Set<object>();
-  const reflections: ((enabled: boolean) => void)[] = [];
+  const reflections: GlassReflection[] = [];
   const glassMaterials = new Set<MaterialName>(["glass", "green glass", "blue-green glass", "bronze glass", "crown glass", "lit window", "dim window"]);
   for (const model of models) {
     const buildingId = String(model.building.userData["buildingId"]);
@@ -498,6 +500,9 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
       }
       for (const { material, grey, colour } of flat) material.color.copy(next ? colour : grey);
       for (const reflect of reflections) reflect(next);
+    },
+    setSky(colours) {
+      for (const reflect of reflections) reflect.setSky(colours ?? daylightReflections);
     },
     refresh() {
       if (!enabled) return;

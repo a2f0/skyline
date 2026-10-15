@@ -4,6 +4,7 @@ import { skylineAzimuth } from "./skyline-comparison.js";
 import { geographicBuildings } from "./models/skyline-geography-data.js";
 import type { GeoBuilding } from "./models/skyline-geography-data.js";
 import { createGeographicBuilding, footprintMetrics } from "./models/skyline-geography.js";
+import type { TimeLighting } from "./time-of-day.js";
 import { createDaylight, createSkylineColour } from "./models/colour-materials.js";
 
 export interface BuildingDetailOptions {
@@ -23,6 +24,7 @@ export interface BuildingDetailOptions {
 
 export interface BuildingDetail {
   setColour(enabled: boolean): void;
+  setTimeLighting(light: TimeLighting | null): void;
 }
 
 // One mapped building of the 3D skyline, alone on its own platform, as the building study
@@ -103,20 +105,29 @@ function showBuilding(record: GeoBuilding, root: Document | ShadowRoot, frame: H
   });
   const colour = createSkylineColour([model]), button = root.querySelector<HTMLButtonElement>("#colour")!;
   let daylight: ReturnType<typeof createDaylight> | undefined;
+  let timeLighting: TimeLighting | null = null;
   signal.addEventListener("abort", () => daylight?.sky.dispose(), { once: true });
   function setColour(enabled: boolean) {
     colour.set(enabled);
     if (enabled) daylight ??= createDaylight();
-    viewer.setDaylight(enabled ? daylight! : null);
+    colour.setSky(timeLighting?.reflections ?? null);
+    viewer.setDaylight(timeLighting ?? (enabled ? daylight! : null));
     button.setAttribute("aria-pressed", String(enabled));
-    button.title = enabled ? "Restore the building's greyscale view" : "Show the building in sunny-day colour";
+    button.title = timeLighting ? (enabled ? "Show this time in greyscale" : "Show this time in colour")
+      : enabled ? "Restore the building's greyscale view" : "Show the building in sunny-day colour";
   }
   button.addEventListener("click", () => {
     setColour(!colour.enabled);
     onColourChange?.(colour.enabled);
   }, { signal });
   if (initiallyColoured) setColour(true);
-  return { setColour };
+  return {
+    setColour,
+    setTimeLighting(light) {
+      timeLighting = light;
+      setColour(colour.enabled);
+    },
+  };
 }
 
 // Sources open beside the page, so a detail floated over the skyline stays where it is.

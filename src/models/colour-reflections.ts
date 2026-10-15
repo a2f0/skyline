@@ -1,12 +1,19 @@
 import * as THREE from "../vendor/three-r186.js";
 import { daylightColours } from "./colour-palette.js";
 
+export interface ReflectionColours { sky: number; horizon: number; ground: number }
+export const daylightReflections: ReflectionColours = { ...daylightColours, ground: 0x444444 };
+export interface GlassReflection {
+  (enabled: boolean): void;
+  setSky(colours: ReflectionColours): void;
+}
+
 // A small sky reflection over the measured glass colour. This is an illustration of an open
 // sky, not a reflection of nearby buildings or a replacement for the toon renderer. The mask
 // separates glass from masonry and mullions even when the builder batches them in one mesh.
 // Install only in colour mode, and restore the original shader on exit. Keep the mask attached
 // once used so Three.js releases its GPU buffer when it disposes the geometry.
-export function glassReflection(material: THREE.MeshToonMaterial, geometry: THREE.BufferGeometry, mask: Float32Array): (enabled: boolean) => void {
+export function glassReflection(material: THREE.MeshToonMaterial, geometry: THREE.BufferGeometry, mask: Float32Array): GlassReflection {
   const attribute = new THREE.Float32BufferAttribute(mask, 1);
   const originalCompile = material.onBeforeCompile, originalKey = material.customProgramCacheKey;
   const key = originalKey.call(material);
@@ -39,7 +46,7 @@ if (vSkylineGlass > 0.0) {
 }
 #include <opaque_fragment>`);
   };
-  return (enabled) => {
+  const set = (enabled: boolean) => {
     if (enabled) {
       geometry.setAttribute("skylineGlass", attribute);
       material.onBeforeCompile = compile;
@@ -50,4 +57,11 @@ if (vSkylineGlass > 0.0) {
     }
     material.needsUpdate = true;
   };
+  return Object.assign(set, {
+    setSky(colours: ReflectionColours) {
+      uniforms.skylineSky.value.setHex(colours.sky);
+      uniforms.skylineHorizon.value.setHex(colours.horizon);
+      uniforms.skylineGround.value.setHex(colours.ground);
+    },
+  });
 }

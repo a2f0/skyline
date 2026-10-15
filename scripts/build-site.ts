@@ -48,6 +48,8 @@ const compiledEntries = [
   "study-viewer.ts",
   "study-types.ts",
   "skyline-scene.ts",
+  "solar-time.ts",
+  "time-of-day.ts",
   "skyline-study.ts",
   "skyline-comparison.ts",
   "skyline-3d.ts",

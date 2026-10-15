@@ -162,6 +162,12 @@ body.skyline-3d { height: 100vh; height: 100dvh; }
 .control-bar .button-group { gap: 4px; }
 .control-bar .camera-views { grid-area: views; justify-self: start; --fold: inset(0 0 0 100%); }
 .control-bar .model-display { grid-area: display; justify-self: end; justify-content: end; --fold: inset(0 100% 0 0); }
+.time-controls { display: grid; grid-template-columns: auto minmax(60px, 1fr) auto auto; align-items: center; gap: 8px; flex-basis: 100%; width: 100%; font-size: 10px; }
+.time-controls label { color: #bbb; }
+.time-controls label span { display: block; margin-top: 2px; color: #888; font-size: 9px; }
+.time-controls input { width: 100%; min-width: 0; height: 28px; margin: 0; accent-color: #bbb; cursor: pointer; }
+.time-controls output { min-width: 88px; text-align: right; color: #ddd; font-variant-numeric: tabular-nums; }
+.time-controls button:disabled { opacity: 0.45; cursor: default; }
 .celebration-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: end; gap: 4px; flex-basis: 100%; }
 .celebration-caption { margin-right: 4px; color: #888; font-size: 10px; }
 .control-bar .celebration-controls button { display: grid; place-items: center; width: 36px; height: 36px; padding: 4px; }
@@ -179,8 +185,8 @@ body.skyline-3d { height: 100vh; height: 100dvh; }
 .control-bar .menu-toggle:hover { color: #fff; background: #ffffff14; }
 .menu-toggle svg { width: 20px; height: 20px; fill: currentColor; transition: rotate 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
 .menu-toggle[aria-expanded="true"] svg { rotate: 30deg; }
-/* At desktop widths the badges share the display row, so opening the controls
-   keeps the canvas height unchanged. Smaller screens retain 36px touch targets. */
+/* Compact badges leave room for the time slider. Smaller screens retain 36px
+   touch targets. */
 @container skyline (min-width: 1440px) {
   .celebration-controls { flex-basis: auto; flex-wrap: nowrap; }
   .celebration-caption { display: none; }
@@ -203,6 +209,12 @@ body.skyline-3d { height: 100vh; height: 100dvh; }
   .skyline-trace-tip { display: none; animation: none; }
 }
 @container skyline (max-width: 600px) {
+  .time-controls { grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; }
+  .time-controls label { grid-column: 1; grid-row: 1; }
+  .time-controls label span { display: inline; margin-left: 8px; }
+  .time-controls output { grid-column: 2; grid-row: 1; }
+  .time-controls input { grid-column: 1; grid-row: 2; height: 32px; }
+  .time-controls button { grid-column: 2; grid-row: 2; }
   .skyline-trace { stroke-width: 8.4; }
   .skyline-trace-tip { stroke-width: 12; }
   .skyline-3d .hint { font-size: 9px; }

@@ -22,6 +22,8 @@ export interface BuildingStudyApi {
   activeView: string | null;
   selectedBuilding: string | null;
   shadowBounds: { min: number[]; max: number[] };
+  sunDirection: number[];
+  sunIntensity: number;
   projectPoint(buildingId: string, coordinates: number[]): [number, number];
   // A building's rendered extent, left, top, right, bottom, in projectPoint's frame units.
   screenBounds(buildingId: string): [number, number, number, number];
@@ -266,6 +268,7 @@ export function createBuildingStudy({
   const night = { sun: [0xffffff, 2.4], ambient: [0xffffff, 0.7], fill: [0xffffff, 0.55] } as const;
   const ambientLight = new THREE.AmbientLight(...night.ambient);
   scene.add(ambientLight);
+  let lightBounds: { center: THREE.Vector3; radius: number } | undefined;
   const keyLight = new THREE.DirectionalLight(...night.sun);
   keyLight.position.fromArray(lightPosition);
   keyLight.target.position.set(0, 80, 0);
@@ -645,6 +648,7 @@ export function createBuildingStudy({
     const next: StudyConfig = { ...original, ...layouts?.[name]! };
     layout = name;
     ({ models, fit, target, platform, lightPosition, shadowCamera, clippingMargin } = next);
+    lightBounds = undefined;
     extras = next.extras || [];
     models.forEach((model) => { scene.add(model.building); model.setWireframe(wireframe); });
     extras.forEach((object) => scene.add(object));
@@ -732,6 +736,8 @@ export function createBuildingStudy({
     get groundShadows() { return base.receiveShadow; },
     get activeView() { return activeView; },
     get selectedBuilding() { return selectedModel?.building.userData["buildingId"] || null; },
+    get sunDirection() { return keyLight.position.clone().sub(keyLight.target.position).normalize().toArray(); },
+    get sunIntensity() { return keyLight.intensity; },
     get shadowBounds() {
       // Actual rendered geometry in the shadow camera's clip space, for coverage checks.
       const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
@@ -806,7 +812,28 @@ export function createBuildingStudy({
   Object.defineProperty(canvas, "__buildingStudy", { value: api, configurable: true });
   onReady();
   // Day or night: the transparent canvas shows the page's night behind it until a sky covers it.
+  // A sphere enclosing every caster and the platform fits the shadow camera at any
+  // solar azimuth/elevation. Cache it: dragging time never traverses model vertices.
   function setDaylight(day: Daylight | null) {
+    if (day?.direction) {
+      if (!lightBounds) {
+        const min = new THREE.Vector3(Infinity, Infinity, Infinity), max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+        for (const bounds of [api!.platformBounds, ...api!.modelBounds]) {
+          min.min(new THREE.Vector3().fromArray(bounds.min));
+          max.max(new THREE.Vector3().fromArray(bounds.max));
+        }
+        lightBounds = { center: min.clone().add(max).multiplyScalar(0.5), radius: max.distanceTo(min) / 2 };
+      }
+      const radius = lightBounds.radius * 1.02;
+      keyLight.target.position.copy(lightBounds.center);
+      keyLight.position.fromArray(day.direction).multiplyScalar(2 * radius + 1).add(lightBounds.center);
+      Object.assign(keyLight.shadow.camera, { left: -radius, right: radius, top: radius, bottom: -radius, near: 1, far: 4 * radius + 2 });
+    } else {
+      keyLight.position.fromArray(lightPosition);
+      keyLight.target.position.set(0, 80, 0);
+      Object.assign(keyLight.shadow.camera, shadowCamera);
+    }
+    keyLight.shadow.camera.updateProjectionMatrix();
     scene.background = day?.sky ?? null;
     base.material.color.setHex(day?.ground ?? nightGround);
     for (const [light, [colour, intensity]] of [[keyLight, day?.sun ?? night.sun], [ambientLight, day?.ambient ?? night.ambient], [fillLight, day?.fill ?? night.fill]] as const) {
