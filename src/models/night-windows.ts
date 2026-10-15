@@ -25,6 +25,11 @@ export function windowActivity(hour: number): number {
 function hash(value: string) {
   let seed = 2166136261;
   for (const character of value) seed = Math.imul(seed ^ character.charCodeAt(0), 16777619);
+  // Avalanche adjacent room keys: plain FNV leaves trailing bay digits correlated,
+  // making a whole east-facing floor turn on together instead of small room groups.
+  seed = Math.imul(seed ^ (seed >>> 16), 0x85ebca6b);
+  seed = Math.imul(seed ^ (seed >>> 13), 0xc2b2ae35);
+  seed ^= seed >>> 16;
   return (seed >>> 0) / 4294967296;
 }
 

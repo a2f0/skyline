@@ -158,4 +158,27 @@ describe("Chicago time and sunlight", () => {
     expect(nightWindowMask(plain, "another building", () => "lit window")).not.toEqual(ordinary);
     plain.dispose(); prefixed.dispose(); diagonal.dispose();
   });
+
+  test("spreads adjacent room schedules across east and south facades instead of lighting whole rows", () => {
+    for (const axis of [0, 2]) for (const start of [-10, 0, 10]) {
+      const positions: number[] = [];
+      for (let bay = start; bay < start + 10; bay += 1) {
+        for (const [across, height] of [[0, 0], [2, 0], [2, 3], [0, 0], [2, 3], [0, 3]]) {
+          const point = [0, height!, 0];
+          point[axis] = 7 * bay + 1 + across!;
+          positions.push(...point);
+        }
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      geometry.computeVertexNormals();
+      const mask = nightWindowMask(geometry, "building-blue-cross-blue-shield", () => "lit window");
+      const ranks = Array.from({ length: 10 }, (_, bay) => mask[bay * 6 * 4]!);
+      expect(Math.max(...ranks) - Math.min(...ranks), `ten adjacent bays on axis ${axis} from ${start}`).toBeGreaterThan(0.4);
+      expect(ranks.some((rank) => rank < 0.35)).toBe(true);
+      expect(ranks.some((rank) => rank > 0.55)).toBe(true);
+      expect(nightWindowMask(geometry, "building-blue-cross-blue-shield", () => "lit window")).toEqual(mask);
+      geometry.dispose();
+    }
+  });
 });

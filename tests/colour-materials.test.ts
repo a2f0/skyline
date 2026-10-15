@@ -79,10 +79,15 @@ describe("colour trial", () => {
     const material = toonOf(message);
     material.onBeforeCompile(shader as Parameters<typeof material.onBeforeCompile>[0], {} as THREE.WebGLRenderer);
     const uniforms = shader.uniforms as Record<string, { value: number }>;
+    const neighbour = meshesOf(models.find((model) => idOf(model) === "layer3")!).find((mesh) => mesh.geometry.hasAttribute("skylineWindow"))!;
+    const neighbourShader = { vertexShader: "#include <common>\n#include <begin_vertex>", fragmentShader: "#include <common>\n#include <opaque_fragment>", uniforms: {} };
+    toonOf(neighbour).onBeforeCompile(neighbourShader as Parameters<typeof material.onBeforeCompile>[0], {} as THREE.WebGLRenderer);
+    const neighbourUniforms = neighbourShader.uniforms as Record<string, { value: number }>;
     blueCross.illumination!.set("cubs");
     colour.refresh();
     expect(uniforms["skylineWindowsSuppressed"]!.value).toBe(1);
     expect(uniforms["skylineDarkness"]!.value).toBe(1);
+    expect(neighbourUniforms["skylineWindowsSuppressed"]!.value, "a celebration leaves other towers' office lights alone").toBe(0);
     blueCross.illumination!.set(null);
     colour.refresh();
     expect(uniforms["skylineWindowsSuppressed"]!.value).toBe(0);
