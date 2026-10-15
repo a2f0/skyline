@@ -1,7 +1,9 @@
 import type * as THREE from "./vendor/three-r186.js";
 import { createBuildingStudy, frameBox } from "./study-viewer.js";
 import { createGeographicSkyline } from "./skyline-scene.js";
-import { createGeographicRoads } from "./models/skyline-geography.js";
+import { chicagoDay, chicagoTime } from "./solar-time.js";
+import { createTimeLighting } from "./time-of-day.js";
+import { createGeographicRoads, geographicOrigin } from "./models/skyline-geography.js";
 import type { BuildingModel } from "./models/building-kit.js";
 import { celebrations, type CelebrationId } from "./models/celebrations.js";
 import { createDaylight, createSkylineColour, daylightGround } from "./models/colour-materials.js";
@@ -134,24 +136,56 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
       viewer.requestRender();
     }, listening);
   }
-  // The colour trial's toggle, pressed while the scene shows a sunny day, the measured buildings in
-  // their colours over the greys; pressed again, it restores the night and every grey exactly.
+  // Preserve the original grey/day presets until time is scrubbed. Once previewing,
+  // material colour and time are independent; reset light returns to the chosen preset.
   const colourButton = root.querySelector<HTMLButtonElement>("#colour")!;
   const roadway = roads.material as THREE.MeshToonMaterial;
+  const timeInput = root.querySelector<HTMLInputElement>("#time-of-day")!;
+  const timeOutput = root.querySelector<HTMLOutputElement>("#time-value")!;
+  const timeReset = root.querySelector<HTMLButtonElement>("#reset-light")!;
+  const day = chicagoDay(new Date());
+  root.querySelector<HTMLElement>("#time-date")!.textContent = day.label;
+  timeInput.max = String(day.minutes - 1);
+  const timeLight = createTimeLighting(geographicOrigin[1], geographicOrigin[0], root instanceof ShadowRoot);
+  let selectedTime: Date | null = null;
   let daylight: ReturnType<typeof createDaylight> | undefined;
   let detailView: BuildingDetail | undefined;
-  signal.addEventListener("abort", () => daylight?.sky.dispose(), { once: true });
+  signal.addEventListener("abort", () => { daylight?.sky.dispose(); timeLight.dispose(); }, { once: true });
   function setColour(enabled: boolean) {
     colour.set(enabled);
-    if (enabled) daylight ??= createDaylight();
-    roadway.color.setHex(colour.enabled ? daylightGround.roads : nightRoads);
-    viewer.setDaylight(colour.enabled ? daylight! : null);
-    colourButton.setAttribute("aria-pressed", String(colour.enabled));
-    colourButton.title = enabled ? "Restore the greyscale skyline" : "Show the skyline in sunny-day colour";
-    detailView?.setColour(enabled);
+    if (selectedTime) {
+      const lighting = timeLight.update(selectedTime, enabled);
+      colour.setSky(lighting.reflections);
+      roadway.color.setHex(lighting.roads);
+      viewer.setDaylight(lighting);
+      timeOutput.value = chicagoTime(selectedTime);
+    } else {
+      if (enabled) daylight ??= createDaylight();
+      colour.setSky(null);
+      roadway.color.setHex(enabled ? daylightGround.roads : nightRoads);
+      viewer.setDaylight(enabled ? daylight! : null);
+      timeInput.value = enabled ? "720" : "0";
+      timeOutput.value = enabled ? "sunny day" : "original night";
+    }
+    timeReset.disabled = !selectedTime;
+    timeInput.setAttribute("aria-valuetext", `${timeOutput.value}, ${day.label}, Chicago${selectedTime ? "" : ", move to preview a time"}`);
+    colourButton.setAttribute("aria-pressed", String(enabled));
+    colourButton.title = selectedTime ? (enabled ? "Show this time in greyscale" : "Show this time in colour")
+      : enabled ? "Restore the greyscale skyline" : "Show the skyline in sunny-day colour";
+    detailView?.setTime(selectedTime, enabled);
   }
+  timeInput.addEventListener("input", () => {
+    const firstPreview = selectedTime === null;
+    selectedTime = new Date(day.start + timeInput.valueAsNumber * 60_000);
+    setColour(firstPreview || colour.enabled);
+  }, listening);
+  timeReset.addEventListener("click", () => {
+    timeInput.focus({ preventScroll: true });
+    selectedTime = null;
+    setColour(colour.enabled);
+  }, listening);
   colourButton.addEventListener("click", () => setColour(!colour.enabled), listening);
-  if (initiallyColoured) setColour(true);
+  setColour(initiallyColoured);
   // The star in the middle of the bar opens and closes the toolbar. Each group unfolds from
   // the star: clipped open from its `--fold` inset while it fades in, one beside the star
   // slides out from it to its edge of the bar, and it folds back the same way before it hides. A toggle mid-way reverses the moving
@@ -412,6 +446,7 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
       markup.classList.add("framed");
       detailRoot.append(document.importNode(markup, true));
       detailView = showBuildingDetail({ root: detailRoot, id, frame: detailRoot.querySelector<HTMLElement>(".detail-root")!, signal: controller.signal, colour: colour.enabled, onColourChange: setColour });
+      detailView?.setTime(selectedTime, colour.enabled);
     }).catch((error: unknown) => {
       if (controller.signal.aborted) return;
       // A detail that fails part way is released at once, renderer and listeners included,

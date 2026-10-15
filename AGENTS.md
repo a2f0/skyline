@@ -5,8 +5,8 @@ modules live in `src/`, with building models in `src/models/` and the vendored
 Three.js in `src/vendor/`; keep the root to repository configuration, and
 `docs/development.md` maps the layout. Sources live as `.ts`; the browser module
 graph (the viewer's `viewer-page.ts`, `skyline-shell.ts`, `skyline-viewer.ts`,
-`markup.ts` and `three-engine.ts`; the pages' `study-loader.ts`, `skyline-3d-page.ts`
-and `building-detail-page.ts`; `study-viewer.ts`, `skyline-study.ts`,
+`markup.ts`, `three-engine.ts`, `solar-time.ts` and `time-of-day.ts`; the pages'
+`study-loader.ts`, `skyline-3d-page.ts` and `building-detail-page.ts`; `study-viewer.ts`, `skyline-study.ts`,
 `skyline-comparison.ts`, `skyline-3d.ts`, `building-study.ts`, `building-detail.ts`, and `models/*.ts`, all
 under `src/`) compiles to `dist/` with tsc, which is the only build step, and
 `dist/` is gitignored. Each keeps its path within `src/` in `dist/`, so page URLs

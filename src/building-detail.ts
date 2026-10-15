@@ -3,7 +3,8 @@ import { createBuildingStudy } from "./study-viewer.js";
 import { skylineAzimuth } from "./skyline-comparison.js";
 import { geographicBuildings } from "./models/skyline-geography-data.js";
 import type { GeoBuilding } from "./models/skyline-geography-data.js";
-import { createGeographicBuilding, footprintMetrics } from "./models/skyline-geography.js";
+import { createGeographicBuilding, footprintMetrics, geographicOrigin } from "./models/skyline-geography.js";
+import { createTimeLighting } from "./time-of-day.js";
 import { createDaylight, createSkylineColour } from "./models/colour-materials.js";
 
 export interface BuildingDetailOptions {
@@ -23,6 +24,7 @@ export interface BuildingDetailOptions {
 
 export interface BuildingDetail {
   setColour(enabled: boolean): void;
+  setTime(date: Date | null, coloured: boolean): void;
 }
 
 // One mapped building of the 3D skyline, alone on its own platform, as the building study
@@ -103,20 +105,39 @@ function showBuilding(record: GeoBuilding, root: Document | ShadowRoot, frame: H
   });
   const colour = createSkylineColour([model]), button = root.querySelector<HTMLButtonElement>("#colour")!;
   let daylight: ReturnType<typeof createDaylight> | undefined;
-  signal.addEventListener("abort", () => daylight?.sky.dispose(), { once: true });
+  let selectedTime: Date | null = null;
+  let timeLight: ReturnType<typeof createTimeLighting> | undefined;
+  signal.addEventListener("abort", () => { daylight?.sky.dispose(); timeLight?.dispose(); }, { once: true });
   function setColour(enabled: boolean) {
     colour.set(enabled);
-    if (enabled) daylight ??= createDaylight();
-    viewer.setDaylight(enabled ? daylight! : null);
+    if (selectedTime) {
+      // Each renderer owns its sky texture and disposal listeners. Sharing the parent's
+      // texture would retain closed detail renderers until the whole skyline is destroyed.
+      timeLight ??= createTimeLighting(geographicOrigin[1], geographicOrigin[0], false);
+      const lighting = timeLight.update(selectedTime, enabled);
+      colour.setSky(lighting.reflections);
+      viewer.setDaylight(lighting);
+    } else {
+      if (enabled) daylight ??= createDaylight();
+      colour.setSky(null);
+      viewer.setDaylight(enabled ? daylight! : null);
+    }
     button.setAttribute("aria-pressed", String(enabled));
-    button.title = enabled ? "Restore the building's greyscale view" : "Show the building in sunny-day colour";
+    button.title = selectedTime ? (enabled ? "Show this time in greyscale" : "Show this time in colour")
+      : enabled ? "Restore the building's greyscale view" : "Show the building in sunny-day colour";
   }
   button.addEventListener("click", () => {
     setColour(!colour.enabled);
     onColourChange?.(colour.enabled);
   }, { signal });
   if (initiallyColoured) setColour(true);
-  return { setColour };
+  return {
+    setColour,
+    setTime(date, coloured) {
+      selectedTime = date;
+      setColour(coloured);
+    },
+  };
 }
 
 // Sources open beside the page, so a detail floated over the skyline stays where it is.

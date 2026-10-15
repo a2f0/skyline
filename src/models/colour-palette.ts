@@ -308,3 +308,13 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
 // above the horizon, each the median of a clear box of the same panorama (scripts/sample-colours.ts,
 // the day study's sky), and the sun's warm white, chosen.
 export const daylightColours = { sky: 0x9ebbdb, horizon: 0xc4d1e1, sun: 0xfff4e6 } as const;
+
+// Illustrated clear-sky time previews. Solar elevation chooses the stops; these are
+// artistic colours, separate from the photograph-calibrated daytime palette above.
+export const timeOfDayColours = [
+  { elevation: -18, sky: 0x02040c, horizon: 0x080d1b, sun: 0xffb077 },
+  { elevation: -8, sky: 0x142345, horizon: 0x5b526e, sun: 0xffad76 },
+  { elevation: -2, sky: 0x415b89, horizon: 0xe89b79, sun: 0xffb477 },
+  { elevation: 6, sky: 0x829fc5, horizon: 0xf0c3a0, sun: 0xffd4a8 },
+  { elevation: 25, ...daylightColours },
+] as const;

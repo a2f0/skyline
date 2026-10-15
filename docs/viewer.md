@@ -48,10 +48,12 @@ Closed, the bar shows only a muted grey six-pointed star in its middle, white un
 Chicago's, redrawn in `skyline-3d.html` from the one in devopsrockstars' `white-star-only.svg`.
 Pressing the star unfolds the toolbar outward from it, camera views sliding out to the bar's left
 edge and model display to its right edge, and the camera hint appears over the scene; pressing it
-again, or `Escape` in the bar, folds them back. The bar keeps one height closed, and open on a
-window at least 1260 px wide; narrower windows put the groups under the star, at the edges of one
-row or centred in a row each, and the scene stands on the taller bar while it is open. Reduced
-motion opens and closes it at once, and a window resized mid-fold settles the fold at once.
+again, or `Escape` in the bar, folds them back. Closed, the bar is 39 px tall. At desktop
+widths of at least 1440 px, the open bar is 100 px tall, with model toggles, the time slider,
+and lighting badges in three rows beside the star. Narrower windows put the groups under
+the star, at the edges of one row or centred in a row each. The scene resizes above the bar
+when it opens. Reduced motion opens and closes it at once, and a window resized mid-fold
+settles the fold at once.
 
 The site's own viewer, `index.html`, starts the bar open from its first frame, with no fold, to
 show what the scene can do, and the star folds it as usual. Everywhere else it starts closed: on
@@ -82,6 +84,7 @@ heights. Open, the bar holds the study's toolbar:
 - **wireframe** shows the triangles, and **turntable** circles the city about the camera's pivot;
 - **colour** is a trial ([issue 115](https://github.com/a2f0/skyline/issues/115)): each building's
   materials in colour, described [below](#colour-trial);
+- **Chicago time** previews the date shown beneath it, with moving sunlight and a changing sky; **reset light** restores the original lighting preset;
 - the **lights** badges, described [below](#celebratory-lights).
 
 The pressed camera button names the view, so the bar has no separate view label. A small credit in
@@ -166,7 +169,7 @@ buildings' are; `bun scripts/sample-colours.ts day sky` reproduces them. The sun
 | Sky, top of the frame | 3300, 0, 3800, 25 | all | 12,500 (100.0%) | `158, 187, 219` | 156–159 / 185–189 / 217–220 |
 | Sky, near the horizon | 3000, 420, 3800, 470 | all | 40,000 (100.0%) | `196, 209, 225` | 194–199 / 207–211 / 223–227 |
 
-Pressing the toggle again restores every grey and the night exactly. The models themselves are
+Before using the time slider, pressing the toggle again restores every grey and the night exactly. The models themselves are
 untouched, and celebratory lights work in either mode. The building detail panel inherits the scene's mode; either colour toggle updates both views.
 A standalone detail has its own colour toggle. Add `?colour=1` to the viewer or 3D page, or
 `&colour=1` to a building detail URL, to open in daylight. The building menu's separate-page link
@@ -237,6 +240,38 @@ own address, opens the detail on its own, with links back to the skyline and the
 `building-detail.ts` centres the geographic model on its mapped outline and frames it and its
 platform from every side; `tests/building-detail.test.ts` holds each mapped building inside the
 canvas in each view, in the viewer's panel and on a phone.
+
+### Time of day
+
+The **Chicago time** slider previews any minute of the Chicago date captured when the
+viewer opens. Its label shows that date; the readout uses Chicago's local time and CST/CDT,
+independent of the visitor's time zone. Clock-change dates have 23 or 25 hours, including
+both occurrences of the repeated autumn hour. Arrow keys move by one minute; Home and End
+reach the day's first and last minute. Dragging works with reduced motion enabled and
+renders only on changes; there is no automatic playback or clock-following mode yet.
+
+The first drag enables colour. While previewing, **colour** changes the materials and sky
+between colour and greyscale without changing the selected time. **reset light** leaves the
+preview and restores the chosen colour mode's exact original preset: sunny day or original
+greyscale night. The slider's initial readout names that preset rather than claiming it
+represents a calculated time. The floating building detail shares the preview; its separate
+page link still opens the colour mode's original preset.
+
+`solar-time.ts` calculates geometric solar direction from an absolute timestamp and the
+scene's Chicago coordinates using [NOAA's general solar-position equations](https://gml.noaa.gov/grad/solcalc/solareqns.PDF).
+The world axes are east/up/south, independent of the camera. `time-of-day.ts` uses solar
+elevation to blend the clear-sky colours in `models/colour-palette.ts`, direct sunlight,
+ambient/fill light and ground colours. These sky colours are illustrated, not measured
+weather. The existing office-window and celebration controls remain as before; this preview
+does not simulate occupancy, moonlight, clouds or a visible sun disk.
+
+Each viewer and open building detail owns and reuses one small sky texture, disposed when
+that view closes. In the viewer, its premultiplied alpha reveals the existing stars through
+twilight, while buildings remain opaque. Glass reflection uniforms
+follow the same sky without shader recompilation or rewriting building geometry. The
+shadow camera encloses both buildings and platform for any sun direction, including low
+winter sun. Details inherit the same direction while fitting their own shadow bounds.
+The timestamp-driven calculation is separate from the slider for future automation.
 
 ### Celebratory lights
 

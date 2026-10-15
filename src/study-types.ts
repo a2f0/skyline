@@ -67,6 +67,8 @@ export interface StudyLabel {
 // sun being the shadow-casting key light. The colour trial (models/colour-materials.ts) gives it.
 export interface Daylight {
   sky: THREE.Texture;
+  /** Unit vector toward the sun in world east/up/south coordinates. */
+  direction?: Vec3;
   sun: readonly [colour: number, intensity: number];
   ambient: readonly [colour: number, intensity: number];
   fill: readonly [colour: number, intensity: number];
