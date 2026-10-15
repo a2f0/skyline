@@ -30,30 +30,46 @@ function hash(value: string) {
 
 const architectural = new Set<MaterialName>(["lamp", "crown lights", "band lights", "sign letters", "cap lights"]);
 
-// The building kit emits each pane as a six-vertex quad. Reuse those exact surfaces;
+// The building kit emits panes as paired triangles, interspersed with standalone
+// triangles for other features. Find shared edges rather than assuming quad alignment.
+// Reuse those exact surfaces;
 // never turn a generic glass shell, spandrel, masonry face or roof into a light source.
 // Adjacent bays share a floor/room seed, so offices come on in small groups. Identity
 // depends on local geometry and building ID, not load order, camera or slider direction.
 export function nightWindowMask(geometry: THREE.BufferGeometry, buildingId: string, materialOf: (vertex: number) => MaterialName): Float32Array {
   const positions = geometry.getAttribute("position"), normals = geometry.getAttribute("normal");
   const mask = new Float32Array(positions.count * 4);
-  for (let first = 0; first < positions.count; first += 6) {
-    const end = Math.min(first + 6, positions.count);
+  const samePoint = (a: number, b: number) => positions.getX(a) === positions.getX(b) && positions.getY(a) === positions.getY(b) && positions.getZ(a) === positions.getZ(b);
+  for (let first = 0; first < positions.count;) {
+    const name = materialOf(first), crown = architectural.has(name);
+    const window = name === "lit window" || name === "dim window";
+    if (!crown && (!window || Math.abs(normals.getY(first)) > 0.5)) { first += 3; continue; }
+    let count = 3;
+    if (first + 6 <= positions.count && materialOf(first + 3) === name
+      && normals.getX(first) === normals.getX(first + 3) && normals.getY(first) === normals.getY(first + 3) && normals.getZ(first) === normals.getZ(first + 3)) {
+      let shared = 0;
+      for (let a = first; a < first + 3; a += 1) {
+        for (let b = first + 3; b < first + 6; b += 1) if (samePoint(a, b)) { shared += 1; break; }
+      }
+      if (shared === 2) count = 6;
+    }
+    const end = first + count;
     let x = 0, y = 0, z = 0;
     for (let vertex = first; vertex < end; vertex += 1) {
       x += positions.getX(vertex); y += positions.getY(vertex); z += positions.getZ(vertex);
     }
-    const count = end - first;
-    const floor = Math.round(y / count / 3.4), bay = Math.floor((x + z) / count / 7);
-    const room = hash(`${buildingId}:${floor}:${bay}`);
-    const brightness = hash(`${buildingId}:${floor}:${bay}:brightness`);
+    const floor = Math.round(y / count / 3.4), across = Math.floor(x / count / 7), depth = Math.floor(z / count / 7);
+    const room = hash(`${buildingId}:${floor}:${across}:${depth}`);
+    const brightness = hash(`${buildingId}:${floor}:${across}:${depth}:brightness`);
     for (let vertex = first; vertex < end; vertex += 1) {
-      const name = materialOf(vertex), crown = architectural.has(name);
-      const window = name === "lit window" || name === "dim window";
-      if (!crown && (!window || Math.abs(normals.getY(vertex)) > 0.5)) continue;
+      if (materialOf(vertex) !== name) continue;
       const rank = name === "lit window" ? 0.05 + room * 0.8 : 0.3 + room * 0.75;
-      mask.set([rank, crown ? 0.3 : 0.25 + brightness * 0.45, crown ? 2 : 1, brightness], vertex * 4);
+      mask[vertex * 4] = rank;
+      mask[vertex * 4 + 1] = crown ? 0.3 : 0.25 + brightness * 0.45;
+      mask[vertex * 4 + 2] = crown ? 2 : 1;
+      mask[vertex * 4 + 3] = brightness;
     }
+    first = end;
   }
   return mask;
 }

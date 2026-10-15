@@ -40,6 +40,7 @@ const sourced = models.filter((model) => measuredColours[idOf(model)]);
 describe("colour trial", () => {
   test("night illumination uses window and lamp surfaces, dims outlines, and restores the preset", () => {
     const before = snapshotOf(models);
+    const shaders = models.flatMap(meshesOf).map((mesh) => ({ material: toonOf(mesh), compile: toonOf(mesh).onBeforeCompile }));
     const outlines: { material: THREE.LineBasicMaterial; opacity: number }[] = [];
     for (const model of models) model.building.traverse((object) => {
       const line = object as THREE.LineSegments;
@@ -72,8 +73,23 @@ describe("colour trial", () => {
     expect(lamps).toBeGreaterThan(100);
     for (const { material, opacity } of outlines) expect(material.opacity).toBe(opacity * 0.05);
     expect(snapshotOf(models), "night uniforms never repaint geometry").toEqual(before);
+    const blueCross = models.find((model) => idOf(model) === "building-blue-cross-blue-shield")!;
+    const message = meshesOf(blueCross).find((mesh) => mesh.geometry.hasAttribute("windowLight"))!;
+    const shader = { vertexShader: "#include <common>\n#include <begin_vertex>", fragmentShader: "#include <common>\n#include <emissivemap_fragment>\n#include <opaque_fragment>", uniforms: {} };
+    const material = toonOf(message);
+    material.onBeforeCompile(shader as Parameters<typeof material.onBeforeCompile>[0], {} as THREE.WebGLRenderer);
+    const uniforms = shader.uniforms as Record<string, { value: number }>;
+    blueCross.illumination!.set("cubs");
+    colour.refresh();
+    expect(uniforms["skylineWindowsSuppressed"]!.value).toBe(1);
+    expect(uniforms["skylineDarkness"]!.value).toBe(1);
+    blueCross.illumination!.set(null);
+    colour.refresh();
+    expect(uniforms["skylineWindowsSuppressed"]!.value).toBe(0);
+    expect(snapshotOf(models)).toEqual(before);
     colour.setNight(null);
     for (const { material, opacity } of outlines) expect(material.opacity).toBe(opacity);
+    for (const { material, compile } of shaders) expect(material.onBeforeCompile, "greyscale reset restores the original shader").toBe(compile);
   });
 
   test("reflects only sourced glass and restores shaders without touching geometry or ownership", () => {

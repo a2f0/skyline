@@ -28,6 +28,7 @@ export function glassReflection(material: THREE.MeshToonMaterial, geometry: THRE
     skylineReflecting: { value: 0 },
     skylineDarkness: { value: 0 },
     skylineActivity: { value: 0 },
+    skylineWindowsSuppressed: { value: 0 },
     skylineWindowWarm: { value: new THREE.Color(nightColours.window) },
     skylineWindowWhite: { value: new THREE.Color(nightColours.windowWhite) },
   };
@@ -50,6 +51,7 @@ uniform vec3 skylineGround;
 uniform float skylineReflecting;
 uniform float skylineDarkness;
 uniform float skylineActivity;
+uniform float skylineWindowsSuppressed;
 uniform vec3 skylineWindowWarm;
 uniform vec3 skylineWindowWhite;`).replace("#include <opaque_fragment>", `
 if (vSkylineGlass > 0.0 && skylineReflecting > 0.0) {
@@ -65,7 +67,7 @@ if (vSkylineGlass > 0.0 && skylineReflecting > 0.0) {
 if (vSkylineWindow.z > 0.0 && skylineDarkness > 0.0) {
   float occupied = 1.0 - smoothstep(skylineActivity - 0.05, skylineActivity + 0.05, vSkylineWindow.x);
   float dusk = smoothstep(0.12 + 0.35 * vSkylineWindow.x, 0.45 + 0.35 * vSkylineWindow.x, skylineDarkness);
-  float light = vSkylineWindow.z > 1.5 ? skylineDarkness : occupied * dusk;
+  float light = vSkylineWindow.z > 1.5 ? skylineDarkness : occupied * dusk * (1.0 - skylineWindowsSuppressed);
   vec3 lamp = mix(skylineWindowWarm, skylineWindowWhite, vSkylineWindow.w);
   outgoingLight += lamp * vSkylineWindow.y * light;
 }
@@ -101,7 +103,8 @@ if (vSkylineWindow.z > 0.0 && skylineDarkness > 0.0) {
     setNight(lighting: NightLighting | null, coloured: boolean, celebration: boolean) {
       night = lighting !== null;
       // A deliberately composed celebration takes precedence over ordinary office rooms.
-      uniforms.skylineDarkness.value = celebration ? 0 : lighting?.darkness ?? 0;
+      uniforms.skylineDarkness.value = lighting?.darkness ?? 0;
+      uniforms.skylineWindowsSuppressed.value = celebration ? 1 : 0;
       uniforms.skylineActivity.value = lighting?.activity ?? 0;
       for (const [uniform, hex] of [[uniforms.skylineWindowWarm, nightColours.window], [uniforms.skylineWindowWhite, nightColours.windowWhite]] as const) {
         uniform.value.setHex(hex);
