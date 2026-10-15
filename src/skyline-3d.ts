@@ -168,7 +168,7 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
       timeOutput.value = enabled ? "sunny day" : "original night";
     }
     timeReset.disabled = !selectedTime;
-    timeInput.setAttribute("aria-valuetext", `${timeOutput.value}, ${day.label}, Chicago${selectedTime ? "" : ", drag to preview a time"}`);
+    timeInput.setAttribute("aria-valuetext", `${timeOutput.value}, ${day.label}, Chicago${selectedTime ? "" : ", move to preview a time"}`);
     colourButton.setAttribute("aria-pressed", String(enabled));
     colourButton.title = selectedTime ? (enabled ? "Show this time in greyscale" : "Show this time in colour")
       : enabled ? "Restore the greyscale skyline" : "Show the skyline in sunny-day colour";
@@ -179,7 +179,11 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
     selectedTime = new Date(day.start + timeInput.valueAsNumber * 60_000);
     setColour(firstPreview || colour.enabled);
   }, listening);
-  timeReset.addEventListener("click", () => { selectedTime = null; setColour(colour.enabled); }, listening);
+  timeReset.addEventListener("click", () => {
+    timeInput.focus({ preventScroll: true });
+    selectedTime = null;
+    setColour(colour.enabled);
+  }, listening);
   colourButton.addEventListener("click", () => setColour(!colour.enabled), listening);
   setColour(initiallyColoured);
   // The star in the middle of the bar opens and closes the toolbar. Each group unfolds from
