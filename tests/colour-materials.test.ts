@@ -38,6 +38,65 @@ const materialsOf = (id: string) => new Set(Object.values(colourMaterials[id]!).
 const sourced = models.filter((model) => measuredColours[idOf(model)]);
 
 describe("colour trial", () => {
+  test("night illumination uses window and lamp surfaces, dims outlines, and restores the preset", () => {
+    const before = snapshotOf(models);
+    const shaders = models.flatMap(meshesOf).map((mesh) => ({ material: toonOf(mesh), compile: toonOf(mesh).onBeforeCompile }));
+    const outlines: { material: THREE.LineBasicMaterial; opacity: number }[] = [];
+    for (const model of models) model.building.traverse((object) => {
+      const line = object as THREE.LineSegments;
+      if (line.isLineSegments && line.material instanceof THREE.LineBasicMaterial) outlines.push({ material: line.material, opacity: line.material.opacity });
+    });
+    const colour = createSkylineColour(models);
+    colour.setNight({ darkness: 1, activity: 0.76, outlineStrength: 0.05 });
+    let windows = 0, lamps = 0, maskedMasonry = 0;
+    for (const model of models) for (const mesh of meshesOf(model)) {
+      const mask = mesh.geometry.getAttribute("skylineWindow");
+      if (!mask) continue;
+      const [base, tones = {}] = batchOf(idOf(model), mesh.name)!;
+      const colours = mesh.geometry.getAttribute("color");
+      const classification = new Map<number, string>();
+      for (let vertex = 0; vertex < mask.count; vertex += 1) {
+        const grey = toonOf(mesh).vertexColors ? colours.getX(vertex) : toonOf(mesh).color.r;
+        let name = classification.get(grey);
+        if (!name) classification.set(grey, name = tones[toneOf(grey)] ?? base);
+        if (mask.getZ(vertex) === 1) {
+          if (name !== "lit window" && name !== "dim window") maskedMasonry += 1;
+          windows += 1;
+        } else if (mask.getZ(vertex) === 2) {
+          if (!["lamp", "crown lights", "band lights", "sign letters", "cap lights"].includes(name)) maskedMasonry += 1;
+          lamps += 1;
+        }
+      }
+    }
+    expect(maskedMasonry).toBe(0);
+    expect(windows).toBeGreaterThan(1000);
+    expect(lamps).toBeGreaterThan(100);
+    for (const { material, opacity } of outlines) expect(material.opacity).toBe(opacity * 0.05);
+    expect(snapshotOf(models), "night uniforms never repaint geometry").toEqual(before);
+    const blueCross = models.find((model) => idOf(model) === "building-blue-cross-blue-shield")!;
+    const message = meshesOf(blueCross).find((mesh) => mesh.geometry.hasAttribute("windowLight"))!;
+    const shader = { vertexShader: "#include <common>\n#include <begin_vertex>", fragmentShader: "#include <common>\n#include <emissivemap_fragment>\n#include <opaque_fragment>", uniforms: {} };
+    const material = toonOf(message);
+    material.onBeforeCompile(shader as Parameters<typeof material.onBeforeCompile>[0], {} as THREE.WebGLRenderer);
+    const uniforms = shader.uniforms as Record<string, { value: number }>;
+    const neighbour = meshesOf(models.find((model) => idOf(model) === "layer3")!).find((mesh) => mesh.geometry.hasAttribute("skylineWindow"))!;
+    const neighbourShader = { vertexShader: "#include <common>\n#include <begin_vertex>", fragmentShader: "#include <common>\n#include <opaque_fragment>", uniforms: {} };
+    toonOf(neighbour).onBeforeCompile(neighbourShader as Parameters<typeof material.onBeforeCompile>[0], {} as THREE.WebGLRenderer);
+    const neighbourUniforms = neighbourShader.uniforms as Record<string, { value: number }>;
+    blueCross.illumination!.set("cubs");
+    colour.refresh();
+    expect(uniforms["skylineWindowsSuppressed"]!.value).toBe(1);
+    expect(uniforms["skylineDarkness"]!.value).toBe(1);
+    expect(neighbourUniforms["skylineWindowsSuppressed"]!.value, "a celebration leaves other towers' office lights alone").toBe(0);
+    blueCross.illumination!.set(null);
+    colour.refresh();
+    expect(uniforms["skylineWindowsSuppressed"]!.value).toBe(0);
+    expect(snapshotOf(models)).toEqual(before);
+    colour.setNight(null);
+    for (const { material, opacity } of outlines) expect(material.opacity).toBe(opacity);
+    for (const { material, compile } of shaders) expect(material.onBeforeCompile, "greyscale reset restores the original shader").toBe(compile);
+  });
+
   test("reflects only sourced glass and restores shaders without touching geometry or ownership", () => {
     const before = models.flatMap(meshesOf).map((mesh) => ({ mesh,
       position: mesh.geometry.getAttribute("position"), normal: mesh.geometry.getAttribute("normal"), index: mesh.geometry.index,

@@ -2,18 +2,15 @@ import * as THREE from "./vendor/three-r186.js";
 import type { Daylight } from "./study-types.js";
 import type { ReflectionColours } from "./models/colour-reflections.js";
 import { daylightGround, daylightIntensities } from "./models/colour-materials.js";
-import { timeOfDayColours } from "./models/colour-palette.js";
-import { solarPosition } from "./solar-time.js";
+import { nightColours, timeOfDayColours } from "./models/colour-palette.js";
+import { smooth, windowActivity, type NightLighting } from "./models/night-windows.js";
+import { chicagoHour, solarPosition } from "./solar-time.js";
 
 export interface TimeLighting extends Daylight {
   reflections: ReflectionColours;
   roads: number;
+  night: NightLighting;
 }
-
-const smooth = (low: number, high: number, value: number) => {
-  const t = Math.max(0, Math.min(1, (value - low) / (high - low)));
-  return t * t * (3 - 2 * t);
-};
 
 // One tiny texture per viewer, updated in place while dragging and disposed at teardown.
 // Transparent night sky reveals the viewer's existing stars behind opaque buildings.
@@ -57,9 +54,10 @@ export function createTimeLighting(latitude: number, longitude: number, transpar
         sky, direction, ground,
         roads: blend(0x2c2c2c, daylightGround.roads, day, false),
         sun: [sun, daylightIntensities.sun * smooth(-0.833, 8, elevation)],
-        ambient: [blend(0xffffff, top, day, coloured), 0.3 + day * (daylightIntensities.ambient - 0.3)],
-        fill: [blend(0xffffff, horizon, day, coloured), 0.18 + day * (daylightIntensities.fill - 0.18)],
+        ambient: [blend(nightColours.ambient, top, day, coloured), 0.16 + day * (daylightIntensities.ambient - 0.16)],
+        fill: [blend(nightColours.fill, horizon, day, coloured), 0.08 + day * (daylightIntensities.fill - 0.08)],
         reflections: { sky: top, horizon, ground: blend(0x080808, 0x444444, day, false) },
+        night: { darkness: 1 - smooth(-6, 3, elevation), activity: windowActivity(chicagoHour(date)), outlineStrength: 0.05 + 0.95 * day },
       };
     },
     dispose() { sky.dispose(); },

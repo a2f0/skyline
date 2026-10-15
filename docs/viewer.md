@@ -182,7 +182,8 @@ per-vertex mask to keep stone, metal frames, signs and roof surfaces matte even 
 batches. This is an illustrated open-sky reflection, not nearby-building reflections or calibrated
 PBR. The original toon shading, shadows and geometry remain. The measured glass colours already
 contain the source photograph's reflection, so the added reflection is intentionally modest.
-Turning colour off restores the original shader callbacks and cache keys as well as every grey.
+Turning colour off restores every grey. Without a time preview, it also restores the original
+shader callbacks and cache keys; during a preview, the facade shader keeps the night lights in greyscale.
 The mask is reused across toggles and released with its geometry. No environment image is fetched.
 
 Run `bun scripts/render-colours.ts` for matching grey/day skyline and elevated comparisons,
@@ -203,7 +204,9 @@ measured colours as red, green and blue values. `tests/colour-materials.test.ts`
 step with the models, so a renamed batch or a retoned surface it names fails there, checks every
 material of a sourced building is measured, named or left grey, finds each measured colour on its
 building and in its audit's daytime entry, and checks the day's sky and lights. Removing the trial
-means deleting the palette, materials, reflection layer and their tests, `scripts/sample-colours.ts` and `scripts/panorama-owners.ts` with
+means first separating the time preview's facade lighting (`models/night-windows.ts`, `setNight`,
+and `nightColours`) from the shared palette, materials and reflection layer if that preview is to stay.
+Then remove the trial's palette, materials, reflection layer and their tests, `scripts/sample-colours.ts` and `scripts/panorama-owners.ts` with
 their `scripts/lib/panorama.ts` and `scripts/lib/shade.ts`, the tests
 `tests/panorama-owners.test.ts` and `tests/colour-shade.test.ts` and their lines in
 `scripts/check.ts`, the colour options and toggles in the viewer and building details, the roads' daytime grey in `skyline-3d.ts`,
@@ -262,8 +265,21 @@ scene's Chicago coordinates using [NOAA's general solar-position equations](http
 The world axes are east/up/south, independent of the camera. `time-of-day.ts` uses solar
 elevation to blend the clear-sky colours in `models/colour-palette.ts`, direct sunlight,
 ambient/fill light and ground colours. These sky colours are illustrated, not measured
-weather. The existing office-window and celebration controls remain as before; this preview
-does not simulate occupancy, moonlight, clouds or a visible sun disk.
+weather. At dusk, small groups of existing office panes gradually illuminate in warm and
+soft-white tones; the night grows quieter after midnight, with some early arrivals before
+dawn. Daylight fades the emission away. This is an illustrated daily pattern, not measured
+occupancy. Existing crown, band and sign lights remain on through the night. A celebration
+takes precedence over ordinary windows on its building so its lettering stays clear.
+Moonlight, clouds and a visible sun disk are not simulated.
+
+Nighttime facades receive a restrained cool fill, and the drawing's unlit outlines dim with
+the sun. This keeps pale framing from reading as a glowing wireframe against the black sky.
+`models/night-windows.ts` derives stable room groups from building identity and existing
+pane geometry. Scrubbing back to a time gives the same pattern, including in the floating
+detail. The facade shader combines glass reflections and window emission using uniforms;
+time changes add no geometry, shader recompilation, external requests or animation loop.
+Grayscale previews keep the lighting neutral, and **reset light** restores the original
+outlines and materials along with the sky.
 
 Each viewer and open building detail owns and reuses one small sky texture, disposed when
 that view closes. In the viewer, its premultiplied alpha reveals the existing stars through

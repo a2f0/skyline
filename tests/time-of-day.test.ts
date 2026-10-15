@@ -5,6 +5,7 @@ import { createTimeLighting } from "../src/time-of-day.js";
 import { geographicOrigin } from "../src/models/skyline-geography.js";
 import { glassReflection } from "../src/models/colour-reflections.js";
 import { daylightColours } from "../src/models/colour-palette.js";
+import { nightWindowMask, windowActivity } from "../src/models/night-windows.js";
 
 const [longitude, latitude] = geographicOrigin;
 const sun = (instant: string) => solarPosition(new Date(instant), latitude, longitude);
@@ -85,5 +86,99 @@ describe("Chicago time and sunlight", () => {
     expect(material.version).toBe(version);
     expect(material.customProgramCacheKey()).toBe(key);
     material.dispose(); geometry.dispose();
+  });
+
+  test("lights evenings, quietens late nights, and fades into daylight across seasons", () => {
+    expect(windowActivity(20)).toBeGreaterThan(windowActivity(0));
+    expect(windowActivity(0)).toBeGreaterThan(windowActivity(4));
+    expect(windowActivity(7)).toBeGreaterThan(windowActivity(4));
+    expect(windowActivity(24)).toBeCloseTo(windowActivity(0), 10);
+    expect(windowActivity(12 - 0.0001)).toBeCloseTo(windowActivity(12), 6);
+    const light = createTimeLighting(latitude, longitude, false);
+    const evening = light.update(new Date("2026-10-16T01:00:00Z"), true);
+    const early = light.update(new Date("2026-10-15T09:00:00Z"), true);
+    expect(evening.night.darkness).toBe(1);
+    expect(early.night.darkness).toBe(1);
+    expect(evening.night.activity).toBeGreaterThan(early.night.activity);
+    expect(early.night.outlineStrength).toBeLessThan(0.1);
+    const summer = light.update(new Date("2026-06-21T17:52:00Z"), true);
+    const winter = light.update(new Date("2026-12-21T17:49:00Z"), true);
+    expect(summer.night.darkness).toBe(0);
+    expect(winter.night.darkness).toBe(0);
+    expect(summer.night.outlineStrength).toBe(1);
+    expect(summer.ambient[1]).toBeGreaterThan(early.ambient[1] * 4);
+    light.dispose();
+  });
+
+  test("night lights share stable uniforms, stay grey when requested, and yield to celebrations", () => {
+    const material = new THREE.MeshToonMaterial(), geometry = new THREE.BufferGeometry();
+    const original = material.onBeforeCompile;
+    const facade = glassReflection(material, geometry, new Float32Array([1]), new Float32Array([0.2, 0.5, 1, 0.4]));
+    const night = { darkness: 1, activity: 0.7, outlineStrength: 0.05 };
+    facade.setNight(night, true, false);
+    const shader = { vertexShader: "#include <common>\n#include <begin_vertex>", fragmentShader: "#include <common>\n#include <opaque_fragment>", uniforms: {} };
+    material.onBeforeCompile(shader as Parameters<typeof material.onBeforeCompile>[0], {} as THREE.WebGLRenderer);
+    const uniforms = shader.uniforms as Record<string, { value: number | THREE.Color }>;
+    const version = material.version, key = material.customProgramCacheKey();
+    facade.setNight({ ...night, activity: 0.24 }, false, false);
+    expect(uniforms["skylineActivity"]!.value).toBe(0.24);
+    const warm = uniforms["skylineWindowWarm"]!.value as THREE.Color;
+    expect(warm.r).toBe(warm.g);
+    expect(warm.r).toBe(warm.b);
+    facade.setNight(night, true, true);
+    expect(uniforms["skylineDarkness"]!.value, "architectural lighting stays on during a celebration").toBe(1);
+    expect(uniforms["skylineWindowsSuppressed"]!.value).toBe(1);
+    facade.setNight(night, true, false);
+    expect(uniforms["skylineDarkness"]!.value).toBe(1);
+    expect(uniforms["skylineWindowsSuppressed"]!.value).toBe(0);
+    expect(material.version).toBe(version);
+    expect(material.customProgramCacheKey()).toBe(key);
+    facade.setNight(null, false, false);
+    expect(material.onBeforeCompile).toBe(original);
+    material.dispose(); geometry.dispose();
+  });
+
+  test("keeps both triangles of a pane together after odd triangles, and separates diagonal bays", () => {
+    const pane = [0, 0, 0, 2, 0, -2, 2, 3, -2, 0, 0, 0, 2, 3, -2, 0, 3, 0];
+    const triangle = [0, 5, 0, 1, 6, 0, 2, 5, 0];
+    const geometry = (positions: number[]) => {
+      const result = new THREE.BufferGeometry();
+      result.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      result.setAttribute("normal", new THREE.Float32BufferAttribute(Array.from({ length: positions.length }, (_, index) => index % 3 === 1 ? 0 : Math.SQRT1_2), 3));
+      return result;
+    };
+    const plain = geometry(pane), prefixed = geometry([...triangle, ...pane]);
+    const ordinary = nightWindowMask(plain, "fixture", () => "lit window");
+    const shifted = nightWindowMask(prefixed, "fixture", (vertex) => vertex < 3 ? "concrete" : "lit window");
+    expect([...shifted.slice(0, 12)]).toEqual(Array(12).fill(0));
+    expect([...shifted.slice(12)]).toEqual([...ordinary]);
+    for (let vertex = 1; vertex < 6; vertex += 1) expect(ordinary.slice(vertex * 4, vertex * 4 + 4)).toEqual(ordinary.slice(0, 4));
+    const diagonal = geometry(pane.map((coordinate, index) => coordinate + (index % 3 === 0 ? 14 : index % 3 === 2 ? -14 : 0)));
+    expect(nightWindowMask(diagonal, "fixture", () => "lit window")).not.toEqual(ordinary);
+    expect(nightWindowMask(plain, "another building", () => "lit window")).not.toEqual(ordinary);
+    plain.dispose(); prefixed.dispose(); diagonal.dispose();
+  });
+
+  test("spreads adjacent room schedules across east and south facades instead of lighting whole rows", () => {
+    for (const axis of [0, 2]) for (const start of [-10, 0, 10]) {
+      const positions: number[] = [];
+      for (let bay = start; bay < start + 10; bay += 1) {
+        for (const [across, height] of [[0, 0], [2, 0], [2, 3], [0, 0], [2, 3], [0, 3]]) {
+          const point = [0, height!, 0];
+          point[axis] = 7 * bay + 1 + across!;
+          positions.push(...point);
+        }
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      geometry.computeVertexNormals();
+      const mask = nightWindowMask(geometry, "building-blue-cross-blue-shield", () => "lit window");
+      const ranks = Array.from({ length: 10 }, (_, bay) => mask[bay * 6 * 4]!);
+      expect(Math.max(...ranks) - Math.min(...ranks), `ten adjacent bays on axis ${axis} from ${start}`).toBeGreaterThan(0.4);
+      expect(ranks.some((rank) => rank < 0.35)).toBe(true);
+      expect(ranks.some((rank) => rank > 0.55)).toBe(true);
+      expect(nightWindowMask(geometry, "building-blue-cross-blue-shield", () => "lit window")).toEqual(mask);
+      geometry.dispose();
+    }
   });
 });

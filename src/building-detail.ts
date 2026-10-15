@@ -116,10 +116,12 @@ function showBuilding(record: GeoBuilding, root: Document | ShadowRoot, frame: H
       timeLight ??= createTimeLighting(geographicOrigin[1], geographicOrigin[0], false);
       const lighting = timeLight.update(selectedTime, enabled);
       colour.setSky(lighting.reflections);
+      colour.setNight(lighting.night);
       viewer.setDaylight(lighting);
     } else {
       if (enabled) daylight ??= createDaylight();
       colour.setSky(null);
+      colour.setNight(null);
       viewer.setDaylight(enabled ? daylight! : null);
     }
     button.setAttribute("aria-pressed", String(enabled));
