@@ -182,7 +182,8 @@ per-vertex mask to keep stone, metal frames, signs and roof surfaces matte even 
 batches. This is an illustrated open-sky reflection, not nearby-building reflections or calibrated
 PBR. The original toon shading, shadows and geometry remain. The measured glass colours already
 contain the source photograph's reflection, so the added reflection is intentionally modest.
-Turning colour off restores the original shader callbacks and cache keys as well as every grey.
+Turning colour off restores every grey. Without a time preview, it also restores the original
+shader callbacks and cache keys; during a preview, the facade shader keeps the night lights in greyscale.
 The mask is reused across toggles and released with its geometry. No environment image is fetched.
 
 Run `bun scripts/render-colours.ts` for matching grey/day skyline and elevated comparisons,
@@ -203,7 +204,9 @@ measured colours as red, green and blue values. `tests/colour-materials.test.ts`
 step with the models, so a renamed batch or a retoned surface it names fails there, checks every
 material of a sourced building is measured, named or left grey, finds each measured colour on its
 building and in its audit's daytime entry, and checks the day's sky and lights. Removing the trial
-means deleting the palette, materials, reflection layer and their tests, `scripts/sample-colours.ts` and `scripts/panorama-owners.ts` with
+means first separating the time preview's facade lighting (`models/night-windows.ts`, `setNight`,
+and `nightColours`) from the shared palette, materials and reflection layer if that preview is to stay.
+Then remove the trial's palette, materials, reflection layer and their tests, `scripts/sample-colours.ts` and `scripts/panorama-owners.ts` with
 their `scripts/lib/panorama.ts` and `scripts/lib/shade.ts`, the tests
 `tests/panorama-owners.test.ts` and `tests/colour-shade.test.ts` and their lines in
 `scripts/check.ts`, the colour options and toggles in the viewer and building details, the roads' daytime grey in `skyline-3d.ts`,

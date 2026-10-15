@@ -47,6 +47,19 @@ const pixelAt = async (page: Page, png: Buffer, x: number, y: number) => page.ev
   context.drawImage(bitmap, 0, 0);
   return Array.from(context.getImageData(Math.floor(bitmap.width * across), Math.floor(bitmap.height * down), 1, 1).data.slice(0, 3));
 }, [png.toString("base64"), x, y] as const);
+// Count visible warm lamps, excluding the cool night sky and shaded facades.
+const warmPixels = (page: Page, png: Buffer) => page.evaluate(async (data) => {
+  const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
+  const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
+  context.drawImage(bitmap, 0, 0);
+  const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height).data;
+  let warm = 0;
+  for (let i = 0; i < pixels.length; i += 4) {
+    const [r, g, b] = [pixels[i]!, pixels[i + 1]!, pixels[i + 2]!];
+    if (r > 70 && r - g > 8 && g - b > 8) warm += 1;
+  }
+  return warm;
+}, png.toString("base64"));
 // The middle of the largest east-facing triangle of Blue Cross's crown screen, which faces the
 // skyline camera. In colour it shows its measured dark blue, which neither its grey nor the day's
 // bluish shade gives it.
@@ -1094,6 +1107,18 @@ describe("full-screen 3D skyline", () => {
       await slider.fill("1080");
       await settle(page);
       expect(await page.evaluate(() => window.__detailStudy!.sunIntensity)).toBe(await page.evaluate(() => window.__buildingStudy!.sunIntensity));
+      const detailAt = async (minute: number) => {
+        await slider.fill(String(minute));
+        await settle(page);
+        return page.locator(".detail-host #building").screenshot();
+      };
+      const detailEvening = await detailAt(1200), detailEarly = await detailAt(240);
+      const detailBusy = await warmPixels(page, detailEvening), detailQuiet = await warmPixels(page, detailEarly);
+      expect(detailQuiet, "the floating detail keeps some overnight rooms lit").toBeGreaterThan(30);
+      expect(detailBusy, "the floating detail follows the skyline's occupancy cycle").toBeGreaterThan(detailQuiet * 1.5);
+      expect((await detailAt(1200)).equals(detailEvening), "the detail restores the same rooms when scrubbing back").toBe(true);
+      await slider.fill("1080");
+      await settle(page);
       const detailColour = page.locator(".detail-host #colour");
       await detailColour.click();
       await settle(page);
@@ -1126,18 +1151,6 @@ describe("full-screen 3D skyline", () => {
     await page.clock.setFixedTime(new Date("2026-10-15T17:00:00Z"));
     const shaderErrors: string[] = [];
     page.on("console", (message) => { if (message.type() === "error") shaderErrors.push(message.text()); });
-    const warmPixels = (png: Buffer) => page.evaluate(async (data) => {
-      const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
-      const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
-      context.drawImage(bitmap, 0, 0);
-      const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height).data;
-      let warm = 0;
-      for (let i = 0; i < pixels.length; i += 4) {
-        const [r, g, b] = [pixels[i]!, pixels[i + 1]!, pixels[i + 2]!];
-        if (r > 70 && r - g > 8 && g - b > 8) warm += 1;
-      }
-      return warm;
-    }, png.toString("base64"));
     for (const route of ["index.html", "skyline-3d.html"]) {
       await page.goto(`${origin}/${route}?colour=1&controls=open`);
       await openScene(page);
@@ -1146,7 +1159,7 @@ describe("full-screen 3D skyline", () => {
       const preset = await snapshot();
       const at = async (minute: number) => { await slider.fill(String(minute)); await settle(page); return snapshot(); };
       const evening = await at(1200), early = await at(240);
-      const busy = await warmPixels(evening), quiet = await warmPixels(early);
+      const busy = await warmPixels(page, evening), quiet = await warmPixels(page, early);
       expect(quiet, "some windows and architectural lights remain overnight").toBeGreaterThan(100);
       expect(busy, "more rooms are lit in the evening than at 4 AM").toBeGreaterThan(quiet * 1.5);
       expect((await at(1200)).equals(evening), "scrubbing back recreates the same rooms").toBe(true);

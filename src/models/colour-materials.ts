@@ -387,7 +387,8 @@ export interface SkylineColour {
   setNight(lighting: NightLighting | null): void;
   /**
    * Recolours vertices another writer has since rewritten in grey, such as window
-   * illumination resetting a facade for a celebration.
+   * illumination resetting a facade for a celebration. Re-reads celebration state
+   * so ordinary night windows yield to the message while architectural lights remain.
    */
   refresh(): void;
 }
