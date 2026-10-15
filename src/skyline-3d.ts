@@ -156,12 +156,14 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
     if (selectedTime) {
       const lighting = timeLight.update(selectedTime, enabled);
       colour.setSky(lighting.reflections);
+      colour.setNight(lighting.night);
       roadway.color.setHex(lighting.roads);
       viewer.setDaylight(lighting);
       timeOutput.value = chicagoTime(selectedTime);
     } else {
       if (enabled) daylight ??= createDaylight();
       colour.setSky(null);
+      colour.setNight(null);
       roadway.color.setHex(enabled ? daylightGround.roads : nightRoads);
       viewer.setDaylight(enabled ? daylight! : null);
       timeInput.value = enabled ? "720" : "0";

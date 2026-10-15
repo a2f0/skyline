@@ -3,6 +3,7 @@ import type { BuildingModel } from "./building-kit.js";
 import { daylightColours, measuredColours } from "./colour-palette.js";
 import type { Daylight } from "../study-types.js";
 import { glassReflection, daylightReflections, type ReflectionColours, type GlassReflection } from "./colour-reflections.js";
+import { nightWindowMask, type NightLighting } from "./night-windows.js";
 
 // The colour trial (https://github.com/a2f0/skyline/issues/115): which named material each
 // surface of each building is, and a layer that shows the colours measured for those materials
@@ -382,6 +383,8 @@ export interface SkylineColour {
   set(enabled: boolean): void;
   /** Updates reflection uniforms without rewriting geometry or recompiling shaders. */
   setSky(colours: ReflectionColours | null): void;
+  /** Sets ordinary window activity and dims outlines for the time preview, or restores the preset. */
+  setNight(lighting: NightLighting | null): void;
   /**
    * Recolours vertices another writer has since rewritten in grey, such as window
    * illumination resetting a facade for a celebration.
@@ -410,9 +413,15 @@ interface FlatBatch {
 // another batch already took, since the builder lets batches share them.
 export function createSkylineColour(models: readonly BuildingModel[]): SkylineColour {
   const painted: PaintedBatch[] = [], flat: FlatBatch[] = [], taken = new Set<object>();
-  const reflections: GlassReflection[] = [];
+  const facades: { light: GlassReflection; model: BuildingModel }[] = [];
+  const outlines: { material: THREE.LineBasicMaterial; opacity: number }[] = [];
+  let night: NightLighting | null = null;
   const glassMaterials = new Set<MaterialName>(["glass", "green glass", "blue-green glass", "bronze glass", "crown glass", "lit window", "dim window"]);
   for (const model of models) {
+    model.building.traverse((object) => {
+      const line = object as THREE.LineSegments;
+      if (line.isLineSegments && line.material instanceof THREE.LineBasicMaterial) outlines.push({ material: line.material, opacity: line.material.opacity });
+    });
     const buildingId = String(model.building.userData["buildingId"]);
     if (!measuredColours[buildingId]) continue;
     // The building's batches, and how many vertices of each grey each material holds.
@@ -430,7 +439,12 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
       if (!batch || Array.isArray(mesh.material) || !(mesh.material as THREE.MeshToonMaterial).isMeshToonMaterial) return;
       const [base, tones = {}] = batch;
       const material = mesh.material as THREE.MeshToonMaterial;
-      const materialOf = (grey: number) => tones[toneOf(grey)] ?? base;
+      const names = new Map<number, MaterialName>();
+      const materialOf = (grey: number) => {
+        let name = names.get(grey);
+        if (!name) names.set(grey, name = tones[toneOf(grey)] ?? base);
+        return name;
+      };
       const attribute = mesh.geometry.getAttribute("color") as THREE.BufferAttribute | undefined;
       if (material.vertexColors) {
         if (!(attribute?.array instanceof Float32Array) || taken.has(attribute)) return;
@@ -459,7 +473,8 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
         }
         mask[vertex] = reflects;
       }
-      if (mask.some((value) => value > 0)) reflections.push(glassReflection(material, geometry, mask));
+      const windows = nightWindowMask(geometry, buildingId, (vertex) => materialOf(colours ? colours.array[vertex * 3]! : material.color.r));
+      if (mask.some((value) => value > 0) || windows.some((value) => value > 0)) facades.push({ light: glassReflection(material, geometry, mask, windows), model });
       const colourOf = (grey: number): [number, number, number] => {
         const swatch = swatches.get(materialOf(grey));
         return swatch ? paint(grey, swatch) : [grey, grey, grey];
@@ -478,6 +493,10 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
     }
   }
   let enabled = false;
+  function updateNight() {
+    for (const { light, model } of facades) light.setNight(night, enabled, Boolean(model.illumination?.active));
+    for (const { material, opacity } of outlines) material.opacity = opacity * (night?.outlineStrength ?? 1);
+  }
   return {
     get enabled() { return enabled; },
     set(next) {
@@ -499,12 +518,18 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
         batch.attribute.needsUpdate = true;
       }
       for (const { material, grey, colour } of flat) material.color.copy(next ? colour : grey);
-      for (const reflect of reflections) reflect(next);
+      for (const { light } of facades) light(next);
+      updateNight();
     },
     setSky(colours) {
-      for (const reflect of reflections) reflect.setSky(colours ?? daylightReflections);
+      for (const { light } of facades) light.setSky(colours ?? daylightReflections);
+    },
+    setNight(lighting) {
+      night = lighting;
+      updateNight();
     },
     refresh() {
+      updateNight();
       if (!enabled) return;
       for (const batch of painted) {
         const { array } = batch, greys = batch.greys!;

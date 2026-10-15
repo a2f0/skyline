@@ -262,8 +262,21 @@ scene's Chicago coordinates using [NOAA's general solar-position equations](http
 The world axes are east/up/south, independent of the camera. `time-of-day.ts` uses solar
 elevation to blend the clear-sky colours in `models/colour-palette.ts`, direct sunlight,
 ambient/fill light and ground colours. These sky colours are illustrated, not measured
-weather. The existing office-window and celebration controls remain as before; this preview
-does not simulate occupancy, moonlight, clouds or a visible sun disk.
+weather. At dusk, small groups of existing office panes gradually illuminate in warm and
+soft-white tones; the night grows quieter after midnight, with some early arrivals before
+dawn. Daylight fades the emission away. This is an illustrated daily pattern, not measured
+occupancy. Existing crown, band and sign lights remain on through the night. A celebration
+takes precedence over ordinary windows on its building so its lettering stays clear.
+Moonlight, clouds and a visible sun disk are not simulated.
+
+Nighttime facades receive a restrained cool fill, and the drawing's unlit outlines dim with
+the sun. This keeps pale framing from reading as a glowing wireframe against the black sky.
+`models/night-windows.ts` derives stable room groups from building identity and existing
+pane geometry. Scrubbing back to a time gives the same pattern, including in the floating
+detail. The facade shader combines glass reflections and window emission using uniforms;
+time changes add no geometry, shader recompilation, external requests or animation loop.
+Grayscale previews keep the lighting neutral, and **reset light** restores the original
+outlines and materials along with the sky.
 
 Each viewer and open building detail owns and reuses one small sky texture, disposed when
 that view closes. In the viewer, its premultiplied alpha reveals the existing stars through

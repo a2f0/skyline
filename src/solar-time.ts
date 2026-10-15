@@ -33,6 +33,10 @@ export function chicagoDay(now: Date) {
 }
 
 export const chicagoTime = (date: Date): string => clock.format(date);
+export const chicagoHour = (date: Date): number => {
+  const { hour, minute: minutes } = parts(date);
+  return hour + minutes / 60;
+};
 
 // NOAA's general solar-position equations (geometric elevation, no refraction):
 // https://gml.noaa.gov/grad/solcalc/solareqns.PDF

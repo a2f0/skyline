@@ -776,10 +776,11 @@ describe("full-screen 3D skyline", () => {
         // out to its edge.
         await page.setViewportSize({ width: 1440, height: 1000 });
         await settle(page);
-        await star.click();
         const folds = () => page.evaluate(() => document.getAnimations().filter((animation) => animation.id === "fold")
           .map((animation) => ({ rate: animation.playbackRate, time: Number(animation.currentTime) })));
         const { start, halfway } = await page.evaluate(() => {
+          // Start and hold in one browser task so a slow renderer cannot finish first.
+          document.querySelector<HTMLButtonElement>("#menu-toggle")!.click();
           const unfolding = document.getAnimations().filter((animation) => ((animation.effect as KeyframeEffect).target as Element).matches(".button-group"));
           const elements = [".camera-views", ".model-display", "#menu-toggle"].map((selector) => document.querySelector(selector)!);
           unfolding.forEach((animation) => { animation.id = "fold"; animation.pause(); animation.currentTime = 0; });
@@ -797,24 +798,29 @@ describe("full-screen 3D skyline", () => {
           expect(opacity > 0.05 && opacity < 0.99 && shift !== "0px" && shift !== "none", `part faded in and still sliding: ${opacity}, ${shift}`).toBe(true);
         }
         // Toggled part way, the fold reverses from where it stands, each way: the same two
-        // folds, a restart would replace them, held again as soon as the reversal takes so
-        // they cannot run out while the test looks. A software renderer can spend a few frames
-        // before the reversal takes, so each fold need only have carried on from where it was
-        // held, short of either end.
+        // folds, a restart would replace them. Pause before awaiting ready: that promise
+        // waits for a rendering frame, long enough for a CI software renderer to consume
+        // the remaining 100 ms. Holding in the same task tests reversal without racing it.
         const toggleHeld = () => page.evaluate(async () => {
           document.querySelector<HTMLButtonElement>("#menu-toggle")!.click();
           const held = document.getAnimations().filter((animation) => animation.id === "fold");
-          await Promise.all(held.map((animation) => animation.ready));
           held.forEach((animation) => animation.pause());
+          await Promise.all(held.map((animation) => animation.ready));
           return held.map((animation) => ({ rate: animation.playbackRate, time: Number(animation.currentTime) }));
         });
         const back = await toggleHeld();
         expect(back.length, "the held folds carry on").toBe(2);
-        for (const { rate, time } of back) expect(rate < 0 && time > 0 && time <= 100, `folds back from ${time}, not an end`).toBe(true);
+        for (const { rate, time } of back) {
+          expect(rate).toBe(-1);
+          expect(time, "reverses at the held position without advancing a frame").toBe(100);
+        }
         expect(await star.getAttribute("aria-expanded")).toBe("false");
         const again = await toggleHeld();
         expect(again.length, "the held folds carry on").toBe(2);
-        again.forEach(({ rate, time }, index) => expect(rate > 0 && time >= back[index]!.time && time < 300, `unfolds again from ${time}, not an end`).toBe(true));
+        for (const { rate, time } of again) {
+          expect(rate).toBe(1);
+          expect(time, "unfolds from the same held position").toBe(100);
+        }
         await page.evaluate(() => document.getAnimations().forEach((animation) => animation.play()));
         await settled();
         expect([await star.getAttribute("aria-expanded"), await groups(), await folds()]).toEqual(["true", ["flex", "flex"], []]);
@@ -1109,6 +1115,56 @@ describe("full-screen 3D skyline", () => {
       await page.keyboard.press("Escape");
       expect(await slider.isVisible()).toBe(false);
       expect(await page.locator("#menu-toggle").getAttribute("aria-expanded")).toBe("false");
+    }
+    expect(shaderErrors).toEqual([]);
+    await page.close();
+  }, { timeout: 180_000 });
+
+  test("stages warm night windows, quietens before dawn, and preserves celebrations and presets", async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+    await watch(page);
+    await page.clock.setFixedTime(new Date("2026-10-15T17:00:00Z"));
+    const shaderErrors: string[] = [];
+    page.on("console", (message) => { if (message.type() === "error") shaderErrors.push(message.text()); });
+    const warmPixels = (png: Buffer) => page.evaluate(async (data) => {
+      const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
+      const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
+      context.drawImage(bitmap, 0, 0);
+      const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height).data;
+      let warm = 0;
+      for (let i = 0; i < pixels.length; i += 4) {
+        const [r, g, b] = [pixels[i]!, pixels[i + 1]!, pixels[i + 2]!];
+        if (r > 70 && r - g > 8 && g - b > 8) warm += 1;
+      }
+      return warm;
+    }, png.toString("base64"));
+    for (const route of ["index.html", "skyline-3d.html"]) {
+      await page.goto(`${origin}/${route}?colour=1&controls=open`);
+      await openScene(page);
+      const slider = page.locator("#time-of-day");
+      const snapshot = () => page.locator("#building").screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
+      const preset = await snapshot();
+      const at = async (minute: number) => { await slider.fill(String(minute)); await settle(page); return snapshot(); };
+      const evening = await at(1200), early = await at(240);
+      const busy = await warmPixels(evening), quiet = await warmPixels(early);
+      expect(quiet, "some windows and architectural lights remain overnight").toBeGreaterThan(100);
+      expect(busy, "more rooms are lit in the evening than at 4 AM").toBeGreaterThan(quiet * 1.5);
+      expect((await at(1200)).equals(evening), "scrubbing back recreates the same rooms").toBe(true);
+      await page.locator('[data-celebration="cubs"]').click();
+      await settle(page);
+      expect((await snapshot()).equals(evening), "a celebration replaces ordinary windows on its tower").toBe(false);
+      await page.locator('[data-celebration="cubs"]').click();
+      await settle(page);
+      expect((await snapshot()).equals(evening), "switching a celebration off restores its ordinary rooms").toBe(true);
+      await page.locator(".control-bar #colour").click();
+      await settle(page);
+      expect(await chroma(page), "window emission also obeys greyscale").toBe(0);
+      await page.locator(".control-bar #colour").click();
+      await settle(page);
+      expect((await snapshot()).equals(evening)).toBe(true);
+      await page.locator("#reset-light").click();
+      await settle(page);
+      expect((await snapshot()).equals(preset), "reset restores the exact daytime facades and outlines").toBe(true);
     }
     expect(shaderErrors).toEqual([]);
     await page.close();
