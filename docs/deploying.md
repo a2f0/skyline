@@ -64,8 +64,16 @@ before the comparison.
 ## The custom domain
 
 `terraform/` owns one resource, the `cloudflare_workers_custom_domain` binding
-`skyline.devopsrockstars.com` to the Worker, with state in the shared `tearleads-terraform-state`
-bucket. It rarely changes and is not part of a content deploy:
+`skyline.devopsrockstars.com` to the Worker. Its state is `terraform.tfstate` in Skyline's own
+Cloudflare R2 bucket, `skyline-terraform-state`, which Terraform reaches through its S3 backend;
+`terraform/versions.tf` holds the complete backend, so `init` takes no backend configuration. The
+state moved there from `skyline/website/terraform.tfstate` in the AWS S3 bucket
+`tearleads-terraform-state`, which Skyline used to share, as a byte-for-byte copy made before the
+backend changed; nothing reads the old object. Because the copy came first, `scripts/terraform.sh`
+initializes with `-reconfigure`, which switches a working directory still set up for the old
+bucket without migrating anything. A plan against an empty R2 key would propose creating the live
+binding again, so treat that as missing state, not as drift. The stack rarely changes and is not
+part of a content deploy:
 
 ```sh
 scripts/terraform.sh plan
@@ -73,13 +81,19 @@ scripts/terraform.sh apply
 ```
 
 `scripts/terraform.sh` needs `TF_VAR_cloudflare_api_token` and `TF_VAR_cloudflare_account_id`
-(the token needs Workers Scripts:Edit and Zone:Read on the zone), plus `AWS_ACCESS_KEY_ID` and
-`AWS_SECRET_ACCESS_KEY` for the S3 Terraform backend, and reads them from production's tier of
+(the token needs Workers Scripts:Edit and Zone:Read on the zone), plus the state bucket's R2 key,
+`TF_STATE_ACCESS_KEY_ID` and `TF_STATE_SECRET_ACCESS_KEY` in `.secrets/prod/app.env`, which is the
+S3 key of an account token limited to that bucket. It reads them from production's tier of
 `.secrets`. `scripts/secrets.sh` loads `.secrets/prod/shared.env`, holding values shared across
 projects, and then `.secrets/prod/app.env`, holding Skyline's own, each when present, so a value
 in `app.env` wins. It fails loudly, pointing here, when neither file exists or a Cloudflare variable
 is still unset, and re-exports the Cloudflare pair under the `CLOUDFLARE_*` names Terraform
-expects; `tests/secrets.test.ts` covers it. [Local secrets](#local-secrets) explains the link.
+expects. It then fails when either half of the state key is missing, and otherwise exports it, for
+Terraform alone, as the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` the S3 backend reads,
+after unsetting `AWS_PROFILE` and `AWS_SESSION_TOKEN`. Only the tier supplies the state key: one
+already in the caller's shell is discarded before loading, so another project's key cannot stand
+in. No AWS account or credential is involved. `tests/secrets.test.ts` covers it.
+[Local secrets](#local-secrets) explains the link.
 
 Order matters on a first apply, and only there: wrangler must publish the Worker before Terraform
 can point a hostname at it. Cloudflare serves `.html` requests with a 307 to the extensionless

@@ -1,4 +1,5 @@
-// scripts/secrets.sh loads Terraform's credentials from the .secrets link into matrix-secrets.
+// scripts/secrets.sh loads Terraform's credentials from the .secrets link into matrix-secrets, and
+// hands the R2 state key to the S3 backend under the AWS names it reads.
 // Each case runs the real loader in a throwaway Git repository whose .secrets links to a fixture
 // folder laid out like matrix-secrets, under a clean environment so the caller's own credentials
 // cannot satisfy it. The values are fixtures; no real secret is read.
@@ -32,8 +33,8 @@ function checkout(files: Record<string, string>) {
 }
 
 // Sources the loader under the callers' strict mode and prints what it exported.
-function load(repository: string, call = "load_deploy_secrets", env: Record<string, string> = {}) {
-  const script = `set -euo pipefail; source "$1"; ${call}; for name in ${reported.join(" ")}; do printf '%s=%s\\n' "$name" "\${!name-<unset>}"; done`;
+function load(repository: string, call = "load_deploy_secrets", env: Record<string, string> = {}, names = reported) {
+  const script = `set -euo pipefail; source "$1"; ${call}; for name in ${names.join(" ")}; do printf '%s=%s\\n' "$name" "\${!name-<unset>}"; done`;
   const result = spawnSync("bash", ["-c", script, "load", loader], {
     cwd: repository, encoding: "utf8",
     env: { PATH: process.env["PATH"] ?? "/usr/bin:/bin", HOME: repository, GIT_CONFIG_NOSYSTEM: "1", ...env },
@@ -43,6 +44,11 @@ function load(repository: string, call = "load_deploy_secrets", env: Record<stri
 }
 
 const pair = (token: string, account: string) => `export TF_VAR_cloudflare_api_token=${token}\nexport TF_VAR_cloudflare_account_id=${account}\n`;
+const stateKey = (id: string, secret: string) => `TF_STATE_ACCESS_KEY_ID=${id}\nTF_STATE_SECRET_ACCESS_KEY=${secret}\n`;
+// The AWS keys shared.env still holds from the old S3 backend, which must not reach Terraform.
+const oldAws = "export AWS_ACCESS_KEY_ID=old-aws-key\nexport AWS_SECRET_ACCESS_KEY=old-aws-secret\nexport AWS_SESSION_TOKEN=old-aws-session\n";
+const toState = "load_deploy_secrets; use_state_credentials";
+const backendNames = ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_PROFILE", "AWS_SESSION_TOKEN"];
 
 describe("deploy secrets loader", () => {
   test("loads prod/shared.env and re-exports the Cloudflare pair", () => {
@@ -101,12 +107,40 @@ describe("deploy secrets loader", () => {
     expect(stderr).toContain("../matrix-secrets/skyline");
   });
 
-  test("keeps the S3 backend credential check", () => {
-    const repository = checkout({});
-    const missing = load(repository, "require_backend_credentials");
+  test("hands the prod tier's R2 state key to the backend under the AWS names", () => {
+    const repository = checkout({ "prod/shared.env": pair("shared-token", "shared-account") + oldAws, "prod/app.env": stateKey("r2-key", "r2-secret") });
+    const { status, exported } = load(repository, toState, { AWS_PROFILE: "profile", AWS_SESSION_TOKEN: "session" }, backendNames);
+    expect(status).toBe(0);
+    expect(exported).toEqual({ AWS_ACCESS_KEY_ID: "r2-key", AWS_SECRET_ACCESS_KEY: "r2-secret", AWS_PROFILE: "<unset>", AWS_SESSION_TOKEN: "<unset>" });
+  });
+
+  // Neither the old AWS keys nor an AWS profile can satisfy the R2 backend any more.
+  test("fails with a pointer to app.env and the docs when the state key is missing", () => {
+    const repository = checkout({ "prod/shared.env": pair("shared-token", "shared-account") + oldAws });
+    const { status, stderr, exported } = load(repository, toState, { AWS_PROFILE: "profile" }, backendNames);
+    expect(status).not.toBe(0);
+    expect(stderr).toMatch(/R2 Terraform state backend needs, in \.secrets\/prod\/app\.env:\n\s+- TF_STATE_ACCESS_KEY_ID\n\s+- TF_STATE_SECRET_ACCESS_KEY\n/);
+    expect(stderr).toContain("docs/deploying.md");
+    expect(exported).toEqual({});
+  });
+
+  test("names only the half of the state key that is missing", () => {
+    const repository = checkout({ "prod/app.env": pair("app-token", "app-account") + "TF_STATE_ACCESS_KEY_ID=r2-key\n" });
+    const { status, stderr } = load(repository, toState, {}, backendNames);
+    expect(status).not.toBe(0);
+    expect(stderr).toMatch(/:\n\s+- TF_STATE_SECRET_ACCESS_KEY\n/);
+    expect(stderr).not.toContain("TF_STATE_ACCESS_KEY_ID");
+  });
+
+  // Another project's key exported in the caller's shell must not stand in for Skyline's.
+  test("takes the state key from the prod tier, not the caller's environment", () => {
+    const ambient = { TF_STATE_ACCESS_KEY_ID: "other-key", TF_STATE_SECRET_ACCESS_KEY: "other-secret" };
+    const missing = load(checkout({ "prod/app.env": pair("app-token", "app-account") }), toState, ambient, backendNames);
     expect(missing.status).not.toBe(0);
-    expect(missing.stderr).toMatch(/S3 Terraform backend needs:\n\s+- AWS_ACCESS_KEY_ID\n\s+- AWS_SECRET_ACCESS_KEY\n/);
-    expect(load(repository, "require_backend_credentials", { AWS_PROFILE: "profile" }).status).toBe(0);
-    expect(load(repository, "require_backend_credentials", { AWS_ACCESS_KEY_ID: "key", AWS_SECRET_ACCESS_KEY: "secret" }).status).toBe(0);
+    expect(missing.stderr).toMatch(/- TF_STATE_ACCESS_KEY_ID\n\s+- TF_STATE_SECRET_ACCESS_KEY\n/);
+    const tier = load(checkout({ "prod/app.env": pair("app-token", "app-account") + stateKey("r2-key", "r2-secret") }), toState, ambient, backendNames);
+    expect(tier.status).toBe(0);
+    expect(tier.exported["AWS_ACCESS_KEY_ID"]).toBe("r2-key");
+    expect(tier.exported["AWS_SECRET_ACCESS_KEY"]).toBe("r2-secret");
   });
 });
