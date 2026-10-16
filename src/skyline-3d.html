@@ -92,6 +92,8 @@
       // markup in its shadow root, applies its own options the same way (skyline-viewer.ts).
       (() => {
         const settings = new URLSearchParams(location.search);
+        const theme = settings.get("theme");
+        document.body.dataset.theme = theme === "light" || (theme !== "dark" && settings.get("colour") === "1") ? "light" : "dark";
         if (settings.get("controls") === "open") {
           const toggle = document.querySelector("#menu-toggle");
           toggle.setAttribute("aria-expanded", "true");

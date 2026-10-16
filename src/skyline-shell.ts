@@ -23,7 +23,7 @@ export interface ViewerContext {
   readonly controls: "open" | "closed";
   /** Start the scene and its building details in sunny-day colour. */
   readonly colour?: boolean;
-  /** Loading backdrop and trace; defaults to light for colour, dark otherwise. */
+  /** Loading palette and control bar; defaults to light for colour, dark otherwise. */
   readonly theme: "light" | "dark";
   /** Show the OpenStreetMap credit with the scene's controls. */
   readonly attribution: boolean;

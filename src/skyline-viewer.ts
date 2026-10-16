@@ -52,6 +52,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
   if (!navigation) viewer.dataset["embedded"] = "";
   const stars = element(document, "div", { className: "stars", id: "stars" }, { "aria-hidden": "true" });
   const scene = element(document, "div", { className: "skyline-3d", id: "skyline-3d-scene" });
+  scene.dataset["theme"] = theme;
   const drawing = element(document, "img", { className: "scene drawing", id: "drawing", alt: "Original Chicago skyline", hidden: true });
   const originalReturn = element(document, "button", { type: "button", className: "original-return", id: "return-skyline-3d", title: home.title, hidden: true, textContent: home.label });
   const embeddedOriginal = element(document, "button", { type: "button", className: "original-return", id: "embedded-original", title: toggles.original.title, hidden: true, textContent: toggles.original.label });

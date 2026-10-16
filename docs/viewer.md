@@ -68,12 +68,15 @@ the bar applies both before the scene's code arrives; the viewer applies its `co
 address, to the scene's markup before it shows.
 
 On `index.html`, `?colour=1` also selects a light loading backdrop and a dark
-outline. Override that boot palette with `?theme=light` or `?theme=dark`; embeds
+outline. Override that palette with `?theme=light` or `?theme=dark`; embeds
 pass the same setting through `mountSkyline`'s `theme` option. A script in the
 page's head sets `data-theme` and the browser's `theme-color` before first paint,
 and the package paints its shell before fetching assets. Loading failures keep
 the chosen palette. Once the scene renders, its own lighting supplies the sky;
 the original drawing always keeps its dark backdrop.
+The same theme selects the bottom bar's light or dark palette on both `index.html`
+and `skyline-3d.html`. It stays with the host theme when the bar folds, the scene's
+colour changes or the time slider moves between day and night.
 
 Drag to orbit, shift-drag or use two fingers to pan, and scroll or pinch to zoom: in to a tenth of
 a view's framed distance, or out to four times it, where the whole mapped city sits small in the
