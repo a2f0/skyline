@@ -3,7 +3,10 @@
 // only defect class that makes a checker worse than nothing. No network: the script takes its
 // request function as a dependency, so each origin below is a plain object.
 import { describe, expect, test } from "bun:test";
-import { verifyDeploy, forbiddenPaths, parseTracked, urlFor } from "../scripts/verify-deploy.js";
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { verifyDeploy, forbiddenPaths, parseTracked, urlFor, walk } from "../scripts/verify-deploy.js";
 import type { RequestAnswer, VerifyOptions } from "../scripts/verify-deploy.js";
 
 const ORIGIN = "http://origin";
@@ -128,12 +131,40 @@ describe("deploy verification", () => {
   test("derives the forbidden set instead of listing it", async () => {
     const derived = await forbiddenPaths(["index.html", "models/a.js"], {
       tracked: ["src/index.html", "src/models/a.js", "src/models/a.ts", "src/skyline.jpg", "scripts/secrets.sh", "README.md", ""],
-      secrets: [".secrets/root.env", ".secrets/nested/deep.env"],
+      secrets: [".secrets/prod/shared.env", ".secrets/ci/secrets.env"],
     });
     // Sources under src/ are probed at their repository paths and at the site root, where a build
     // would put them; only the published URLs are left out.
-    expect(derived).toEqual([".secrets/nested/deep.env", ".secrets/root.env", "README.md", "models/a.ts", "scripts/secrets.sh", "skyline.jpg",
+    expect(derived).toEqual([".secrets/ci/secrets.env", ".secrets/prod/shared.env", "README.md", "models/a.ts", "scripts/secrets.sh", "skyline.jpg",
       "src/index.html", "src/models/a.js", "src/models/a.ts", "src/skyline.jpg"]);
+  });
+
+  // `.secrets` is a link into the matrix-secrets checkout, so a walk that stopped at links would
+  // derive an empty or partial forbidden set and prove nothing about the files that matter most.
+  test("walks the secrets link into its tier folders, and links inside it", async () => {
+    const scratch = mkdtempSync(path.join(tmpdir(), "skyline-secrets-walk-"));
+    try {
+      const project = path.join(scratch, "matrix-secrets", "skyline"), checkout = path.join(scratch, "checkout");
+      for (const folder of ["prod", "staging", "ci", "elsewhere"]) mkdirSync(path.join(project, folder), { recursive: true });
+      mkdirSync(checkout);
+      writeFileSync(path.join(project, "prod", "shared.env"), "");
+      writeFileSync(path.join(project, "prod", "app.env"), "");
+      writeFileSync(path.join(project, "ci", "secrets.env"), "");
+      writeFileSync(path.join(project, "elsewhere", "kept.env"), "");
+      symlinkSync(path.join(project, "elsewhere"), path.join(project, "prod", "linked"));
+      symlinkSync(project, path.join(project, "ci", "loop"));
+      symlinkSync(path.join(project, "absent.env"), path.join(project, "dangling.env"));
+      symlinkSync(project, path.join(checkout, ".secrets"));
+
+      const found = (await walk(path.join(checkout, ".secrets"), ".secrets")).sort();
+      // The empty staging/ holds nothing to probe, the link back to the project root is not
+      // re-entered, and a dangling link is still a name that must be proven absent.
+      expect(found).toEqual([".secrets/ci/secrets.env", ".secrets/dangling.env", ".secrets/elsewhere/kept.env",
+        ".secrets/prod/app.env", ".secrets/prod/linked/kept.env", ".secrets/prod/shared.env"]);
+      expect(await walk(path.join(checkout, "missing"), "missing")).toEqual([]);
+    } finally {
+      rmSync(scratch, { recursive: true, force: true });
+    }
   });
 
   test("catches a source served from an uploaded src/ or from the site root", async () => {

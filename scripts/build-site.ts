@@ -2,10 +2,10 @@
 // TypeScript modules with tsc, then copies the static assets beside them.
 //
 // The upload set is an allowlist rather than an ignore list. The repository
-// holds credentials (.secrets/), test fixtures, and, beside the pages in src/,
-// the 18MB source photograph that the site never requests, so an ignore list
-// that fell out of date would publish them. Only the compiled modules and the
-// static files named here reach Cloudflare.
+// holds credentials (the gitignored .secrets link), test fixtures, and, beside
+// the pages in src/, the 18MB source photograph that the site never requests,
+// so an ignore list that fell out of date would publish them. Only the compiled
+// modules and the static files named here reach Cloudflare.
 import { cp, mkdir, readdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
