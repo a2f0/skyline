@@ -16,6 +16,7 @@ mountViewer(document.querySelector<HTMLElement>("#viewer")!, {
   controls: controls === "open" || controls === "closed" ? controls : embedded ? "closed" : "open",
   attribution: settings.get("attribution") !== "hidden",
   colour: settings.get("colour") === "1",
+  theme: document.documentElement.dataset["theme"] === "light" ? "light" : "dark",
   navigation: !embedded,
   page: true,
 });

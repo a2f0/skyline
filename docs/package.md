@@ -10,6 +10,14 @@ To start an embed in sunny-day colour, pass `colour: true` to `mountSkyline` alo
 Omitting `colour` keeps the existing greyscale default. The setting belongs to that instance;
 it does not use storage or affect another embed. The standalone viewer accepts `?colour=1`.
 
+Pass `theme: "light"` or `theme: "dark"` from the host's active theme to choose the
+loading backdrop, animated outline and error palette. It applies synchronously,
+before the viewer's code or stylesheets load. Without `theme`, `colour: true`
+boots light and greyscale boots dark. The theme does not select scene materials or
+time of day: for a light host, pass both `theme: "light"` and `colour: true`.
+Destroy and remount when the host theme changes. The standalone viewer also accepts
+`?theme=light&colour=1` (or `?theme=dark`); each instance keeps its own setting.
+
 ## Install from npm
 
 ```sh

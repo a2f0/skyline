@@ -35,6 +35,17 @@
   pointer-events: none;
 }
 
+/* The host chooses the boot palette before the scene's first frame. The scene's
+   colour/time controls still own its rendered sky and materials. */
+.skyline-viewer[data-theme="light"] { color-scheme: light; background: #f5f5f5; color: #444; }
+.skyline-viewer[data-theme="light"] > .stars { visibility: hidden; }
+.skyline-viewer[data-theme="light"] .loading { color: #444; }
+.skyline-viewer[data-theme="light"] .skyline-trace { stroke: #555; }
+.skyline-viewer[data-theme="light"] .skyline-trace-tip { stroke: #222; filter: drop-shadow(0 0 9px #22222266); }
+.skyline-viewer[data-theme="light"] .controls { color: #444; }
+.skyline-viewer[data-theme="light"] .controls :is(button, a):is(:hover, :focus-visible, [aria-pressed="true"]) { color: #111; }
+.skyline-viewer[data-theme="light"] .controls :focus-visible { outline-color: #111; }
+
 .stars svg {
   display: block;
   width: 100%;

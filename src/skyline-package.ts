@@ -23,6 +23,8 @@ export interface SkylineOptions {
   readonly controls?: "open" | "closed";
   /** Start in the opt-in sunny-day colour view. Greyscale by default. */
   readonly colour?: boolean;
+  /** Loading backdrop and trace. Defaults to light with colour: true, dark otherwise. */
+  readonly theme?: "light" | "dark";
   /**
    * Show the OpenStreetMap credit with the 3D scene's controls. Shown by default. OpenStreetMap's
    * licence requires that credit wherever its data appears, so hide it only when the host page
@@ -44,8 +46,8 @@ export interface SkylineOptions {
  * size and placement: give it an explicit height. Call `destroy` when the hosting component
  * leaves.
  */
-export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", controls = "closed", colour = false, attribution = true, three }: SkylineOptions): SkylineInstance {
+export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", controls = "closed", colour = false, theme = colour ? "light" : "dark", attribution = true, three }: SkylineOptions): SkylineInstance {
   if (controls !== "open" && controls !== "closed") throw new TypeError('Skyline controls must be "open" or "closed".');
   if (typeof colour !== "boolean") throw new TypeError("Skyline colour must be a boolean.");
-  return mountViewer(container, { assetsUrl, title, controls, colour, attribution, navigation: false, page: false, three });
+  return mountViewer(container, { assetsUrl, title, controls, colour, theme, attribution, navigation: false, page: false, three });
 }

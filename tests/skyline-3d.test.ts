@@ -362,7 +362,7 @@ describe("full-screen 3D skyline", () => {
   }, { timeout: 60_000 });
 
   test("traces the loading elevation before the 3D code arrives, then removes it at the first frame", async () => {
-    for (const [width, height, reduced] of [[1440, 900, false], [390, 844, false], [390, 844, true], [844, 390, false]] as const) {
+    for (const [width, height, reduced, light] of [[1440, 900, false, false], [390, 844, false, false], [390, 844, true, false], [844, 390, false, false], [1440, 900, false, true], [390, 844, true, true]] as const) {
       const page = await browser.newPage({
         viewport: { width, height },
         reducedMotion: reduced ? "reduce" : "no-preference",
@@ -372,10 +372,13 @@ describe("full-screen 3D skyline", () => {
       const held = new Promise<void>((resolve) => { release = resolve; });
       await page.route("**/skyline-3d.js", async (route) => { await held; await route.continue(); });
       try {
-        await page.goto(`${origin}/?controls=closed`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${origin}/?controls=closed${light ? "&colour=1" : ""}`, { waitUntil: "domcontentloaded" });
         const scene = page;
         const trace = scene.locator(".skyline-trace");
         await trace.waitFor({ state: "visible" });
+        expect(await page.locator("html").evaluate((node) => getComputedStyle(node).backgroundColor))
+          .toBe(light ? "rgb(245, 245, 245)" : "rgb(0, 0, 0)");
+        expect(await trace.evaluate((node) => getComputedStyle(node).stroke)).toBe(light ? "rgb(85, 85, 85)" : "rgb(221, 221, 221)");
         expect(await scene.locator("#loading").textContent()).toContain("Preparing the skyline");
         expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
         expect(await scene.evaluate(() => window.__buildingStudy?.ready)).toBeUndefined();
