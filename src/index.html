@@ -40,9 +40,13 @@
     </style>
     <script>
       // Apply the backdrop before first paint, while the viewer modules load.
-      const settings = new URLSearchParams(location.search);
-      document.documentElement.dataset.theme = settings.get("theme") === "light" ||
-        (settings.get("theme") !== "dark" && settings.get("colour") === "1") ? "light" : "dark";
+      {
+        const settings = new URLSearchParams(location.search);
+        const light = settings.get("theme") === "light" ||
+          (settings.get("theme") !== "dark" && settings.get("colour") === "1");
+        document.documentElement.dataset.theme = light ? "light" : "dark";
+        document.querySelector('meta[name="theme-color"]').content = light ? "#f5f5f5" : "#000000";
+      }
     </script>
   </head>
   <body>

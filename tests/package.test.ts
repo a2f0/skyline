@@ -343,13 +343,16 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
           expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("true");
           await page.locator("#colour").click();
           expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("false");
-          expect(await page.locator(".skyline-viewer").evaluate((viewer) => getComputedStyle(viewer).backgroundColor)).toBe("rgb(245, 245, 245)");
+          expect(await page.locator(".skyline-viewer").evaluate((viewer) => getComputedStyle(viewer).backgroundColor)).toBe("rgb(0, 0, 0)");
+          expect(await page.locator("#stars").isVisible()).toBe(true);
           await mount(page, { theme: "dark", colour: true });
           expect(await settled(page)).toBe("ready");
           expect(await page.locator(".skyline-viewer").evaluate((viewer) => getComputedStyle(viewer).backgroundColor)).toBe("rgb(0, 0, 0)");
           expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("true");
-          expect(await page.evaluate(() => { try { (window as unknown as Hooked).mountFixture({ theme: "auto" }); return ""; } catch (error) { return String(error); } }))
-            .toBe('TypeError: Skyline theme must be "light" or "dark".');
+          for (const theme of ["auto", null]) {
+            expect(await page.evaluate((theme) => { try { (window as unknown as Hooked).mountFixture({ theme }); return ""; } catch (error) { return String(error); } }, theme))
+              .toBe('TypeError: Skyline theme must be "light" or "dark".');
+          }
           expect(await page.evaluate(() => { try { (window as unknown as Hooked).mountFixture({ colour: "true" }); return ""; } catch (error) { return String(error); } }))
             .toBe("TypeError: Skyline colour must be a boolean.");
           await mount(page, { controls: "open", attribution: false, title: "Chicago at night" });
@@ -376,6 +379,8 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
           expect(await settled(page, "second")).toBe("ready");
           expect(await page.locator("#host .skyline-viewer").getAttribute("data-theme")).toBe("dark");
           expect(await page.locator("#second .skyline-viewer").getAttribute("data-theme")).toBe("light");
+          expect(await page.locator("#second .skyline-viewer").evaluate((viewer) => getComputedStyle(viewer).backgroundColor)).toBe("rgb(0, 0, 0)");
+          expect(await page.locator("#second #stars").isVisible()).toBe(true);
           expect([await sceneReady(page), await sceneReady(page, "second")]).toEqual([true, true]);
           const expanded = () => Promise.all(["host", "second"].map((slot) => page.locator(`#${slot} #menu-toggle`).getAttribute("aria-expanded")));
           expect(await expanded()).toEqual(["false", "false"]);
@@ -507,32 +512,34 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
             expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("true");
           }
 
-          // The host can still choose the SVG if the 3D scene's module fails, and `ready`
-          // says the scene could not start.
-          await page.route("**/skyline-3d.js", (route) => route.abort());
-          await page.reload();
-          expect(await settled(page)).toMatch(/^rejected: /);
-          expect(await page.locator("#loading").textContent()).toContain("WebGL 2");
-          expect(await page.locator("#loading").evaluate((node) => getComputedStyle(node).color)).toBe("rgb(68, 68, 68)");
-          expect(await page.locator("#menu-toggle").isDisabled()).toBe(true);
-          await page.locator("#embedded-original").click();
-          expect(await page.locator("#drawing").isVisible()).toBe(true);
-          await page.locator("#return-skyline-3d").press("Enter");
-          expect(await focused(page)).toBe("embedded-original");
-          await page.unroute("**/skyline-3d.js");
-          // A viewer whose own code cannot load says why in its place.
-          await page.route("**/skyline-viewer.js", (route) => route.abort());
-          await page.reload();
-          expect(await settled(page)).toMatch(/^rejected: /);
-          expect(await page.locator("#host [role=alert]").textContent()).toStartWith("The Chicago skyline couldn't start:");
-          expect(await page.locator("#host [role=alert]").evaluate((node) => [getComputedStyle(node).backgroundColor, getComputedStyle(node).color]))
-            .toEqual(["rgb(245, 245, 245)", "rgb(68, 68, 68)"]);
-          await page.unroute("**/skyline-viewer.js");
-          await page.route("**/viewer.css", (route) => route.abort());
-          await page.reload();
-          expect(await settled(page)).toMatch(/^rejected: /);
-          expect(await page.locator("#host [role=alert]").evaluate((node) => getComputedStyle(node).backgroundColor)).toBe("rgb(245, 245, 245)");
-          await page.unroute("**/viewer.css");
+          for (const theme of ["light", "dark"]) {
+            // The host can still choose the SVG if the 3D scene's module fails, and `ready`
+            // says the scene could not start.
+            await page.route("**/skyline-3d.js", (route) => route.abort());
+            await page.goto(`${server.origin}/?theme=${theme}`);
+            expect(await settled(page)).toMatch(/^rejected: /);
+            expect(await page.locator("#loading").textContent()).toContain("WebGL 2");
+            expect(await page.locator("#loading").evaluate((node) => getComputedStyle(node).color)).toBe(theme === "light" ? "rgb(68, 68, 68)" : "rgb(187, 187, 187)");
+            expect(await page.locator("#menu-toggle").isDisabled()).toBe(true);
+            await page.locator("#embedded-original").click();
+            expect(await page.locator("#drawing").isVisible()).toBe(true);
+            await page.locator("#return-skyline-3d").press("Enter");
+            expect(await focused(page)).toBe("embedded-original");
+            await page.unroute("**/skyline-3d.js");
+            // A viewer whose own code cannot load says why in its place.
+            await page.route("**/skyline-viewer.js", (route) => route.abort());
+            await page.reload();
+            expect(await settled(page)).toMatch(/^rejected: /);
+            expect(await page.locator("#host [role=alert]").textContent()).toStartWith("The Chicago skyline couldn't start:");
+            expect(await page.locator("#host [role=alert]").evaluate((node) => [getComputedStyle(node).backgroundColor, getComputedStyle(node).color]))
+              .toEqual(theme === "light" ? ["rgb(245, 245, 245)", "rgb(68, 68, 68)"] : ["rgb(0, 0, 0)", "rgb(170, 170, 170)"]);
+            await page.unroute("**/skyline-viewer.js");
+            await page.route("**/viewer.css", (route) => route.abort());
+            await page.reload();
+            expect(await settled(page)).toMatch(/^rejected: /);
+            expect(await page.locator("#host [role=alert]").evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(theme === "light" ? "rgb(245, 245, 245)" : "rgb(0, 0, 0)");
+            await page.unroute("**/viewer.css");
+          }
           await page.reload();
           expect(await settled(page)).toBe("ready");
           await page.evaluate(() => (window as unknown as Hooked).destroyFixture());

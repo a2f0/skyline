@@ -12,7 +12,9 @@ it does not use storage or affect another embed. The standalone viewer accepts `
 
 Pass `theme: "light"` or `theme: "dark"` from the host's active theme to choose the
 loading backdrop, animated outline and error palette. It applies synchronously,
-before the viewer's code or stylesheets load. Without `theme`, `colour: true`
+before the viewer's code or stylesheets load. After the first frame, the scene
+supplies its own sky; returning to greyscale restores the black sky and stars.
+Without `theme`, `colour: true`
 boots light and greyscale boots dark. The theme does not select scene materials or
 time of day: for a light host, pass both `theme: "light"` and `colour: true`.
 Destroy and remount when the host theme changes. The standalone viewer also accepts

@@ -46,7 +46,7 @@ export interface SkylineOptions {
  * size and placement: give it an explicit height. Call `destroy` when the hosting component
  * leaves.
  */
-export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", controls = "closed", colour = false, theme = colour ? "light" : "dark", attribution = true, three }: SkylineOptions): SkylineInstance {
+export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", controls = "closed", colour = false, theme, attribution = true, three }: SkylineOptions): SkylineInstance {
   if (controls !== "open" && controls !== "closed") throw new TypeError('Skyline controls must be "open" or "closed".');
   if (typeof colour !== "boolean") throw new TypeError("Skyline colour must be a boolean.");
   return mountViewer(container, { assetsUrl, title, controls, colour, theme, attribution, navigation: false, page: false, three });

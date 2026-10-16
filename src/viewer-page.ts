@@ -7,6 +7,7 @@ import { mountViewer } from "./skyline-shell.js";
 // bar open or folded; and `?attribution=hidden` leaves out the OpenStreetMap credit. The site
 // starts the bar open, to show what the scene can do; embedded, it starts folded behind its
 // star, as `mountSkyline` does.
+// `?colour=1` starts in daylight; `?theme=light` or `?theme=dark` overrides the boot palette.
 const settings = new URLSearchParams(location.search);
 const embedded = settings.get("embed") === "1";
 const controls = settings.get("controls");

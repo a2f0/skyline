@@ -48,7 +48,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
   sceneMarkup.catch(() => {});
 
   const viewer = element(document, "div", { className: "skyline-viewer" });
-  viewer.dataset["theme"] = theme ?? (colour ? "light" : "dark");
+  viewer.dataset["theme"] = theme;
   if (!navigation) viewer.dataset["embedded"] = "";
   const stars = element(document, "div", { className: "stars", id: "stars" }, { "aria-hidden": "true" });
   const scene = element(document, "div", { className: "skyline-3d", id: "skyline-3d-scene" });
@@ -67,6 +67,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
   const toolbar = navigation ? createToolbar() : null;
 
   function updateView() {
+    viewer.toggleAttribute("data-booting", sceneUnavailable && mode === "3d");
     scene.hidden = mode !== "3d";
     if (mode === "original" && !drawing.getAttribute("src")) drawing.src = new URL("skyline-original-fit.svg", assets).href;
     drawing.hidden = mode !== "original";

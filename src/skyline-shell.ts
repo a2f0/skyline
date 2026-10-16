@@ -24,7 +24,7 @@ export interface ViewerContext {
   /** Start the scene and its building details in sunny-day colour. */
   readonly colour?: boolean;
   /** Loading backdrop and trace; defaults to light for colour, dark otherwise. */
-  readonly theme?: "light" | "dark";
+  readonly theme: "light" | "dark";
   /** Show the OpenStreetMap credit with the scene's controls. */
   readonly attribution: boolean;
   /**
@@ -71,7 +71,8 @@ export interface SkylineInstance {
   destroy(): void;
 }
 
-export interface ViewerOptions extends Omit<ViewerContext, "assets" | "signal"> {
+export interface ViewerOptions extends Omit<ViewerContext, "assets" | "signal" | "theme"> {
+  readonly theme?: "light" | "dark" | undefined;
   /** The assets' directory; relative URLs resolve against the container's document. */
   readonly assetsUrl: string | URL;
   /** The viewer's accessible name: `element` is a region with this label. */
@@ -133,7 +134,7 @@ function showFailure(root: ShadowRoot, error: unknown): void {
 export function mountViewer(container: HTMLElement, { assetsUrl, title, ...options }: ViewerOptions): SkylineInstance {
   const document = container.ownerDocument;
   const assets = assetsBase(document, assetsUrl);
-  const theme = options.theme ?? (options.colour ? "light" : "dark");
+  const theme = options.theme === undefined ? (options.colour ? "light" : "dark") : options.theme;
   if (theme !== "light" && theme !== "dark") throw new TypeError('Skyline theme must be "light" or "dark".');
   const element = document.createElement("div");
   element.style.cssText = HOST_STYLE;

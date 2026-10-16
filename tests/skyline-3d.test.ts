@@ -378,6 +378,7 @@ describe("full-screen 3D skyline", () => {
         await trace.waitFor({ state: "visible" });
         expect(await page.locator("html").evaluate((node) => getComputedStyle(node).backgroundColor))
           .toBe(light ? "rgb(245, 245, 245)" : "rgb(0, 0, 0)");
+        expect(await page.locator('meta[name="theme-color"]').getAttribute("content")).toBe(light ? "#f5f5f5" : "#000000");
         expect(await trace.evaluate((node) => getComputedStyle(node).stroke)).toBe(light ? "rgb(85, 85, 85)" : "rgb(221, 221, 221)");
         expect(await scene.locator("#loading").textContent()).toContain("Preparing the skyline");
         expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
