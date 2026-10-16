@@ -30,6 +30,11 @@ INIT_ARGS=()
 if [[ "$ACTION" == init ]]; then INIT_ARGS=("$@"); fi
 
 # terraform/versions.tf holds the whole R2 backend, so init takes no -backend-config.
+# -reconfigure never migrates state: it points this working directory at that
+# backend and forgets any earlier one, such as a .terraform still set up for the
+# old S3 bucket. The state was copied into R2 before the backend changed, so a
+# plan that would create the binding means missing state, not drift; see
+# docs/deploying.md.
 terraform -chdir="$STACK_DIR" init -input=false -reconfigure \
   "${INIT_ARGS[@]+"${INIT_ARGS[@]}"}" >&2
 

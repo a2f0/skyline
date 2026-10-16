@@ -66,8 +66,14 @@ before the comparison.
 `terraform/` owns one resource, the `cloudflare_workers_custom_domain` binding
 `skyline.devopsrockstars.com` to the Worker. Its state is `terraform.tfstate` in Skyline's own
 Cloudflare R2 bucket, `skyline-terraform-state`, which Terraform reaches through its S3 backend;
-`terraform/versions.tf` holds the complete backend, so `init` takes no backend configuration. It
-rarely changes and is not part of a content deploy:
+`terraform/versions.tf` holds the complete backend, so `init` takes no backend configuration. The
+state moved there from `skyline/website/terraform.tfstate` in the AWS S3 bucket
+`tearleads-terraform-state`, which Skyline used to share, as a byte-for-byte copy made before the
+backend changed; nothing reads the old object. Because the copy came first, `scripts/terraform.sh`
+initializes with `-reconfigure`, which switches a working directory still set up for the old
+bucket without migrating anything. A plan against an empty R2 key would propose creating the live
+binding again, so treat that as missing state, not as drift. The stack rarely changes and is not
+part of a content deploy:
 
 ```sh
 scripts/terraform.sh plan
