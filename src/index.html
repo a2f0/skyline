@@ -25,7 +25,7 @@
         height: 100%;
         margin: 0;
         overflow: hidden;
-        background: #000;
+        background: inherit;
       }
 
       .notice {
@@ -35,7 +35,20 @@
         color: #aaa;
         font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       }
+      /* Keep the boot palette in sync with skyline-shell.ts and viewer.css. */
+      :root[data-theme="light"] { color-scheme: light; background: #f5f5f5; }
+      :root[data-theme="light"] .notice { color: #444; }
     </style>
+    <script>
+      // Apply the backdrop before first paint, while the viewer modules load.
+      {
+        const settings = new URLSearchParams(location.search);
+        const light = settings.get("theme") === "light" ||
+          (settings.get("theme") !== "dark" && settings.get("colour") === "1");
+        document.documentElement.dataset.theme = light ? "light" : "dark";
+        document.querySelector('meta[name="theme-color"]').content = light ? "#f5f5f5" : "#000000";
+      }
+    </script>
   </head>
   <body>
     <!-- The viewer renders into a shadow root inside this element, as in a host's page. -->

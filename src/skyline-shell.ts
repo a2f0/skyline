@@ -23,6 +23,8 @@ export interface ViewerContext {
   readonly controls: "open" | "closed";
   /** Start the scene and its building details in sunny-day colour. */
   readonly colour?: boolean;
+  /** Loading backdrop and trace; defaults to light for colour, dark otherwise. */
+  readonly theme: "light" | "dark";
   /** Show the OpenStreetMap credit with the scene's controls. */
   readonly attribution: boolean;
   /**
@@ -69,7 +71,8 @@ export interface SkylineInstance {
   destroy(): void;
 }
 
-export interface ViewerOptions extends Omit<ViewerContext, "assets" | "signal"> {
+export interface ViewerOptions extends Omit<ViewerContext, "assets" | "signal" | "theme"> {
+  readonly theme?: "light" | "dark" | undefined;
   /** The assets' directory; relative URLs resolve against the container's document. */
   readonly assetsUrl: string | URL;
   /** The viewer's accessible name: `element` is a region with this label. */
@@ -113,7 +116,7 @@ function loaded(link: HTMLLinkElement): Promise<void> {
 const HOST_STYLE = "all:initial;direction:ltr;display:block;position:relative;isolation:isolate;width:100%;height:100%;overflow:hidden";
 
 // The failure message's own look, since the viewer's stylesheets may be what failed.
-const FAILURE_STYLE = "box-sizing:border-box;height:100%;margin:0;padding:24px;background:#000;color:#aaa;font:12px/1.5 ui-monospace,monospace";
+const FAILURE_STYLE = "box-sizing:border-box;height:100%;margin:0;padding:24px;background:inherit;color:inherit;font:12px/1.5 ui-monospace,monospace";
 
 /** Shows why the viewer couldn't start, in place of the viewer. */
 function showFailure(root: ShadowRoot, error: unknown): void {
@@ -131,8 +134,15 @@ function showFailure(root: ShadowRoot, error: unknown): void {
 export function mountViewer(container: HTMLElement, { assetsUrl, title, ...options }: ViewerOptions): SkylineInstance {
   const document = container.ownerDocument;
   const assets = assetsBase(document, assetsUrl);
+  const theme = options.theme === undefined ? (options.colour ? "light" : "dark") : options.theme;
+  if (theme !== "light" && theme !== "dark") throw new TypeError('Skyline theme must be "light" or "dark".');
   const element = document.createElement("div");
   element.style.cssText = HOST_STYLE;
+  // Paint before any assets arrive, including when a stylesheet fails to load.
+  // Keep the boot palette in sync with viewer.css and index.html.
+  element.style.colorScheme = theme;
+  element.style.backgroundColor = theme === "light" ? "#f5f5f5" : "#000";
+  element.style.color = theme === "light" ? "#444" : "#aaa";
   element.setAttribute("role", "region");
   element.setAttribute("aria-label", title);
   element.setAttribute("aria-busy", "true");
@@ -152,7 +162,7 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, ...optio
   if (options.three) Promise.resolve(options.three).catch(() => {});
   const controller = new AbortController();
   let destroyed = false, mounted = false;
-  const context: ViewerContext = { ...options, assets, signal: controller.signal };
+  const context: ViewerContext = { ...options, theme, assets, signal: controller.signal };
   const ready = new Promise<void>((resolve, reject) => {
     Promise.all([importViewer(new URL(VIEWER, assets).href), ...stylesheets.map(loaded)])
       .then(async ([viewer]) => {

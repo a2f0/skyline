@@ -35,7 +35,7 @@ function element<K extends keyof HTMLElementTagNameMap>(document: Document, tag:
   return created;
 }
 
-export function mount(root: ShadowRoot, { assets, signal, controls, colour, attribution, navigation, page, three }: ViewerContext): Promise<void> {
+export function mount(root: ShadowRoot, { assets, signal, controls, colour, theme, attribution, navigation, page, three }: ViewerContext): Promise<void> {
   const document = root.ownerDocument;
   const host = root.host as HTMLElement;
   const listening = { signal };
@@ -48,6 +48,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, attr
   sceneMarkup.catch(() => {});
 
   const viewer = element(document, "div", { className: "skyline-viewer" });
+  viewer.dataset["theme"] = theme;
   if (!navigation) viewer.dataset["embedded"] = "";
   const stars = element(document, "div", { className: "stars", id: "stars" }, { "aria-hidden": "true" });
   const scene = element(document, "div", { className: "skyline-3d", id: "skyline-3d-scene" });
@@ -66,6 +67,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, attr
   const toolbar = navigation ? createToolbar() : null;
 
   function updateView() {
+    viewer.toggleAttribute("data-booting", sceneUnavailable && mode === "3d");
     scene.hidden = mode !== "3d";
     if (mode === "original" && !drawing.getAttribute("src")) drawing.src = new URL("skyline-original-fit.svg", assets).href;
     drawing.hidden = mode !== "original";
