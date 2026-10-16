@@ -52,7 +52,7 @@ when it finishes whether it passed or failed, and appends the run to
 reads it back; Skyline’s shipping policy requires printing it at the end. The check
 runner checks managed skill drift, tool configuration and dependency advisories, typechecks the
 repository, verifies the vendored engine and license against the locked dependencies,
-runs the attribution, signatures, hooks, timings, merge guard, deploy verification, local dependency runtime, grayscale,
+runs the attribution, signatures, hooks, timings, merge guard, deploy verification, deploy secrets loader, local dependency runtime, grayscale,
 skyline-loading, package, reference excerpt, and building kit checks, then
 builds `dist/` and starts its own temporary server for the hover regressions,
 both 3D study browser suites, the building
@@ -72,13 +72,17 @@ Node, because its deployment step stops silently after the asset upload under
 Bun's runtime, and it authenticates with its own stored credentials
 (`wrangler login`).
 The staged set is the allowlist in `scripts/build-site.ts`, because the
-repository holds `.secrets/` and, in `src/`, assets the site never requests. Add
+repository holds the `.secrets` link and, in `src/`, assets the site never requests. Add
 new top-level runtime files in `src/` there or they will not ship. Top-level
 `.ts` files in `src/models/` ship automatically as compiled `.js`, and their
 `.svg` excerpts ship as-is; nested directories and other file types do not.
-`terraform/` owns only the custom-domain binding. Terraform credentials live in the gitignored
-`.secrets/root.env`; content deploys use Wrangler's own stored credentials, and
-neither is ever committed.
+`terraform/` owns only the custom-domain binding. Terraform credentials live in
+`.secrets/prod/`: `scripts/secrets.sh` loads `shared.env` and then `app.env`, each
+when present, and nothing here reads `.secrets/ci/`. `.secrets` is a gitignored
+link to `../matrix-secrets/skyline`, managed and backed up from the matrix
+repository (a2f0/matrix, `docs/secrets.md`); `docs/deploying.md` covers it.
+Content deploys use Wrangler's own stored credentials, and neither is ever
+committed.
 
 Each merge also releases the package to npm as `@a2f0/skyline`:
 `.github/workflows/npm-publish.yml` publishes `package.json`'s version whenever

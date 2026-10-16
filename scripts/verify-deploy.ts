@@ -16,7 +16,7 @@
 //     matters most for the forbidden set, the only check here guarding a security property.
 import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, realpath, stat } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { buildSite, dist, publishedFiles, root } from "./build-site.js";
@@ -35,26 +35,37 @@ const sha = (buffer: Buffer) => createHash("sha256").update(buffer).digest("hex"
 // asked about is absent. Each segment is encoded; "/" separates them and must survive.
 export const urlFor = (origin: string, entry: string) => `${origin}/${entry.split("/").map(encodeURIComponent).join("/")}`;
 
-async function walk(directory: string, prefix: string): Promise<string[]> {
-  let entries;
+// Every file under `directory`, named from `prefix`. `.secrets` is a link into the matrix-secrets
+// checkout, and links are followed wherever they appear: readdir resolves the top-level one, and a
+// linked directory inside is walked rather than probed as one file, which would leave everything in
+// it unprobed. A directory already on the current path is not entered again, so a link back up the
+// tree cannot loop; the same directory reached by two different links is walked under both names,
+// since each name is a URL that must be proven absent.
+export async function walk(directory: string, prefix: string, ancestors: ReadonlySet<string> = new Set()): Promise<string[]> {
+  let entries, real;
   try {
+    real = await realpath(directory);
+    if (ancestors.has(real)) return [];
     entries = await readdir(directory, { withFileTypes: true });
   } catch {
     return [];
   }
+  const within = new Set(ancestors).add(real);
   const found: string[] = [];
   for (const entry of entries) {
-    const next = `${prefix}/${entry.name}`;
-    if (entry.isDirectory()) found.push(...await walk(path.join(directory, entry.name), next));
+    const next = `${prefix}/${entry.name}`, full = path.join(directory, entry.name);
+    const linkedDirectory = entry.isSymbolicLink() && await stat(full).then((target) => target.isDirectory(), () => false);
+    if (entry.isDirectory() || linkedDirectory) found.push(...await walk(full, next, within));
     else found.push(next);
   }
   return found;
 }
 
 // Everything the repository holds that the build does not publish, derived rather than listed.
-// A hand-kept list is a sample, and a sample cannot prove absence. `.secrets/` is gitignored, so it
-// never appears in `git ls-files` and needs its own walk; it is also the directory whose exposure
-// would matter most. The build publishes src/ at the site root, so a file under src/ is probed both
+// A hand-kept list is a sample, and a sample cannot prove absence. `.secrets` is a gitignored link,
+// so nothing under it appears in `git ls-files` and it needs its own walk, which follows the link
+// into its tier folders (`prod/`, `staging/`, `ci/`); it is also the directory whose exposure would
+// matter most. The build publishes src/ at the site root, so a file under src/ is probed both
 // where a build would serve it and at its repository path, in case a deploy uploaded src/ itself:
 // src/skyline.jpg at /skyline.jpg and at /src/skyline.jpg.
 // git quotes any path outside plain ASCII ("docs/caf\303\251.md"), and a quoted literal probes a

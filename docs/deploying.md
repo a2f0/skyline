@@ -21,7 +21,7 @@ bun run deploy
 `bun run deploy` compiles the browser modules into `dist/` via `scripts/build-site.ts` and then
 runs `wrangler deploy`. There is still no bundler and no transformation beyond tsc's per-file emit.
 
-The staged set is an allowlist, not an ignore list: the repository holds `.secrets/`, test
+The staged set is an allowlist, not an ignore list: the repository holds the `.secrets` link, test
 fixtures, and, in `src/` beside the pages, the 18MB `src/skyline.jpg` source photograph that the
 site never requests, so only files named in `scripts/build-site.ts` reach Cloudflare. Each keeps
 its path within `src/`, so `src/index.html` is served at `/index.html`. Every top-level
@@ -44,8 +44,9 @@ It asserts two things:
   deploy is a copy of a build, so anything else is a bad deploy, and comparing hashes catches a
   file served empty or stale, which a status code does not.
 - Nothing else in the repository is reachable at all. That set is derived from `git ls-files` and
-  a walk of `.secrets/`, minus what `scripts/build-site.ts` publishes, because a hand-kept list of
-  forbidden paths is a sample and a sample cannot prove absence.
+  a walk of `.secrets`, minus what `scripts/build-site.ts` publishes, because a hand-kept list of
+  forbidden paths is a sample and a sample cannot prove absence. The walk follows the `.secrets`
+  link and any link inside it, so every file in its tier folders is probed.
 
 Published requests follow redirects, because Cloudflare answers an `.html` request with a 307 to
 the extensionless path, and they are retried, because the edge can 404 an asset for seconds after
@@ -71,14 +72,30 @@ scripts/terraform.sh plan
 scripts/terraform.sh apply
 ```
 
-`scripts/terraform.sh` reads the gitignored `.secrets/root.env`, which needs
-`TF_VAR_cloudflare_api_token` and `TF_VAR_cloudflare_account_id` (the token needs Workers
-Scripts:Edit and Zone:Read on the zone), plus `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` for
-the S3 Terraform backend. `scripts/secrets.sh` loads that file, fails loudly on a missing variable,
-and re-exports the Cloudflare pair under the `CLOUDFLARE_*` names Terraform expects. `.secrets/` is
-gitignored and never committed.
+`scripts/terraform.sh` needs `TF_VAR_cloudflare_api_token` and `TF_VAR_cloudflare_account_id`
+(the token needs Workers Scripts:Edit and Zone:Read on the zone), plus `AWS_ACCESS_KEY_ID` and
+`AWS_SECRET_ACCESS_KEY` for the S3 Terraform backend, and reads them from production's tier of
+`.secrets`. `scripts/secrets.sh` loads `.secrets/prod/shared.env`, holding values shared across
+projects, and then `.secrets/prod/app.env`, holding Skyline's own, each when present, so a value
+in `app.env` wins. It fails loudly, pointing here, when neither file exists or a Cloudflare variable
+is still unset, and re-exports the Cloudflare pair under the `CLOUDFLARE_*` names Terraform
+expects; `tests/secrets.test.ts` covers it. [Local secrets](#local-secrets) explains the link.
 
 Order matters on a first apply, and only there: wrangler must publish the Worker before Terraform
 can point a hostname at it. Cloudflare serves `.html` requests with a 307 to the extensionless
 path, so `building-study.html` lands on `/building-study` with identical content; `wrangler.jsonc`
 explains why the alternative costs more than the redirect.
+
+## Local secrets
+
+`.secrets` is a gitignored link to Skyline's folder in a `matrix-secrets` checkout beside this one,
+which the [matrix repository](https://github.com/a2f0/matrix) manages and backs up, as its
+`docs/secrets.md` describes; nothing in it is ever committed here. Create it once per clone:
+
+```sh
+ln -s ../matrix-secrets/skyline .secrets
+```
+
+Inside, `prod/` holds everything the production tier reads, and `staging/` exists but is empty,
+since Skyline has no staging tier. `ci/` holds GitHub Actions values that the matrix repository
+deploys; nothing in this repository reads it.

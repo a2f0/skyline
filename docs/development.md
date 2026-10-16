@@ -42,8 +42,8 @@ The runner checks managed skill drift, tool configuration and dependency advisor
 (`bun audit`), typechecks the repository
 (`tsc --noEmit`), verifies the vendored engine and license (`vendor:three --check`),
 and runs the attribution, hook, timings, merge guard, deploy verification,
-local dependency runtime, grayscale, skyline-loading, package, reference excerpt, and building kit
-suites under `bun test`.
+deploy secrets loader, local dependency runtime, grayscale, skyline-loading, package, reference
+excerpt, and building kit suites under `bun test`.
 It then builds `dist/`, starts its own temporary server, and runs the browser suites against the
 compiled site, closing the server afterward.
 The advisory audit requires registry access, so the full check cannot run offline;
@@ -298,10 +298,10 @@ Use npm's nested object syntax so npm packing and publishing accept it as well.
 
 Infrastructure updates require a real, complete, non-destructive preview with the
 proposed versions. Do not apply or deploy during an upgrade unless separately
-authorized. Terraform needs the existing backend and `.secrets/root.env`; absent
-credentials or a plan that destroys or replaces a resource means retaining that
-compatibility group's existing versions and reporting it. For Wrangler, run
-`bun run deploy --dry-run`, then separately compare the account, Worker, routes,
+authorized. Terraform needs the existing backend and the credentials in `.secrets/prod/`
+([Local secrets](deploying.md#local-secrets)); absent credentials or a plan that destroys or
+replaces a resource means retaining that compatibility group's existing versions and reporting it.
+For Wrangler, run `bun run deploy --dry-run`, then separately compare the account, Worker, routes,
 custom domain and bindings with the existing deployment: a bundle dry run alone
 does not prove resource safety. Cloudflare deployment is manual and separate
 from the merge's npm release. See [Deploying](deploying.md).
