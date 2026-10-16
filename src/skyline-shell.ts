@@ -139,6 +139,7 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, ...optio
   const element = document.createElement("div");
   element.style.cssText = HOST_STYLE;
   // Paint before any assets arrive, including when a stylesheet fails to load.
+  // Keep the boot palette in sync with viewer.css and index.html.
   element.style.colorScheme = theme;
   element.style.backgroundColor = theme === "light" ? "#f5f5f5" : "#000";
   element.style.color = theme === "light" ? "#444" : "#aaa";
