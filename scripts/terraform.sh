@@ -23,14 +23,15 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 # shellcheck source=./secrets.sh
 source "$REPO_ROOT/scripts/secrets.sh"
 load_deploy_secrets
-require_backend_credentials
+use_state_credentials
 
 STACK_DIR="$REPO_ROOT/terraform"
 INIT_ARGS=()
 if [[ "$ACTION" == init ]]; then INIT_ARGS=("$@"); fi
 
+# terraform/versions.tf holds the whole R2 backend, so init takes no -backend-config.
 terraform -chdir="$STACK_DIR" init -input=false -reconfigure \
-  -backend-config="$STACK_DIR/backend.hcl" "${INIT_ARGS[@]+"${INIT_ARGS[@]}"}" >&2
+  "${INIT_ARGS[@]+"${INIT_ARGS[@]}"}" >&2
 
 if [[ "$ACTION" == init ]]; then
   exit 0

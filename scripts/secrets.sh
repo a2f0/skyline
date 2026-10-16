@@ -4,7 +4,8 @@
 #
 # Skyline has one tier, production, so everything here reads .secrets/prod/:
 # shared.env holds values copied from the cross-project root file and app.env
-# Skyline's own. Each is loaded when present, shared.env first, so app.env wins.
+# Skyline's own, including the R2 key for Terraform's state. Each is loaded when
+# present, shared.env first, so app.env wins.
 # .secrets/ci/ holds GitHub Actions values the matrix repository deploys; nothing
 # here reads it.
 #
@@ -16,6 +17,10 @@ load_deploy_secrets() {
   local loaded=()
   repo_root="$(git rev-parse --show-toplevel)" || return 1
   tier_dir="$repo_root/.secrets/prod"
+
+  # The state key must come from this tier, never from the caller's shell, where
+  # another project's key could stand in for Skyline's.
+  unset TF_STATE_ACCESS_KEY_ID TF_STATE_SECRET_ACCESS_KEY
 
   for env_file in "$tier_dir/shared.env" "$tier_dir/app.env"; do
     [[ -f "$env_file" ]] || continue
@@ -52,18 +57,24 @@ load_deploy_secrets() {
   export CLOUDFLARE_ACCOUNT_ID="${TF_VAR_cloudflare_account_id}"
 }
 
-# Terraform's S3 backend needs AWS credentials; wrangler does not.
-require_backend_credentials() {
-  if [[ -n "${AWS_PROFILE:-}" ]]; then
-    return 0
-  fi
-
+# Terraform's state lives in Skyline's own Cloudflare R2 bucket, which the S3
+# backend in terraform/versions.tf reaches with the R2 key in .secrets/prod/app.env.
+# Call after load_deploy_secrets, and only on the way to Terraform; wrangler
+# needs none of this.
+use_state_credentials() {
   local missing=()
-  [[ -z "${AWS_ACCESS_KEY_ID:-}" ]] && missing+=("AWS_ACCESS_KEY_ID")
-  [[ -z "${AWS_SECRET_ACCESS_KEY:-}" ]] && missing+=("AWS_SECRET_ACCESS_KEY")
+  [[ -z "${TF_STATE_ACCESS_KEY_ID:-}" ]] && missing+=("TF_STATE_ACCESS_KEY_ID")
+  [[ -z "${TF_STATE_SECRET_ACCESS_KEY:-}" ]] && missing+=("TF_STATE_SECRET_ACCESS_KEY")
   if [[ ${#missing[@]} -gt 0 ]]; then
-    echo "ERROR: The S3 Terraform backend needs:" >&2
+    echo "ERROR: The R2 Terraform state backend needs, in .secrets/prod/app.env:" >&2
     printf '  - %s\n' "${missing[@]}" >&2
+    echo "See docs/deploying.md for the state bucket and its key." >&2
     return 1
   fi
+
+  # The backend reads the AWS names. Only the R2 key may fill them: an ambient
+  # profile or session token, or AWS keys left in shared.env, cannot redirect it.
+  unset AWS_PROFILE AWS_SESSION_TOKEN
+  export AWS_ACCESS_KEY_ID="$TF_STATE_ACCESS_KEY_ID"
+  export AWS_SECRET_ACCESS_KEY="$TF_STATE_SECRET_ACCESS_KEY"
 }

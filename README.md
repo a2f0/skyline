@@ -47,8 +47,9 @@ bun run deploy                    # publish to Cloudflare; needs Node.js 22+ and
 
 [Development](docs/development.md) explains the checks, hooks, and PR workflow, and
 [Deploying](docs/deploying.md) the release, its verification, and the gitignored `.secrets` link
-(`ln -s ../matrix-secrets/skyline .secrets`) that Terraform reads credentials through. To add a
-building or improve one, start with [Adding a building](docs/adding-a-building.md) or the
-[fidelity queue](docs/building-fidelity.md). Coding agents follow [`AGENTS.md`](AGENTS.md).
+(`ln -s ../matrix-secrets/skyline .secrets`) that Terraform reads its Cloudflare and R2 state
+credentials through. To add a building or improve one, start with
+[Adding a building](docs/adding-a-building.md) or the [fidelity queue](docs/building-fidelity.md).
+Coding agents follow [`AGENTS.md`](AGENTS.md).
 
 All documentation is indexed in [`docs/`](docs/README.md).

@@ -298,9 +298,10 @@ Use npm's nested object syntax so npm packing and publishing accept it as well.
 
 Infrastructure updates require a real, complete, non-destructive preview with the
 proposed versions. Do not apply or deploy during an upgrade unless separately
-authorized. Terraform needs the existing backend and the credentials in `.secrets/prod/`
-([Local secrets](deploying.md#local-secrets)); absent credentials or a plan that destroys or
-replaces a resource means retaining that compatibility group's existing versions and reporting it.
+authorized. Terraform needs its R2 state backend and the credentials in `.secrets/prod/`,
+including the `TF_STATE_*` state key in `app.env` ([The custom domain](deploying.md#the-custom-domain));
+absent credentials or a plan that destroys or replaces a resource means retaining that
+compatibility group's existing versions and reporting it.
 For Wrangler, run `bun run deploy --dry-run`, then separately compare the account, Worker, routes,
 custom domain and bindings with the existing deployment: a bundle dry run alone
 does not prove resource safety. Cloudflare deployment is manual and separate

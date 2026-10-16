@@ -76,9 +76,14 @@ repository holds the `.secrets` link and, in `src/`, assets the site never reque
 new top-level runtime files in `src/` there or they will not ship. Top-level
 `.ts` files in `src/models/` ship automatically as compiled `.js`, and their
 `.svg` excerpts ship as-is; nested directories and other file types do not.
-`terraform/` owns only the custom-domain binding. Terraform credentials live in
-`.secrets/prod/`: `scripts/secrets.sh` loads `shared.env` and then `app.env`, each
-when present, and nothing here reads `.secrets/ci/`. `.secrets` is a gitignored
+`terraform/` owns only the custom-domain binding. Its state lives in Skyline's own
+Cloudflare R2 bucket, `skyline-terraform-state`, through the complete S3 backend
+in `terraform/versions.tf`; no AWS credentials are involved. Terraform credentials
+live in `.secrets/prod/`: `scripts/secrets.sh` loads `shared.env` and then
+`app.env`, each when present, and nothing here reads `.secrets/ci/`. `app.env`
+holds the bucket's R2 key as `TF_STATE_ACCESS_KEY_ID` and
+`TF_STATE_SECRET_ACCESS_KEY`, which `scripts/terraform.sh` hands to Terraform
+alone under the AWS names the backend reads. `.secrets` is a gitignored
 link to `../matrix-secrets/skyline`, managed and backed up from the matrix
 repository (a2f0/matrix, `docs/secrets.md`); `docs/deploying.md` covers it.
 Content deploys use Wrangler's own stored credentials, and neither is ever
