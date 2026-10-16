@@ -340,13 +340,16 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
           expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("false");
           await mount(page, { controls: "open", colour: true });
           expect(await settled(page)).toBe("ready");
+          expect(await page.locator(".control-bar").evaluate((bar) => getComputedStyle(bar).backgroundColor)).toBe("rgb(245, 245, 245)");
           expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("true");
           await page.locator("#colour").click();
           expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("false");
           expect(await page.locator(".skyline-viewer").evaluate((viewer) => getComputedStyle(viewer).backgroundColor)).toBe("rgb(0, 0, 0)");
           expect(await page.locator("#stars").isVisible()).toBe(true);
+          expect(await page.locator(".control-bar").evaluate((bar) => getComputedStyle(bar).colorScheme)).toBe("light");
           await mount(page, { theme: "dark", colour: true });
           expect(await settled(page)).toBe("ready");
+          expect(await page.locator(".control-bar").evaluate((bar) => getComputedStyle(bar).backgroundColor)).toBe("rgb(8, 8, 8)");
           expect(await page.locator(".skyline-viewer").evaluate((viewer) => getComputedStyle(viewer).backgroundColor)).toBe("rgb(0, 0, 0)");
           expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("true");
           for (const theme of ["auto", null]) {
@@ -379,6 +382,7 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
           expect(await settled(page, "second")).toBe("ready");
           expect(await page.locator("#host .skyline-viewer").getAttribute("data-theme")).toBe("dark");
           expect(await page.locator("#second .skyline-viewer").getAttribute("data-theme")).toBe("light");
+          expect(await Promise.all(["host", "second"].map((slot) => page.locator(`#${slot} .control-bar`).evaluate((bar) => getComputedStyle(bar).colorScheme)))).toEqual(["dark", "light"]);
           expect(await page.locator("#second .skyline-viewer").evaluate((viewer) => getComputedStyle(viewer).backgroundColor)).toBe("rgb(0, 0, 0)");
           expect(await page.locator("#second #stars").isVisible()).toBe(true);
           expect([await sceneReady(page), await sceneReady(page, "second")]).toEqual([true, true]);

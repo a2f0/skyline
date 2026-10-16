@@ -185,6 +185,21 @@ body.skyline-3d { height: 100vh; height: 100dvh; }
 .control-bar .menu-toggle:hover { color: #fff; background: #ffffff14; }
 .menu-toggle svg { width: 20px; height: 20px; fill: currentColor; transition: rotate 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
 .menu-toggle[aria-expanded="true"] svg { rotate: 30deg; }
+/* The host theme owns the bar throughout loading and interaction, independently
+   of the scene's materials or time of day. The standalone page uses the same
+   theme/colour defaults as mountSkyline. Keep the other studies' palette intact. */
+.skyline-3d[data-theme="light"] .control-bar { color-scheme: light; background: #f5f5f5; border-color: #bbb; color: #444; }
+.skyline-3d[data-theme="light"] .control-bar button { --control-button-background: #fff; background: var(--control-button-background); border-color: #888; color: #444; -webkit-tap-highlight-color: #00000022; }
+.skyline-3d[data-theme="light"] .control-bar button:is(:hover, [aria-pressed="true"]) { --control-button-background: #e0e0e0; border-color: #666; color: #111; }
+.skyline-3d[data-theme="light"] .control-bar :focus-visible { outline-color: #111; }
+.skyline-3d[data-theme="light"] .time-controls :is(label, output) { color: #444; }
+.skyline-3d[data-theme="light"] :is(.time-controls #time-date, .celebration-caption) { color: #666; }
+.skyline-3d[data-theme="light"] .time-controls input { accent-color: #666; }
+.skyline-3d[data-theme="light"] .celebration-controls .logo-cut { stroke: var(--control-button-background); }
+.skyline-3d[data-theme="light"] .celebration-controls button[aria-pressed="true"] { border-color: #666; box-shadow: inset 0 -2px #444; }
+.skyline-3d[data-theme="light"] .celebration-controls button[aria-pressed="mixed"] { color: #333; border-color: #666; }
+.skyline-3d[data-theme="light"] .control-bar .menu-toggle { background: none; color: #666; }
+.skyline-3d[data-theme="light"] .control-bar .menu-toggle:hover { background: #00000014; color: #111; }
 /* Compact badges leave room for the time slider. Smaller screens retain 36px
    touch targets. */
 @container skyline (min-width: 1440px) {

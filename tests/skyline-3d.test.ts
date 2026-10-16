@@ -381,6 +381,7 @@ describe("full-screen 3D skyline", () => {
         expect(await page.locator('meta[name="theme-color"]').getAttribute("content")).toBe(light ? "#f5f5f5" : "#000000");
         expect(await trace.evaluate((node) => getComputedStyle(node).stroke)).toBe(light ? "rgb(85, 85, 85)" : "rgb(221, 221, 221)");
         expect(await scene.locator("#loading").textContent()).toContain("Preparing the skyline");
+        expect(await scene.locator(".control-bar").evaluate((bar) => getComputedStyle(bar).backgroundColor)).toBe(light ? "rgb(245, 245, 245)" : "rgb(8, 8, 8)");
         expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
         expect(await scene.evaluate(() => window.__buildingStudy?.ready)).toBeUndefined();
         const bounds = (await trace.boundingBox())!;
@@ -419,6 +420,7 @@ describe("full-screen 3D skyline", () => {
         release();
         await scene.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
         expect(await scene.locator("#loading").isHidden()).toBe(true);
+        expect(await scene.locator(".control-bar").evaluate((bar) => getComputedStyle(bar).backgroundColor)).toBe(light ? "rgb(245, 245, 245)" : "rgb(8, 8, 8)");
         expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
         await scene.locator("#menu-toggle").click();
         expect(await scene.locator(".scene-notes").isVisible()).toBe(true);
@@ -428,6 +430,46 @@ describe("full-screen 3D skyline", () => {
       }
     }
   }, { timeout: 120_000 });
+
+  test("keeps light controls readable and keyboard-operable independently of scene colour", async () => {
+    for (const route of ["index.html", "skyline-3d.html"]) {
+      const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+      await watch(page);
+      // Explicit light controls over the original grayscale night scene.
+      await page.goto(`${origin}/${route}?theme=light&controls=open`);
+      await page.waitForFunction(() => window.__buildingStudy?.ready);
+      const bar = page.locator(".control-bar");
+      const palette = () => bar.evaluate((node) => [getComputedStyle(node).backgroundColor, getComputedStyle(node).colorScheme]);
+      expect(await palette()).toEqual(["rgb(245, 245, 245)", "light"]);
+      const button = page.locator("#colour");
+      await button.focus();
+      expect(await button.evaluate((node) => getComputedStyle(node).outlineColor)).toBe("rgb(17, 17, 17)");
+      await button.press("Enter");
+      expect(await button.getAttribute("aria-pressed")).toBe("true");
+      expect(await page.locator("#time-of-day").evaluate((node) => getComputedStyle(node).colorScheme)).toBe("light");
+      // All enabled opaque buttons, including the selected one, keep readable text.
+      const contrast = await bar.locator("button:enabled:not(.menu-toggle)").evaluateAll((buttons) => {
+        const luminance = (colour: string) => {
+          const grey = Number(colour.match(/\d+/)![0]) / 255;
+          return grey <= 0.04045 ? grey / 12.92 : ((grey + 0.055) / 1.055) ** 2.4;
+        };
+        return buttons.map((node) => {
+          const style = getComputedStyle(node), a = luminance(style.color), b = luminance(style.backgroundColor);
+          return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+        });
+      });
+      expect(Math.min(...contrast)).toBeGreaterThanOrEqual(4.5);
+      await button.press("Enter");
+      expect(await button.getAttribute("aria-pressed")).toBe("false");
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.locator("#menu-toggle").click();
+      expect(await palette()).toEqual(["rgb(245, 245, 245)", "light"]);
+      await page.locator("#menu-toggle").press("Enter");
+      expect(await page.locator("#camera-views").isVisible()).toBe(true);
+      expect(await palette()).toEqual(["rgb(245, 245, 245)", "light"]);
+      await page.close();
+    }
+  }, { timeout: 60_000 });
 
   test("replaces the trace with a readable error when the scene cannot load", async () => {
     const page = await browser.newPage();

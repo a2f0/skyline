@@ -11,9 +11,12 @@ Omitting `colour` keeps the existing greyscale default. The setting belongs to t
 it does not use storage or affect another embed. The standalone viewer accepts `?colour=1`.
 
 Pass `theme: "light"` or `theme: "dark"` from the host's active theme to choose the
-loading backdrop, animated outline and error palette. It applies synchronously,
+loading backdrop, animated outline, error palette and bottom control bar.
+The loading palette applies synchronously,
 before the viewer's code or stylesheets load. After the first frame, the scene
 supplies its own sky; returning to greyscale restores the black sky and stars.
+The control bar keeps the host's theme, including its buttons, focus outlines,
+time slider and celebration badges, independently of the scene's time or materials.
 Without `theme`, `colour: true`
 boots light and greyscale boots dark. The theme does not select scene materials or
 time of day: for a light host, pass both `theme: "light"` and `colour: true`.
