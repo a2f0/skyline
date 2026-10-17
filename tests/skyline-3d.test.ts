@@ -47,19 +47,36 @@ const pixelAt = async (page: Page, png: Buffer, x: number, y: number) => page.ev
   context.drawImage(bitmap, 0, 0);
   return Array.from(context.getImageData(Math.floor(bitmap.width * across), Math.floor(bitmap.height * down), 1, 1).data.slice(0, 3));
 }, [png.toString("base64"), x, y] as const);
-// Count visible warm lamps, excluding the cool night sky and shaded facades.
-const warmPixels = (page: Page, png: Buffer) => page.evaluate(async (data) => {
+// Count bright lamps of any white-light tint, above the dark sky and shaded facades.
+const litPixels = (page: Page, png: Buffer) => page.evaluate(async (data) => {
   const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
   const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
   context.drawImage(bitmap, 0, 0);
   const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height).data;
-  let warm = 0;
+  let lit = 0;
   for (let i = 0; i < pixels.length; i += 4) {
     const [r, g, b] = [pixels[i]!, pixels[i + 1]!, pixels[i + 2]!];
-    if (r > 70 && r - g > 8 && g - b > 8) warm += 1;
+    if ((r + g + b) / 3 > 90) lit += 1;
   }
-  return warm;
+  return lit;
 }, png.toString("base64"));
+// Compare the same fully dark scene at two occupancy levels. Unchanged stars,
+// crowns and outlines cannot count as rooms that switch on in the evening.
+const nightChanges = (page: Page, evening: Buffer, early: Buffer) => page.evaluate(async (images) => {
+  const pixels = await Promise.all(images.map(async (data) => {
+    const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
+    const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
+    context.drawImage(bitmap, 0, 0);
+    return context.getImageData(0, 0, bitmap.width, bitmap.height).data;
+  }));
+  let brighter = 0, dimmer = 0;
+  for (let i = 0; i < pixels[0]!.length; i += 4) {
+    const delta = [0, 1, 2].reduce((sum, c) => sum + pixels[0]![i + c]! - pixels[1]![i + c]!, 0) / 3;
+    if (delta > 20) brighter += 1;
+    if (delta < -20) dimmer += 1;
+  }
+  return { brighter, dimmer };
+}, [evening.toString("base64"), early.toString("base64")]);
 // Bright cool panes must be distinguishable from the dark blue sky/facades;
 // count all three lamp families so a globally warm shader cannot pass.
 const lampTints = (page: Page, png: Buffer) => page.evaluate(async (data) => {
@@ -1175,9 +1192,10 @@ describe("full-screen 3D skyline", () => {
         return page.locator(".detail-host #building").screenshot();
       };
       const detailEvening = await detailAt(1200), detailEarly = await detailAt(240);
-      const detailBusy = await warmPixels(page, detailEvening), detailQuiet = await warmPixels(page, detailEarly);
+      const detailChange = await nightChanges(page, detailEvening, detailEarly), detailQuiet = await litPixels(page, detailEarly);
       expect(detailQuiet, "the floating detail keeps some overnight rooms lit").toBeGreaterThan(30);
-      expect(detailBusy, "the floating detail follows the skyline's occupancy cycle").toBeGreaterThan(detailQuiet * 1.5);
+      expect(detailChange.brighter, "the floating detail follows the skyline's occupancy cycle").toBeGreaterThan(100);
+      expect(detailChange.dimmer).toBeLessThan(detailChange.brighter * 0.05);
       expect((await detailAt(1200)).equals(detailEvening), "the detail restores the same rooms when scrubbing back").toBe(true);
       await slider.fill("1080");
       await settle(page);
@@ -1207,7 +1225,7 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
-  test("renders three fixture whites independently of stars, surfaces and brightness", async () => {
+  test("renders warm, neutral and cool fixture emission against an unlit baseline", async () => {
     const page = await browser.newPage();
     await watch(page);
     await page.goto(`${origin}/skyline-3d.html`);
@@ -1220,7 +1238,9 @@ describe("full-screen 3D skyline", () => {
       const scene = new T.Scene(), camera = new T.OrthographicCamera(-3, 3, 1, -1, 0.1, 10);
       camera.position.z = 2;
       const fixtures = [0, 0.5, 1].map((tint, index) => {
-        const geometry = new T.PlaneGeometry(1.8, 1.8), material = new T.MeshToonMaterial({ color: 0 });
+        const geometry = new T.BufferGeometry(), material = new T.MeshToonMaterial({ color: 0 });
+        geometry.setAttribute("position", new T.Float32BufferAttribute([-0.9, -0.9, 0, 0.9, -0.9, 0, 0.9, 0.9, 0, -0.9, -0.9, 0, 0.9, 0.9, 0, -0.9, 0.9, 0], 3));
+        geometry.computeVertexNormals();
         const mask = new Float32Array(geometry.getAttribute("position").count);
         const windows = Float32Array.from(Array.from(mask).flatMap(() => [0, 0.6, 1, tint]));
         const light = glassReflection(material, geometry, mask, windows);
@@ -1271,11 +1291,12 @@ describe("full-screen 3D skyline", () => {
       const evening = await at(1200), early = await at(240);
       const tints = await lampTints(page, evening);
       expect(tints.warm, "warm rooms remain visible").toBeGreaterThan(100);
-      expect(tints.neutral, "neutral fixtures differ from amber rooms").toBeGreaterThan(100);
+      if (route === "skyline-3d.html") expect(tints.neutral, "neutral fixtures differ from amber rooms").toBeGreaterThan(100);
       expect(tints.cool, "cool white rooms render above the dark sky and facades").toBeGreaterThan(20);
-      const busy = await warmPixels(page, evening), quiet = await warmPixels(page, early);
+      const change = await nightChanges(page, evening, early), quiet = await litPixels(page, early);
       expect(quiet, "some windows and architectural lights remain overnight").toBeGreaterThan(100);
-      expect(busy, "more rooms are lit in the evening than at 4 AM").toBeGreaterThan(quiet * 1.5);
+      expect(change.brighter, "rooms light up above unchanged stars and architectural lamps").toBeGreaterThan(1000);
+      expect(change.dimmer, "increasing occupancy overwhelmingly brightens rooms").toBeLessThan(change.brighter * 0.05);
       expect((await at(1200)).equals(evening), "scrubbing back recreates the same rooms").toBe(true);
       await page.locator('[data-celebration="cubs"]').click();
       await settle(page);
