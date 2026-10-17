@@ -40,7 +40,7 @@ copies; the geographic models are the same buildings on their mapped parts.
 | Three Illinois Center | `building-three-illinois-center` | 106.7 m | Dark bronze curtain wall, its top two floors a windowless mechanical penthouse; fills the drawn `buckingham-west` columns | [Three Illinois Center](three-illinois-center-reference.md) |
 | Swissôtel Chicago | `building-swissotel` | 139.3 m | Triangular glass tower closing the seam where Three Illinois Center meets The Buckingham | [Swissôtel](swissotel-reference.md) |
 | The Buckingham | `building-the-buckingham` | 121.9 m | Concrete frame of five bays a face, a band at every floor over bronze ribbon windows, end bays forward, balconies in two notched corners | [The Buckingham](buckingham-reference.md) |
-| Sheraton Grand Chicago Riverwalk | `building-buckingham-east` | 112.3 m | Across the river: cream precast L of punched windows, the corner's round tower two floors over the arms, three drums of maroon fins | [Sheraton Grand](sheraton-grand-reference.md) |
+| Sheraton Grand Chicago Riverwalk | `building-buckingham-east` | 112.3 m | Across the river: cream precast L of punched windows, the corner's round tower two floors over the arms, a lower east wing and four crown drums | [Sheraton Grand](sheraton-grand-reference.md) |
 
 ## Michigan Avenue
 

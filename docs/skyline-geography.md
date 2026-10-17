@@ -133,7 +133,10 @@ Tower's part were added on September 29, 2026, from the same request, and the Sh
 Chicago Riverwalk's tower and corner parts the same day, from
 [a fifth](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6250,41.8860,-87.6050,41.8980),
 and Three Illinois Center's outline and the Swissôtel's tower part the same day, from the
-fourth.
+fourth. On 2026-10-17, the Sheraton east wing and round end were retrieved from
+[relation 17432075](https://api.openstreetmap.org/api/0.6/relation/17432075/full.json)
+and [way 1269924304](https://api.openstreetmap.org/api/0.6/way/1269924304/full.json);
+its combined ground coverage names the tower and wing ways separately.
 It includes the selected building outlines and parts. The streets come from a separate
 extract retrieved on September 30, 2026 through the
 [Overpass API](https://overpass-api.de/api/interpreter?data=%5Bout%3Ajson%5D%3Bway%5B%22highway%22%5D%2841.8765%2C-87.6310%2C41.8916%2C-87.6158%29%3Bout%20meta%20geom%3B),
@@ -200,7 +203,7 @@ of its tower. The cyan ground outlines show that distinction.
 | Two Illinois Center | [236770799](https://www.openstreetmap.org/way/236770799) | Outline, with the floor pitch from the photograph; not in the original layout |
 | River Plaza | [285867424](https://www.openstreetmap.org/way/285867424) | 68796725, 68796733, 285867425; not in the original layout |
 | Hyatt Regency West Tower | [235920252](https://www.openstreetmap.org/way/235920252) | The tower's part of the hotel's outline, 235920251; not in the original layout |
-| Sheraton Grand | [592122464](https://www.openstreetmap.org/way/592122464) | The tower's part of the complex's outline, 188171430, and the corner's round tower, 1269924307; not in the original layout |
+| Sheraton Grand | [592122464](https://www.openstreetmap.org/way/592122464) | The tower's part of the complex's outline, 188171430, the corner 1269924307, east wing 1269924305 and round end 1269924304; not in the original layout |
 | Three Illinois Center | [95486958](https://www.openstreetmap.org/way/95486958) | Outline; not in the original layout |
 | Swissôtel | [641288601](https://www.openstreetmap.org/way/641288601) | The tower's part of the hotel's outline, 95486966; not in the original layout |
 
@@ -461,7 +464,9 @@ Intermediate parts have less certainty than the overall height:
   the drawing paints a lit crown. Its levels stand on the Skyscraper Center's datum, with
   Emporis's floor-to-floor, roof and crown heights over its top floor: the arms' roof at
   94.76 m, the corner's two floors higher at 100.1 m, and 12.2 m drums of maroon fins on the
-  three round ends, the corner's to the published 112.3 m. The Skyscraper Center's tip, 50 cm
+  original three round ends, the corner's to the published 112.3 m. The 2026-10-17
+  pass restores the lower east wing at an estimated 84.08 m and its round end at
+  86.75 m, provisionally sharing the crown assembly pending finer measurements. The Skyscraper Center's tip, 50 cm
   higher, names no feature the photographs resolve, so the model stops at the drum's top; see
   the [Sheraton Grand reference audit](sheraton-grand-reference.md).
 - Three Illinois Center stands between 340 on the Park and The Buckingham from the drawing's
