@@ -303,7 +303,8 @@ mapped site. The hotel lies beyond the default skyline's far-right edge, so that
 view cannot show the correction. Colour toggling changed every canvas and restored the
 gray image byte for byte in all four views; camera metadata matched before/after.
 Targeted watertightness, coplanar-overlap, raycast, material, grayscale and strict
-type checks passed. Full shipping validation remains pending.
+type checks passed. Full shipping validation and independent review are recorded
+in the pull request for this pass.
 
 Next: FID-SHER-002 should replace the tall striped crown cylinders with the
 photographed stepped bases and louvered screens, and resolve their dimensions.
