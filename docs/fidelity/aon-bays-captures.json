@@ -220,7 +220,11 @@
         "selector": "#building",
         "width": 1600,
         "height": 900
-      }
+      },
+      "contextChanges": [
+        "FID-AON-003",
+        "FID-RIV-001"
+      ]
     },
     {
       "url": "skyline-3d.html?controls=open",
@@ -244,7 +248,11 @@
         "selector": "#building",
         "width": 1600,
         "height": 900
-      }
+      },
+      "contextChanges": [
+        "FID-AON-003",
+        "FID-RIV-001"
+      ]
     },
     {
       "url": "building-detail.html?building=layer3",

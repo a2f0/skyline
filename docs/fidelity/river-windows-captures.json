@@ -298,7 +298,11 @@
       "artifacts": {
         "grey": "river-windows-skyline-grey-after.png",
         "day": "river-windows-skyline-day-after.png"
-      }
+      },
+      "contextChanges": [
+        "FID-AON-003",
+        "FID-RIV-001"
+      ]
     },
     {
       "url": "skyline-3d.html?controls=open",
@@ -322,7 +326,11 @@
       "artifacts": {
         "grey": "river-windows-quarter-grey-after.png",
         "day": "river-windows-quarter-day-after.png"
-      }
+      },
+      "contextChanges": [
+        "FID-AON-003",
+        "FID-RIV-001"
+      ]
     },
     {
       "url": "building-detail.html?building=building-river-plaza",

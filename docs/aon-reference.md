@@ -443,3 +443,7 @@ checks in both modes. The four-face raycast width test supplies the quantitative
 acceptance evidence for regular openings. The
 absolute pitch and notched corner proportions remain provisional, as described
 above. Full shipping validation and independent review are recorded in the PR.
+
+The final skyline/quarter after-images include both FID-AON-003 and
+FID-RIV-001, which ship together. Detail pairs isolate each building;
+context pairs compare the combined batch against its common base.

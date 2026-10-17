@@ -329,3 +329,7 @@ partly occluded. The excessive horizontal concrete and blank corner strips
 remain visible, reinforcing FID-RIV-002 rather than treating this pass as a
 complete facade correction. Full shipping validation and independent review
 are recorded in the PR.
+
+The final skyline/quarter after-images include both FID-AON-003 and
+FID-RIV-001, which ship together. Detail pairs isolate each building;
+context pairs compare the combined batch against its common base.
