@@ -2639,6 +2639,14 @@ describe("mapped skyline geography", () => {
       // The stepped lower frame projects beyond the recessed upper screen.
       expect(reach(arms + 0.25) - reach(arms + 5)).toBeGreaterThan(0.45);
       expect(reach(arms + 1.4) - reach(arms + 5)).toBeGreaterThan(0.2);
+      // The principal and wing crowns have distinct base/screen splits too.
+      const crownRadius = (east: number, north: number, y: number) => {
+        const angle = Math.PI / 24;
+        const p = hit([east + 12 * Math.cos(angle), y, -north + 12 * Math.sin(angle)], [-Math.cos(angle), 0, -Math.sin(angle)])!.point;
+        return Math.hypot(p.x - east, p.z + north);
+      };
+      expect(crownRadius(407.44, 465.95, 103.5) - crownRadius(407.44, 465.95, 111)).toBeGreaterThan(0.2);
+      expect(crownRadius(482.703, 457.389, 87.75) - crownRadius(482.703, 457.389, 91)).toBeGreaterThan(0.2);
       // The east arm's south face: a window 1.5 m tall 80 cm over each floor line, counted
       // down from the top floor at 97 m, 35 of them under the arms' roof.
       const south = (x: number, y: number) => tone(hit([x, y, -420], [0, 0, -1]), "Sheraton Grand · precast and windows");

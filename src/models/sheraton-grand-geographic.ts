@@ -42,7 +42,7 @@ export const sheratonDrums = Object.freeze([
   { centre: [482.703, 457.389] as Vec2, radius: 7.391, base: h.wingEnd, height: 6, screen: 4 },
 ]);
 
-// The skins' colours: the window tones, the precast, and the drums' cream and maroon fins,
+// The skins' colours: the window tones, the precast, and the crowns' pale frames and dark maroon screens,
 // which no window shares.
 export const sheratonPalette = Object.freeze({ glass: [0x2a2a2a, 0x2e2e2e, 0x323232, 0x262626], lit: 0x8a8a8a, dim: 0x505050, precast: 0x848484, drum: 0xb4b4b4, fin: 0x5a5a5a });
 const palette = sheratonPalette;

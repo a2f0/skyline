@@ -103,7 +103,8 @@ units left of it and 30 lower, as the drawing sits left of the projection on thi
 - **Crowns:** the original alternating 24-facet cylinders were replaced on
   2026-10-17 by stepped frames and recessed horizontal-louver screens; see FID-SHER-002 below.
 
-Colours follow the drawing's greys: the precast mid grey, the drums light, their fins dark.
+Colours follow the drawing's greys: mid-grey precast, pale crown frames and uprights,
+and dark louvered screens.
 
 Omitted:
 
