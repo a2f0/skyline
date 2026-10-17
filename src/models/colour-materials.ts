@@ -251,7 +251,7 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
   // White concrete.
   "building-river-plaza": {
     shell: ["concrete"],
-    "concrete and windows": ["glass", { ...windows(0x8a8a8a, 0x505050), 0x9a9a9a: "concrete" }],
+    "concrete and windows": ["glass", { ...windows(0x8a8a8a, 0x505050), 0x9a9a9a: "concrete", 0x424242: "aluminium" }],
     "rooftop box": ["concrete"],
   },
   // Dark orange brick and bronze glass.

@@ -2457,15 +2457,22 @@ describe("mapped skyline geography", () => {
       near(hitPlaza([podium![0], 300, podium![1] + 5], [0, -1, 0])!.point.y, 8, 1e-3);
       const rp = riverPlazaPalette, rGlass = (r: number) => [...rp.glass, rp.lit, rp.dim].some((hex) => is(hex)(r));
       expect(rGlass(new THREE.Color(rp.concrete).r), "concrete does not pass for glass").toBe(false);
-      // Its north face, from the north: a window 1.5 m tall 75 cm over each of its 55 floor
-      // lines above grade, in 1.6 m bays of the frame.
+      // Its north face: the photographed taller opening and lower transom,
+      // applied around the tower by inference. Horizontal bays remain provisional.
       const north = (x: number, y: number) => tone(hitPlaza([x, y, slab![1] - 60], [0, 0, 1]), "River Plaza · concrete and windows");
       const pitch = 156 / 56;
       let column = slab![0] - 5;
       while (!rGlass(north(column, 20 * pitch + 1.5))) column += 0.05;
       column += 0.3;
-      expect(count(0.3, 155.8, rGlass, (y) => north(column, y), 0.05), "a window to each floor").toBe(55);
-      expect([is(rp.concrete)(north(column, 20 * pitch + 0.7)), rGlass(north(column, 20 * pitch + 0.8)), rGlass(north(column, 20 * pitch + 2.2)), is(rp.concrete)(north(column, 20 * pitch + 2.3))], "a sill and a head").toEqual([true, true, true, true]);
+      expect(count(0.3, 155.8, (r) => rGlass(r) || is(rp.frame)(r), (y) => north(column, y), 0.05), "one framed opening to each floor").toBe(55);
+      // Photo IMG 1165: openings occupy roughly 75% of the floor pitch,
+      // with a narrow divider about 30% up from the bottom. Probe lower,
+      // middle and top floors so clipping or row-index drift cannot hide.
+      for (const n of [1, 20, 55]) {
+        const at = (dy: number) => north(column, n * pitch + dy);
+        expect([is(rp.concrete)(at(0.3)), rGlass(at(0.4)), rGlass(at(0.9)), is(rp.frame)(at(0.98)), rGlass(at(1.1)), rGlass(at(2.4)), is(rp.concrete)(at(2.5))], `floor ${n}: sill, two lights, lower transom and head`).toEqual(Array(7).fill(true));
+        near(at(0.6), at(1.6), 1e-6);
+      }
       // From a window's west edge, within the north face's recess, six windows in six 1.6 m
       // bays.
       let edge = slab![0] - 6;
@@ -2493,6 +2500,47 @@ describe("mapped skyline geography", () => {
       const mapped = (coordinates: [number, number][]) => coordinates.map((p) => { const [x, n] = projectGround(p); return [Math.fround(x), Math.fround(-n)].map((v) => v.toFixed(3)).join(","); });
       expect(grade(models["Two Illinois Center"]!, "Two Illinois Center · shell")).toEqual(new Set(mapped(center.footprint.coordinates)));
       expect(grade(models["River Plaza"]!, "River Plaza · shell")).toEqual(new Set([...mapped(plaza.parts[0]!.coordinates), ...mapped(plaza.parts[1]!.coordinates)]));
+
+      // The newly separated metal transoms stay opaque in both modes. Glass
+      // must still receive night lighting, and colour-off must
+      // restore every original colour byte.
+      const model = models["River Plaza"]!;
+      const wall = model.building.children.find((child) => child.name === "River Plaza · concrete and windows") as THREE.Mesh;
+      const colours = wall.geometry.getAttribute("color");
+      const before = new Float32Array(colours.array);
+      const frameTone = new THREE.Color(rp.frame).r;
+      const controller = createSkylineColour([model]);
+      try {
+        controller.set(true);
+        controller.setNight({ darkness: 1, activity: 1, outlineStrength: 0.05 });
+        const reflections = wall.geometry.getAttribute("skylineGlass"), lights = wall.geometry.getAttribute("skylineWindow");
+        let frames = 0, windows = 0, mismatch: number | null = null;
+        for (let vertex = 0; vertex < colours.count; vertex += 1) {
+          if (Math.abs(before[vertex * 3]! - frameTone) < 1e-6) {
+            frames += 1;
+            if (mismatch === null && (reflections.getX(vertex) !== 0 || lights.getZ(vertex) !== 0 || colours.getX(vertex) !== before[vertex * 3] || colours.getY(vertex) !== before[vertex * 3 + 1] || colours.getZ(vertex) !== before[vertex * 3 + 2])) mismatch = vertex;
+          } else if (lights.getZ(vertex) === 1) windows += 1;
+        }
+        expect(mismatch, "first metal transom with colour, reflection or room emission").toBeNull();
+        expect(frames).toBeGreaterThan(1000);
+        expect(windows).toBeGreaterThan(1000);
+        // The transom covers a single full-height glass quad, so its lower
+        // and upper lights share occupancy, brightness and fixture tint.
+        let tested = 0;
+        for (let x = slab![0] - 6; x < slab![0] + 6; x += 0.2) {
+          const lower = hitPlaza([x, 20 * pitch + 0.6, slab![1] - 60], [0, 0, 1])!;
+          const upper = hitPlaza([x, 20 * pitch + 1.6, slab![1] - 60], [0, 0, 1])!;
+          if (lower.object !== wall || upper.object !== wall || lights.getZ(lower.face!.a) !== 1) continue;
+          const maskAt = (v: number) => [lights.getX(v), lights.getY(v), lights.getZ(v), lights.getW(v)];
+          expect(maskAt(lower.face!.a)).toEqual(maskAt(upper.face!.a));
+          tested += 1;
+        }
+        expect(tested, "at least one eligible room spans the transom").toBeGreaterThan(0);
+      } finally {
+        controller.setNight(null);
+        controller.set(false);
+      }
+      expect(Buffer.compare(Buffer.from(colours.array.buffer, colours.array.byteOffset, colours.array.byteLength), Buffer.from(before.buffer)), "exact colour restoration").toBe(0);
     }, { timeout: 60_000 });
   });
 

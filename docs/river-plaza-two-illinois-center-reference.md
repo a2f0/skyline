@@ -85,7 +85,7 @@ curtain wall:
 | --- | ---: | --- |
 | Podium | 0–8 m | OpenStreetMap |
 | Typical floor | 2.79 m | The roof's 156 m over 56 floors |
-| Windows | 1.5 m tall | Estimate: 75 cm over each floor |
+| Windows | 2.1 m tall | October 17 photographic ratio; 0.35 m sill placement inferred |
 | Roof | 156 m | OpenStreetMap: the slab's part |
 | Box | 156–159.7 m | Published: the Skyscraper Center's architectural top and tip, 524 ft |
 
@@ -203,3 +203,129 @@ its null ones grey. In the skyline view at 1600 × 900 under the day lights, Two
 south face renders `62, 69, 80` where the view sees it, against the photograph's `68, 76, 87`, 0.83
 in linear light, and River Plaza's top, lit by the scene's sun, `245, 241, 235` against
 `229, 223, 211`, 1.21.
+
+## 2026-10-17 — taller River Plaza windows and lower transoms (FID-RIV-001)
+
+The earlier model estimated 1.5 m windows on a 156/56 = 2.786 m floor pitch,
+leaving about 46% of each module as concrete above/below the opening. Dated
+close views show taller openings, a much shallower concrete floor band and a
+slim metal divider near the lower third of the glass. This pass corrects that
+vertical proportion. The conspicuously narrow horizontal grid and broad blank
+corners remain a separate problem, FID-RIV-002; this does not claim to finish
+the structural frame or count every window group.
+
+### Sources and observations
+
+Accessed **2026-10-17**, with full-resolution files inspected locally:
+
+- Matt Griffin, [Chicago IMG 1165.CR2](https://commons.wikimedia.org/wiki/File:Chicago_IMG_1165.CR2_(1352992229).jpg),
+  photographed **2007-09-09 14:30**. The
+  [3456 × 2298 original](https://upload.wikimedia.org/wikipedia/commons/1/1b/Chicago_IMG_1165.CR2_%281352992229%29.jpg)
+  shows River Plaza's east end behind Wrigley's clock tower, including the
+  thin floor bands and lower window transoms. SHA-256
+  `7c315f8fad446c16932bfd86a2d643f0a494dba4e986992422504c381de0ba14`.
+- Griffin, [Chicago IMG 1016.CR2](https://commons.wikimedia.org/wiki/File:Chicago_IMG_1016.CR2_(1352693579).jpg),
+  photographed **2007-09-09 12:46**. The
+  [3456 × 2298 original](https://upload.wikimedia.org/wikipedia/commons/4/40/Chicago_IMG_1016.CR2_%281352693579%29.jpg)
+  shows the adjacent long elevation with the same repeated window/transom
+  treatment; obliquity and blur limit precise width measurements. SHA-256
+  `bfda20a5305f3097986aa2169116b6d244b7b567d5f605e876e28a652bcce414`.
+- Chicago Architecture Today,
+  [Wrigley Building — Exterior 2](https://commons.wikimedia.org/wiki/File:Wrigley_Building_-_Exterior_2_(7541337904).jpg),
+  photographed **2012-07-03 10:52**. The
+  [3264 × 2448 original](https://upload.wikimedia.org/wikipedia/commons/0/04/Wrigley_Building_-_Exterior_2_%287541337904%29.jpg)
+  provides an independent pre-2013 view of the long elevation's broad glazed
+  groups and narrow bands. SHA-256
+  `dc0c04df53d8c7aa9426c5a984df988027207b2af137257f46f216af0e1052ff`.
+- The [fresh OpenStreetMap site extract](https://api.openstreetmap.org/api/0.6/map.json?bbox=-87.6265,41.8893,-87.6252,41.8903)
+  retains outline 285867424 v6, shaft 68796725 v10 (56 levels, 156 m), podium
+  68796733 v5 (8 m), and both rooftop ways: 285867425 v1 (166 m) and
+  285867426 v1 (160 m). All four parts were checked, including the excluded
+  rooftop block. The prior published-height conflict remains unresolved;
+  neither rooftop geometry nor height is changed here.
+
+Measurement method: in IMG 1165, inspect the window column around original
+**x = 2030**, **y = 754–900**, away from vertical piers. Approximate opening
+bounds are y 754–795, 808–847 and 861–900, against successive floor pitches
+of about 53–54 pixels. Edge blur and narrow frame thickness leave roughly
+±2 pixels per boundary: an opening ratio near **75% ±6%** is justified, not
+a surveyed height. The first two lower transoms fall near y 781 and 835,
+roughly 30–34% of the opening up from its bottom. A 400 × 400 crop at
+(1950, 700), viewed enlarged without perspective correction, resolves the
+metal dividers. These are local ratios along one vertical column, not
+measurements across foreshortened faces. The other two photographs corroborate
+the treatment rather than supplying independent metre dimensions.
+
+### Decisions and limits
+
+Use a **2.1 m** opening on the retained 2.786 m pitch, about **75.4%**,
+instead of 1.5 m. Its sill is placed 0.35 m above the existing floor datum;
+that absolute placement is inferred because the photographs do not locate
+the interior slab elevation. The lower divider begins 0.6 m above the sill,
+with a schematic 0.06 m section. Applying this repeated treatment to the
+unseen north/west faces is a symmetry inference, not a new photographic
+verification. Floor totals, roof/podium levels, mapped coordinates and the
+1.6 m horizontal grid remain provisional as before.
+
+The model grows from 40,796 to 84,244 triangles, chiefly the closed transom
+boxes; this is a rendering cost, not an accuracy metric. Full browser checks
+cover the resulting scene, but no new frame-rate claim is made.
+
+Closed metal bars sit 5 mm in front of the full-height glass skin and project
+another 15 mm; this clearance prevents coplanar faces. The unsplit glass
+under each divider keeps one room-lighting seed for its upper and lower
+visible lights. The painted window tone is also retained for each existing
+window. The extra relief and precise section sizes are schematic.
+
+The frame is classified as aluminium and remains an explicit neutral grey:
+there is no separately calibrated sunny sample for its coating. Its material
+receives neither glass reflection nor room emission. The existing concrete
+colour and unknown glass colours are unchanged; River Plaza's glass already
+has no daylight reflection mask because its colour is unresolved. Neither
+shared exposure nor the lighting palette was adjusted to compensate for the
+remaining horizontal-grid discrepancy.
+
+FID-RIV-002 remains open for broad structural group counts, slim vertical
+mullions, glazed corners, north/west confirmation, roof/flue dimensions and
+podium details. The photographs show these are real opportunities, but the
+mapped recesses and oblique views do not yet justify a complete reconstruction.
+
+### Acceptance
+
+Targeted closure, winding, coplanar-overlap and covered-face checks pass.
+Raycasts retain 55 openings above grade, distinguish the sill, both glass
+lights, metal transom and head at lower/middle/top floors, and preserve the
+existing horizontal grid and mapped ground vertices. Material probes verify
+that every transom vertex remains neutral, unreflective and unlit; eligible
+room windows retain emission, upper/lower samples share all four lighting
+mask values, and colour-off restores the entire colour buffer byte for byte.
+Strict TypeScript and the palette/grayscale suites pass.
+
+Six matched before/after views use reduced motion and a 1600 × 1000 viewport.
+Images capture `#building`; the [manifest](fidelity/river-windows-captures.json)
+records actual pixel dimensions, camera poses and baseline detail-fit bounds.
+The new bars slightly increase the automatic fitted extent. To keep the
+camera and platform identical, after-captures override `min`/`max` with the
+recorded baseline bounds immediately before `const height = max.y` in the
+served `building-detail.js`, using a Playwright route. This only changes
+temporary capture fitting; model geometry and product source are untouched.
+The two close views add sixteen `=` zoom presses and hide the DOM view caption
+in both phases, following the Aon capture investigation. All retained views
+change on colour-on and restore grayscale exactly.
+
+| View | Grayscale before / after | Daylight before / after |
+| --- | --- | --- |
+| Front | [before](fidelity/river-windows-front-grey-before.png) / [after](fidelity/river-windows-front-grey-after.png) | [before](fidelity/river-windows-front-day-before.png) / [after](fidelity/river-windows-front-day-after.png) |
+| Side | [before](fidelity/river-windows-side-grey-before.png) / [after](fidelity/river-windows-side-grey-after.png) | [before](fidelity/river-windows-side-day-before.png) / [after](fidelity/river-windows-side-day-after.png) |
+| Skyline | [before](fidelity/river-windows-skyline-grey-before.png) / [after](fidelity/river-windows-skyline-grey-after.png) | [before](fidelity/river-windows-skyline-day-before.png) / [after](fidelity/river-windows-skyline-day-after.png) |
+| Quarter | [before](fidelity/river-windows-quarter-grey-before.png) / [after](fidelity/river-windows-quarter-grey-after.png) | [before](fidelity/river-windows-quarter-day-before.png) / [after](fidelity/river-windows-quarter-day-after.png) |
+| Front-Close | [before](fidelity/river-windows-front-close-grey-before.png) / [after](fidelity/river-windows-front-close-grey-after.png) | [before](fidelity/river-windows-front-close-day-before.png) / [after](fidelity/river-windows-front-close-day-after.png) |
+| Side-Close | [before](fidelity/river-windows-side-close-grey-before.png) / [after](fidelity/river-windows-side-close-grey-after.png) | [before](fidelity/river-windows-side-close-day-before.png) / [after](fidelity/river-windows-side-close-day-after.png) |
+
+Inspection of all six pairs shows taller openings and shallower concrete bands
+in both modes; the close views also resolve the lower dividers. Silhouette and
+placement remain stable in skyline/quarter views, where this distant tower is
+partly occluded. The excessive horizontal concrete and blank corner strips
+remain visible, reinforcing FID-RIV-002 rather than treating this pass as a
+complete facade correction. Full shipping validation and independent review
+are recorded in the PR.

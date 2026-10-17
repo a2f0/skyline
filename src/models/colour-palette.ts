@@ -247,6 +247,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   },
   "building-river-plaza": {
     concrete: 0xe5dfd3,
+    aluminium: null, // photographed frames; no separately calibrated sunny sample
     glass: null,
     "lit window": null,
     "dim window": null,
