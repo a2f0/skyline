@@ -41,10 +41,10 @@ jobs:
       # The version mise.toml pins; tests/npm-publish.test.ts keeps them equal.
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.4.2
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+          bun-version: 1.4.3
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.21.0
+          node-version: 24.22.0
           package-manager-cache: false
       - run: bun install --frozen-lockfile --ignore-scripts
       # Everything a merge must pass locally, including the package suite and
@@ -52,9 +52,9 @@ jobs:
       - run: bun run check
       # The published library still supports Node 22. Exercise the actual
       # tarball and in-page viewer on that floor, independently of our LTS tools.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22.23.2
+          node-version: 22.23.3
           package-manager-cache: false
       - run: bun run check:package
 
@@ -73,10 +73,10 @@ jobs:
           persist-credentials: false
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.4.2
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+          bun-version: 1.4.3
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.21.0
+          node-version: 24.22.0
           package-manager-cache: false
       # Publish only a version newer than npm's latest, so re-runs and
       # out-of-order runs succeed without publishing.
@@ -116,11 +116,11 @@ jobs:
         with:
           name: npm-package
           path: package
-      # Trusted publishing needs npm 11.5.1 or later; Node 24.21.0 ships 11.19.0.
+      # Trusted publishing needs npm 11.5.1 or later; Node 24.22.0 ships 11.19.1.
       # No registry-url: its .npmrc would point npm at an empty NODE_AUTH_TOKEN.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.21.0
+          node-version: 24.22.0
           package-manager-cache: false
       # The ./ matters: npm reads a bare `package/<file>.tgz` as a GitHub
       # owner/repo shorthand and tries to clone it.

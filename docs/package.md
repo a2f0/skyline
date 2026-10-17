@@ -382,9 +382,6 @@ Then, in the package's settings on npmjs.com, add a GitHub Actions trusted publi
 repository `a2f0/skyline`, workflow `npm-publish.yml`, and environment `npm`, and re-run
 the workflow; it reports the version as already published.
 
-The Sharp override in the tarball is repository development tooling policy; npm
-and Bun consumers use their own root overrides, so it does not pin their dependencies.
-
 The package is ESM only, with no CommonJS entrypoint. Building requires this repository's
 Bun/TypeScript tools; consuming the published package requires neither Bun nor build
 scripts. Metadata uses `UNLICENSED` and preserves the third-party notices in
