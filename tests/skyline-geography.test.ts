@@ -2540,7 +2540,7 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Sheraton Grand Chicago Riverwalk", () => {
-    test("keeps its mapped L, the corner's round tower, the three finned drums and the windows", () => {
+    test("keeps its mapped L and east wing, four finned drums and punched windows", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Sheraton Grand")!;
       const model = models["Sheraton Grand"]!;
       model.building.updateMatrixWorld(true);
@@ -2553,12 +2553,19 @@ describe("mapped skyline geography", () => {
       // On the Skyscraper Center's datum: the top floor at 97 m, the corner's roof 3.1 m over
       // it, the arms two floors of 2.67 m lower, and 12.2 m drums, the corner's to 112.3 m.
       const [corner, arms] = [100.1, 100.1 - 2 * 2.67];
-      expect(record.parts.map((part) => [part.way, part.bottom, part.top])).toEqual([[592122464, 0, 94.76], [1269924307, 94.76, 100.1]]);
+      expect(record.parts.map((part) => [part.way, part.bottom, part.top])).toEqual([[592122464, 0, 94.76], [1269924307, 94.76, 100.1], [1269924305, 0, 84.08], [1269924304, 84.08, 86.75]]);
       const down = (x: number, z: number) => hit([x, 300, z], [0, -1, 0])!.point.y;
       near(down(407.44, -465.95), corner + 12.2, 1e-3);
       near(down(439.52, -462.06), arms + 12.2, 1e-3);
       near(down(409.75, -498.32), arms + 12.2, 1e-3);
       near(down(425, -462), arms, 1e-3);
+      // JeremyA's pre-2013 fountain photograph shows the lower eastern slab
+      // and its fourth round crown. Map levels give the relative roof steps;
+      // these are estimates on the existing datum, not surveyed heights.
+      near(down(461, -458), 84.08, 1e-3);
+      near(down(482.703, -457.389), 98.95, 1e-3);
+      expect(hit([482.7, 50, -420], [0, 0, -1])!.object.parent).toBe(model.building);
+      expect(model.building.userData["buildingId"]).toBe(record.id);
       // The corner's round tower over the arms, sampled from the south-west.
       near(down(404, -465), corner + 12.2, 1e-3);
       const palette = sheratonPalette, is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
@@ -2577,6 +2584,11 @@ describe("mapped skyline geography", () => {
       // The east arm's south face: a window 1.5 m tall 80 cm over each floor line, counted
       // down from the top floor at 97 m, 35 of them under the arms' roof.
       const south = (x: number, y: number) => tone(hit([x, y, -420], [0, 0, -1]), "Sheraton Grand · precast and windows");
+      // The visible south side of the added wing carries both punched glass
+      // and opaque precast, as the dated photograph shows; it is not a blank box.
+      const wingSamples = Array.from({ length: 160 }, (_, index) => south(451 + index * 0.2, 50));
+      expect(wingSamples.filter(glass).length).toBeGreaterThan(40);
+      expect(wingSamples.filter(is(palette.precast)).length).toBeGreaterThan(40);
       let column = 420;
       while (!glass(south(column, 50))) column += 0.02;
       column += 0.3;
@@ -2599,11 +2611,11 @@ describe("mapped skyline geography", () => {
       expect([count(arms + 0.05, corner - 0.05, (y) => toward(angle, y)), ...edges(97 - 2.67), ...edges(97)], "the corner's floors").toEqual([2, ...Array(8).fill(true)]);
       ray.set(new THREE.Vector3(407.44, 105, -465.95), new THREE.Vector3(0, -1, 0));
       near(ray.intersectObject(meshes.find((mesh) => mesh.name === "Sheraton Grand · shell")!, false)[0]!.point.y, corner, 1e-3);
-      // The exact mapped L at grade.
+      // The exact mapped L and wing at grade; no invented connecting footprint.
       const shell = meshes.find((mesh) => mesh.name === "Sheraton Grand · shell")!.geometry.getAttribute("position");
       const grade = new Set<string>();
       for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
-      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+      const mapped = new Set<string>(record.parts.filter((part) => part.bottom === 0).flatMap((part) => part.coordinates).map((p) => {
         const [x, n] = projectGround(p);
         return [Math.fround(x), Math.fround(-n)].map((v) => v.toFixed(3)).join(",");
       }));

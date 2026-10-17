@@ -5,8 +5,8 @@ import { chainSkin, chainsOf, orient, paintedSlab, planOf, turnsAt } from "./fac
 import type { GeoBuilding } from "./skyline-geography-data.js";
 
 // The Sheraton Grand Chicago Riverwalk, 301 East North Water Street (Solomon Cordwell Buenz,
-// 1992): the geographic layout's model, on the mapped tower 592122464 and its corner part
-// 1269924307. The original layout has no model of it. The drawing's `buckingham-east` group,
+// 1992): the geographic layout's model, on mapped tower 592122464, corner part
+// 1269924307, and east-wing parts 1269924305/1269924304. The original layout has no model of it. The drawing's `buckingham-east` group,
 // right of The Buckingham, is its corner: a lit crown over a tower of windows.
 //
 // A cream precast tower on an L, its arms ending in round towers, of punched windows at the
@@ -20,6 +20,8 @@ export const sheratonLevels = Object.freeze({
   topFloor: 97, // the Skyscraper Center's occupied height, the corner's top floor
   corner: 100.1, // the corner's roof, a floor-to-roof of 3.1 m over it as Emporis gives it
   arms: 100.1 - 2 * 2.67, // the arms' roof, two floors lower, at the mapped arms' 32 levels
+  wing: 100.1 - 6 * 2.67, // 28-level east wing, relative to the 34-level corner's datum
+  wingEnd: 100.1 - 5 * 2.67, // the mapped 29-level round end, a floor above its wing
   drum: 12.2, // the drums' height, Emporis's architectural height over its main roof
   top: 112.3, // the corner drum's top, the Skyscraper Center's architectural height
 });
@@ -27,11 +29,13 @@ const h = sheratonLevels;
 
 // The round ends the drums stand on, circles fitted to the mapped parts' arcs within 11 cm:
 // the corner, part 1269924307, and the east and north arms' ends, parts 1269924306 and
-// 1269924308. Centres are east and north metres from Crain's centre.
+// 1269924308, plus the east wing's end, 1269924304 (within 1.7 cm).
+// Centres are east and north metres from Crain's centre; map precision is not survey accuracy.
 export const sheratonDrums = Object.freeze([
   { centre: [407.44, 465.95] as Vec2, radius: 7.97, base: h.corner },
   { centre: [439.52, 462.06] as Vec2, radius: 7.37, base: h.arms },
   { centre: [409.75, 498.32] as Vec2, radius: 7.39, base: h.arms },
+  { centre: [482.703, 457.389] as Vec2, radius: 7.391, base: h.wingEnd },
 ]);
 
 // The skins' colours: the window tones, the precast, and the drums' cream and maroon fins,
@@ -73,6 +77,8 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
     return [centre[0] + radius * Math.cos(angle), -centre[1] + radius * Math.sin(angle)] as Vec2;
   }));
   const cornerPlan = orient(polygonOf(projectPlan(record.parts[1]!.coordinates)));
+  const wing = orient(polygonOf(projectPlan(record.parts[2]!.coordinates)));
+  const wingEnd = orient(polygonOf(projectPlan(record.parts[3]!.coordinates)));
 
   // A closed solid of walls and slabs on an outline, painted by its runs.
   const solid = (target: typeof shell, outline: Vec2[], lo: number, hi: number, paint: (k: number) => THREE.Color) => {
@@ -87,13 +93,20 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
   // over it.
   solid(shell, tower, 0, h.arms, () => core);
   solid(shell, cornerPlan, h.arms, h.corner, () => core);
+  solid(shell, wing, 0, h.wing, () => core);
+  solid(shell, wingEnd, h.wing, h.wingEnd, () => core);
   // Each drum: cream, a maroon fin every other facet, on its round end.
   for (const { centre, radius, base } of sheratonDrums) solid(drums, circle(centre, radius), base, base + h.drum, (k) => (k % 2 ? fin : drumFace));
 
   // The skins, one box to a chain of runs turning less than 30°, so the round ends carry one:
   // a window 1.4 m wide in each 2.4 m bay, set out from the chain's middle, on every floor.
-  const skin = (outline: Vec2[], base: number, top: number, seed: number) => {
+  const skin = (outline: Vec2[], base: number, top: number, seed: number, sharedWith?: Vec2[]) => {
     const plan = planOf(outline), heights = rowsFor(base, top);
+    const same = (a: Vec2, b: Vec2) => Math.hypot(a[0] - b[0], a[1] - b[1]) < 1e-6;
+    const shared = plan.map((run) => sharedWith?.some((a, index) => {
+      const b = sharedWith[(index + 1) % sharedWith.length]!;
+      return same(run.at(0), b) && same(run.at(run.length), a);
+    }) ?? false);
     chainsOf(plan, 30 * Math.PI / 180).forEach((chain, index) => {
       const first = chain.runs[0]!, last = chain.runs.at(-1)!;
       const s0 = turnsAt(plan, first)[0] > 0 ? 0.09 : 0.02, s1 = chain.length - (turnsAt(plan, last)[1] > 0 ? 0.09 : 0.02);
@@ -101,14 +114,29 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
       const centres = Array.from({ length: 2 * count + 1 }, (_, k) => chain.length / 2 + (k - count) * 2.4);
       const cuts = centres.flatMap((c) => [c - 0.7, c + 0.7]).filter((s) => s > s0 + 0.01 && s < s1 - 0.01);
       const columns = [s0, ...cuts, s1];
-      chainSkin(kit, wall, plan, chain, 0, chain.runs.length - 1, s0, s1, columns, heights, 0.02, 0.07, (bay, r) => {
-        const middle = (columns[bay - 1]! + columns[bay]!) / 2;
-        return r % 2 === 1 && centres.some((c) => Math.abs(middle - c) < 0.7) ? paneColor(r, bay, seed * 16 + index) : precast;
-      }, precast);
+      // The two mapped parts meet along the old east drum's arc. Below the
+      // wing roof it is an internal wall: retain closed cores, but do not put
+      // overlapping facade skins on that shared boundary. Keep bay positions
+      // tied to the original chain when trimming the visible segments.
+      for (let k0 = 0; k0 < chain.runs.length;) {
+        if (shared[chain.runs[k0]!]) { k0 += 1; continue; }
+        let k1 = k0;
+        while (k1 + 1 < chain.runs.length && !shared[chain.runs[k1 + 1]!]) k1 += 1;
+        const from = k0 === 0 ? s0 : chain.starts[k0]! + 0.09;
+        const to = k1 === chain.runs.length - 1 ? s1 : chain.starts[k1]! + plan[chain.runs[k1]!]!.length - 0.09;
+        chainSkin(kit, wall, plan, chain, k0, k1, from, to, columns, heights, 0.02, 0.07, (bay, r) => {
+          const middle = (columns[bay - 1]! + columns[bay]!) / 2;
+          return r % 2 === 1 && centres.some((c) => Math.abs(middle - c) < 0.7) ? paneColor(r, bay, seed * 16 + index) : precast;
+        }, precast);
+        k0 = k1 + 1;
+      }
     });
   };
-  skin(tower, 0.25, h.arms, 0);
+  skin(tower, 0.25, h.wing, 0, wing);
+  skin(tower, h.wing, h.arms, 0);
   skin(cornerPlan, h.arms, h.corner, 1);
+  skin(wing, 0.25, h.wing, 2, tower);
+  skin(wingEnd, h.wing, h.wingEnd, 3);
 
   const model = kit.finish({ height: h.top, outlines: [shell, drums], opacity: 0.16 });
   model.building.position.set(offset[0], 0, offset[1]);

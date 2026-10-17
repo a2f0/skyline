@@ -104,8 +104,8 @@ Omitted:
   roof;
 - the stepped crown under each drum, which the drums' 12.2 m takes in;
 - the published tip, 50 cm over the corner drum;
-- the 28-level east wing, part 1269924305, and the 29-level part 1269924304 at its east end
-  (FID-SHER-001, below);
+- the east wing was omitted until the 2026-10-17 correction below; its exact roof
+  dimensions and crown detailing remain estimated (FID-SHER-002);
 - the low parts under the rest of the complex's outline;
 - the drums' openness, the signs and the entrances.
 
@@ -209,3 +209,104 @@ Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, 
 layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
 its null ones grey. The skyline view at 1600 × 900 frames the hotel just beyond its right edge, so
 the check there has nothing to read; the other views show it in these colours.
+
+
+## 2026-10-17 — restore the east wing (FID-SHER-001)
+
+Assessed Sheraton Grand only. The missing lower eastern slab and its fourth round
+crown are a substantial gap in the existing building, rather than a new building.
+
+### Evidence and decisions
+
+All sources accessed 2026-10-17. Third-party photographs remain outside Git and
+are not runtime assets.
+
+- **Observed, pre-2013:** JeremyA, [Centennial Fountain2 070813.jpg](https://commons.wikimedia.org/wiki/File:Centennial_Fountain2_070813.jpg),
+  original 1600 × 1068 image, [exact file](https://upload.wikimedia.org/wikipedia/commons/a/af/Centennial_Fountain2_070813.jpg),
+  SHA-256 `7fc01807677fe5beb46c8a300f4482cb9856d0f363f80bc3759053ca07d638f2`.
+  The description says 2006-08-13; EXIF says 2007-08-13 20:05 and the filename
+  agrees with EXIF. Use 2007 provisionally; either date predates the 2013 panorama.
+  The hotel occupies the left of the photograph, roughly x 65–430, y 100–780.
+  The view from the southeast shows the eastern round end, its adjoining punched-window
+  slab and the taller sections behind it. This establishes the wing and facade family,
+  not an exact floor count or roof elevation. Perspective and fountain spray prevent
+  reliable absolute measurement. The crown has horizontal louver detail that the model
+  still simplifies.
+- **Observed corroboration:** Serge Melki, [Sheraton Grand Chicago (at night)](https://commons.wikimedia.org/wiki/File:Sheraton_Grand_Chicago_(at_night).jpg),
+  photographed 2008-07-27, original 553 × 743 crop,
+  SHA-256 `d758c29a37ee8cdc8890f197464f66612ff30d11344651e355ee4e78dc67a4d0`.
+  The lower slab appears at the right of the main corner, approximately x 430–475,
+  y 280–580, in the same precast/window pattern. This independently establishes
+  the stepped mass before 2013; its oblique angle is unsuitable for counting bays.
+- **Observed corroboration:** jeffcoffee, [Chicago from AON Center](https://commons.wikimedia.org/wiki/File:Chicago_from_AON_Center_(14559522491).jpg),
+  photographed 2014-07-02, original 5472 × 3648,
+  SHA-256 `5fd065ca6be6ff98f48736a9e4d7ef594ed06d9e8a89e1176e6cf9e4abcc4a75`.
+  Lower-right hotel crowns confirm the sequence of round ends and stepped roof;
+  the foreground tower hides much of the lower facade. The earlier photographs
+  establish the era; this later image supplies an elevated cross-check only.
+- **Mapped:** [relation 17432075/full.json](https://api.openstreetmap.org/api/0.6/relation/17432075/full.json)
+  and [way 1269924304/full.json](https://api.openstreetmap.org/api/0.6/way/1269924304/full.json).
+  Rechecked all eleven relation parts, including the 4–6-level podium parts and
+  the 33-level inner block, plus the separate 29-level round end. Ways 1269924305
+  and 1269924304 remain version 1, tagged 28 and 29 levels. Their exact node
+  coordinates enter the existing building's `parts`; the primary tower footprint,
+  placement and ownership stay anchored to way 592122464. The wing shares the old
+  eastern arc, extending about 43 m beyond it. Coordinate precision is not survey
+  accuracy; allow approximately a metre for tracing uncertainty.
+
+**Inferred heights:** preserve the existing datum: the 34-level corner roof is
+100.1 m. Applying the same 2.67 m floor pitch to the mapped level differences gives
+84.08 m for the 28-level wing and 86.75 m for its 29-level end. These values carry
+`estimatedHeight: true`. The earlier suggestion of approximately 75 m multiplied
+28 by the pitch from zero and mixed datums; it is superseded. The photographs
+support the lower step, but do not independently establish those decimal heights;
+allow at least one floor of uncertainty until a dimensioned elevation is found.
+The new crown provisionally shares the existing 12.2 m crown assembly height,
+reaching 98.95 m. FID-SHER-002 retains this uncertainty.
+
+A least-squares circle through the round end's 19 unique mapped nodes, projected
+with `projectGround`, gives centre (482.703, 457.389) m east/north of Crain and
+radius 7.391 m, maximum radial residual 0.017 m. This is a fit to the map, not a
+measurement of the real crown. The wing reuses the existing precast/window
+material assignments and measured sunny palette by observed facade continuity;
+no new hue is sampled from the dusk photographs. Maroon fins retain their explicit
+gray fallback. The existing crown geometry and bay dimensions remain approximate.
+
+### Acceptance and retained comparisons
+
+Raycasts verify the lower eastern roof, the fourth crown and punched windows
+among opaque precast on the added south face. The new meshes remain children of
+the existing building for picking. Both mapped cores remain closed. Facade skins
+are omitted on the shared internal arc below the wing roof, with closed end caps;
+this removes the coplanar overlaps found during the first geometry check.
+
+Captures use a 1600 × 1000 viewport and reduced motion. Detail URLs are
+`building-detail.html?building=building-buckingham-east`, with colour toggled on
+and off; skyline URLs are `skyline-3d.html?controls=open`. Each pair keeps the
+same preset and camera position. For detail comparisons only, the capture route
+fixes `fit` to `{height: 240, width: 250}` in the served detail module, keeping
+framing identical when the wing changes the normal automatic fit. Canvas-only
+images exclude the changing descriptive text. The production detail still fits
+its whole model automatically.
+
+| View | Grayscale before / after | Daylight before / after |
+| --- | --- | --- |
+| Front | [before](fidelity/sheraton-wing-front-grey-before.png) / [after](fidelity/sheraton-wing-front-grey-after.png) | [before](fidelity/sheraton-wing-front-day-before.png) / [after](fidelity/sheraton-wing-front-day-after.png) |
+| Side | [before](fidelity/sheraton-wing-side-grey-before.png) / [after](fidelity/sheraton-wing-side-grey-after.png) | [before](fidelity/sheraton-wing-side-day-before.png) / [after](fidelity/sheraton-wing-side-day-after.png) |
+| Skyline | [before](fidelity/sheraton-wing-skyline-grey-before.png) / [after](fidelity/sheraton-wing-skyline-grey-after.png) | [before](fidelity/sheraton-wing-skyline-day-before.png) / [after](fidelity/sheraton-wing-skyline-day-after.png) |
+| Elevated | [before](fidelity/sheraton-wing-quarter-grey-before.png) / [after](fidelity/sheraton-wing-quarter-grey-after.png) | [before](fidelity/sheraton-wing-quarter-day-before.png) / [after](fidelity/sheraton-wing-quarter-day-after.png) |
+
+Visual review: the close views now show the lower extension and fourth crown in
+both modes, with the same material identities as the original tower. The side
+view exposes the L and the join. The elevated view keeps the extension on its
+mapped site. The hotel lies beyond the default skyline's far-right edge, so that
+view cannot show the correction. Colour toggling changed every canvas and restored the
+gray image byte for byte in all four views; camera metadata matched before/after.
+Targeted watertightness, coplanar-overlap, raycast, material, grayscale and strict
+type checks passed. Full shipping validation remains pending.
+
+Next: FID-SHER-002 should replace the tall striped crown cylinders with the
+photographed stepped bases and louvered screens, and resolve their dimensions.
+FID-SHER-003 should separate the low podium from the repeated guestroom grid and
+check facade row/bay counts against dated elevations. These remain open; this
+pass corrects the missing wing's mass, not every Sheraton detail.
