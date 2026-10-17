@@ -302,6 +302,8 @@ the U.S. Department of Energy's [Understanding LED Color-Tunable Products](https
 warm, neutral and cool sources, while its applications discuss tenant preferences and
 room finishes. This supports varying white-light families; it does not establish any
 particular Chicago building's lamps. Daylight materials keep their measured palette.
+The time preview also allows cool architectural fixtures; the original grayscale
+night preset and the source photograph's documented cap colours remain separate.
 
 The 2026-10-17 [before](fidelity/night-lighting-2026-10-17/before.png) and
 [after](fidelity/night-lighting-2026-10-17/after.png) captures use

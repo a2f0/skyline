@@ -1207,6 +1207,54 @@ describe("full-screen 3D skyline", () => {
     await page.close();
   }, { timeout: 180_000 });
 
+  test("renders three fixture whites independently of stars, surfaces and brightness", async () => {
+    const page = await browser.newPage();
+    await watch(page);
+    await page.goto(`${origin}/skyline-3d.html`);
+    await openScene(page);
+    const result = await page.evaluate(async () => {
+      const T = await import(new URL("vendor/three-r186.js", location.href).href) as typeof THREE;
+      const { glassReflection } = await import(new URL("models/colour-reflections.js", location.href).href) as typeof import("../src/models/colour-reflections.js");
+      const renderer = new T.WebGLRenderer({ preserveDrawingBuffer: true });
+      renderer.setSize(300, 100);
+      const scene = new T.Scene(), camera = new T.OrthographicCamera(-3, 3, 1, -1, 0.1, 10);
+      camera.position.z = 2;
+      const fixtures = [0, 0.5, 1].map((tint, index) => {
+        const geometry = new T.PlaneGeometry(1.8, 1.8), material = new T.MeshToonMaterial({ color: 0 });
+        const mask = new Float32Array(geometry.getAttribute("position").count);
+        const windows = Float32Array.from(Array.from(mask).flatMap(() => [0, 0.6, 1, tint]));
+        const light = glassReflection(material, geometry, mask, windows);
+        const mesh = new T.Mesh(geometry, material);
+        mesh.position.x = (index - 1) * 2;
+        scene.add(mesh);
+        return { geometry, material, light };
+      });
+      const sample = (darkness: number, coloured: boolean) => {
+        for (const { light } of fixtures) light.setNight({ darkness, activity: 1, outlineStrength: 0 }, coloured, false);
+        renderer.render(scene, camera);
+        const gl = renderer.getContext();
+        return [50, 150, 250].map((x) => {
+          const pixel = new Uint8Array(4);
+          gl.readPixels(x, 50, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+          return Array.from(pixel.slice(0, 3));
+        });
+      };
+      try { return { off: sample(0, true), on: sample(1, true), grey: sample(1, false) }; }
+      finally {
+        for (const { geometry, material } of fixtures) { geometry.dispose(); material.dispose(); }
+        renderer.dispose(); renderer.forceContextLoss();
+      }
+    });
+    expect(result.off).toEqual([[0, 0, 0], [0, 0, 0], [0, 0, 0]]);
+    const [warm, neutral, cool] = result.on as [number[], number[], number[]];
+    expect(warm[0]! - warm[2]!).toBeGreaterThan(60);
+    expect(neutral[0]! - neutral[2]!).toBeGreaterThan(0);
+    expect(neutral[0]! - neutral[2]!).toBeLessThan((warm[0]! - warm[2]!) / 2);
+    expect(cool[2]! - cool[0]!).toBeGreaterThan(15);
+    for (const [r, g, b] of result.grey) { expect(r).toBeGreaterThan(0); expect(r).toBe(g); expect(r).toBe(b); }
+    await page.close();
+  }, { timeout: 60_000 });
+
   test("stages warm night windows, quietens before dawn, and preserves celebrations and presets", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
     await watch(page);

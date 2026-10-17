@@ -163,7 +163,7 @@ describe("Chicago time and sunlight", () => {
       // whole building does; neither schedule nor brightness determines tint.
       for (let floor = 0; floor < 20; floor += 1) {
         const row = tints.slice(floor * 12, (floor + 1) * 12);
-        expect(Math.max(...row) - Math.min(...row)).toBeLessThan(0.151);
+        expect(Math.max(...row) - Math.min(...row)).toBeLessThan(Math.max(...tints) - Math.min(...tints));
       }
       for (const component of [0, 1]) {
         const values = tints.map((_, pane) => mask[pane * 24 + component]!);
