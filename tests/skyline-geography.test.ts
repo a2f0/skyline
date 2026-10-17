@@ -2569,7 +2569,7 @@ describe("mapped skyline geography", () => {
         for (const material of materials) material?.dispose();
       });
     });
-    test("keeps its mapped L and east wing, four finned drums and punched windows", () => {
+    test("keeps its mapped L and east wing, four louvered crowns and punched windows", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Sheraton Grand")!;
       expect(groundFootprints(record).map((part) => part.way)).toEqual([592122464, 1269924305]);
       const mappedGround = buildingGroundBounds(record);
@@ -2609,12 +2609,35 @@ describe("mapped skyline geography", () => {
         expect(found!.object.name).toBe(name);
         return (found!.object as THREE.Mesh).geometry.getAttribute("color").getX(found!.face!.a);
       };
-      // A drum's 24 facets, sampled toward its centre, alternate cream and maroon fins.
-      const facet = (k: number) => {
-        const angle = (k + 0.5) / 24 * Math.PI * 2, [x, z] = [439.52 + 12 * Math.cos(angle), -462.06 + 12 * Math.sin(angle)];
-        return tone(hit([x, arms + 6, z], [-Math.cos(angle), 0, -Math.sin(angle)]), "Sheraton Grand · drums");
+      // Griffin's 2007 close view shows narrow pale uprights over dark
+      // horizontal louvers, not 50% pale vertical stripes. About twelve
+      // uprights cross the visible half: infer 24 around the whole screen.
+      const crownHit = (angle: number, y: number) => hit(
+        [439.52 + 12 * Math.cos(angle), y, -462.06 + 12 * Math.sin(angle)],
+        [-Math.cos(angle), 0, -Math.sin(angle)],
+      )!;
+      const pale = Array.from({ length: 720 }, (_, k) => is(palette.drum)(tone(crownHit(k / 720 * Math.PI * 2, arms + 10), "Sheraton Grand · drums")));
+      expect(pale.filter((value, k) => value && !pale[(k + pale.length - 1) % pale.length]).length).toBe(24);
+      const paleShare = pale.filter(Boolean).length / pale.length;
+      expect(paleShare).toBeGreaterThan(0.1);
+      expect(paleShare).toBeLessThan(0.25);
+      // Between uprights, the photographed upper screen occupies about
+      // 44% of the 12.2 m assembly and has about twenty horizontal slats.
+      // Probe actual relief, so a painted stripe cannot satisfy this check.
+      const reach = (y: number) => {
+        const p = crownHit(Math.PI / 24, y).point;
+        return Math.hypot(p.x - 439.52, p.z + 462.06);
       };
-      expect(Array.from({ length: 6 }, (_, k) => is(k % 2 ? palette.fin : palette.drum)(facet(k))), "the fins").toEqual(Array(6).fill(true));
+      let slats = 0, onSlat = false;
+      for (let y = 101.57; y < 106.95; y += 0.02) {
+        const now = reach(y) > 6.72;
+        if (now && !onSlat) slats += 1;
+        onSlat = now;
+      }
+      expect(slats).toBe(20);
+      // The stepped lower frame projects beyond the recessed upper screen.
+      expect(reach(arms + 0.25) - reach(arms + 10)).toBeGreaterThan(0.45);
+      expect(reach(arms + 3.4) - reach(arms + 10)).toBeGreaterThan(0.2);
       // The east arm's south face: a window 1.5 m tall 80 cm over each floor line, counted
       // down from the top floor at 97 m, 35 of them under the arms' roof.
       const south = (x: number, y: number) => tone(hit([x, y, -420], [0, 0, -1]), "Sheraton Grand · precast and windows");

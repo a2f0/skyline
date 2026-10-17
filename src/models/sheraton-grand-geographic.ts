@@ -12,7 +12,7 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 //
 // A cream precast tower on an L, its arms ending in round towers, of punched windows at the
 // published 2.67 m floor-to-floor. The corner's round tower rises two floors over the arms,
-// and each round end carries an open drum of maroon fins, floodlit at night. Heights stand on
+// and each round end carries a stepped crown and louvered screen, floodlit at night. Heights stand on
 // the Skyscraper Center's datum, its top floor at 97 m and the corner drum's top at 112.3 m;
 // its 112.8 m tip, 50 cm higher, is not modelled. See docs/sheraton-grand-reference.md.
 // Units are meters; +x is east, +z is south.
@@ -23,7 +23,8 @@ export const sheratonLevels = Object.freeze({
   arms: 100.1 - 2 * 2.67, // the arms' roof, two floors lower, at the mapped arms' 32 levels
   wing: 100.1 - 6 * 2.67, // 28-level east wing, relative to the 34-level corner's datum
   wingEnd: 100.1 - 5 * 2.67, // the mapped 29-level round end, a floor above its wing
-  drum: 12.2, // the drums' height, Emporis's architectural height over its main roof
+  drum: 12.2, // total crown assembly, including its stepped base
+  screen: 5.4, // inferred upper screen, about 44% of the assembly in the 2007 photograph
   top: 112.3, // the corner drum's top, the Skyscraper Center's architectural height
 });
 const h = sheratonLevels;
@@ -82,13 +83,13 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
   const wingEnd = orient(polygonOf(projectPlan(record.parts[3]!.coordinates)));
 
   // A closed solid of walls and slabs on an outline, painted by its runs.
-  const solid = (target: typeof shell, outline: Vec2[], lo: number, hi: number, paint: (k: number) => THREE.Color) => {
+  const solid = (target: typeof shell, outline: Vec2[], lo: number, hi: number, paint: (k: number) => THREE.Color, cap = roofing) => {
     planOf(outline).forEach((run, k) => {
       const a = run.at(0), b = run.at(run.length), n = run.normal(0);
       kit.quad(target, [[a[0], lo, a[1]], [b[0], lo, b[1]], [b[0], hi, b[1]], [a[0], hi, a[1]]], [[n[0], 0, n[1]]], paint(k));
     });
-    paintedSlab(kit, target, outline, lo, false, roofing);
-    paintedSlab(kit, target, outline, hi, true, roofing);
+    paintedSlab(kit, target, outline, lo, false, cap);
+    paintedSlab(kit, target, outline, hi, true, cap);
   };
   // The tower to the arms' roof, and the corner's round tower, on its mapped part, two floors
   // over it.
@@ -96,8 +97,46 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
   solid(shell, cornerPlan, h.arms, h.corner, () => core);
   solid(shell, wing, 0, h.wing, () => core);
   solid(shell, wingEnd, h.wing, h.wingEnd, () => core);
-  // Each drum: cream, a maroon fin every other facet, on its round end.
-  for (const { centre, radius, base } of sheratonDrums) solid(drums, circle(centre, radius), base, base + h.drum, (k) => (k % 2 ? fin : drumFace));
+  // Matt Griffin's 2007 photograph resolves a stepped pale frame below a
+  // dark horizontal-louver screen. About 20 slats and alternating broad/narrow
+  // uprights are visible; the old equal-width vertical stripes were not fins.
+  // Ratios are photographic estimates, not construction dimensions. Preserve
+  // the mapped centres and published total height; see FID-SHER-002's audit.
+  for (const { centre, radius, base } of sheratonDrums) {
+    const screenBase = base + h.drum - h.screen;
+    const screenRadius = radius - 0.6;
+    const ring = (r: number, lo: number, hi: number, paint: THREE.Color) =>
+      solid(drums, circle(centre, r, 48), lo, hi, () => paint, paint);
+    // Recessed opaque cores keep geometry closed. True see-through screens
+    // remain unresolved; the recess and projecting slats supply visible relief.
+    ring(radius - 0.7, base + 0.25, screenBase, fin);
+    ring(screenRadius - 0.12, screenBase, base + h.drum, fin);
+    ring(radius, base, base + 0.5, drumFace);
+    ring(radius - 0.25, base + 3.3, base + 3.5, drumFace);
+    for (let row = 1; row < 8; row += 1) {
+      const y = base + 0.6 + row * 0.75;
+      ring(radius - 0.55, y, y + 0.10, drumFace);
+    }
+    for (let row = 0; row < 20; row += 1) {
+      const y = screenBase + row * h.screen / 20;
+      ring(screenRadius, y + 0.04, y + 0.13, fin);
+    }
+    const post = (angle: number, width: number, inner: number, outer: number, lo: number, hi: number) => {
+      const c = Math.cos(angle), s = Math.sin(angle);
+      const section: Vec2[] = [[inner, -width / 2], [outer, -width / 2], [outer, width / 2], [inner, width / 2]];
+      const corners = section.map(([r, t]): Vec2 =>
+        [centre[0] + r * c - t * s, -centre[1] + r * s + t * c]);
+      solid(drums, orient(corners), lo, hi, () => drumFace, drumFace);
+    };
+    for (let k = 0; k < 24; k += 1) {
+      const angle = k / 24 * Math.PI * 2;
+      post(angle, k % 2 ? 0.14 : 0.42, screenRadius - 0.10, screenRadius + 0.10, screenBase, base + h.drum);
+      if (k % 2 === 0) {
+        post(angle, 0.65, radius - 0.75, radius + 0.12, base + 0.5, base + 3.48);
+        post(angle, 0.48, radius - 0.75, radius - 0.20, base + 3.48, screenBase + 0.2);
+      }
+    }
+  }
 
   // The skins, one box to a chain of runs turning less than 30°, so the round ends carry one:
   // a window 1.4 m wide in each 2.4 m bay, set out from the chain's middle, on every floor.

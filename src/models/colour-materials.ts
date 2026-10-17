@@ -262,7 +262,7 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
   "building-buckingham-east": {
     shell: ["precast", { 0x686868: "neutral" }],
     "precast and windows": ["glass", { ...windows(0x8a8a8a, 0x505050), 0x848484: "precast" }],
-    drums: ["precast", { 0x5a5a5a: "maroon", 0x686868: "neutral" }],
+    drums: ["precast", { 0x5a5a5a: "maroon" }],
   },
   // Dark brown aluminium and bronze glass.
   "building-three-illinois-center": {
