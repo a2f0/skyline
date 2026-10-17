@@ -63,9 +63,10 @@ A concrete slab to the published top:
   about each end's middle, as the drawing and photograph show. The strips run from the
   eighth floor, the first of apartments, with the top floor's window standing apart over
   each.
-- Below them, the offices' windows run across the ends.
+- Below them, the south offices' windows sit between continuous outer concrete piers (updated 2026-10-17); the north office end retains the older full-width approximation.
 - The long faces carry a punched window in every 3 m bay between 0.8 m piers.
 - The chamfers are solid.
+- The south end has closed concrete panels and shallow horizontal joints on the existing estimated floor cadence; the north end remains unsplit.
 
 The drawing renders the tower in mid greys, which the palette follows rather than the brown
 of the concrete.
@@ -143,3 +144,112 @@ Acceptance checks: `tests/colour-materials.test.ts` finds each measured colour, 
 layer's exposure of 1.4, on the building's surfaces of that material and in this entry, and leaves
 its null ones grey. In the skyline view at 1600 × 900 under the day lights, the precast renders
 `185, 176, 170` under the photograph's rule, 0.65 of the photograph's brightness in linear light.
+
+## 2026-10-17 — south office piers and panel joints (FID-MPP-002)
+
+This pass assessed Millennium Park Plaza. The former south office rows glazed
+the full width of the narrow end, interrupting the outer concrete piers; the
+solid upper end was one uninterrupted surface. Dated photographs show the
+piers continuing beside the office glazing and horizontal joints across the
+solid panels. This pass restores those features on the **south end only**.
+The original drawing, mapped outline and 121.9 m top remain unchanged.
+
+### Dated evidence
+
+Retrieved 2026-10-17. Source images stay outside the repository.
+
+- Charles William Brubaker, [*Doral Plaza, North Michigan Avenue*](https://collections.carli.illinois.edu/digital/collection/uic_bru/id/376/),
+  UIC collection, original dated **1980**, identifier `bru003_09_fF`. The library
+  describes a northeast-looking view during construction. Its
+  [full image](https://collections.carli.illinois.edu/digital/iiif/uic_bru/376/full/full/0/default.jpg)
+  is 1969 × 3000, SHA-256
+  `d1f846b1d163be36633005993b91fdcfbf78634ffedfad6c7b0ebb2887ed7cc7`.
+  The south concrete frame and office glazing are clear at approximately
+  x = 920–1330, y = 1900–2670; the upper end's horizontal panel joints are
+  visible above. Construction-era ground finishes are not carried into 2013.
+- Kelly Martin, [*Michigan Ave at Washington 2*](https://commons.wikimedia.org/wiki/File:Michigan_Ave_at_Washington_2.jpg),
+  two photographs taken **2005-08-26**, stitched by the photographer. The
+  [1582 × 2255 composite](https://upload.wikimedia.org/wikipedia/commons/7/7a/Michigan_Ave_at_Washington_2.jpg)
+  has SHA-256 `520fddb40d4d8eded9012a41e2062e906abd44b30ce46fcaf6156a63cf5bdb19`.
+  The south end is approximately x = 1050–1315, y = 690–2000. It corroborates
+  continuous outer piers beside the lower glazing and horizontal upper-panel
+  joints. Stitching and perspective prevent treating it as an elevation.
+- TonyTheTiger, [*20080602 Wrigley Square*](https://commons.wikimedia.org/wiki/File:20080602_Wrigley_Square.JPG),
+  own photograph **2008-06-02**, EXIF 13:01. The
+  [2304 × 3072 original](https://upload.wikimedia.org/wikipedia/commons/4/46/20080602_Wrigley_Square.JPG)
+  has SHA-256 `eb2b1dc5b6e4a0e1815c651d316f42d2717789d315a76a3db4f2559cc8e7d6bc`.
+  The south end is approximately x = 410–840, y = 130–1980. Its clear upper
+  panel joints repeat with the window-row cadence; the lower glazing sits
+  between solid outer piers. The park monument and trees hide the lowest
+  entrance details, so those remain unresolved.
+
+The dated images establish the pattern before the panorama's 2013 era. They
+support continuing the existing outer solid columns down beside the south
+office windows. They do **not** independently determine the present model's
+1.25 m window-strip widths, exact floor elevations or construction joint sizes.
+The office opening retains the span between the outermost apartment strips,
+about 9.45 m within the 17.1 m end, as an approximation; its pane count and
+mullions still need a measured elevation.
+
+### Implementation and limits
+
+Closed concrete panels cover the south end's solid columns, with horizontal
+joints on the inherited estimated levels. The outer columns continue through
+the six upper office rows; the inner solid columns start at the apartment
+zone. The generic ground-floor treatment is unchanged. A 0.05 m joint and
+0.03 m recess provide schematic relief, not claimed centimetre measurements.
+Panel end caps clear the backing skin's end-cap planes, and the top panel stops
+1 cm below the existing cap to avoid same-facing coplanar surfaces.
+
+The continuous closed skin backs the joints. Its darker gray is concrete
+shading, classified separately from glass; the panel fronts use the existing
+concrete tone and sunny-day swatch. No new chromatic sample is introduced.
+Opaque office piers consequently stop receiving the room-light and
+vision-glass classifications inherited by the former full-width glazing.
+
+The north end is not inferred from the south for this addition. Long-face
+window grouping, substantial projecting piers, the upper mechanical band and
+roof equipment also remain unresolved. The Brubaker photograph shows the west
+face's grouped glazing and a distinct office/apartment transition. Aapel's
+[*From prudential building 2*](https://commons.wikimedia.org/wiki/File:From_prudential_building_2_-_panoramio.jpg)
+shows the east roof and broad piers (2974 × 4074, SHA-256
+`6184ab45602bd2a4bb3210e9f0e5d420806bfd0c07cec42a8855313a46dc9278`);
+**2009-01-02 is its upload date**, only a latest possible capture date. The
+close foreground cuts off part of the long face, so it does not settle total
+bay count. FID-MPP-001 retains the long-face work, and FID-MPP-003 retains the
+roof and unmeasured end details.
+
+The owner's [current site](https://www.millenniumparkplaza.com/) also provides
+[a 13.08-second roof video](https://www.millenniumparkplaza.com/assets/images/mpp_cover.mp4)
+(1920 × 1080, SHA-256 `286216857acd010a7dc01e455771f829e7c1cf811f946c1344b874ff6e996b42`).
+Its capture date is unknown; the server's 2024 modification date is not a
+capture date. It is a lead for roof research, not evidence for adding its
+present details to 2013. The architect's [recent addition](https://theljc.com/projects/millennium-park-plaza)
+also postdates the target era and is not added here.
+
+### Acceptance
+
+Targeted raycasts retain the four apartment strips, top windows, central
+south office glazing, long-face grid, solid chamfer and exact mapped grade.
+New probes require opaque outer piers on office and apartment floors and a
+physical 0.03 m setback at representative joints, not just painted lines.
+Geometry closure, winding and coplanar-overlap checks pass after correcting
+panel-end overlap. Material classification and grayscale checks pass.
+
+Matched front/side and skyline/quarter captures use both grayscale and sunny
+daylight, fixed 1600 × 1000 viewports and reduced motion. Their metadata,
+artifact names and exact colour-off restoration are recorded in
+[fidelity/millennium-panels-captures.json](fidelity/millennium-panels-captures.json).
+Detail uses `building-detail.html?building=building-michigan-plaza-front-tall`;
+placement uses `skyline-3d.html?controls=open` with the named presets.
+The side preset shows the unchanged north end/west face and is byte-identical
+in both phases; its artifact is reused explicitly. The piers are visible at the default detail scale; the fine
+panel joints are chiefly a close-inspection detail. Full shipping validation
+and independent review will be recorded in the pull request.
+
+| View | Grayscale before / after | Daylight before / after |
+| --- | --- | --- |
+| Front | [before](fidelity/millennium-panels-front-grey-before.png) / [after](fidelity/millennium-panels-front-grey-after.png) | [before](fidelity/millennium-panels-front-day-before.png) / [after](fidelity/millennium-panels-front-day-after.png) |
+| Side | [before](fidelity/millennium-panels-side-grey-before.png) / [after](fidelity/millennium-panels-side-grey-before.png) | [before](fidelity/millennium-panels-side-day-before.png) / [after](fidelity/millennium-panels-side-day-before.png) |
+| Skyline | [before](fidelity/millennium-panels-skyline-grey-before.png) / [after](fidelity/millennium-panels-skyline-grey-after.png) | [before](fidelity/millennium-panels-skyline-day-before.png) / [after](fidelity/millennium-panels-skyline-day-after.png) |
+| Quarter | [before](fidelity/millennium-panels-quarter-grey-before.png) / [after](fidelity/millennium-panels-quarter-grey-after.png) | [before](fidelity/millennium-panels-quarter-day-before.png) / [after](fidelity/millennium-panels-quarter-day-after.png) |

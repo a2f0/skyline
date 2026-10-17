@@ -63,7 +63,7 @@ North to south along the avenue's west side, then Millennium Park Plaza across i
 | Peoples Gas Building | `building-peoples-gas` | 82.9 m | Two fronts, twenty storeys from granite columns to an attic, cornice and cresting, round a light court | [Peoples Gas](peoples-gas-reference.md) |
 | Borg-Warner Building | `building-200-south-michigan` | 83.5 m | Curtain wall of some twenty-two floors, a penthouse, and a block behind | [Borg-Warner](borg-warner-reference.md) |
 | Railway Exchange Building | `building-railway-exchange` | 78.9 m | White terracotta, seventeen storeys to a frieze of round windows and a cornice, under a hipped copper roof | [Railway Exchange](railway-exchange-reference.md) |
-| Millennium Park Plaza | `building-michigan-plaza-front-tall` | 121.9 m | East of Michigan, in front of Michigan Plaza: a 90 m concrete slab, narrow ends solid but for four window strips | [Millennium Park Plaza](millennium-park-plaza-reference.md) |
+| Millennium Park Plaza | `building-michigan-plaza-front-tall` | 121.9 m | East of Michigan, in front of Michigan Plaza: a 90 m concrete slab, narrow ends with four window strips; south office piers and recessed panel joints | [Millennium Park Plaza](millennium-park-plaza-reference.md) |
 
 [Buildings not yet modelled](unmodelled-buildings.md) lists the one drawn building still missing
 and the candidates the drawing leaves out.

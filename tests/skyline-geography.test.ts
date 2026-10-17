@@ -1233,7 +1233,7 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Millennium Park Plaza", () => {
-    test("keeps the mapped slab, its narrow ends' window strips, its punched long faces and solid chamfers", () => {
+    test("keeps the mapped slab, south panel joints and office piers, end strips and long-face grid", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Millennium Park Plaza")!;
       const model = models["Millennium Park Plaza"]!;
       model.building.updateMatrixWorld(true);
@@ -1241,7 +1241,7 @@ describe("mapped skyline geography", () => {
       const ray = new THREE.Raycaster();
       const at = (i: number): Vec2 => { const [east, north] = projectGround(record.footprint.coordinates[i]!); return [east, -north]; };
       // A wall's colour where a ray from outside meets it, s metres from `from` toward `to`.
-      const tone = (from: Vec2, to: Vec2, s: number, y: number) => {
+      const surface = (from: Vec2, to: Vec2, s: number, y: number) => {
         const length = Math.hypot(to[0] - from[0], to[1] - from[1]), t: Vec2 = [(to[0] - from[0]) / length, (to[1] - from[1]) / length];
         const centre = [0, 1, 2, 3, 4, 5].map(at).reduce((sum, p) => [sum[0] + p[0] / 6, sum[1] + p[1] / 6], [0, 0]);
         let n: Vec2 = [t[1], -t[0]];
@@ -1249,8 +1249,12 @@ describe("mapped skyline geography", () => {
         const p = [from[0] + t[0] * s, from[1] + t[1] * s];
         ray.set(new THREE.Vector3(p[0]! + n[0] * 20, y, p[1]! + n[1] * 20), new THREE.Vector3(-n[0], 0, -n[1]));
         const found = ray.intersectObjects(meshes, false)[0]!;
-        expect(found.object.name).toBe("Millennium Park Plaza · walls and windows");
-        return (found.object as THREE.Mesh).geometry.getAttribute("color").getX(found.face!.a);
+        expect(["Millennium Park Plaza · walls and windows", "Millennium Park Plaza · south concrete panels"]).toContain(found.object.name);
+        return found;
+      };
+      const tone = (...args: Parameters<typeof surface>) => {
+        const found = surface(...args), mesh = found.object as THREE.Mesh, material = mesh.material as THREE.MeshToonMaterial;
+        return material.vertexColors ? mesh.geometry.getAttribute("color").getX(found.face!.a) : material.color.r;
       };
       const is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
       const [concrete, strip] = [is(0x666666), is(0x3e3e3e)];
@@ -1272,6 +1276,14 @@ describe("mapped skyline geography", () => {
       }
       expect(concrete(tone(west, east, middle, floor(20) + 1.2)), "wall between strips").toBe(true);
       expect(glass(tone(west, east, middle, floor(4) + 1.2)), "an office floor's window").toBe(true);
+      for (const level of [4, 20, 39]) {
+        for (const s of [1.2, 2 * middle - 1.2]) {
+          expect(concrete(tone(west, east, s, floor(level) + 1.2)), "outer south piers continue through the offices").toBe(true);
+          const seam = surface(west, east, s, floor(level) - 0.3), panel = surface(west, east, s, floor(level) + 0.1);
+          near(seam.distance - panel.distance, 0.03, 0.002);
+          expect(is(0x5e5e5e)(tone(west, east, s, floor(level) - 0.3)), "a recessed concrete joint, never glazing").toBe(true);
+        }
+      }
       // The east face: a punched window every 3 m between piers; the south-east chamfer solid.
       const [south, north] = [at(1), at(0)], bay = Math.hypot(north[0] - south[0], north[1] - south[1]) / 30;
       expect(glass(tone(south, north, 15.5 * bay, floor(20) + 1.2)), "a window").toBe(true);
