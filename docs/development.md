@@ -273,28 +273,17 @@ floor. Locally, put an installed Node 22 release first on `PATH` and run
 regenerate its standalone browser bundle with `bun run vendor:three` when the
 engine or bundler changes, following [`src/vendor/README.md`](../src/vendor/README.md).
 
-### Temporary security override
+### Native dependency compatibility
 
-Wrangler 4.148.0 selects Miniflare 5.20261006.0-alpha, whose dependency pins
-Sharp 0.35.4, which includes the vulnerable
-librsvg described in [GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
-The root nested `miniflare` / `sharp` override selects the maintainer's patched 0.35.5 release
-for that dependency alone. Its existing image API and Node requirements remain
-compatible; `tests/dependency-runtime.test.ts` exercises Miniflare's offline
-Images binding under Node, decoding SVG, resizing to PNG and checking dimensions
-and pixel bytes through Sharp's native runtime. It also checks the actual
-Miniflare-resolved Sharp and native librsvg versions meet the advisory's patched
-minimums, rather than trusting the lockfile alone. It creates no remote bindings.
-`bun run check` runs that regression and the dependency audit on developer machines
-and publishing CI. The lockfile still records Miniflare's declared Sharp 0.35.4
-constraint; the selected Sharp package resolves to patched 0.35.5 through the
-override, with its matching native binaries and updated librsvg.
-
-Keep the override until a supported Wrangler/Miniflare release selects patched
-Sharp itself. Then remove it, regenerate the lockfile with Bun, and require both
-`bun audit` and the runtime regression to pass. Bun's nested override requires
-the pinned Bun 1.4 runtime and writes lockfile format 3; use the same pin in CI.
-Use npm's nested object syntax so npm packing and publishing accept it as well.
+Update Wrangler, Miniflare, workerd and Sharp as one owning group. Keep the
+selected Sharp and native librsvg versions above the patched minimums in
+[GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
+`tests/dependency-runtime.test.ts` checks the actual Miniflare-resolved versions
+and exercises its offline Images binding under Node: decoding SVG, resizing to
+PNG, and checking dimensions and pixel bytes through Sharp's native runtime.
+It creates no remote bindings. Require that regression and `bun audit` to pass
+before changing this group; prefer an owning release that selects the fixed
+dependency naturally over a transitive override.
 
 Infrastructure updates require a real, complete, non-destructive preview with the
 proposed versions. Do not apply or deploy during an upgrade unless separately
