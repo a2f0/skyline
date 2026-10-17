@@ -51,7 +51,7 @@ fourteen-bay approximation (see the October 4 research entry below).
 | Feature | Mapped | Clean plan |
 | --- | --- | --- |
 | Outline | 59.2 × 60.3 m, faces within 1° of the grid | 59.15 m square |
-| Main face | About 42.5 m, fifteen bays of about 2.85 m | 45.72 m, fifteen bays of 3.048 m |
+| Main face | About 42.5–43 m; fifteen centre intervals of 2.75–2.78 m after the October 17 end-inset correction | 45.72 m, fifteen bays of 3.048 m |
 | Corner notch | 7.7–8.9 m along each face: chamfer, square step, chamfer | 6.715 m: 1.9 m chamfer legs, 2.9 m step |
 | Rooftop enclosure | Part 284775635, 31.6 × 32.8 m, centred | 32 m square, centred |
 
@@ -184,8 +184,10 @@ slots. The raycast scan exposed this while exercising the skill.
 This correction represents the established facade, consistent with the 2013
 panorama audit. Unknown dates on the new plan and photo do not establish a
 later renovation. The geographic faces remain about 42.5–43 m wide because
-their mapped notches are deeper than the clean plan. Fifteen bays therefore
-have about 2.85 m pitch, **an approximation**, not the nominal 10 ft dimension.
+their mapped notches are deeper than the clean plan. This October 4 version
+used about 2.85 m pitch, **an approximation**, not the nominal 10 ft dimension.
+The October 17 correction below supersedes that cadence with 2.75–2.78 m
+centre intervals between inset end piers.
 FID-AON-002 remains open for dimensioned evidence before changing the plan.
 Heights, placement, ground vertices, rooftop enclosure and building inventory
 are unchanged. The geographic factory is used by the 3D skyline, geographic
@@ -340,7 +342,6 @@ that calibrates that close-up to the panorama for the Hyatt Regency's west tower
 (`hyatt-west-tower-reference.md`). `bun scripts/sample-colours.ts day layer3` prints that row after
 the FID-COL-003 rows; this building's palette entry is unchanged.
 
-
 ## 2026-10-17 — regular geographic end bays (FID-AON-003)
 
 This pass reassessed Aon's pier cadence and the unresolved plan dimensions.
@@ -391,7 +392,9 @@ No additional mapped tower part supplies the missing facade section.
 The geographic factory now distributes all sixteen centres uniformly between
 the inset end piers. All fifteen openings have the same visible width on a
 given face. The resulting pitch still follows the mapped, too-short face;
-this does **not** claim to implement the nominal 10 ft dimension. Pier width,
+the new centre intervals are approximately **2.75–2.78 m**, further below
+the nominal 3.048 m than the old interior pitch. Equalizing end openings
+corrects the cadence while leaving that absolute-size discrepancy unresolved. Pier width,
 projection, corner shape, ground vertices, cap and roof heights stay as before.
 The drawing-fitted factory keeps its established layout; fingerprints of every
 geometry attribute/index array and material colour match before and after.
@@ -411,8 +414,9 @@ as does strict TypeScript.
 
 Matched reduced-motion captures use 1600 × 1000 viewports: front/side detail,
 skyline/quarter placement, and front/side close inspection after twelve `=`
-zoom presses. The close views intentionally crop the tall tower to resolve
-its ordinary bays. All cameras match within each pair, and colour-off restores
+zoom presses. The close views intentionally crop the tall tower for a closer
+look at its ordinary bays. Each image captures the `#building` element rather
+than the entire viewport; the manifest records its pixel dimensions. All cameras match within each pair, and colour-off restores
 grayscale exactly in every retained view. Artifact names and poses are in
 [fidelity/aon-bays-captures.json](fidelity/aon-bays-captures.json).
 
@@ -433,7 +437,9 @@ Swissôtel mismatches under [FID-CAP-001](building-fidelity.md).
 | Front Close | [before](fidelity/aon-bays-front-close-grey-before.png) / [after](fidelity/aon-bays-front-close-grey-after.png) | [before](fidelity/aon-bays-front-close-day-before.png) / [after](fidelity/aon-bays-front-close-day-after.png) |
 | Side Close | [before](fidelity/aon-bays-side-close-grey-before.png) / [after](fidelity/aon-bays-side-close-grey-after.png) | [before](fidelity/aon-bays-side-close-day-before.png) / [after](fidelity/aon-bays-side-close-day-after.png) |
 
-The close views show the terminal slots matching the interior cadence in both
-modes. Overall shape and placement remain stable in the wider views. The
+At this capture scale the width change is only around one or two pixels per
+terminal opening, so the images serve as appearance and placement stability
+checks in both modes. The four-face raycast width test supplies the quantitative
+acceptance evidence for regular openings. The
 absolute pitch and notched corner proportions remain provisional, as described
 above. Full shipping validation and independent review are recorded in the PR.

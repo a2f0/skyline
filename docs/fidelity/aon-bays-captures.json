@@ -17,6 +17,11 @@
       "artifacts": {
         "grey": "aon-bays-front-grey-before.png",
         "day": "aon-bays-front-day-before.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
       }
     },
     {
@@ -36,6 +41,11 @@
       "artifacts": {
         "grey": "aon-bays-side-grey-before.png",
         "day": "aon-bays-side-day-before.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
       }
     },
     {
@@ -55,6 +65,11 @@
       "artifacts": {
         "grey": "aon-bays-skyline-grey-before.png",
         "day": "aon-bays-skyline-day-before.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1600,
+        "height": 900
       }
     },
     {
@@ -74,6 +89,11 @@
       "artifacts": {
         "grey": "aon-bays-quarter-grey-before.png",
         "day": "aon-bays-quarter-day-before.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1600,
+        "height": 900
       }
     },
     {
@@ -95,6 +115,11 @@
       "artifacts": {
         "grey": "aon-bays-front-close-grey-before.png",
         "day": "aon-bays-front-close-day-before.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
       }
     },
     {
@@ -116,6 +141,11 @@
       "artifacts": {
         "grey": "aon-bays-side-close-grey-before.png",
         "day": "aon-bays-side-close-day-before.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
       }
     }
   ],
@@ -137,6 +167,11 @@
       "artifacts": {
         "grey": "aon-bays-front-grey-after.png",
         "day": "aon-bays-front-day-after.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
       }
     },
     {
@@ -156,6 +191,11 @@
       "artifacts": {
         "grey": "aon-bays-side-grey-after.png",
         "day": "aon-bays-side-day-after.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
       }
     },
     {
@@ -175,6 +215,11 @@
       "artifacts": {
         "grey": "aon-bays-skyline-grey-after.png",
         "day": "aon-bays-skyline-day-after.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1600,
+        "height": 900
       }
     },
     {
@@ -194,6 +239,11 @@
       "artifacts": {
         "grey": "aon-bays-quarter-grey-after.png",
         "day": "aon-bays-quarter-day-after.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1600,
+        "height": 900
       }
     },
     {
@@ -215,6 +265,11 @@
       "artifacts": {
         "grey": "aon-bays-front-close-grey-after.png",
         "day": "aon-bays-front-close-day-after.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
       }
     },
     {
@@ -236,6 +291,11 @@
       "artifacts": {
         "grey": "aon-bays-side-close-grey-after.png",
         "day": "aon-bays-side-close-day-after.png"
+      },
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
       }
     }
   ]

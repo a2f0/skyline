@@ -25,7 +25,7 @@ export interface AonForm {
   mast: Vec2;
   base: number;
   // The geographic facade follows the observed regular pier cadence. The
-  // drawing-fitted copy retains its established, narrower terminal bays.
+  // drawing-fitted copy retains narrower terminal bays to preserve its SVG fit.
   uniformPierSpacing?: boolean;
 }
 
@@ -43,7 +43,7 @@ export const aonLevels = Object.freeze({
   head: 3.1,
   enclosureTop: 346.3,
   tip: 362.5,
-  bay: 3.048, // nominal clean-plan module; mapped spacing follows each face's chord
+  bay: 3.048, // nominal clean-plan module; geographic intervals subtract end-pier insets
   baysPerFace: 15, // tenant portal's Suite 1300 plan: sixteen piers, fifteen openings
   faceLength: 20,
 });

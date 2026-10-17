@@ -8,9 +8,8 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // tower is the shared generator in aon-tower.ts, the same one the original layout's copy
 // uses. Each mapped face carries the source plan's fifteen window bays, distributed
 // uniformly between inset end piers; the mapped notches are deeper, so absolute spacing
-// remains approximate. The antenna stands
-// at the enclosure's centre, reaching the published 362.5 m tip; the map gives no antenna
-// geometry. See docs/aon-reference.md. Units are meters; +x is east, +z is south.
+// remains approximate. The antenna stands at the enclosure's centre, reaching the
+// published 362.5 m tip; the map gives no antenna geometry. See docs/aon-reference.md. Units are meters; +x is east, +z is south.
 export const aonGeographicLevels = Object.freeze({
   shaftTop: aonLevels.roof, // OSM shaft part top
   enclosureTop: aonLevels.enclosureTop, // OSM part 284775635
