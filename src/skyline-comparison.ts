@@ -1,6 +1,6 @@
 import * as THREE from "./vendor/three-r186.js";
 import { geographicBuildings } from "./models/skyline-geography-data.js";
-import { footprintMetrics, geographicOrigin } from "./models/skyline-geography.js";
+import { buildingGroundBounds, groundFootprints, geographicOrigin } from "./models/skyline-geography.js";
 import type { BuildingModel } from "./models/building-kit.js";
 import type { StudyLayout } from "./study-types.js";
 import { createGeographicSkyline } from "./skyline-scene.js";
@@ -45,7 +45,7 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
         [point.x, point.z].forEach((n, axis) => { min[axis] = Math.min(min[axis]!, n); max[axis] = Math.max(max[axis]!, n); });
       }
     });
-    const footprint = footprintMetrics(record.footprint.coordinates);
+    const footprint = buildingGroundBounds(record);
     const row = document.createElement("tr");
     const name = document.createElement("th");
     name.scope = "row";
@@ -53,6 +53,13 @@ export function createSkylineComparison(models: BuildingModel[], anchor: THREE.V
     link.href = `https://www.openstreetmap.org/way/${record.footprint.way}`;
     link.textContent = record.shortName;
     name.append(link);
+    for (const part of groundFootprints(record)) {
+      if (part.way === record.footprint.way) continue;
+      const extra = document.createElement("a");
+      extra.href = `https://www.openstreetmap.org/way/${part.way}`;
+      extra.textContent = `part ${part.way}`;
+      name.append(" · ", extra);
+    }
     row.append(name);
     const values = [
       `${signed(footprint.center[0])}, ${signed(footprint.center[1])}`,

@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright";
 import type { Browser, Page } from "playwright";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
-import { footprintMetrics } from "../src/models/skyline-geography.js";
+import { footprintMetrics, buildingGroundBounds } from "../src/models/skyline-geography.js";
 
 // Run against the local static server; see docs/development.md. The detail page is what the skyline
 // viewer floats over its 3D skyline from a building's context menu; the full-screen 3D
@@ -41,9 +41,15 @@ describe("building detail", () => {
       for (const record of geographicBuildings) {
         await openDetail(page, record.id);
         expect(await page.locator("h1").textContent()).toBe(record.name);
+        if (record.id === "building-buckingham-east") {
+          expect(await page.locator("#building-facts").textContent()).toContain("Mapped outline 95.0 × 59.9 m");
+          expect(await page.locator("#building-facts a").evaluateAll((links) => links.map((a) => a.getAttribute("href")))).toEqual([
+            "https://www.openstreetmap.org/way/592122464", "https://www.openstreetmap.org/way/1269924305",
+          ]);
+        }
         // It opens circling the building on the turntable; each view below stops it.
         expect(await page.evaluate(() => [window.__buildingStudy!.modelNames.length, window.__buildingStudy!.turning])).toEqual([1, true]);
-        const { center } = footprintMetrics(record.footprint.coordinates);
+        const { center } = buildingGroundBounds(record);
         for (const view of ["quarter", "front", "side"]) {
           await page.locator(`[data-view="${view}"]`).click();
           await settle(page);

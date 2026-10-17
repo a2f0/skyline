@@ -6,7 +6,7 @@ import type { Browser, Page } from "playwright";
 import * as THREE from "../src/vendor/three-r186.js";
 import type { BuildingModel, Vec2, Vec3 } from "../src/models/building-kit.js";
 import { geographicBuildings, geographicStreets } from "../src/models/skyline-geography-data.js";
-import { projectGround, footprintMetrics, createGeographicBuilding, createGeographicRoads, streetWidth } from "../src/models/skyline-geography.js";
+import { projectGround, footprintMetrics, createGeographicBuilding, buildingGroundBounds, groundFootprints, createGeographicRoads, createGeographicGround, streetWidth } from "../src/models/skyline-geography.js";
 import { floorLevel, onePrudentialLevels, wallStations } from "../src/models/one-prudential-tower.js";
 import { trumpSpire } from "../src/models/trump-geographic.js";
 import { trumpLevels } from "../src/models/trump-tower.js";
@@ -139,10 +139,11 @@ describe("mapped skyline geography", () => {
       });
       near(bounds.min[1], 0, 1e-5);
       near(bounds.max[1], height, 0.001);
-      near(groundBounds.min[0], metrics.min[0], 0.03);
-      near(groundBounds.max[0], metrics.max[0], 0.03);
-      near(-groundBounds.max[1], metrics.min[1], 0.03);
-      near(-groundBounds.min[1], metrics.max[1], 0.03);
+      const mappedGround = buildingGroundBounds(record);
+      near(groundBounds.min[0], mappedGround.min[0], 0.03);
+      near(groundBounds.max[0], mappedGround.max[0], 0.03);
+      near(-groundBounds.max[1], mappedGround.min[1], 0.03);
+      near(-groundBounds.min[1], mappedGround.max[1], 0.03);
     }
   }, { timeout: 180_000 });
 
@@ -2540,8 +2541,41 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Sheraton Grand Chicago Riverwalk", () => {
-    test("keeps its mapped L, the corner's round tower, the three finned drums and the windows", () => {
+    test("outlines both ground ways and removes their six shared arc edges", () => {
+      const ground = createGeographicGround();
+      const positions = ground.footprints.geometry.getAttribute("position");
+      const key = (a: number[], b: number[]) => [a.map((n) => n.toFixed(3)).join(","), b.map((n) => n.toFixed(3)).join(",")].sort().join(";");
+      const edges = new Set<string>();
+      for (let i = 0; i < positions.count; i += 2) edges.add(key(
+        [positions.getX(i), positions.getZ(i)], [positions.getX(i + 1), positions.getZ(i + 1)],
+      ));
       const record = geographicBuildings.find((r) => r.shortName === "Sheraton Grand")!;
+      // Independent mapped source rings: tower 592122464 and wing 1269924305.
+      const seen = new Map<string, number>();
+      for (const part of [record.parts[0]!, record.parts[2]!]) {
+        const points = part.coordinates.map((p) => { const [x, north] = projectGround(p); return [Math.fround(x), Math.fround(-north)]; });
+        points.forEach((a, i) => {
+          const edge = key(a, points[(i + 1) % points.length]!);
+          seen.set(edge, (seen.get(edge) ?? 0) + 1);
+        });
+      }
+      expect([...seen.values()].filter((count) => count === 2)).toHaveLength(6);
+      for (const [edge, count] of seen) expect(edges.has(edge)).toBe(count === 1);
+      expect(() => groundFootprints({ ...record, groundFootprintWays: [1269924304] })).toThrow("Missing ground footprint");
+      ground.group.traverse((object) => {
+        const mesh = object as THREE.Mesh;
+        if (mesh.geometry) mesh.geometry.dispose();
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        for (const material of materials) material?.dispose();
+      });
+    });
+    test("keeps its mapped L and east wing, four finned drums and punched windows", () => {
+      const record = geographicBuildings.find((r) => r.shortName === "Sheraton Grand")!;
+      expect(groundFootprints(record).map((part) => part.way)).toEqual([592122464, 1269924305]);
+      const mappedGround = buildingGroundBounds(record);
+      expect(mappedGround.size[0]).toBeGreaterThan(90);
+      expect(mappedGround.size[0]).toBeLessThan(100);
+      expect(mappedGround.center[0]).toBeGreaterThan(440);
       const model = models["Sheraton Grand"]!;
       model.building.updateMatrixWorld(true);
       const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];
@@ -2553,12 +2587,19 @@ describe("mapped skyline geography", () => {
       // On the Skyscraper Center's datum: the top floor at 97 m, the corner's roof 3.1 m over
       // it, the arms two floors of 2.67 m lower, and 12.2 m drums, the corner's to 112.3 m.
       const [corner, arms] = [100.1, 100.1 - 2 * 2.67];
-      expect(record.parts.map((part) => [part.way, part.bottom, part.top])).toEqual([[592122464, 0, 94.76], [1269924307, 94.76, 100.1]]);
+      expect(record.parts.map((part) => [part.way, part.bottom, part.top])).toEqual([[592122464, 0, 94.76], [1269924307, 94.76, 100.1], [1269924305, 0, 84.08], [1269924304, 84.08, 86.75]]);
       const down = (x: number, z: number) => hit([x, 300, z], [0, -1, 0])!.point.y;
       near(down(407.44, -465.95), corner + 12.2, 1e-3);
       near(down(439.52, -462.06), arms + 12.2, 1e-3);
       near(down(409.75, -498.32), arms + 12.2, 1e-3);
       near(down(425, -462), arms, 1e-3);
+      // JeremyA's pre-2013 fountain photograph shows the lower eastern slab
+      // and its fourth round crown. Map levels give the relative roof steps;
+      // these are estimates on the existing datum, not surveyed heights.
+      near(down(461, -458), 84.08, 1e-3);
+      near(down(482.703, -457.389), 98.95, 1e-3);
+      expect(hit([482.7, 50, -420], [0, 0, -1])!.object.parent).toBe(model.building);
+      expect(model.building.userData["buildingId"]).toBe(record.id);
       // The corner's round tower over the arms, sampled from the south-west.
       near(down(404, -465), corner + 12.2, 1e-3);
       const palette = sheratonPalette, is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
@@ -2577,6 +2618,11 @@ describe("mapped skyline geography", () => {
       // The east arm's south face: a window 1.5 m tall 80 cm over each floor line, counted
       // down from the top floor at 97 m, 35 of them under the arms' roof.
       const south = (x: number, y: number) => tone(hit([x, y, -420], [0, 0, -1]), "Sheraton Grand · precast and windows");
+      // The visible south side of the added wing carries both punched glass
+      // and opaque precast, as the dated photograph shows; it is not a blank box.
+      const wingSamples = Array.from({ length: 160 }, (_, index) => south(451 + index * 0.2, 50));
+      expect(wingSamples.filter(glass).length).toBeGreaterThan(40);
+      expect(wingSamples.filter(is(palette.precast)).length).toBeGreaterThan(40);
       let column = 420;
       while (!glass(south(column, 50))) column += 0.02;
       column += 0.3;
@@ -2599,11 +2645,11 @@ describe("mapped skyline geography", () => {
       expect([count(arms + 0.05, corner - 0.05, (y) => toward(angle, y)), ...edges(97 - 2.67), ...edges(97)], "the corner's floors").toEqual([2, ...Array(8).fill(true)]);
       ray.set(new THREE.Vector3(407.44, 105, -465.95), new THREE.Vector3(0, -1, 0));
       near(ray.intersectObject(meshes.find((mesh) => mesh.name === "Sheraton Grand · shell")!, false)[0]!.point.y, corner, 1e-3);
-      // The exact mapped L at grade.
+      // The exact mapped L and wing at grade; no invented connecting footprint.
       const shell = meshes.find((mesh) => mesh.name === "Sheraton Grand · shell")!.geometry.getAttribute("position");
       const grade = new Set<string>();
       for (let i = 0; i < shell.count; i += 1) if (shell.getY(i) === 0) grade.add([shell.getX(i), shell.getZ(i)].map((n) => n.toFixed(3)).join(","));
-      const mapped = new Set<string>(record.footprint.coordinates.map((p) => {
+      const mapped = new Set<string>(record.parts.filter((part) => part.bottom === 0).flatMap((part) => part.coordinates).map((p) => {
         const [x, n] = projectGround(p);
         return [Math.fround(x), Math.fround(-n)].map((v) => v.toFixed(3)).join(",");
       }));
