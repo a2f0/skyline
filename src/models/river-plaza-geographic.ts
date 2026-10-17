@@ -20,18 +20,29 @@ export const riverPlazaLevels = Object.freeze({
   floors: 56,
   roof: 156, // the slab's roof, OpenStreetMap's
   box: 159.7, // the rooftop box's top, the published height and tip, the Skyscraper Center's 524 ft
-  bay: 1.6, // the frame's bays, an estimate from photographs
+  /** @deprecated Historical generic spacing, retained for package consumers; the model now uses counted groups. */
+  bay: 1.6,
+  pier: 0.45, // schematic concrete width; group counts come from dated photographs
+  sill: 0.35, // inferred floor datum; photographed opening is about 75% of the pitch
+  window: 2.1,
+  transom: 0.6, // lower light about 30% of the opening; section width is schematic
+  frame: 0.06,
 });
+// Starting at the south-east end, follow the mapped outline counter-clockwise.
+// The long elevations have 3 / recess / 4 / recess / 3 groups; the ends have
+// 2 / chamfer / 1 / chamfer / 2. Each outer corner is glazed as one group.
+// See the 2007/2008/2012 counts in the reference audit; west-end symmetry is inferred.
+const groupsPerChain = [2, 1, 1, 1, 2, 1, 3, 1, 4, 1, 3, 1, 2, 1, 1, 1, 2, 1, 3, 1, 4, 1, 3, 1] as const;
 const h = riverPlazaLevels;
 const pitch = h.roof / h.floors;
 
 // The skins' colours: the window tones, and the concrete, which no window shares.
-export const riverPlazaPalette = Object.freeze({ glass: [0x2c2c2c, 0x303030, 0x343434, 0x282828], lit: 0x8a8a8a, dim: 0x505050, concrete: 0x9a9a9a });
+export const riverPlazaPalette = Object.freeze({ glass: [0x2c2c2c, 0x303030, 0x343434, 0x282828], lit: 0x8a8a8a, dim: 0x505050, concrete: 0x9a9a9a, frame: 0x424242 });
 const palette = riverPlazaPalette;
 const color = (hex: number) => new THREE.Color(hex);
 const glassTones = palette.glass.map(color);
 const litGlass = color(palette.lit), dimGlass = color(palette.dim), concrete = color(palette.concrete);
-const core = color(0x6a6a6a), roofing = color(0x8a8a8a);
+const core = color(0x6a6a6a), roofing = color(0x8a8a8a), frame = color(palette.frame);
 function paneColor(row: number, bay: number, wall: number): THREE.Color {
   const hash = (Math.imul(row + 19, 0x9e3779b1) ^ Math.imul(bay + 37, 0x85ebca77) ^ Math.imul(wall + 29, 0xc2b2ae3d)) >>> 0;
   const value = hash % 101;
@@ -60,8 +71,9 @@ export function createRiverPlazaGeographicBuilding(record: GeoBuilding, projectP
   kit.prism(box, planOf(top!), [h.roof, h.box]);
 
   // The slab's skin, one box to a run of a chain, held 2 cm clear of the chain's ends or 9 cm
-  // where the outline turns in: on each floor, a window 1.1 m wide and 1.5 m tall in each
-  // 1.6 m bay of the frame, from the chain's middle out. A run the podium stands against, its
+  // where the outline turns in: taller windows with a narrow lower transom follow
+  // dated photographs. Broad structural groups continue into the glazed
+  // recesses and corners. A run the podium stands against, its
   // two ends on the podium's outline, starts over the podium's roof; a chain whose runs differ
   // is skinned in parts, which meet at their joint.
   const plan = planOf(tower!);
@@ -71,11 +83,15 @@ export function createRiverPlazaGeographicBuilding(record: GeoBuilding, projectP
     return Math.hypot(p[0] - a[0] - t * (b[0] - a[0]), p[1] - a[1] - t * (b[1] - a[1])) < 0.05;
   });
   const covered = (run: Run) => onEdge(run.at(0)) && onEdge(run.at(run.length));
-  chainsOf(plan).forEach((chain, index) => {
+  const chains = chainsOf(plan);
+  if (chains.length !== groupsPerChain.length) throw new Error("River Plaza mapped facade chains changed; recheck photographed groups");
+  chains.forEach((chain, index) => {
     const first = chain.runs[0]!, last = chain.runs.at(-1)!;
     const s0 = turnsAt(plan, first)[0] > 0 ? 0.09 : 0.02, s1 = chain.length - (turnsAt(plan, last)[1] > 0 ? 0.09 : 0.02);
-    const count = Math.floor(chain.length / 2 / h.bay);
-    const centres = Array.from({ length: 2 * count }, (_, k) => chain.length / 2 + (k - count + 0.5) * h.bay);
+    const count = groupsPerChain[index]!;
+    const module = chain.length / count, halfWindow = (module - h.pier) / 2;
+    if (halfWindow <= 0) throw new Error("River Plaza facade group is narrower than its concrete pier");
+    const centres = Array.from({ length: count }, (_, k) => (k + 0.5) * module);
     // The chain's parts, each a span of runs the podium covers alike.
     const parts: [number, number][] = [];
     chain.runs.forEach((run, k) => { const part = parts.at(-1); if (part && covered(plan[run]!) === covered(plan[chain.runs[part[0]]!]!)) part[1] = k; else parts.push([k, k]); });
@@ -84,17 +100,31 @@ export function createRiverPlazaGeographicBuilding(record: GeoBuilding, projectP
       const from = k0 === 0 ? s0 : chain.starts[k0]!, to = k1 === chain.runs.length - 1 ? s1 : chain.starts[k1]! + plan[chain.runs[k1]!]!.length;
       const heights = [base];
       for (let n = Math.ceil(base / pitch); n < h.floors; n += 1) {
-        const sill = n * pitch + 0.75;
-        if (sill > base + 0.2) heights.push(sill, sill + 1.5);
+        const sill = n * pitch + h.sill;
+        if (sill > base + 0.2) heights.push(sill, sill + h.window);
       }
       heights.push(h.roof);
-      const cuts = centres.flatMap((c) => [c - 0.55, c + 0.55]).filter((s) => s > from + 0.01 && s < to - 0.01);
+      const cuts = centres.flatMap((c) => [c - halfWindow, c + halfWindow]).filter((s) => s > from + 0.01 && s < to - 0.01);
       const columns = [from, ...cuts, to];
       chainSkin(kit, wall, plan, chain, k0, k1, from, to, columns, heights, 0.02, 0.07, (bay, r) => {
         const middle = (columns[bay - 1]! + columns[bay]!) / 2;
-        const glazed = r % 2 === 1 && centres.some((c) => Math.abs(middle - c) < 0.55);
+        const glazed = r % 2 === 1 && centres.some((c) => Math.abs(middle - c) < halfWindow);
         return glazed ? paneColor(r, bay, index) : concrete;
       }, concrete);
+      // A closed metal bar sits 5 mm clear of each full-height pane. Keeping
+      // the glass quad whole gives its upper and lower lights one night seed.
+      for (const centre of centres) {
+        const left = Math.max(from, centre - halfWindow), right = Math.min(to, centre + halfWindow);
+        if (right - left < 0.01) continue;
+        const firstRun = chain.runs.findIndex((run, k) => k >= k0 && k <= k1 && chain.starts[k]! + plan[run]!.length > left + 1e-6);
+        if (firstRun < 0) throw new Error("River Plaza transom falls outside its facade section");
+        let lastRun = firstRun;
+        while (lastRun < k1 && chain.starts[lastRun + 1]! < right - 1e-6) lastRun += 1;
+        for (let row = 1; row + 1 < heights.length; row += 2) {
+          const lower = heights[row]! + h.transom;
+          chainSkin(kit, wall, plan, chain, firstRun, lastRun, left, right, [left, right], [lower, lower + h.frame], 0.075, 0.09, () => frame, frame);
+        }
+      }
     }
   });
 
