@@ -6,7 +6,7 @@ import type { Browser, Page } from "playwright";
 import * as THREE from "../src/vendor/three-r186.js";
 import type { BuildingModel, Vec2, Vec3 } from "../src/models/building-kit.js";
 import { geographicBuildings, geographicStreets } from "../src/models/skyline-geography-data.js";
-import { projectGround, footprintMetrics, createGeographicBuilding, buildingGroundBounds, groundFootprints, createGeographicRoads, streetWidth } from "../src/models/skyline-geography.js";
+import { projectGround, footprintMetrics, createGeographicBuilding, buildingGroundBounds, groundFootprints, createGeographicRoads, createGeographicGround, streetWidth } from "../src/models/skyline-geography.js";
 import { floorLevel, onePrudentialLevels, wallStations } from "../src/models/one-prudential-tower.js";
 import { trumpSpire } from "../src/models/trump-geographic.js";
 import { trumpLevels } from "../src/models/trump-tower.js";
@@ -2541,6 +2541,34 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Sheraton Grand Chicago Riverwalk", () => {
+    test("outlines both ground ways and removes their six shared arc edges", () => {
+      const ground = createGeographicGround();
+      const positions = ground.footprints.geometry.getAttribute("position");
+      const key = (a: number[], b: number[]) => [a.map((n) => n.toFixed(3)).join(","), b.map((n) => n.toFixed(3)).join(",")].sort().join(";");
+      const edges = new Set<string>();
+      for (let i = 0; i < positions.count; i += 2) edges.add(key(
+        [positions.getX(i), positions.getZ(i)], [positions.getX(i + 1), positions.getZ(i + 1)],
+      ));
+      const record = geographicBuildings.find((r) => r.shortName === "Sheraton Grand")!;
+      // Independent mapped source rings: tower 592122464 and wing 1269924305.
+      const seen = new Map<string, number>();
+      for (const part of [record.parts[0]!, record.parts[2]!]) {
+        const points = part.coordinates.map((p) => { const [x, north] = projectGround(p); return [Math.fround(x), Math.fround(-north)]; });
+        points.forEach((a, i) => {
+          const edge = key(a, points[(i + 1) % points.length]!);
+          seen.set(edge, (seen.get(edge) ?? 0) + 1);
+        });
+      }
+      expect([...seen.values()].filter((count) => count === 2)).toHaveLength(6);
+      for (const [edge, count] of seen) expect(edges.has(edge)).toBe(count === 1);
+      expect(() => groundFootprints({ ...record, groundFootprintWays: [1269924304] })).toThrow("Missing ground footprint");
+      ground.group.traverse((object) => {
+        const mesh = object as THREE.Mesh;
+        if (mesh.geometry) mesh.geometry.dispose();
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        for (const material of materials) material?.dispose();
+      });
+    });
     test("keeps its mapped L and east wing, four finned drums and punched windows", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Sheraton Grand")!;
       expect(groundFootprints(record).map((part) => part.way)).toEqual([592122464, 1269924305]);

@@ -3,14 +3,14 @@
 import { expect } from "bun:test";
 import type { Frame, Page } from "playwright";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
-import { footprintMetrics, projectGround } from "../src/models/skyline-geography.js";
+import { buildingGroundBounds, groundFootprints, projectGround } from "../src/models/skyline-geography.js";
 
 // In the ground plan, every mapped footprint projects inside the canvas, and its centre
 // inside the band where the viewer shows a building's label.
 export async function expectPlanHolds(page: Page | Frame) {
   const footprints = geographicBuildings.map((record) => {
-    const { center } = footprintMetrics(record.footprint.coordinates);
-    const points = record.footprint.coordinates.map((p) => { const [east, north] = projectGround(p); return [east, 0, -north]; });
+    const { center } = buildingGroundBounds(record);
+    const points = groundFootprints(record).flatMap((part) => part.coordinates).map((p) => { const [east, north] = projectGround(p); return [east, 0, -north]; });
     return { id: record.id, points, centre: [center[0], 0, -center[1]] };
   });
   const projected = await page.evaluate((all) => all.map(({ id, points, centre }) => ({

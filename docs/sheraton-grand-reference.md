@@ -298,7 +298,8 @@ framing identical when the wing changes the normal automatic fit. Both phases
 use the combined ground centre (444.581164 east, 477.572184 north metres),
 including the old model before it had the wing. Canvas-only
 images exclude the changing descriptive text. The production detail still fits
-its whole model automatically.
+its whole model automatically. The [capture manifest](fidelity/sheraton-wing-captures.json)
+records each view, building ID and artifact name.
 
 | View | Grayscale before / after | Daylight before / after |
 | --- | --- | --- |
@@ -311,7 +312,15 @@ Visual review: the close views now show the lower extension and fourth crown in
 both modes, with the same material identities as the original tower. The side
 view exposes the L and the join. The elevated view keeps the extension on its
 mapped site. The hotel lies beyond the default skyline's far-right edge, so that
-view cannot show the correction. Colour toggling changed every canvas and restored the
+view cannot show the correction at the tested 1600 × 1000 viewport. The earlier
+7,684–8,080 projection uses **layer** units, not the SVG's viewBox x coordinates:
+`skyline-position` translates x by 1105.5923, so the full-screen frame's right
+edge is 7395.5063 layer units (8501.0986 − 1105.5923). The geographic study's
+wider frame reaches 7978.5 and can show part of the wing; sufficiently wide
+full-screen canvases can also expose geometry beyond the nominal frame. This
+pass preserves the original SVG paths and drawing-fit models, which have no
+Sheraton counterpart. It corrects geographic geometry from the dated photographs;
+it does not claim a new exact trace of the 2013 panorama's wing silhouette. Colour toggling changed every canvas and restored the
 gray image byte for byte in all four views; camera metadata matched before/after.
 Targeted watertightness, coplanar-overlap, raycast, material, grayscale and strict
 type checks passed. Full shipping validation and independent review are recorded

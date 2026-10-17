@@ -20,7 +20,12 @@
         "width": 1600,
         "height": 1000
       },
-      "reducedMotion": "reduce"
+      "reducedMotion": "reduce",
+      "buildingId": "building-buckingham-east",
+      "artifacts": {
+        "grey": "sheraton-wing-front-grey-before.png",
+        "day": "sheraton-wing-front-day-before.png"
+      }
     },
     {
       "url": "building-detail.html?building=building-buckingham-east",
@@ -42,7 +47,12 @@
         "width": 1600,
         "height": 1000
       },
-      "reducedMotion": "reduce"
+      "reducedMotion": "reduce",
+      "buildingId": "building-buckingham-east",
+      "artifacts": {
+        "grey": "sheraton-wing-side-grey-before.png",
+        "day": "sheraton-wing-side-day-before.png"
+      }
     },
     {
       "url": "skyline-3d.html?controls=open",
@@ -64,7 +74,12 @@
         "width": 1600,
         "height": 1000
       },
-      "reducedMotion": "reduce"
+      "reducedMotion": "reduce",
+      "buildingId": "building-buckingham-east",
+      "artifacts": {
+        "grey": "sheraton-wing-skyline-grey-after.png",
+        "day": "sheraton-wing-skyline-day-after.png"
+      }
     },
     {
       "url": "skyline-3d.html?controls=open",
@@ -86,7 +101,12 @@
         "width": 1600,
         "height": 1000
       },
-      "reducedMotion": "reduce"
+      "reducedMotion": "reduce",
+      "buildingId": "building-buckingham-east",
+      "artifacts": {
+        "grey": "sheraton-wing-quarter-grey-before.png",
+        "day": "sheraton-wing-quarter-day-before.png"
+      }
     }
   ],
   "after": [
@@ -110,7 +130,12 @@
         "width": 1600,
         "height": 1000
       },
-      "reducedMotion": "reduce"
+      "reducedMotion": "reduce",
+      "buildingId": "building-buckingham-east",
+      "artifacts": {
+        "grey": "sheraton-wing-front-grey-after.png",
+        "day": "sheraton-wing-front-day-after.png"
+      }
     },
     {
       "url": "building-detail.html?building=building-buckingham-east",
@@ -132,7 +157,12 @@
         "width": 1600,
         "height": 1000
       },
-      "reducedMotion": "reduce"
+      "reducedMotion": "reduce",
+      "buildingId": "building-buckingham-east",
+      "artifacts": {
+        "grey": "sheraton-wing-side-grey-after.png",
+        "day": "sheraton-wing-side-day-after.png"
+      }
     },
     {
       "url": "skyline-3d.html?controls=open",
@@ -154,7 +184,12 @@
         "width": 1600,
         "height": 1000
       },
-      "reducedMotion": "reduce"
+      "reducedMotion": "reduce",
+      "buildingId": "building-buckingham-east",
+      "artifacts": {
+        "grey": "sheraton-wing-skyline-grey-after.png",
+        "day": "sheraton-wing-skyline-day-after.png"
+      }
     },
     {
       "url": "skyline-3d.html?controls=open",
@@ -176,7 +211,12 @@
         "width": 1600,
         "height": 1000
       },
-      "reducedMotion": "reduce"
+      "reducedMotion": "reduce",
+      "buildingId": "building-buckingham-east",
+      "artifacts": {
+        "grey": "sheraton-wing-quarter-grey-after.png",
+        "day": "sheraton-wing-quarter-day-after.png"
+      }
     }
   ]
 }
