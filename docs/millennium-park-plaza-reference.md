@@ -243,7 +243,7 @@ artifact names and exact colour-off restoration are recorded in
 Detail uses `building-detail.html?building=building-michigan-plaza-front-tall`;
 placement uses `skyline-3d.html?controls=open` with the named presets.
 The side preset shows the unchanged north end/west face and is byte-identical
-in both phases; its artifact is reused explicitly. The piers are visible at the default detail scale; the fine
+in both phases; its artifact is reused explicitly. After integrating the final Sheraton crown treatment, both phases were refreshed: only the four quarter-view images changed, all cameras matched and all four views restored grayscale exactly. The piers are visible at the default detail scale; the fine
 panel joints are chiefly a close-inspection detail. Full shipping validation
 and independent review will be recorded in the pull request.
 
