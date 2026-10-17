@@ -362,7 +362,7 @@ Intermediate parts have less certainty than the overall height:
   geographic camera names; see the
   [building audit](building-labels.md#names-from-the-geographic-camera). A 90 m concrete
   slab stands to the published 121.9 m, with window strips in its narrow ends and punched
-  windows in its long faces. Its floor levels are estimates; see the
+  windows in its long faces. Continuous south office piers and recessed panel joints follow dated photographs; joint dimensions and floor levels remain estimates; see the
   [Millennium Park Plaza reference audit](millennium-park-plaza-reference.md).
 - Willoughby Tower stands at Michigan and Madison, left of Six North Michigan in the
   drawing. Its limestone base fills the mapped L to the setback over the 23rd floor; a

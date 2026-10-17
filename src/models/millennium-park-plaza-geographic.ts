@@ -28,7 +28,7 @@ const floor = (n: number) => (n <= 8 ? h.lobby + (n - 2) * h.office : h.lobby + 
 const color = (hex: number) => new THREE.Color(hex);
 const glassTones = [0x2e2e2e, 0x323232, 0x363636, 0x3a3a3a].map(color);
 const litGlass = color(0x727272), dimGlass = color(0x484848);
-const concrete = color(0x666666), strip = color(0x3e3e3e), lobby = color(0x3a3a3a), core = color(0x262626), roofing = color(0x3e3e3e);
+const concrete = color(0x666666), joint = color(0x5e5e5e), strip = color(0x3e3e3e), lobby = color(0x3a3a3a), core = color(0x262626), roofing = color(0x3e3e3e);
 function paneColor(row: number, bay: number, wall: number): THREE.Color {
   const hash = (Math.imul(row + 23, 0x9e3779b1) ^ Math.imul(bay + 47, 0x85ebca77) ^ Math.imul(wall + 37, 0xc2b2ae3d)) >>> 0;
   const value = hash % 101;
@@ -52,6 +52,7 @@ export function createMillenniumParkPlazaGeographicBuilding(record: GeoBuilding,
   const kit = createBuilder(record.name, record.id);
   const shell = kit.batch("Millennium Park Plaza · shell", kit.material(0xffffff, { vertexColors: true }));
   const wall = kit.batch("Millennium Park Plaza · walls and windows", kit.material(0xffffff, { vertexColors: true }));
+  const panels = kit.batch("Millennium Park Plaza · south concrete panels", kit.material(0x666666));
   const corners: Vec2[] = orient(polygonOf(projectPlan(record.footprint.coordinates)));
 
   // The slab, its walls the shell's dark core.
@@ -65,13 +66,15 @@ export function createMillenniumParkPlazaGeographicBuilding(record: GeoBuilding,
   // Every wall's skin, one box a chain, held 2 cm clear of its ends. A narrow end carries
   // four window strips, 1.25 m wide and symmetrical about its middle, from the eighth floor,
   // the first of apartments, with the top floor's window standing apart over each; below,
-  // the offices' windows run across it. A long face has a punched window every 3 m between
+  // the office glazing is bounded by outer piers on the south (the north remains
+  // the older full-width approximation). A long face has a window every 3 m between
   // 0.8 m piers. The chamfers are solid.
   const plan = planOf(corners);
   chainsOf(plan).forEach((chain, index) => {
     const first = chain.runs[0]!, last = chain.runs.at(-1)!;
     const s0 = turnsAt(plan, first)[0] > 0 ? 0.09 : 0.02, s1 = chain.length - (turnsAt(plan, last)[1] > 0 ? 0.09 : 0.02);
     const end = chain.length > 12 && chain.length < 30, long = chain.length >= 30;
+    const south = end && plan[first]!.normal(0)[1] > 0.9;
     let columns: number[], isWindow: (bay: number) => boolean;
     if (end) {
       const middle = chain.length / 2, centres = [-4.1, -1.6, 1.6, 4.1].map((d) => middle + d);
@@ -85,18 +88,37 @@ export function createMillenniumParkPlazaGeographicBuilding(record: GeoBuilding,
       columns = [0, chain.length];
       isWindow = () => false;
     }
-    chainSkin(kit, wall, plan, chain, 0, chain.runs.length - 1, s0, s1, columns, heights, 0.02, 0.07, (bay, r) => {
+    chainSkin(kit, wall, plan, chain, 0, chain.runs.length - 1, s0, s1, columns, heights, 0.02, south ? 0.04 : 0.07, (bay, r) => {
       const row = rows[r]!;
       if (row.kind === "lobby") return lobby;
       const office = row.floor < 8;
+      // Dated south views show the outer concrete piers continuing past the
+      // office windows; the earlier model glazed the entire end below floor 8.
+      if (south && (bay === 1 || bay === columns.length - 1 || (!office && !isWindow(bay)))) return joint;
       if (end && !office && isWindow(bay)) {
         if (row.kind === "glass") return paneColor(row.floor, bay, index);
         return row.floor >= 40 ? concrete : strip;
       }
       if (row.kind === "spandrel") return concrete;
-      if (end) return office ? paneColor(row.floor, bay, index) : concrete;
+      if (end) return office ? paneColor(row.floor, bay, index) : south ? joint : concrete;
       return isWindow(bay) ? paneColor(row.floor, bay, index) : concrete;
     }, concrete);
+    if (south) {
+      // 1980/2005/2008 photographs resolve horizontal joints on the solid end.
+      // Keep the existing estimated floor cadence; 5 cm joint width and 3 cm
+      // relief are schematic, not measured construction dimensions. Closed
+      // panels stand in front of the continuous, closed backing skin.
+      for (let bay = 1; bay < columns.length; bay += 2) {
+        const outer = bay === 1 || bay === columns.length - 1;
+        // End clearances keep panel caps off the backing skin's end-cap planes.
+        const from = Math.max(s0 + 0.01, columns[bay - 1]!), to = Math.min(s1 - 0.01, columns[bay]!);
+        for (let n = outer ? 2 : 8; n <= 41; n += 1) {
+          const lo = floor(n) - 0.3 + 0.025;
+          const hi = n === 41 ? h.top - 0.01 : floor(n + 1) - 0.3 - 0.025;
+          chainSkin(kit, panels, plan, chain, 0, chain.runs.length - 1, from, to, [from, to], [lo, hi], 0.035, 0.07, () => concrete, concrete);
+        }
+      }
+    }
   });
 
   const model = kit.finish({ height: h.top, outlines: [shell], opacity: 0.16 });

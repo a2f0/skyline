@@ -147,7 +147,8 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
   // A warm white precast slab with bronze-tinted glass.
   "building-michigan-plaza-front-tall": {
     shell: ["neutral"],
-    "walls and windows": ["glass", { ...windows(0x727272, 0x484848), 0x666666: "concrete" }],
+    "walls and windows": ["glass", { ...windows(0x727272, 0x484848), 0x666666: "concrete", 0x5e5e5e: "concrete" }],
+    "south concrete panels": ["concrete"],
   },
   // Buff limestone over a granite base.
   "building-willoughby-tower": {
