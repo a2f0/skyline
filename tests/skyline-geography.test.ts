@@ -19,6 +19,7 @@ import { railwayExchangePalette } from "../src/models/railway-exchange-geographi
 import { gagePalette } from "../src/models/gage-geographic.js";
 import { gageGroupPalette } from "../src/models/keith-ascher-geographic.js";
 import { chicagoAthleticPalette } from "../src/models/chicago-athletic-association-geographic.js";
+import { chainsOf, orient, planOf } from "../src/models/facade-grid.js";
 import { riverPlazaPalette } from "../src/models/river-plaza-geographic.js";
 import { twoIllinoisPalette } from "../src/models/two-illinois-center-geographic.js";
 import { hyattWestPalette } from "../src/models/hyatt-west-tower-geographic.js";
@@ -2473,12 +2474,36 @@ describe("mapped skyline geography", () => {
         expect([is(rp.concrete)(at(0.3)), rGlass(at(0.4)), rGlass(at(0.9)), is(rp.frame)(at(0.98)), rGlass(at(1.1)), rGlass(at(2.4)), is(rp.concrete)(at(2.5))], `floor ${n}: sill, two lights, lower transom and head`).toEqual(Array(7).fill(true));
         near(at(0.6), at(1.6), 1e-6);
       }
-      // From a window's west edge, within the north face's recess, six windows in six 1.6 m
-      // bays.
-      let edge = slab![0] - 6;
-      while (rGlass(north(edge, 20 * pitch + 1.5))) edge += 0.01;
-      while (!rGlass(north(edge, 20 * pitch + 1.5))) edge += 0.01;
-      expect(count(edge - 0.05, edge + 6 * 1.6 - 0.1, rGlass, (x) => north(x, 20 * pitch + 1.5)), "the 1.6 m bays").toBe(6);
+      // Count visible structural openings on each mapped plane. The south/north
+      // long faces show 3 / glazed return / 4 / glazed return / 3 in dated
+      // photographs; the east end shows 2 / 1 / 1 / 1 / 2. West symmetry is
+      // inferred. Short diagonal faces must contain glazing too.
+      const facade = planOf(orient(plaza.parts[0]!.coordinates.map(ground)));
+      const expectedGroups = [2, 1, 1, 1, 2, 1, 3, 1, 4, 1, 3, 1, 2, 1, 1, 1, 2, 1, 3, 1, 4, 1, 3, 1];
+      const chains = chainsOf(facade);
+      expect(chains.length).toBe(expectedGroups.length);
+      for (const [index, chain] of chains.entries()) {
+        const visible = (s: number) => {
+          let k = 0;
+          while (k + 1 < chain.runs.length && chain.starts[k + 1]! < s) k += 1;
+          const run = facade[chain.runs[k]!]!, t = s - chain.starts[k]!;
+          const point = run.at(t), normal = run.normal(t);
+          return tone(hitPlaza([point[0] + normal[0] * 0.3, 20 * pitch + 1.5, point[1] + normal[1] * 0.3], [-normal[0], 0, -normal[1]]), "River Plaza · concrete and windows");
+        };
+        let glassSamples = 0, samples = 0, groups = 0, wasGlass = false;
+        for (let s = 0.12; s < chain.length - 0.12; s += 0.1) {
+          const glazed = rGlass(visible(s));
+          samples += 1;
+          if (glazed) glassSamples += 1;
+          if (glazed && !wasGlass) groups += 1;
+          wasGlass = glazed;
+        }
+        expect(groups, `structural groups on facade ${index}`).toBe(expectedGroups[index]!);
+        expect(wasGlass, `last group closes on a pier on facade ${index}`).toBe(false);
+        // A broad opening occupies most of its structural group; this catches
+        // leaving the old narrow pane inside the corrected count.
+        expect(glassSamples / samples, `glass coverage on facade ${index}`).toBeGreaterThan(0.75);
+      }
 
       // Where the podium stands against the slab, its skin starts over the podium's 8 m roof;
       // the slab's south-east end past the podium, and the bevel at its south-west corner, are
@@ -2527,9 +2552,9 @@ describe("mapped skyline geography", () => {
         // The transom covers a single full-height glass quad, so its lower
         // and upper lights share occupancy, brightness and fixture tint.
         let tested = 0;
-        for (let x = slab![0] - 6; x < slab![0] + 6; x += 0.2) {
-          const lower = hitPlaza([x, 20 * pitch + 0.6, slab![1] - 60], [0, 0, 1])!;
-          const upper = hitPlaza([x, 20 * pitch + 1.6, slab![1] - 60], [0, 0, 1])!;
+        for (const floor of [4, 20, 50]) for (let x = slab![0] - 20; x < slab![0] + 20; x += 0.5) {
+          const lower = hitPlaza([x, floor * pitch + 0.6, slab![1] - 60], [0, 0, 1])!;
+          const upper = hitPlaza([x, floor * pitch + 1.6, slab![1] - 60], [0, 0, 1])!;
           if (lower.object !== wall || upper.object !== wall || lights.getZ(lower.face!.a) !== 1) continue;
           const maskAt = (v: number) => [lights.getX(v), lights.getY(v), lights.getZ(v), lights.getW(v)];
           expect(maskAt(lower.face!.a)).toEqual(maskAt(upper.face!.a));

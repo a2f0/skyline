@@ -447,3 +447,8 @@ above. Full shipping validation and independent review are recorded in the PR.
 The final skyline/quarter after-images include both FID-AON-003 and
 FID-RIV-001, which ship together. Detail pairs isolate each building;
 context pairs compare the combined batch against its common base.
+
+The context captures above record the first combined Aon/River stage. The
+[River Plaza structural-group pass](river-plaza-two-illinois-center-reference.md#verification-and-final-comparisons)
+retains the final skyline/quarter views after the subsequent River correction;
+Aon geometry is unchanged between those two stages.

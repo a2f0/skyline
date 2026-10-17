@@ -98,8 +98,9 @@ it on its mapped part, with the podium on its own part and the box on its own.
   box's top is there, on the slab's roof at OpenStreetMap's 156 m. OpenStreetMap's 166 m for
   the box and its block at 160 m stand over the published tip, and the model leaves them
   out.
-- The frame's bays are 1.6 m wide, an estimate from photographs, set out from each face's
-  middle. Each floor has a window 1.1 m wide in each bay.
+- The original frame used estimated 1.6 m bays with 1.1 m windows. The
+  2026-10-17 FID-RIV-002 pass below supersedes this generic horizontal grid
+  with counted structural groups and glazed returns.
 - Where the podium stands against the slab, both ends of a wall's run on the podium's
   outline, the skin starts over the podium's roof. The slab's south-east end past the podium
   and the bevel at its south-west corner run down to grade.
@@ -125,7 +126,8 @@ Omitted:
   - River Plaza's roof at 156 m, the box to the published 159.7 m and the podium at 8 m, its
     three parts;
   - a window to each of its 55 floors above grade on the north face, a sill and a head;
-  - six windows in six 1.6 m bays;
+  - the original six-window/1.6 m check, superseded by the all-face structural
+    group and coverage regression in FID-RIV-002 below;
   - the skin over the podium's roof where the podium stands against the slab, and down to
     grade at the slab's south-east end and its south-west bevel;
   - both models' exported palettes, whose window tones no wall shares;
@@ -317,8 +319,8 @@ change on colour-on and restore grayscale exactly.
 | --- | --- | --- |
 | Front | [before](fidelity/river-windows-front-grey-before.png) / [after](fidelity/river-windows-front-grey-after.png) | [before](fidelity/river-windows-front-day-before.png) / [after](fidelity/river-windows-front-day-after.png) |
 | Side | [before](fidelity/river-windows-side-grey-before.png) / [after](fidelity/river-windows-side-grey-after.png) | [before](fidelity/river-windows-side-day-before.png) / [after](fidelity/river-windows-side-day-after.png) |
-| Skyline | [before](fidelity/river-windows-skyline-grey-before.png) / [after](fidelity/river-windows-skyline-grey-after.png) | [before](fidelity/river-windows-skyline-day-before.png) / [after](fidelity/river-windows-skyline-day-after.png) |
-| Quarter | [before](fidelity/river-windows-quarter-grey-before.png) / [after](fidelity/river-windows-quarter-grey-after.png) | [before](fidelity/river-windows-quarter-day-before.png) / [after](fidelity/river-windows-quarter-day-after.png) |
+| Skyline | [before](fidelity/aon-bays-skyline-grey-before.png) / [after](fidelity/aon-bays-skyline-grey-after.png) | [before](fidelity/aon-bays-skyline-day-before.png) / [after](fidelity/aon-bays-skyline-day-after.png) |
+| Quarter | [before](fidelity/aon-bays-quarter-grey-before.png) / [after](fidelity/aon-bays-quarter-grey-after.png) | [before](fidelity/aon-bays-quarter-day-before.png) / [after](fidelity/aon-bays-quarter-day-after.png) |
 | Front-Close | [before](fidelity/river-windows-front-close-grey-before.png) / [after](fidelity/river-windows-front-close-grey-after.png) | [before](fidelity/river-windows-front-close-day-before.png) / [after](fidelity/river-windows-front-close-day-after.png) |
 | Side-Close | [before](fidelity/river-windows-side-close-grey-before.png) / [after](fidelity/river-windows-side-close-grey-after.png) | [before](fidelity/river-windows-side-close-day-before.png) / [after](fidelity/river-windows-side-close-day-after.png) |
 
@@ -330,6 +332,125 @@ remain visible, reinforcing FID-RIV-002 rather than treating this pass as a
 complete facade correction. Full shipping validation and independent review
 are recorded in the PR.
 
-The final skyline/quarter after-images include both FID-AON-003 and
-FID-RIV-001, which ship together. Detail pairs isolate each building;
-context pairs compare the combined batch against its common base.
+The stage-one skyline/quarter after-images include FID-AON-003 and
+FID-RIV-001. Detail pairs isolate each building; context pairs compare that
+stage against its common base. The following FID-RIV-002 pass retains the
+final context views for the completed batch.
+
+
+## 2026-10-17 — broad structural groups and glazed returns (FID-RIV-002)
+
+The first window-height pass left the old horizontal grid in place. Reviewing
+its close comparisons against the same photographs makes the remaining error
+clear: too many narrow openings and broad blank diagonal strips replace
+large glazed groups that continue around the recesses and corners. This
+second pass corrects that pattern, using additional north-side evidence.
+
+### Counted elevations
+
+All sources were accessed **2026-10-17**. The 2007 Griffin and 2012 Chicago
+Architecture Today originals, dates and hashes are recorded above. Inspect
+ordinary rows below the roof, count the openings between broad concrete
+piers, and follow each vertical pier over several rows to distinguish it
+from narrow metal mullions or interior blinds:
+
+- **South:** the 2012 original, crop **820 × 650 at (200, 250)**, enlarged
+  twice without perspective correction, resolves **3 / 1 / 4 / 1 / 3**
+  structural openings. The single groups occupy the two diagonal recess
+  returns; each outer corner has another glazed group. Griffin's 2007
+  IMG 1016 independently shows the same pattern. These are counts, not
+  equal-width claims across differently oriented planes.
+- **East:** IMG 1165, crop **600 × 1200 at (1920, 500)**, shows two groups on
+  either side of a central projecting group, with one on each short
+  diagonal connection: **2 / 1 / 1 / 1 / 2**, plus the outer corners.
+  It also resolves the lower transoms and thin vertical metal divisions;
+  the latter are not reconstructed by this pass.
+- **North:** Matthew Robinson's
+  [John Hancock observation deck](https://commons.wikimedia.org/wiki/File:John_Hancock_observation_deck_(2532564863).jpg),
+  photographed **2008-05-22 12:50**, provides a pre-2013 rear view. Its
+  [3072 × 2304 original](https://upload.wikimedia.org/wikipedia/commons/7/74/John_Hancock_observation_deck_%282532564863%29.jpg),
+  crop **400 × 650 at (1770, 900)**, enlarged twice, shows the long-face
+  pattern and glazed corners below the roof. SHA-256
+  `07cde4a1699b1f77adb11315fd946c61bdff73fdecc38af4dbe36153e8c32a8d`.
+- **North cross-check:** Golbez's
+  [John Hancock Center view June 6 08 south 1](https://commons.wikimedia.org/wiki/File:John_Hancock_Center_view_June_6_08_south_1.jpg),
+  photographed **2008-06-06 15:00**, independently shows the same grid.
+  The [3264 × 2448 original](https://upload.wikimedia.org/wikipedia/commons/8/87/John_Hancock_Center_view_June_6_08_south_1.jpg),
+  crop **300 × 500 at (1145, 1610)**, enlarged three times, resolves the
+  repeated structural columns but is too small and hazy for precise frame
+  sections. SHA-256
+  `6f789f3e79a85557205fda0f3af42785cf4d1a28597b7c055ab4f7d0e72c468f`.
+
+The north views also corroborate the shallow floor bands and lower dividers
+previously transferred there by symmetry. They do not supply a complete west
+end elevation. Applying the east count to that end remains an explicit
+symmetry inference. Confidence is higher in counts and the presence of corner
+glazing than in concrete widths or their exact relation to the mapped folds.
+The map extract checked in FID-RIV-001 covers all tagged parts; none of their
+coordinates, heights or part selections changes in this pass.
+
+### Model decisions
+
+Place the counted openings evenly within each existing straight facade chain.
+The two chains containing minor mapped tracing joints retain continuous
+spacing across those joints. Use one glazed group on every diagonal face,
+including the formerly blank short returns. A schematic **0.45 m** concrete
+pier separates groups, with half a pier at each chain end. This yields broad
+openings while preserving the mapped planes; it is not a measured structural
+section. All floor levels, 2.1 m opening heights, lower transoms, podium
+coverage and roof geometry remain as in the preceding pass.
+
+Keep each glass quad unsplit behind its transom, preserving coherent upper/
+lower lighting. The existing pane-colour hash now assigns tones to the new
+groups, so the painted lit-window pattern changes with the corrected layout.
+Metal stays unlit and unreflective, and the unresolved glass colour retains
+its grey fallback. No palette or exposure adjustment compensates for the
+larger glass area. The concrete contribution is visibly smaller in both modes.
+
+The final model has **58,760 triangles**, down from the first pass's 84,244,
+because fewer structural groups need transom boxes. This is a geometry count,
+not a measured frame-rate result. The transom lookup is restricted to the
+current covered/uncovered facade section and rejects a missing span explicitly.
+
+FID-RIV-003 retains the narrow vertical mullions, exact pier widths and relief,
+independent west-end confirmation, roof/flue dimensions, podium detail and
+separate sunny frame/glass calibration. The 2008 roof views show additional
+plant and flues, but their heights and relationship to the conflicting mapped
+roof tags remain unresolved.
+
+### Verification and final comparisons
+
+Raycasts count visible structural openings on all 24 facade chains, require
+those openings to close on a pier, and require more than 75% glass coverage
+along each chain at an ordinary floor. The earlier model's blank returns and
+narrow windows fail these independent photographic criteria. Existing probes
+retain the lower/middle/top vertical proportions, podium interfaces and mapped
+ground vertices. Lighting probes now sample three floors across the north face,
+so the changed layout cannot leave the upper/lower seed check vacuous. Closure,
+winding, overlap, material, grayscale, TypeScript and loading checks pass.
+
+Eight camera-matched before/after pairs use the same fixed detail-fit bounds
+and reduced-motion settings described above. Six reuse the preceding pass's
+retained after-images as their baseline; the two rear pairs add eighteen right
+arrow presses (180 degrees) to the front/side views and hide the DOM caption
+in both phases. The [manifest](fidelity/river-groups-captures.json) records
+baseline commit, camera positions, controls, dimensions and image paths.
+Every capture changes on colour-on and restores grayscale exactly.
+
+| View | Grayscale before / after | Daylight before / after |
+| --- | --- | --- |
+| front | [before](fidelity/river-windows-front-grey-after.png) / [after](fidelity/river-groups-front-grey-after.png) | [before](fidelity/river-windows-front-day-after.png) / [after](fidelity/river-groups-front-day-after.png) |
+| side | [before](fidelity/river-windows-side-grey-after.png) / [after](fidelity/river-groups-side-grey-after.png) | [before](fidelity/river-windows-side-day-after.png) / [after](fidelity/river-groups-side-day-after.png) |
+| front-close | [before](fidelity/river-windows-front-close-grey-after.png) / [after](fidelity/river-groups-front-close-grey-after.png) | [before](fidelity/river-windows-front-close-day-after.png) / [after](fidelity/river-groups-front-close-day-after.png) |
+| side-close | [before](fidelity/river-windows-side-close-grey-after.png) / [after](fidelity/river-groups-side-close-grey-after.png) | [before](fidelity/river-windows-side-close-day-after.png) / [after](fidelity/river-groups-side-close-day-after.png) |
+| skyline | [before](fidelity/aon-bays-skyline-grey-after.png) / [after](fidelity/river-groups-skyline-grey-after.png) | [before](fidelity/aon-bays-skyline-day-after.png) / [after](fidelity/river-groups-skyline-day-after.png) |
+| quarter | [before](fidelity/aon-bays-quarter-grey-after.png) / [after](fidelity/river-groups-quarter-grey-after.png) | [before](fidelity/aon-bays-quarter-day-after.png) / [after](fidelity/river-groups-quarter-day-after.png) |
+| rear | [before](fidelity/river-groups-rear-grey-before.png) / [after](fidelity/river-groups-rear-grey-after.png) | [before](fidelity/river-groups-rear-day-before.png) / [after](fidelity/river-groups-rear-day-after.png) |
+| rear-side | [before](fidelity/river-groups-rear-side-grey-before.png) / [after](fidelity/river-groups-rear-side-grey-after.png) | [before](fidelity/river-groups-rear-side-day-before.png) / [after](fidelity/river-groups-rear-side-day-after.png) |
+
+All eight pairs were inspected. Close and rear views now show broad openings
+and glazing through the diagonal faces in both modes, rather than blank
+vertical strips. The placement and silhouette remain stable in skyline and
+quarter views, where the tower is distant and partly hidden. Fine mullions
+remain visibly absent in the closest views. Full shipping validation and the
+final independent verdict are recorded in the PR.
