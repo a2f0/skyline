@@ -43,7 +43,7 @@ export const aonLevels = Object.freeze({
   head: 3.1,
   enclosureTop: 346.3,
   tip: 362.5,
-  bay: 3.048, // nominal clean-plan module; geographic intervals subtract end-pier insets
+  bay: 3.048, // nominal clean-plan module
   baysPerFace: 15, // tenant portal's Suite 1300 plan: sixteen piers, fifteen openings
   faceLength: 20,
 });

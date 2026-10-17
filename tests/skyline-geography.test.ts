@@ -2479,9 +2479,8 @@ describe("mapped skyline geography", () => {
       // photographs; the east end shows 2 / 1 / 1 / 1 / 2. West symmetry is
       // inferred. Short diagonal faces must contain glazing too.
       const facade = planOf(orient(plaza.parts[0]!.coordinates.map(ground)));
-      const expectedGroups = [2, 1, 1, 1, 2, 1, 3, 1, 4, 1, 3, 1, 2, 1, 1, 1, 2, 1, 3, 1, 4, 1, 3, 1];
       const chains = chainsOf(facade);
-      expect(chains.length).toBe(expectedGroups.length);
+      expect(chains.length).toBe(24);
       for (const [index, chain] of chains.entries()) {
         const visible = (s: number) => {
           let k = 0;
@@ -2498,7 +2497,15 @@ describe("mapped skyline geography", () => {
           if (glazed && !wasGlass) groups += 1;
           wasGlass = glazed;
         }
-        expect(groups, `structural groups on facade ${index}`).toBe(expectedGroups[index]!);
+        // Anchor counts to geographic orientation and position independently
+        // of the model's ordered group table. The central long faces cross
+        // x = -68 m; the outer faces sit east/west of that recessed span.
+        const first = facade[chain.runs[0]!]!, last = facade[chain.runs.at(-1)!]!;
+        const normal = first.normal(0), midpointX = (first.at(0)[0] + last.at(last.length)[0]) / 2;
+        const longFace = Math.abs(normal[1]) > 0.98 && chain.length > 10;
+        const expected = longFace ? (midpointX > -76 && midpointX < -60 ? 4 : 3)
+          : Math.abs(normal[0]) > 0.98 && chain.length > 5 ? 2 : 1;
+        expect(groups, `structural groups on geographic facade ${index}`).toBe(expected);
         expect(wasGlass, `last group closes on a pier on facade ${index}`).toBe(false);
         // A broad opening occupies most of its structural group; this catches
         // leaving the old narrow pane inside the corrected count.

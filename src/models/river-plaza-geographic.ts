@@ -90,6 +90,7 @@ export function createRiverPlazaGeographicBuilding(record: GeoBuilding, projectP
     const s0 = turnsAt(plan, first)[0] > 0 ? 0.09 : 0.02, s1 = chain.length - (turnsAt(plan, last)[1] > 0 ? 0.09 : 0.02);
     const count = groupsPerChain[index]!;
     const module = chain.length / count, halfWindow = (module - h.pier) / 2;
+    if (halfWindow <= 0) throw new Error("River Plaza facade group is narrower than its concrete pier");
     const centres = Array.from({ length: count }, (_, k) => (k + 0.5) * module);
     // The chain's parts, each a span of runs the podium covers alike.
     const parts: [number, number][] = [];

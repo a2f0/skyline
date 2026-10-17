@@ -287,10 +287,14 @@ has no daylight reflection mask because its colour is unresolved. Neither
 shared exposure nor the lighting palette was adjusted to compensate for the
 remaining horizontal-grid discrepancy.
 
-FID-RIV-002 remains open for broad structural group counts, slim vertical
+At this intermediate stage, FID-RIV-002 remained open for broad structural
+group counts, slim vertical
 mullions, glazed corners, north/west confirmation, roof/flue dimensions and
 podium details. The photographs show these are real opportunities, but the
-mapped recesses and oblique views do not yet justify a complete reconstruction.
+mapped recesses and oblique views did not yet justify a complete reconstruction.
+The following FID-RIV-002 pass supersedes this status and the retained-grid
+acceptance below; it closes group/corner work and moves remaining items to
+FID-RIV-003.
 
 ### Acceptance
 
@@ -422,7 +426,10 @@ roof tags remain unresolved.
 
 ### Verification and final comparisons
 
-Raycasts count visible structural openings on all 24 facade chains, require
+Raycasts count visible structural openings on all 24 facade chains, with
+expected counts anchored independently to compass orientation and the central
+recesses around ground x = -68 m rather than the model’s ordered count table.
+They require
 those openings to close on a pier, and require more than 75% glass coverage
 along each chain at an ordinary floor. The earlier model's blank returns and
 narrow windows fail these independent photographic criteria. Existing probes
@@ -436,7 +443,8 @@ and reduced-motion settings described above. Six reuse the preceding pass's
 retained after-images as their baseline; the two rear pairs add eighteen right
 arrow presses (180 degrees) to the front/side views and hide the DOM caption
 in both phases. The [manifest](fidelity/river-groups-captures.json) records
-baseline commit, camera positions, controls, dimensions and image paths.
+retained baseline image sets, reviewed base, camera positions, controls,
+dimensions and image paths.
 Every capture changes on colour-on and restores grayscale exactly.
 
 | View | Grayscale before / after | Daylight before / after |
