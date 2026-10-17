@@ -60,6 +60,22 @@ const warmPixels = (page: Page, png: Buffer) => page.evaluate(async (data) => {
   }
   return warm;
 }, png.toString("base64"));
+// Bright cool panes must be distinguishable from the dark blue sky/facades;
+// count all three lamp families so a globally warm shader cannot pass.
+const lampTints = (page: Page, png: Buffer) => page.evaluate(async (data) => {
+  const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
+  const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
+  context.drawImage(bitmap, 0, 0);
+  const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height).data;
+  let warm = 0, neutral = 0, cool = 0;
+  for (let i = 0; i < pixels.length; i += 4) {
+    const [r, g, b] = [pixels[i]!, pixels[i + 1]!, pixels[i + 2]!];
+    if (r > 90 && r - b > 28 && r > g) warm += 1;
+    if (Math.min(r, g, b) > 90 && Math.max(r, g, b) - Math.min(r, g, b) < 15) neutral += 1;
+    if (r > 90 && b - r > 6 && b > g) cool += 1;
+  }
+  return { warm, neutral, cool };
+}, png.toString("base64"));
 // The middle of the largest east-facing triangle of Blue Cross's crown screen, which faces the
 // skyline camera. In colour it shows its measured dark blue, which neither its grey nor the day's
 // bluish shade gives it.
@@ -1205,6 +1221,10 @@ describe("full-screen 3D skyline", () => {
       const preset = await snapshot();
       const at = async (minute: number) => { await slider.fill(String(minute)); await settle(page); return snapshot(); };
       const evening = await at(1200), early = await at(240);
+      const tints = await lampTints(page, evening);
+      expect(tints.warm, "warm rooms remain visible").toBeGreaterThan(100);
+      expect(tints.neutral, "neutral fixtures differ from amber rooms").toBeGreaterThan(100);
+      expect(tints.cool, "cool white rooms render above the dark sky and facades").toBeGreaterThan(20);
       const busy = await warmPixels(page, evening), quiet = await warmPixels(page, early);
       expect(quiet, "some windows and architectural lights remain overnight").toBeGreaterThan(100);
       expect(busy, "more rooms are lit in the evening than at 4 AM").toBeGreaterThan(quiet * 1.5);

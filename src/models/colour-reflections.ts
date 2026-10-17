@@ -31,6 +31,7 @@ export function glassReflection(material: THREE.MeshToonMaterial, geometry: THRE
     skylineWindowsSuppressed: { value: 0 },
     skylineWindowWarm: { value: new THREE.Color(nightColours.window) },
     skylineWindowWhite: { value: new THREE.Color(nightColours.windowWhite) },
+    skylineWindowCool: { value: new THREE.Color(nightColours.windowCool) },
   };
   const compile: typeof material.onBeforeCompile = (shader, renderer) => {
     originalCompile.call(material, shader, renderer);
@@ -53,7 +54,8 @@ uniform float skylineDarkness;
 uniform float skylineActivity;
 uniform float skylineWindowsSuppressed;
 uniform vec3 skylineWindowWarm;
-uniform vec3 skylineWindowWhite;`).replace("#include <opaque_fragment>", `
+uniform vec3 skylineWindowWhite;
+uniform vec3 skylineWindowCool;`).replace("#include <opaque_fragment>", `
 if (vSkylineGlass > 0.0 && skylineReflecting > 0.0) {
   vec3 eye = vec3(0.0);
   eye.z = 1.0;
@@ -68,7 +70,10 @@ if (vSkylineWindow.z > 0.0 && skylineDarkness > 0.0) {
   float occupied = 1.0 - smoothstep(skylineActivity - 0.05, skylineActivity + 0.05, vSkylineWindow.x);
   float dusk = smoothstep(0.12 + 0.35 * vSkylineWindow.x, 0.45 + 0.35 * vSkylineWindow.x, skylineDarkness);
   float light = vSkylineWindow.z > 1.5 ? skylineDarkness : occupied * dusk * (1.0 - skylineWindowsSuppressed);
-  vec3 lamp = mix(skylineWindowWarm, skylineWindowWhite, vSkylineWindow.w);
+  float tint = vSkylineWindow.w;
+  vec3 lamp = tint < 0.5
+    ? mix(skylineWindowWarm, skylineWindowWhite, tint * 2.0)
+    : mix(skylineWindowWhite, skylineWindowCool, (tint - 0.5) * 2.0);
   outgoingLight += lamp * vSkylineWindow.y * light;
 }
 #include <opaque_fragment>`);
@@ -82,7 +87,7 @@ if (vSkylineWindow.z > 0.0 && skylineDarkness > 0.0) {
       geometry.setAttribute("skylineGlass", attribute);
       geometry.setAttribute("skylineWindow", windowAttribute);
       material.onBeforeCompile = compile;
-      material.customProgramCacheKey = () => `${key}:skyline-facade-v2`;
+      material.customProgramCacheKey = () => `${key}:skyline-facade-v3`;
     } else {
       material.onBeforeCompile = originalCompile;
       material.customProgramCacheKey = originalKey;
@@ -106,7 +111,7 @@ if (vSkylineWindow.z > 0.0 && skylineDarkness > 0.0) {
       uniforms.skylineDarkness.value = lighting?.darkness ?? 0;
       uniforms.skylineWindowsSuppressed.value = celebration ? 1 : 0;
       uniforms.skylineActivity.value = lighting?.activity ?? 0;
-      for (const [uniform, hex] of [[uniforms.skylineWindowWarm, nightColours.window], [uniforms.skylineWindowWhite, nightColours.windowWhite]] as const) {
+      for (const [uniform, hex] of [[uniforms.skylineWindowWarm, nightColours.window], [uniforms.skylineWindowWhite, nightColours.windowWhite], [uniforms.skylineWindowCool, nightColours.windowCool]] as const) {
         uniform.value.setHex(hex);
         if (!coloured) {
           const { r, g, b } = uniform.value, grey = r * 0.2126 + g * 0.7152 + b * 0.0722;
