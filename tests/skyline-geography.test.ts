@@ -2805,13 +2805,12 @@ describe("mapped skyline geography", () => {
       expect(lines.flatMap((y, k) => [is(palette.frame)(south(pane, y)), glass(south(pane, y - 0.05)), is(palette.spandrel)(south(pane, y + 0.05))].every(Boolean) ? [] : [k + 1]), "floor lines without a transom between panels").toEqual([]);
       // Independently require a band near 45% of each 3.1 m module and a
       // divider near 1.4 m; ordinary panes must not reach the floor slab.
-      for (let floor = 0; floor < 45; floor += 1) {
+      const incorrectFloors = Array.from({ length: 45 }, (_, floor) => floor).flatMap((floor) => {
         const base = floor * pitch;
-        expect(is(palette.spandrel)(south(pane, base + 0.5))).toBe(true);
-        expect(is(palette.spandrel)(south(pane, base + 1.3))).toBe(true);
-        expect(is(palette.frame)(south(pane, base + 1.4))).toBe(true);
-        expect(glass(south(pane, base + 1.5))).toBe(true);
-      }
+        return [is(palette.spandrel)(south(pane, base + 0.5)), is(palette.spandrel)(south(pane, base + 1.3)),
+          is(palette.frame)(south(pane, base + 1.4)), glass(south(pane, base + 1.5))].every(Boolean) ? [] : [floor + 1];
+      });
+      expect(incorrectFloors, "floors missing the observed band/divider/pane sequence").toEqual([]);
       expect([glass(south(pane, 139.15)), is(palette.frame)(south(pane, 139.25))], "the coping").toEqual([true, true]);
       // Mullions 1.5 m apart: from one, ten panes to the mullion ten modules on.
       let line = 440;
@@ -2833,25 +2832,33 @@ describe("mapped skyline geography", () => {
       const wall = model.building.getObjectByName("Swissôtel · curtain wall") as THREE.Mesh;
       const colours = wall.geometry.getAttribute("color");
       const before = Array.from(colours.array);
-      const frame = new THREE.Color(0x414141).r, band = new THREE.Color(0x909090).r;
+      const frame = new THREE.Color(swissotelPalette.frame).r, band = new THREE.Color(swissotelPalette.spandrel).r;
       const controller = createSkylineColour([model]);
       try {
         controller.set(true);
         controller.setNight({ darkness: 1, activity: 1, outlineStrength: 0.05 });
         const reflections = wall.geometry.getAttribute("skylineGlass");
         const lights = wall.geometry.getAttribute("skylineWindow");
-        let opaque = 0, rooms = 0;
+        let opaque = 0, rooms = 0, reflectedRooms = 0;
+        let mismatch: { vertex: number; grey: number; reflection: number; light: number; rgb: number[] } | null = null;
         for (let vertex = 0; vertex < colours.count; vertex += 1) {
           const grey = before[vertex * 3]!;
           if (Math.abs(grey - frame) < 1e-6 || Math.abs(grey - band) < 1e-6) {
             opaque += 1;
-            expect(reflections.getX(vertex)).toBe(0);
-            expect(lights.getZ(vertex)).toBe(0);
-            expect([colours.getX(vertex), colours.getY(vertex), colours.getZ(vertex)]).toEqual([grey, grey, grey]);
-          } else if (lights.getZ(vertex) === 1) rooms += 1;
+            const reflection = reflections.getX(vertex), light = lights.getZ(vertex);
+            const r = colours.getX(vertex), g = colours.getY(vertex), b = colours.getZ(vertex);
+            if (mismatch === null && (reflection !== 0 || light !== 0 || r !== grey || g !== grey || b !== grey)) {
+              mismatch = { vertex, grey, reflection, light, rgb: [r, g, b] };
+            }
+          } else if (lights.getZ(vertex) === 1) {
+            rooms += 1;
+            if (reflections.getX(vertex) === 1) reflectedRooms += 1;
+          }
         }
+        expect(mismatch, "first opaque vertex with colour, reflection or room lighting").toBeNull();
         expect(opaque).toBeGreaterThan(1000);
         expect(rooms).toBeGreaterThan(100);
+        expect(reflectedRooms, "vision windows retain their reflection mask").toBeGreaterThan(100);
       } finally {
         controller.setNight(null);
         controller.set(false);
