@@ -33,11 +33,13 @@ const h = sheratonLevels;
 // the corner, part 1269924307, and the east and north arms' ends, parts 1269924306 and
 // 1269924308, plus the east wing's end, 1269924304 (within 1.7 cm).
 // Centres are east and north metres from Crain's centre; map precision is not survey accuracy.
+// Only the main 12.2 m crown has a published height difference. Smaller crowns
+// use photo ratios (7.2/6 m, about ±1.5 m), not copies of the main assembly.
 export const sheratonDrums = Object.freeze([
-  { centre: [407.44, 465.95] as Vec2, radius: 7.97, base: h.corner },
-  { centre: [439.52, 462.06] as Vec2, radius: 7.37, base: h.arms },
-  { centre: [409.75, 498.32] as Vec2, radius: 7.39, base: h.arms },
-  { centre: [482.703, 457.389] as Vec2, radius: 7.391, base: h.wingEnd },
+  { centre: [407.44, 465.95] as Vec2, radius: 7.97, base: h.corner, height: h.drum, screen: h.screen },
+  { centre: [439.52, 462.06] as Vec2, radius: 7.37, base: h.arms, height: 7.2, screen: 4.5 },
+  { centre: [409.75, 498.32] as Vec2, radius: 7.39, base: h.arms, height: 7.2, screen: 4.5 },
+  { centre: [482.703, 457.389] as Vec2, radius: 7.391, base: h.wingEnd, height: 6, screen: 4 },
 ]);
 
 // The skins' colours: the window tones, the precast, and the drums' cream and maroon fins,
@@ -102,24 +104,26 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
   // uprights are visible; the old equal-width vertical stripes were not fins.
   // Ratios are photographic estimates, not construction dimensions. Preserve
   // the mapped centres and published total height; see FID-SHER-002's audit.
-  for (const { centre, radius, base } of sheratonDrums) {
-    const screenBase = base + h.drum - h.screen;
+  for (const { centre, radius, base, height, screen } of sheratonDrums) {
+    const baseHeight = height - screen;
+    const screenBase = base + baseHeight;
     const screenRadius = radius - 0.6;
     const ring = (r: number, lo: number, hi: number, paint: THREE.Color) =>
       solid(drums, circle(centre, r, 48), lo, hi, () => paint, paint);
     // Recessed opaque cores keep geometry closed. True see-through screens
     // remain unresolved; the recess and projecting slats supply visible relief.
     ring(radius - 0.7, base + 0.25, screenBase, fin);
-    ring(screenRadius - 0.12, screenBase, base + h.drum, fin);
+    ring(screenRadius - 0.12, screenBase, base + height, fin);
     ring(radius, base, base + 0.5, drumFace);
-    ring(radius - 0.25, base + 3.3, base + 3.5, drumFace);
-    for (let row = 1; row < 8; row += 1) {
-      const y = base + 0.6 + row * 0.75;
-      ring(radius - 0.55, y, y + 0.10, drumFace);
+    ring(radius - 0.25, base + baseHeight / 2 - 0.1, base + baseHeight / 2 + 0.1, drumFace);
+    const baseBands = baseHeight > 5 ? 7 : 2;
+    for (let row = 1; row <= baseBands; row += 1) {
+      const y = base + 0.6 + row * (baseHeight - 1.4) / baseBands;
+      if (Math.abs(y - base - baseHeight / 2) > 0.25) ring(radius - 0.55, y, y + 0.10, drumFace);
     }
     for (let row = 0; row < 20; row += 1) {
-      const y = screenBase + row * h.screen / 20;
-      ring(screenRadius, y + 0.04, y + 0.13, fin);
+      const y = screenBase + row * screen / 20;
+      ring(screenRadius, y + 0.03, y + 0.10, fin);
     }
     const post = (angle: number, width: number, inner: number, outer: number, lo: number, hi: number) => {
       const c = Math.cos(angle), s = Math.sin(angle);
@@ -130,10 +134,10 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
     };
     for (let k = 0; k < 24; k += 1) {
       const angle = k / 24 * Math.PI * 2;
-      post(angle, k % 2 ? 0.14 : 0.42, screenRadius - 0.10, screenRadius + 0.10, screenBase, base + h.drum);
+      post(angle, k % 2 ? 0.14 : 0.42, screenRadius - 0.10, screenRadius + 0.10, screenBase, base + height);
       if (k % 2 === 0) {
-        post(angle, 0.65, radius - 0.75, radius + 0.12, base + 0.5, base + 3.48);
-        post(angle, 0.48, radius - 0.75, radius - 0.20, base + 3.48, screenBase + 0.2);
+        post(angle, 0.65, radius - 0.75, radius + 0.12, base + 0.5, base + baseHeight / 2 + 0.08);
+        post(angle, 0.48, radius - 0.75, radius - 0.20, base + baseHeight / 2 + 0.08, screenBase + 0.2);
       }
     }
   }

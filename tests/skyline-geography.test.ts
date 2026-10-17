@@ -2585,19 +2585,19 @@ describe("mapped skyline geography", () => {
         return ray.intersectObjects(meshes, false)[0];
       };
       // On the Skyscraper Center's datum: the top floor at 97 m, the corner's roof 3.1 m over
-      // it, the arms two floors of 2.67 m lower, and 12.2 m drums, the corner's to 112.3 m.
+      // it, the arms two floors of 2.67 m lower, and the main 12.2 m crown to 112.3 m; smaller crowns use photo ratios.
       const [corner, arms] = [100.1, 100.1 - 2 * 2.67];
       expect(record.parts.map((part) => [part.way, part.bottom, part.top])).toEqual([[592122464, 0, 94.76], [1269924307, 94.76, 100.1], [1269924305, 0, 84.08], [1269924304, 84.08, 86.75]]);
       const down = (x: number, z: number) => hit([x, 300, z], [0, -1, 0])!.point.y;
       near(down(407.44, -465.95), corner + 12.2, 1e-3);
-      near(down(439.52, -462.06), arms + 12.2, 1e-3);
-      near(down(409.75, -498.32), arms + 12.2, 1e-3);
+      near(down(439.52, -462.06), 101.96, 1e-3);
+      near(down(409.75, -498.32), 101.96, 1e-3);
       near(down(425, -462), arms, 1e-3);
       // JeremyA's pre-2013 fountain photograph shows the lower eastern slab
       // and its fourth round crown. Map levels give the relative roof steps;
       // these are estimates on the existing datum, not surveyed heights.
       near(down(461, -458), 84.08, 1e-3);
-      near(down(482.703, -457.389), 98.95, 1e-3);
+      near(down(482.703, -457.389), 92.75, 1e-3);
       expect(hit([482.7, 50, -420], [0, 0, -1])!.object.parent).toBe(model.building);
       expect(model.building.userData["buildingId"]).toBe(record.id);
       // The corner's round tower over the arms, sampled from the south-west.
@@ -2616,28 +2616,28 @@ describe("mapped skyline geography", () => {
         [439.52 + 12 * Math.cos(angle), y, -462.06 + 12 * Math.sin(angle)],
         [-Math.cos(angle), 0, -Math.sin(angle)],
       )!;
-      const pale = Array.from({ length: 720 }, (_, k) => is(palette.drum)(tone(crownHit(k / 720 * Math.PI * 2, arms + 10), "Sheraton Grand · drums")));
+      const pale = Array.from({ length: 720 }, (_, k) => is(palette.drum)(tone(crownHit(k / 720 * Math.PI * 2, arms + 5), "Sheraton Grand · drums")));
       expect(pale.filter((value, k) => value && !pale[(k + pale.length - 1) % pale.length]).length).toBe(24);
       const paleShare = pale.filter(Boolean).length / pale.length;
       expect(paleShare).toBeGreaterThan(0.1);
       expect(paleShare).toBeLessThan(0.25);
       // Between uprights, the photographed upper screen occupies about
-      // 44% of the 12.2 m assembly and has about twenty horizontal slats.
+      // 60% of this smaller assembly and has about twenty horizontal slats.
       // Probe actual relief, so a painted stripe cannot satisfy this check.
       const reach = (y: number) => {
         const p = crownHit(Math.PI / 24, y).point;
         return Math.hypot(p.x - 439.52, p.z + 462.06);
       };
       let slats = 0, onSlat = false;
-      for (let y = 101.57; y < 106.95; y += 0.02) {
+      for (let y = 97.47; y < 101.95; y += 0.02) {
         const now = reach(y) > 6.72;
         if (now && !onSlat) slats += 1;
         onSlat = now;
       }
       expect(slats).toBe(20);
       // The stepped lower frame projects beyond the recessed upper screen.
-      expect(reach(arms + 0.25) - reach(arms + 10)).toBeGreaterThan(0.45);
-      expect(reach(arms + 3.4) - reach(arms + 10)).toBeGreaterThan(0.2);
+      expect(reach(arms + 0.25) - reach(arms + 5)).toBeGreaterThan(0.45);
+      expect(reach(arms + 1.4) - reach(arms + 5)).toBeGreaterThan(0.2);
       // The east arm's south face: a window 1.5 m tall 80 cm over each floor line, counted
       // down from the top floor at 97 m, 35 of them under the arms' roof.
       const south = (x: number, y: number) => tone(hit([x, y, -420], [0, 0, -1]), "Sheraton Grand · precast and windows");
