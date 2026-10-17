@@ -2910,7 +2910,8 @@ describe("mapped skyline geography", () => {
       const ray = new THREE.Raycaster();
       for (const [street, from, to, outward] of faces) {
         const a = projectGround(from), b = projectGround(to);
-        let slots = 0, wasGlass = false;
+        let slots = 0, wasGlass = false, width = 0;
+        const widths: number[] = [];
         // About 5 cm per sample: each window must appear as an unbroken
         // visible interval separated by a projecting granite pier.
         for (let sample = 1; sample < 900; sample += 1) {
@@ -2921,10 +2922,17 @@ describe("mapped skyline geography", () => {
           expect(first, `${street}: facade has no holes`).toBeDefined();
           const glass = first!.object.name === "Aon · window ribbons";
           if (glass && !wasGlass) slots += 1;
+          if (glass) width += 1;
+          else if (wasGlass) { widths.push(width); width = 0; }
           if (!glass) expect(first!.object.name).toBe("Aon · granite piers");
           wasGlass = glass;
         }
         expect(slots, `${street}: observed openings between sixteen piers`).toBe(15);
+        // Picardi's plan (1975 reprint, p44 Fig3) and the 10 ft truss module
+        // show regular pier spacing. Allow two scan samples of edge rounding,
+        // but reject the pinched terminal bays in the former geographic model.
+        expect(widths.length, `${street}: each opening closes on a pier`).toBe(15);
+        expect(Math.max(...widths) - Math.min(...widths), `${street}: uniform visible slot widths`).toBeLessThanOrEqual(2);
       }
     }, { timeout: 60_000 });
 

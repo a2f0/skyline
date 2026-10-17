@@ -339,3 +339,100 @@ from about 2007, `163, 165, 168` (box 530, 130, 610, 380, sat 0–0.12, val 0.6�
 that calibrates that close-up to the panorama for the Hyatt Regency's west tower
 (`hyatt-west-tower-reference.md`). `bun scripts/sample-colours.ts day layer3` prints that row after
 the FID-COL-003 rows; this building's palette entry is unchanged.
+
+
+## 2026-10-17 — regular geographic end bays (FID-AON-003)
+
+This pass reassessed Aon's pier cadence and the unresolved plan dimensions.
+The old geographic generator put sixteen pier stations at face endpoints,
+then clamped the first and last centres inward by 0.65 m. This shortened each
+terminal opening while leaving the interior spacing unchanged. The mapped
+corner-depth discrepancy remains FID-AON-002; regular spacing is a separate,
+bounded correction that does not require replacing the footprint.
+
+### Primary evidence
+
+Accessed **2026-10-17**: E. Alfred Picardi, the project's structural engineer,
+[Structural System; Standard Oil of Indiana Building](https://ej.aisc.org/index.php/engj/article/view/244),
+*Engineering Journal* 12(2), 42–51, published 1975-06-30,
+[DOI 10.62913/engj.v12i2.244](https://doi.org/10.62913/engj.v12i2.244).
+The first page identifies it as a reprint of the April 1973 ASCE paper.
+The [ten-page PDF](https://ej.aisc.org/index.php/engj/article/download/244/243)
+was downloaded and its figure inspected locally (SHA-256
+`9f20b99ec61c10641726172cd17232b4be43220930950e48b4551e8054133a8b`).
+The older AISC asset URLs returned an access error or maintenance page;
+only the accessible journal copy supplies the measurements here.
+
+Printed page **44**, PDF page **3**, Figure **3**, shows the plan for floors
+3–19. Sixteen chevron columns form a regular cadence on each side, enclosing
+fifteen openings; the text independently gives 64 exterior columns and
+10 ft spacing for the floor trusses. The two terminal column intervals do
+not show the compression produced by the former generator. This is observed
+cadence, not a new surveyed facade dimension.
+
+The same figure explicitly labels core **95 ft (28.956 m)**, bay **155 ft
+(47.244 m)**, inside walls **185 ft (56.388 m)** and outside walls **194 ft
+(59.1312 m)**. The 155 ft extent includes the end-column region; it is not
+fifteen 10 ft centre intervals. These distinct dimensions supersede treating
+one square width as interchangeable with a glazing plane or pier-tip bound.
+They strengthen FID-AON-002, but the steel plan alone does not resolve the
+1990–1992 granite-cladding section, its relation to the current map trace or
+the ground/upper-floor transition. Do not move those surfaces on that basis.
+
+The [fresh site extract](https://api.openstreetmap.org/api/0.6/map.json?bbox=-87.6221,41.8849,-87.6210,41.88565)
+contains two building ways: 64388609 v24 (83 levels, 340 m) and rooftop part
+284775635 v2 (346 m). Their geometry matches the retained source versions.
+The existing published 346.3 m architectural top remains in the model.
+No additional mapped tower part supplies the missing facade section.
+
+### Implementation and material limits
+
+The geographic factory now distributes all sixteen centres uniformly between
+the inset end piers. All fifteen openings have the same visible width on a
+given face. The resulting pitch still follows the mapped, too-short face;
+this does **not** claim to implement the nominal 10 ft dimension. Pier width,
+projection, corner shape, ground vertices, cap and roof heights stay as before.
+The drawing-fitted factory keeps its established layout; fingerprints of every
+geometry attribute/index array and material colour match before and after.
+
+Granite, glass and spandrel identities and their palette values are retained.
+The width correction changes their visible distribution but introduces no new
+material or colour measurement. Both rendering modes use the same geometry.
+
+### Acceptance and comparisons
+
+The existing four-face raycast scan now also compares visible slot widths,
+allowing two samples (about 0.10 m) for discretized edges. On the prior model
+it failed on Randolph with a 14-sample width spread; the corrected model passes
+all four faces. Existing roof, notch, grade, pane and cap probes pass. The
+geographic model's closure, winding, overlap and covered-face checks pass,
+as does strict TypeScript.
+
+Matched reduced-motion captures use 1600 × 1000 viewports: front/side detail,
+skyline/quarter placement, and front/side close inspection after twelve `=`
+zoom presses. The close views intentionally crop the tall tower to resolve
+its ordinary bays. All cameras match within each pair, and colour-off restores
+grayscale exactly in every retained view. Artifact names and poses are in
+[fidelity/aon-bays-captures.json](fidelity/aon-bays-captures.json).
+
+The zoomed runs initially differed by one pixel at (1122, 23), in the DOM
+“orbit view” caption, outside the building geometry. Both before and after
+attempts showed it. The retained close-up captures hide only `.view-label`
+in both phases; they retain strict byte equality for the scene and document
+that capture setting in the manifest. Standard views retain the caption.
+This localizes this occurrence, but does not explain the older Sheraton and
+Swissôtel mismatches under [FID-CAP-001](building-fidelity.md).
+
+| View | Grayscale before / after | Daylight before / after |
+| --- | --- | --- |
+| Front | [before](fidelity/aon-bays-front-grey-before.png) / [after](fidelity/aon-bays-front-grey-after.png) | [before](fidelity/aon-bays-front-day-before.png) / [after](fidelity/aon-bays-front-day-after.png) |
+| Side | [before](fidelity/aon-bays-side-grey-before.png) / [after](fidelity/aon-bays-side-grey-after.png) | [before](fidelity/aon-bays-side-day-before.png) / [after](fidelity/aon-bays-side-day-after.png) |
+| Skyline | [before](fidelity/aon-bays-skyline-grey-before.png) / [after](fidelity/aon-bays-skyline-grey-after.png) | [before](fidelity/aon-bays-skyline-day-before.png) / [after](fidelity/aon-bays-skyline-day-after.png) |
+| Quarter | [before](fidelity/aon-bays-quarter-grey-before.png) / [after](fidelity/aon-bays-quarter-grey-after.png) | [before](fidelity/aon-bays-quarter-day-before.png) / [after](fidelity/aon-bays-quarter-day-after.png) |
+| Front Close | [before](fidelity/aon-bays-front-close-grey-before.png) / [after](fidelity/aon-bays-front-close-grey-after.png) | [before](fidelity/aon-bays-front-close-day-before.png) / [after](fidelity/aon-bays-front-close-day-after.png) |
+| Side Close | [before](fidelity/aon-bays-side-close-grey-before.png) / [after](fidelity/aon-bays-side-close-grey-after.png) | [before](fidelity/aon-bays-side-close-day-before.png) / [after](fidelity/aon-bays-side-close-day-after.png) |
+
+The close views show the terminal slots matching the interior cadence in both
+modes. Overall shape and placement remain stable in the wider views. The
+absolute pitch and notched corner proportions remain provisional, as described
+above. Full shipping validation and independent review are recorded in the PR.

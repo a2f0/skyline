@@ -24,6 +24,9 @@ export interface AonForm {
   enclosure: Vec2[];
   mast: Vec2;
   base: number;
+  // The geographic facade follows the observed regular pier cadence. The
+  // drawing-fitted copy retains its established, narrower terminal bays.
+  uniformPierSpacing?: boolean;
 }
 
 // Heights above the street. The floor pitch and the cap are measured on the photograph the
@@ -89,13 +92,15 @@ export function buildAonTower(form: AonForm): BuildingModel {
   paintedSlab(kit, shell, outline, y(h.roof), true, roofing);
 
   // The source plan fixes fifteen openings per face, independent of an OSM trace's
-  // corner depth. Distribute them over each face's chord; mapped spacing remains an
-  // approximation (docs/aon-reference.md, FID-AON-001). End piers stay on their face.
-  const faceBays = (run: Run) => {
-    const count = h.baysPerFace, bay = run.length / count;
-    return Array.from({ length: count + 1 }, (_, i) => i * bay);
-  };
+  // corner depth. In geographic mode distribute pier centres between the inset
+  // ends, so the terminal openings match the others. Absolute mapped spacing
+  // remains approximate (docs/aon-reference.md, FID-AON-002/003).
   const pierHalf = 0.65, pierPoint = 0.7;
+  const faceBays = (run: Run) => {
+    const count = h.baysPerFace, inset = form.uniformPierSpacing ? pierHalf : 0;
+    const bay = (run.length - 2 * inset) / count;
+    return Array.from({ length: count + 1 }, (_, i) => inset + i * bay);
+  };
   const floors: number[] = [];
   for (let level = h.lobbyTop; level + h.pitch <= h.capBottom + 1e-6; level += h.pitch) floors.push(level);
 

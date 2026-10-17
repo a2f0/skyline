@@ -7,7 +7,8 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // notched corners, the rooftop enclosure part 284775635, and the published heights. The
 // tower is the shared generator in aon-tower.ts, the same one the original layout's copy
 // uses. Each mapped face carries the source plan's fifteen window bays, distributed
-// over its chord; the mapped notches are deeper, so this spacing is approximate. The antenna stands
+// uniformly between inset end piers; the mapped notches are deeper, so absolute spacing
+// remains approximate. The antenna stands
 // at the enclosure's centre, reaching the published 362.5 m tip; the map gives no antenna
 // geometry. See docs/aon-reference.md. Units are meters; +x is east, +z is south.
 export const aonGeographicLevels = Object.freeze({
@@ -29,7 +30,7 @@ export function createAonGeographicBuilding(record: GeoBuilding, projectPlan: (c
     twice += cross; cx += (x + x2) * cross; cz += (z + z2) * cross;
   });
   const mast: Vec2 = [cx / (3 * twice), cz / (3 * twice)];
-  const model = buildAonTower({ name: record.name, id: record.id, outline: polygonOf(projectPlan(record.footprint.coordinates)), enclosure, mast, base: 0 });
+  const model = buildAonTower({ name: record.name, id: record.id, outline: polygonOf(projectPlan(record.footprint.coordinates)), enclosure, mast, base: 0, uniformPierSpacing: true });
   model.building.position.set(offset[0], 0, offset[1]);
   model.building.userData["geography"] = record;
   model.building.userData["geographicDetail"] = { levels: h, floors: h.floors, source: "docs/aon-reference.md" };
