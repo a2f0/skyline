@@ -397,7 +397,9 @@ spacing across those joints. Use one glazed group on every diagonal face,
 including the formerly blank short returns. A schematic **0.45 m** concrete
 pier separates groups, with half a pier at each chain end. This yields broad
 openings while preserving the mapped planes; it is not a measured structural
-section. All floor levels, 2.1 m opening heights, lower transoms, podium
+section. The exported `riverPlazaLevels.bay` retains its historical 1.6 value
+as a deprecated compatibility field; geometry no longer uses it.
+All floor levels, 2.1 m opening heights, lower transoms, podium
 coverage and roof geometry remain as in the preceding pass.
 
 Keep each glass quad unsplit behind its transom, preserving coherent upper/

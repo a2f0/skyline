@@ -20,6 +20,8 @@ export const riverPlazaLevels = Object.freeze({
   floors: 56,
   roof: 156, // the slab's roof, OpenStreetMap's
   box: 159.7, // the rooftop box's top, the published height and tip, the Skyscraper Center's 524 ft
+  /** @deprecated Historical generic spacing, retained for package consumers; the model now uses counted groups. */
+  bay: 1.6,
   pier: 0.45, // schematic concrete width; group counts come from dated photographs
   sill: 0.35, // inferred floor datum; photographed opening is about 75% of the pitch
   window: 2.1,
