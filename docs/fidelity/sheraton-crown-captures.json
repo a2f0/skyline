@@ -23,12 +23,8 @@
       "reducedMotion": "reduce",
       "buildingId": "building-buckingham-east",
       "artifacts": {
-        "grey": {
-          "path": "sheraton-crown-front-grey-before.png"
-        },
-        "day": {
-          "path": "sheraton-crown-front-day-before.png"
-        }
+        "grey": "sheraton-crown-front-grey-before.png",
+        "day": "sheraton-crown-front-day-before.png"
       }
     },
     {
@@ -54,12 +50,8 @@
       "reducedMotion": "reduce",
       "buildingId": "building-buckingham-east",
       "artifacts": {
-        "grey": {
-          "path": "sheraton-crown-side-grey-before.png"
-        },
-        "day": {
-          "path": "sheraton-crown-side-day-before.png"
-        }
+        "grey": "sheraton-crown-side-grey-before.png",
+        "day": "sheraton-crown-side-day-before.png"
       }
     },
     {
@@ -85,15 +77,10 @@
       "reducedMotion": "reduce",
       "buildingId": "building-buckingham-east",
       "artifacts": {
-        "grey": {
-          "path": "sheraton-wing-skyline-grey-after.png",
-          "note": "Byte-identical capture in both phases; reuse the retained wing capture."
-        },
-        "day": {
-          "path": "sheraton-wing-skyline-day-after.png",
-          "note": "Byte-identical capture in both phases; reuse the retained wing capture."
-        }
-      }
+        "grey": "sheraton-wing-skyline-grey-after.png",
+        "day": "sheraton-wing-skyline-day-after.png"
+      },
+      "artifactNote": "Byte-identical capture in both phases; reuse the retained wing capture."
     },
     {
       "url": "skyline-3d.html?controls=open",
@@ -118,12 +105,8 @@
       "reducedMotion": "reduce",
       "buildingId": "building-buckingham-east",
       "artifacts": {
-        "grey": {
-          "path": "sheraton-crown-quarter-grey-before.png"
-        },
-        "day": {
-          "path": "sheraton-crown-quarter-day-before.png"
-        }
+        "grey": "sheraton-crown-quarter-grey-before.png",
+        "day": "sheraton-crown-quarter-day-before.png"
       }
     }
   ],
@@ -151,12 +134,8 @@
       "reducedMotion": "reduce",
       "buildingId": "building-buckingham-east",
       "artifacts": {
-        "grey": {
-          "path": "sheraton-crown-front-grey-after.png"
-        },
-        "day": {
-          "path": "sheraton-crown-front-day-after.png"
-        }
+        "grey": "sheraton-crown-front-grey-after.png",
+        "day": "sheraton-crown-front-day-after.png"
       }
     },
     {
@@ -182,12 +161,8 @@
       "reducedMotion": "reduce",
       "buildingId": "building-buckingham-east",
       "artifacts": {
-        "grey": {
-          "path": "sheraton-crown-side-grey-after.png"
-        },
-        "day": {
-          "path": "sheraton-crown-side-day-after.png"
-        }
+        "grey": "sheraton-crown-side-grey-after.png",
+        "day": "sheraton-crown-side-day-after.png"
       }
     },
     {
@@ -213,15 +188,10 @@
       "reducedMotion": "reduce",
       "buildingId": "building-buckingham-east",
       "artifacts": {
-        "grey": {
-          "path": "sheraton-wing-skyline-grey-after.png",
-          "note": "Byte-identical capture in both phases; reuse the retained wing capture."
-        },
-        "day": {
-          "path": "sheraton-wing-skyline-day-after.png",
-          "note": "Byte-identical capture in both phases; reuse the retained wing capture."
-        }
-      }
+        "grey": "sheraton-wing-skyline-grey-after.png",
+        "day": "sheraton-wing-skyline-day-after.png"
+      },
+      "artifactNote": "Byte-identical capture in both phases; reuse the retained wing capture."
     },
     {
       "url": "skyline-3d.html?controls=open",
@@ -246,12 +216,8 @@
       "reducedMotion": "reduce",
       "buildingId": "building-buckingham-east",
       "artifacts": {
-        "grey": {
-          "path": "sheraton-crown-quarter-grey-after.png"
-        },
-        "day": {
-          "path": "sheraton-crown-quarter-day-after.png"
-        }
+        "grey": "sheraton-crown-quarter-grey-after.png",
+        "day": "sheraton-crown-quarter-day-after.png"
       }
     }
   ]

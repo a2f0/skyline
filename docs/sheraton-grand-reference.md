@@ -343,7 +343,6 @@ leave an approximately 11 cm core-coloured seam at their straight join and centr
 their window bays independently; a continuous bay layout belongs in that pass. These remain open; this
 pass corrects the missing wing's mass, not every Sheraton detail.
 
-
 ## 2026-10-17 — stepped crowns and louvered screens (FID-SHER-002)
 
 This second pass assessed only Sheraton Grand. It corrects the crown's visible
@@ -439,9 +438,10 @@ principal crown's stepped-frame family to all four is still an explicit approxim
 side elevations and drawings. Closed recessed cores approximate the dark
 screen interiors; genuine see-through louver construction remains unresolved.
 
-The `drums` batch retains its existing material classification: cream precast
-for pale framing, and the explicit neutral-grey fallback for uncalibrated
-maroon screens. This pass changes material area and relief, not sampled RGB
+The `drums` batch retains cream precast for pale framing and the explicit
+neutral-grey fallback for uncalibrated maroon screens. Its obsolete neutral
+roofing-tone mapping is removed because the new crown caps use their adjacent
+frame or screen material. This pass changes material area and relief, not sampled RGB
 values, shared lighting or reflective-glass classification. It avoids treating
 the shaded orange/brown pixels in Griffin's photograph as a sunny-day palette.
 
@@ -449,7 +449,7 @@ the shaded orange/brown pixels in Griffin's photograph as a sunny-day palette.
 
 Raycasts now independently require 24 narrow pale interruptions around a screen,
 10–25% pale coverage, twenty distinct projecting horizontal slats and lower
-frames wider than the upper screen. The principal crown height, mapped footprints, wing roof steps and glass/opaque
+frames wider than the upper screen, plus the distinct main and wing screen-base heights. The principal crown height, mapped footprints, wing roof steps and glass/opaque
 checks remain; the three secondary top-height checks now use these independent
 photographic estimates. Watertightness,
 winding and same-facing coplanar checks passed after separating internal caps
