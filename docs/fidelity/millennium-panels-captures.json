@@ -1,0 +1,160 @@
+{
+  "before": [
+    {
+      "url": "building-detail.html?building=building-michigan-plaza-front-tall",
+      "view": "front",
+      "camera": [
+        218.39703988244602,
+        71.48306156756935,
+        299.22605070144306
+      ],
+      "buildingId": "building-michigan-plaza-front-tall",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "millennium-panels-front-grey-before.png",
+        "day": "millennium-panels-front-day-before.png"
+      }
+    },
+    {
+      "url": "building-detail.html?building=building-michigan-plaza-front-tall",
+      "view": "side",
+      "camera": [
+        297.256258081416,
+        102.8866120927064,
+        -216.95934127168763
+      ],
+      "buildingId": "building-michigan-plaza-front-tall",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "millennium-panels-side-grey-before.png",
+        "day": "millennium-panels-side-day-before.png"
+      },
+      "artifactNote": "Both phases are byte-identical; the north end and west face visible in this preset are unchanged."
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "skyline",
+      "camera": [
+        1471.7600000000002,
+        2,
+        1948.8
+      ],
+      "buildingId": "building-michigan-plaza-front-tall",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "millennium-panels-skyline-grey-before.png",
+        "day": "millennium-panels-skyline-day-before.png"
+      }
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "quarter",
+      "camera": [
+        7113.138684118265,
+        2659.7604547218775,
+        5289.014664703931
+      ],
+      "buildingId": "building-michigan-plaza-front-tall",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "millennium-panels-quarter-grey-before.png",
+        "day": "millennium-panels-quarter-day-before.png"
+      }
+    }
+  ],
+  "after": [
+    {
+      "url": "building-detail.html?building=building-michigan-plaza-front-tall",
+      "view": "front",
+      "camera": [
+        218.39703988244602,
+        71.48306156756935,
+        299.22605070144306
+      ],
+      "buildingId": "building-michigan-plaza-front-tall",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "millennium-panels-front-grey-after.png",
+        "day": "millennium-panels-front-day-after.png"
+      }
+    },
+    {
+      "url": "building-detail.html?building=building-michigan-plaza-front-tall",
+      "view": "side",
+      "camera": [
+        297.256258081416,
+        102.8866120927064,
+        -216.95934127168763
+      ],
+      "buildingId": "building-michigan-plaza-front-tall",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "millennium-panels-side-grey-before.png",
+        "day": "millennium-panels-side-day-before.png"
+      },
+      "artifactNote": "Both phases are byte-identical; the north end and west face visible in this preset are unchanged."
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "skyline",
+      "camera": [
+        1471.7600000000002,
+        2,
+        1948.8
+      ],
+      "buildingId": "building-michigan-plaza-front-tall",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "millennium-panels-skyline-grey-after.png",
+        "day": "millennium-panels-skyline-day-after.png"
+      }
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "quarter",
+      "camera": [
+        7113.138684118265,
+        2659.7604547218775,
+        5289.014664703931
+      ],
+      "buildingId": "building-michigan-plaza-front-tall",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "millennium-panels-quarter-grey-after.png",
+        "day": "millennium-panels-quarter-day-after.png"
+      }
+    }
+  ]
+}

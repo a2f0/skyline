@@ -9,7 +9,7 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 // the photograph's camera it stands behind Three Illinois Center and The Buckingham, and fills
 // the seam where their corners meet.
 //
-// A triangular tower of reflective glass: a flush grid of thin mullions about 1.5 m apart and
+// A triangular tower of reflective glass and opaque bands: thin mullions about 1.5 m apart and
 // paired opaque spandrel / vision panels at each floor, under a flat roof at the published 139.3 m. The
 // floors divide that height by OpenStreetMap's 45 levels. See docs/swissotel-reference.md.
 // Units are meters; +x is east, +z is south.

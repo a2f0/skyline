@@ -218,8 +218,10 @@ particular samples; it is not a general opacity classifier or an RGB calibration
 Apply **1.4 ± 0.2 m** of the existing 139.3/45 ≈ 3.10 m pitch to the opaque
 band (45%). A 6 cm transom separates it from the vision pane; retain the
 existing floor-line transom, vertical 1.5 m grid and 6 cm frame widths.
-The absolute band height and transferring the ordinary module around all faces
-are **inferences**. Enclos independently supports the 45-storey count, but does
+The absolute band height, placing its lower edge above the retained floor
+line, and transferring the ordinary module around all faces are **inferences**.
+A band straddling the structural slab could give the same mid-facade pattern;
+the photographs do not establish a 1.4 m interior sill height. Enclos independently supports the 45-storey count, but does
 not settle the older 43-floor citation, mechanical rows or Upper Wacker datum.
 FID-SWI-001 therefore stays open; no floor count or overall height changes here.
 
@@ -275,7 +277,8 @@ separate band colour/gloss calibration remains FID-SWI-004. Placement and the na
 remain consistent. The first neutral band value made the bands darker than
 vision glass in daylight; the final pale fallback restores the observed
 hierarchy without introducing an unsourced hue. One capture attempt failed the
-exact restoration check at the front view. The unchanged final rerun passed
+exact restoration check at the front view, a second occurrence of
+[FID-CAP-001](building-fidelity.md). The unchanged final rerun passed
 all four views, retained matching cameras and restored grayscale byte for byte;
 its successful captures replaced the partial attempt. Both phases were refreshed against the final merged Sheraton crowns, including the removal of their pale automatic outlines. All four exact-restoration checks passed again; only the four quarter-view images changed, so surrounding geometry matches the integration base. Material/grayscale and
 lighting-mask regressions pass. Full shipping validation and independent review
