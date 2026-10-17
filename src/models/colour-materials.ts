@@ -272,7 +272,7 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
   // Reflective blue-green glass in its frame.
   "building-swissotel": {
     shell: ["neutral"],
-    "curtain wall": ["blue-green glass", windows(0x878787, 0x515151)],
+    "curtain wall": ["blue-green glass", { ...windows(0x878787, 0x515151), 0x414141: "aluminium", 0x909090: "opaque spandrel" }],
   },
 };
 

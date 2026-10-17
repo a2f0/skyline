@@ -2756,7 +2756,7 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Swissôtel", () => {
-    test("keeps its mapped triangle and the glass grid, a panel to each of 45 floors", () => {
+    test("keeps its mapped triangle and separates vision panes from opaque floor bands", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Swissôtel")!;
       const model = models["Swissôtel"]!;
       model.building.updateMatrixWorld(true);
@@ -2772,7 +2772,7 @@ describe("mapped skyline geography", () => {
       const pitch = 139.3 / 45;
       const palette = swissotelPalette, is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
       const glass = (r: number) => [...palette.glass, palette.lit, palette.dim].some((hex) => is(hex)(r));
-      expect(glass(new THREE.Color(palette.frame).r), "the frame does not pass for glass").toBe(false);
+      expect([palette.frame, palette.spandrel].some((hex) => glass(new THREE.Color(hex).r)), "neither frames nor opaque bands pass for glass").toBe(false);
       const tone = (found: THREE.Intersection | undefined) => {
         expect(found!.object.name).toBe("Swissôtel · curtain wall");
         return (found!.object as THREE.Mesh).geometry.getAttribute("color").getX(found!.face!.a);
@@ -2782,15 +2782,24 @@ describe("mapped skyline geography", () => {
         for (let s = from; s < to; s += step) { const now = glass(sample(s)); if (now && !inside) runs += 1; inside = now; }
         return runs;
       };
-      // The south face, sampled from the south between two mullions: a panel to each floor
-      // between transoms on the floor lines, and the coping.
+      // The south face: retain 45 modules, but each has an opaque lower band
+      // and a shorter vision pane, divided by a secondary transom.
       const south = (x: number, y: number) => tone(hit([x, y, -240], [0, 0, -1]));
       let pane = 450;
       while (!glass(south(pane, 20 * pitch + 1.5))) pane += 0.01;
       pane += 0.2;
       expect(count(0.3, 139.28, (y) => south(pane, y), 0.02), "a panel to each floor").toBe(45);
       const lines = Array.from({ length: 44 }, (_, k) => (k + 1) * pitch);
-      expect(lines.flatMap((y, k) => [is(palette.frame)(south(pane, y)), glass(south(pane, y - 0.05)), glass(south(pane, y + 0.05))].every(Boolean) ? [] : [k + 1]), "floor lines without a transom between panels").toEqual([]);
+      expect(lines.flatMap((y, k) => [is(palette.frame)(south(pane, y)), glass(south(pane, y - 0.05)), is(palette.spandrel)(south(pane, y + 0.05))].every(Boolean) ? [] : [k + 1]), "floor lines without a transom between panels").toEqual([]);
+      // Independently require a band near 45% of each 3.1 m module and a
+      // divider near 1.4 m; ordinary panes must not reach the floor slab.
+      for (let floor = 0; floor < 45; floor += 1) {
+        const base = floor * pitch;
+        expect(is(palette.spandrel)(south(pane, base + 0.5))).toBe(true);
+        expect(is(palette.spandrel)(south(pane, base + 1.3))).toBe(true);
+        expect(is(palette.frame)(south(pane, base + 1.4))).toBe(true);
+        expect(glass(south(pane, base + 1.5))).toBe(true);
+      }
       expect([glass(south(pane, 139.15)), is(palette.frame)(south(pane, 139.25))], "the coping").toEqual([true, true]);
       // Mullions 1.5 m apart: from one, ten panes to the mullion ten modules on.
       let line = 440;
@@ -2806,6 +2815,37 @@ describe("mapped skyline geography", () => {
       }));
       expect(grade).toEqual(mapped);
     }, { timeout: 60_000 });
+
+    test("keeps opaque floor bands and frames out of room lights and window reflections", () => {
+      const model = models["Swissôtel"]!;
+      const wall = model.building.getObjectByName("Swissôtel · curtain wall") as THREE.Mesh;
+      const colours = wall.geometry.getAttribute("color");
+      const before = Array.from(colours.array);
+      const frame = new THREE.Color(0x414141).r, band = new THREE.Color(0x909090).r;
+      const controller = createSkylineColour([model]);
+      try {
+        controller.set(true);
+        controller.setNight({ darkness: 1, activity: 1, outlineStrength: 0.05 });
+        const reflections = wall.geometry.getAttribute("skylineGlass");
+        const lights = wall.geometry.getAttribute("skylineWindow");
+        let opaque = 0, rooms = 0;
+        for (let vertex = 0; vertex < colours.count; vertex += 1) {
+          const grey = before[vertex * 3]!;
+          if (Math.abs(grey - frame) < 1e-6 || Math.abs(grey - band) < 1e-6) {
+            opaque += 1;
+            expect(reflections.getX(vertex)).toBe(0);
+            expect(lights.getZ(vertex)).toBe(0);
+            expect([colours.getX(vertex), colours.getY(vertex), colours.getZ(vertex)]).toEqual([grey, grey, grey]);
+          } else if (lights.getZ(vertex) === 1) rooms += 1;
+        }
+        expect(opaque).toBeGreaterThan(1000);
+        expect(rooms).toBeGreaterThan(100);
+      } finally {
+        controller.setNight(null);
+        controller.set(false);
+      }
+      expect(Array.from(colours.array)).toEqual(before);
+    });
 
     test("closes the seam between Three Illinois Center and The Buckingham from the photograph's eye", () => {
       // The skyline camera: the eye on the shore by the Adler Planetarium, its angles and
