@@ -268,6 +268,6 @@ vision glass in daylight; the final pale fallback restores the observed
 hierarchy without introducing an unsourced hue. One capture attempt failed the
 exact restoration check at the front view. The unchanged final rerun passed
 all four views, retained matching cameras and restored grayscale byte for byte;
-its successful captures replace the partial attempt. Material/grayscale and
+its successful captures replaced the partial attempt. Both phases were then refreshed against the refined Sheraton crowns, again passing all four exact-restoration checks, so surrounding geometry matches the integration base. Material/grayscale and
 lighting-mask regressions pass. Full shipping validation and independent review
 are recorded in the pull request.
