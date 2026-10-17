@@ -59,7 +59,9 @@ so the model stands on its datum and takes Emporis's differences.
 | Arms' roof | 94.76 m | Two floors lower, the mapped arms' 32 levels to the corner's 34 |
 | East wing roof (estimated, 2026-10-17) | 84.08 m | 28 mapped levels relative to the corner |
 | East wing round end (estimated, 2026-10-17) | 86.75 m | 29 mapped levels relative to the corner |
-| Drums | 12.2 m | Emporis: 40.06 ft from the main roof to the architectural top |
+| Main crown assembly | 12.2 m | Emporis: 40.06 ft from the main roof to the architectural top |
+| Arm crown assemblies (estimated, 2026-10-17) | 7.2 m | Photographic ratio, about ±1.5 m |
+| East wing crown assembly (estimated, 2026-10-17) | 6 m | Photographic ratio, about ±1.5 m |
 | Corner drum's top | 112.3 m | The Skyscraper Center |
 | Tip | 112.8 m, not modelled | The Skyscraper Center |
 
@@ -98,18 +100,22 @@ units left of it and 30 lower, as the drawing sits left of the projection on thi
 - **Tower:** precast, a window 1.4 m wide in each 2.4 m bay on every floor, set out from each
   face's middle and carried round the round ends.
 - **Corner:** the round tower two floors over the arms, in the same precast and windows.
-- **Drums:** 24 facets each, cream and maroon fins in turn, closed at top and bottom.
+- **Crowns:** the original alternating 24-facet cylinders were replaced on
+  2026-10-17 by stepped frames and recessed horizontal-louver screens; see FID-SHER-002 below.
 
-Colours follow the drawing's greys: the precast mid grey, the drums light, their fins dark.
+Colours follow the drawing's greys: mid-grey precast, pale crown frames and uprights,
+and dark louvered screens.
 
 Omitted:
 
 - the block in the inner corner between the arms, tagged 33 levels, a floor over the arms'
   roof;
-- the stepped crown under each drum, which the drums' 12.2 m takes in;
+- the exact crown construction and dimensions; the 2026-10-17 pass adds a
+  photographic approximation of stepped bases, preserving the main 12.2 m assembly
+  and estimating shorter secondary crowns;
 - the published tip, 50 cm over the corner drum;
-- the east wing was omitted until the 2026-10-17 correction below; its exact roof
-  dimensions and crown detailing remain estimated (FID-SHER-002);
+- the east wing's exact roof dimensions and the crowns' detailed sections,
+  which remain estimated (FID-SHER-004);
 - the low parts under the rest of the complex's outline;
 - the drums' openness, the signs and the entrances.
 
@@ -120,19 +126,22 @@ Omitted:
 - `tests/building-kit.test.ts` checks counted triangles, winding, same-facing coplanar
   overlaps, and covered omissions.
 - `tests/skyline-geography.test.ts` raycasts:
-  - the corner drum's top at 112.3 m, the arms' drums' at 106.96 m and the arms' roof at
-    94.76 m, plus the restored wing roof at 84.08 m and fourth crown at 98.95 m;
-  - a drum's facets, cream and fin in turn;
+  - the corner drum's top at 112.3 m, the arms' crowns at approximately 101.96 m and the arms' roof at
+    94.76 m, plus the restored wing roof at 84.08 m and fourth crown at approximately 92.75 m;
+  - narrow pale uprights, horizontal louver relief and stepped crown profiles;
   - the corner's two floors over the arms' roof, a window on each with its sill and head,
     and its own roof at 100.1 m under the drum;
   - the east arm's south face: 35 windows, one to each floor line under the arms' roof,
     with a sill and a head 5 cm either side;
   - the model's exported palette, whose window tones no wall shares;
-  - the exact mapped L and restored east wing at grade (four record parts).
+  - the exact mapped L and restored east wing at grade (both ground parts).
 
   Every mesh is closed.
 
 ## 2026-10-05 — the 28-level east wing (FID-SHER-001)
+
+*Corrected on 2026-10-17:* the [wing restoration below](#2026-10-17--restore-the-east-wing-fid-sher-001)
+supersedes this historical omission and the approximately 75 m inference.
 
 [#72](https://github.com/a2f0/skyline/issues/72) found that the September audit's "low parts"
 were not all low. Checked again here through the OpenStreetMap API on October 5, 2026:
@@ -329,5 +338,154 @@ in the pull request for this pass.
 Next: FID-SHER-002 should replace the tall striped crown cylinders with the
 photographed stepped bases and louvered screens, and resolve their dimensions.
 FID-SHER-003 should separate the low podium from the repeated guestroom grid and
-check facade row/bay counts against dated elevations. These remain open; this
+check facade row/bay counts against dated elevations. The two skins currently
+leave an approximately 11 cm core-coloured seam at their straight join and centre
+their window bays independently; a continuous bay layout belongs in that pass. These remain open; this
 pass corrects the missing wing's mass, not every Sheraton detail.
+
+## 2026-10-17 — stepped crowns and louvered screens (FID-SHER-002)
+
+This second pass assessed only Sheraton Grand. It corrects the crown's visible
+structure in the pre-2013 era, retaining the preceding pass's mapped centres,
+roof datums and the main architectural height. It shortens the three smaller
+crowns using photographic ratios. It does not establish surveyed
+crown dimensions or resolve the missing podium.
+
+### Fresh photographic evidence
+
+Both original files and description pages were retrieved and visually inspected
+on 2026-10-17. The descriptions and EXIF agree on dates:
+
+- Matt Griffin, [*Chicago IMG 1118.CR2*](https://commons.wikimedia.org/wiki/File:Chicago_IMG_1118.CR2_(1352890571)_(1).jpg),
+  photographed 2007-09-09 at 14:14, from Flickr via Wikimedia Commons.
+  [Exact original](https://upload.wikimedia.org/wikipedia/commons/b/b2/Chicago_IMG_1118.CR2_%281352890571%29_%281%29.jpg),
+  1557 × 2154 pixels; SHA-256
+  `22d1c837ab27ec02af83b7f72b1a067ff5a931cf116c62807163234d97a1b52a`.
+  The principal crown occupies approximately x = 860–1310, y = 35–345.
+  It clearly separates a dark horizontal-louver screen from a stepped pale
+  frame below. Broad uprights align with the lower frame; narrower uprights
+  divide the upper bays. This directly contradicts the old equal-width pale
+  and dark vertical stripes. The photo also resolves three-floor facade bands,
+  retained as FID-SHER-003 for a later pass.
+- Bert Kaufmann, [*Chicago / Sheraton Grand Chicago*](https://commons.wikimedia.org/wiki/File:(2550951367)_Sheraton_Grand_Chicago.jpg),
+  photographed 2008-05-30 at 17:21, Flickr via Wikimedia Commons.
+  [Exact original](https://upload.wikimedia.org/wikipedia/commons/3/3c/%282550951367%29_Sheraton_Grand_Chicago.jpg),
+  546 × 992 pixels; SHA-256
+  `1faf49e9d1297e673c7645476de44dd5b5aab642813355d17234b9c68e1b7d75`.
+  The crowns at x ≈ 105–435, y ≈ 140–250 show the same narrow-upright/dark-infill
+  pattern on the other faces and the lower eastern end. The rear/side base is
+  less exposed than the prominent stepped southwest frame in Griffin's view.
+  This corroborates the screen family, not identical base construction on all
+  four crowns.
+
+Further leads checked on the same date did not supply crown dimensions:
+[Chicago City Council proceedings, 2015-01-21, PDF page 90 / printed page 102170](https://chicityclerk.s3.amazonaws.com/s3fs-public/document_uploads/journals-proceedings/2015/2015_01_21_VII.pdf)
+contains SCB's 2012-05-24 west elevation for the neighbouring North Park Drive
+development, with only a small Sheraton podium outline at the edge. Its height
+labels describe the neighbouring project, not the Sheraton. C. William Brubaker's
+[1994 river view, UIC Library, file bru005_14_bF](https://www.flickr.com/photos/uicdigital/5937353172)
+shows the hotel from 330 North Wabash, but the available 1024 × 698 rendition
+([exact image](https://live.staticflickr.com/6125/5937353172_4c8612e5a3_b.jpg))
+does not resolve crown sections. Neither input was used to set a dimension.
+
+### Measurements, interpretation and model decisions
+
+Coordinates are visual readings of the original pixels, not a rectified survey.
+In Griffin's near-central bay, x ≈ 1050–1115, the screen top is y ≈ 40,
+its lower edge y ≈ 165 and the top guestroom glazing y ≈ 330 (±5–10 px).
+The upper screen is therefore about 43% of the visible assembly, with at least
+±7 percentage points allowed for perspective and ambiguous trim boundaries.
+The main corner uses 5.4 m of its existing 12.2 m assembly (44%) for the
+screen and 6.8 m for the base. The split is **inferred**, about ±0.9 m, and must not be
+read as a new source for the building's absolute height.
+
+The same image shows the northern arm's smaller crown at approximately
+x = 150–440, y = 245–390. Compare the assembly's height to its screen diameter
+to reduce the effect of different distances: the main screen is about 378 px
+wide with an assembly about 290 px high; the north screen is about 273 px wide
+with an assembly about 135 px high (±10–15 px at the trim boundaries).
+Using the mapped radius ratio 7.39/7.97 gives
+`12.2 × (135/290) × (378/273) × (7.39/7.97) ≈ 7.3 m`.
+Similar radial setbacks and vertical foreshortening are assumptions, so use
+**7.2 ± 1.5 m**. The 4.5 m screen/2.7 m base split is an inference from the shallower-base appearance, not a measured pixel ratio. The east arm takes the same
+family by inference; the dusk fountain photograph corroborates a small crown,
+but does not independently fix its dimensions.
+
+The nearest eastern end in JeremyA's fountain original (identified above,
+x ≈ 295–415, y ≈ 105–160) also has a short screen and low base. Its roughly
+120 px screen width and 45–55 px assembly height, against the 14.8 m mapped
+round-end diameter, suggest roughly 5.5–6.8 m before allowance for setbacks
+and perspective. Kaufmann's rightmost crown (x ≈ 350–430, y ≈ 220–255)
+corroborates a low base under a dark screen. The wing now uses **6 ± 1.5 m**,
+with an inferred 4 m screen/2 m base split, also not a measured pixel ratio. These estimates supersede the first wing pass's
+provisional copy of the principal 12.2 m assembly. Arm crown tops become
+101.96 m and the wing crown 92.75 m; their decimals are arithmetic, not survey
+precision. The published principal top remains 112.3 m.
+
+About twenty horizontal slat edges are visible in that central screen bay
+(±2; dark edges and small top/bottom trims can merge). Approximately twelve
+uprights span the visible semicircle; a full set of 24, alternating broad and
+narrow, is **inferred**. At this scale the pale strips occupy roughly one sixth
+to one fifth of the screen, substantially less than the old 50%. The chosen
+0.42/0.14 m post widths are proportional approximations, not measured sections.
+
+The implementation gives each crown twenty projecting horizontal slats,
+24 narrow uprights and a two-step lower frame. Setbacks (0.25–0.7 m), slat
+projection (0.12 m), lower-frame band count and widths are **schematic** relief:
+the photos establish direction and hierarchy but do not justify centimetre
+precision. The shorter secondary bases use only sparse lower framing. Applying the
+principal crown's stepped-frame family to all four is still an explicit approximation; FID-SHER-004 retains that distinction for better
+side elevations and drawings. Closed recessed cores approximate the dark
+screen interiors; genuine see-through louver construction remains unresolved.
+Automatic pale outlines are omitted from the entire crown batch: outlining each
+slat added two pale rings and washed out the dark-screen hierarchy in grayscale.
+The visible relief now comes from the closed surfaces and their lighting.
+
+The `drums` batch retains cream precast for pale framing and the explicit
+neutral-grey fallback for uncalibrated maroon screens. Its obsolete neutral
+roofing-tone mapping is removed because the new crown caps use their adjacent
+frame or screen material. This pass changes material area and relief, not sampled RGB
+values, shared lighting or reflective-glass classification. It avoids treating
+the shaded orange/brown pixels in Griffin's photograph as a sunny-day palette.
+
+### Acceptance and retained comparisons
+
+Raycasts now independently require 24 narrow pale interruptions around a screen,
+10–25% pale coverage, twenty distinct projecting horizontal slats and lower
+frames wider than the upper screen, plus the distinct main and wing screen-base heights. The principal crown height, mapped footprints, wing roof steps and glass/opaque
+checks remain; the three secondary top-height checks now use these independent
+photographic estimates. Watertightness,
+winding and same-facing coplanar checks passed after separating internal caps
+from overlapping faces; the strict type check and Sheraton raycast test passed.
+
+The same capture setup as FID-SHER-001 uses a 1600 × 1000 viewport, reduced
+motion, fixed detail fit (240 × 250 m) and matching camera metadata, retained in
+[fidelity/sheraton-crown-captures.json](fidelity/sheraton-crown-captures.json).
+Close URLs are `building-detail.html?building=building-buckingham-east` and
+its colour mode, with `front`/`side` presets; placement uses
+`skyline-3d.html?controls=open` in `quarter` and `skyline` presets, in both modes.
+
+| View | Grayscale before / after | Sunny-day before / after |
+| --- | --- | --- |
+| Front | [before](fidelity/sheraton-crown-front-grey-before.png) / [after](fidelity/sheraton-crown-front-grey-after.png) | [before](fidelity/sheraton-crown-front-day-before.png) / [after](fidelity/sheraton-crown-front-day-after.png) |
+| Side | [before](fidelity/sheraton-crown-side-grey-before.png) / [after](fidelity/sheraton-crown-side-grey-after.png) | [before](fidelity/sheraton-crown-side-day-before.png) / [after](fidelity/sheraton-crown-side-day-after.png) |
+| Quarter | [before](fidelity/sheraton-crown-quarter-grey-before.png) / [after](fidelity/sheraton-crown-quarter-grey-after.png) | [before](fidelity/sheraton-crown-quarter-day-before.png) / [after](fidelity/sheraton-crown-quarter-day-after.png) |
+
+The default skyline crops the hotel beyond its right edge and was byte-identical
+before/after in both modes; the preceding pass's
+[gray](fidelity/sheraton-wing-skyline-grey-after.png) and
+[day](fidelity/sheraton-wing-skyline-day-after.png) images also match this pass.
+The front and side comparisons visibly replace broad stripes with dark,
+horizontally divided screens and stepped lower framing. The elevated view
+preserves placement and shows the three shorter secondary crowns; fine slats are only
+legible in the close views. All four views restored their initial grey PNG
+byte for byte after colour toggling in the completed capture run. An earlier
+front capture failed that exact-restoration comparison; an unchanged rerun
+passed without relaxing the assertion. FID-CAP-001 tracks the unresolved cause;
+passing retained pairs do not establish whether settling or restoration caused
+the initial difference. Full shipping validation and independent
+review are recorded in the pull request.
+
+Remaining work: FID-SHER-003 covers guestroom/podium bands and bay counts;
+FID-SHER-004 covers exact crown sections, distinct base geometry on the other
+three crowns, true screen openings, wing crown height and calibrated maroon.

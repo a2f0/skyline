@@ -258,11 +258,11 @@ export const colourMaterials: Readonly<Record<string, BuildingMaterials>> = {
     shell: ["neutral"],
     "brick and windows": ["bronze glass", { ...windows(0x6d6d6d, 0x4a4a4a), 0x2c2c2c: "dark metal", 0x3b3b3b: "orange brick" }],
   },
-  // Cream precast, and the drums' maroon fins.
+  // Cream precast framing and dark maroon crown screens.
   "building-buckingham-east": {
     shell: ["precast", { 0x686868: "neutral" }],
     "precast and windows": ["glass", { ...windows(0x8a8a8a, 0x505050), 0x848484: "precast" }],
-    drums: ["precast", { 0x5a5a5a: "maroon", 0x686868: "neutral" }],
+    drums: ["precast", { 0x5a5a5a: "maroon" }],
   },
   // Dark brown aluminium and bronze glass.
   "building-three-illinois-center": {
