@@ -19,6 +19,7 @@ import { railwayExchangePalette } from "../src/models/railway-exchange-geographi
 import { gagePalette } from "../src/models/gage-geographic.js";
 import { gageGroupPalette } from "../src/models/keith-ascher-geographic.js";
 import { chicagoAthleticPalette } from "../src/models/chicago-athletic-association-geographic.js";
+import { chainsOf, orient, planOf } from "../src/models/facade-grid.js";
 import { riverPlazaPalette } from "../src/models/river-plaza-geographic.js";
 import { twoIllinoisPalette } from "../src/models/two-illinois-center-geographic.js";
 import { hyattWestPalette } from "../src/models/hyatt-west-tower-geographic.js";
@@ -2457,21 +2458,59 @@ describe("mapped skyline geography", () => {
       near(hitPlaza([podium![0], 300, podium![1] + 5], [0, -1, 0])!.point.y, 8, 1e-3);
       const rp = riverPlazaPalette, rGlass = (r: number) => [...rp.glass, rp.lit, rp.dim].some((hex) => is(hex)(r));
       expect(rGlass(new THREE.Color(rp.concrete).r), "concrete does not pass for glass").toBe(false);
-      // Its north face, from the north: a window 1.5 m tall 75 cm over each of its 55 floor
-      // lines above grade, in 1.6 m bays of the frame.
+      // Its north face: the photographed taller opening and lower transom,
+      // applied around the tower by inference. Horizontal bays remain provisional.
       const north = (x: number, y: number) => tone(hitPlaza([x, y, slab![1] - 60], [0, 0, 1]), "River Plaza · concrete and windows");
       const pitch = 156 / 56;
       let column = slab![0] - 5;
       while (!rGlass(north(column, 20 * pitch + 1.5))) column += 0.05;
       column += 0.3;
-      expect(count(0.3, 155.8, rGlass, (y) => north(column, y), 0.05), "a window to each floor").toBe(55);
-      expect([is(rp.concrete)(north(column, 20 * pitch + 0.7)), rGlass(north(column, 20 * pitch + 0.8)), rGlass(north(column, 20 * pitch + 2.2)), is(rp.concrete)(north(column, 20 * pitch + 2.3))], "a sill and a head").toEqual([true, true, true, true]);
-      // From a window's west edge, within the north face's recess, six windows in six 1.6 m
-      // bays.
-      let edge = slab![0] - 6;
-      while (rGlass(north(edge, 20 * pitch + 1.5))) edge += 0.01;
-      while (!rGlass(north(edge, 20 * pitch + 1.5))) edge += 0.01;
-      expect(count(edge - 0.05, edge + 6 * 1.6 - 0.1, rGlass, (x) => north(x, 20 * pitch + 1.5)), "the 1.6 m bays").toBe(6);
+      expect(count(0.3, 155.8, (r) => rGlass(r) || is(rp.frame)(r), (y) => north(column, y), 0.05), "one framed opening to each floor").toBe(55);
+      // Photo IMG 1165: openings occupy roughly 75% of the floor pitch,
+      // with a narrow divider about 30% up from the bottom. Probe lower,
+      // middle and top floors so clipping or row-index drift cannot hide.
+      for (const n of [1, 20, 55]) {
+        const at = (dy: number) => north(column, n * pitch + dy);
+        expect([is(rp.concrete)(at(0.3)), rGlass(at(0.4)), rGlass(at(0.9)), is(rp.frame)(at(0.98)), rGlass(at(1.1)), rGlass(at(2.4)), is(rp.concrete)(at(2.5))], `floor ${n}: sill, two lights, lower transom and head`).toEqual(Array(7).fill(true));
+        near(at(0.6), at(1.6), 1e-6);
+      }
+      // Count visible structural openings on each mapped plane. The south/north
+      // long faces show 3 / glazed return / 4 / glazed return / 3 in dated
+      // photographs; the east end shows 2 / 1 / 1 / 1 / 2. West symmetry is
+      // inferred. Short diagonal faces must contain glazing too.
+      const facade = planOf(orient(plaza.parts[0]!.coordinates.map(ground)));
+      const chains = chainsOf(facade);
+      expect(chains.length).toBe(24);
+      for (const [index, chain] of chains.entries()) {
+        const visible = (s: number) => {
+          let k = 0;
+          while (k + 1 < chain.runs.length && chain.starts[k + 1]! < s) k += 1;
+          const run = facade[chain.runs[k]!]!, t = s - chain.starts[k]!;
+          const point = run.at(t), normal = run.normal(t);
+          return tone(hitPlaza([point[0] + normal[0] * 0.3, 20 * pitch + 1.5, point[1] + normal[1] * 0.3], [-normal[0], 0, -normal[1]]), "River Plaza · concrete and windows");
+        };
+        let glassSamples = 0, samples = 0, groups = 0, wasGlass = false;
+        for (let s = 0.12; s < chain.length - 0.12; s += 0.1) {
+          const glazed = rGlass(visible(s));
+          samples += 1;
+          if (glazed) glassSamples += 1;
+          if (glazed && !wasGlass) groups += 1;
+          wasGlass = glazed;
+        }
+        // Anchor counts to geographic orientation and position independently
+        // of the model's ordered group table. The central long faces cross
+        // x = -68 m; the outer faces sit east/west of that recessed span.
+        const first = facade[chain.runs[0]!]!, last = facade[chain.runs.at(-1)!]!;
+        const normal = first.normal(0), midpointX = (first.at(0)[0] + last.at(last.length)[0]) / 2;
+        const longFace = Math.abs(normal[1]) > 0.98 && chain.length > 10;
+        const expected = longFace ? (midpointX > -76 && midpointX < -60 ? 4 : 3)
+          : Math.abs(normal[0]) > 0.98 && chain.length > 5 ? 2 : 1;
+        expect(groups, `structural groups on geographic facade ${index}`).toBe(expected);
+        expect(wasGlass, `last group closes on a pier on facade ${index}`).toBe(false);
+        // A broad opening occupies most of its structural group; this catches
+        // leaving the old narrow pane inside the corrected count.
+        expect(glassSamples / samples, `glass coverage on facade ${index}`).toBeGreaterThan(0.75);
+      }
 
       // Where the podium stands against the slab, its skin starts over the podium's 8 m roof;
       // the slab's south-east end past the podium, and the bevel at its south-west corner, are
@@ -2493,6 +2532,47 @@ describe("mapped skyline geography", () => {
       const mapped = (coordinates: [number, number][]) => coordinates.map((p) => { const [x, n] = projectGround(p); return [Math.fround(x), Math.fround(-n)].map((v) => v.toFixed(3)).join(","); });
       expect(grade(models["Two Illinois Center"]!, "Two Illinois Center · shell")).toEqual(new Set(mapped(center.footprint.coordinates)));
       expect(grade(models["River Plaza"]!, "River Plaza · shell")).toEqual(new Set([...mapped(plaza.parts[0]!.coordinates), ...mapped(plaza.parts[1]!.coordinates)]));
+
+      // The newly separated metal transoms stay opaque in both modes. Glass
+      // must still receive night lighting, and colour-off must
+      // restore every original colour byte.
+      const model = models["River Plaza"]!;
+      const wall = model.building.children.find((child) => child.name === "River Plaza · concrete and windows") as THREE.Mesh;
+      const colours = wall.geometry.getAttribute("color");
+      const before = new Float32Array(colours.array);
+      const frameTone = new THREE.Color(rp.frame).r;
+      const controller = createSkylineColour([model]);
+      try {
+        controller.set(true);
+        controller.setNight({ darkness: 1, activity: 1, outlineStrength: 0.05 });
+        const reflections = wall.geometry.getAttribute("skylineGlass"), lights = wall.geometry.getAttribute("skylineWindow");
+        let frames = 0, windows = 0, mismatch: number | null = null;
+        for (let vertex = 0; vertex < colours.count; vertex += 1) {
+          if (Math.abs(before[vertex * 3]! - frameTone) < 1e-6) {
+            frames += 1;
+            if (mismatch === null && (reflections.getX(vertex) !== 0 || lights.getZ(vertex) !== 0 || colours.getX(vertex) !== before[vertex * 3] || colours.getY(vertex) !== before[vertex * 3 + 1] || colours.getZ(vertex) !== before[vertex * 3 + 2])) mismatch = vertex;
+          } else if (lights.getZ(vertex) === 1) windows += 1;
+        }
+        expect(mismatch, "first metal transom with colour, reflection or room emission").toBeNull();
+        expect(frames).toBeGreaterThan(1000);
+        expect(windows).toBeGreaterThan(1000);
+        // The transom covers a single full-height glass quad, so its lower
+        // and upper lights share occupancy, brightness and fixture tint.
+        let tested = 0;
+        for (const floor of [4, 20, 50]) for (let x = slab![0] - 20; x < slab![0] + 20; x += 0.5) {
+          const lower = hitPlaza([x, floor * pitch + 0.6, slab![1] - 60], [0, 0, 1])!;
+          const upper = hitPlaza([x, floor * pitch + 1.6, slab![1] - 60], [0, 0, 1])!;
+          if (lower.object !== wall || upper.object !== wall || lights.getZ(lower.face!.a) !== 1) continue;
+          const maskAt = (v: number) => [lights.getX(v), lights.getY(v), lights.getZ(v), lights.getW(v)];
+          expect(maskAt(lower.face!.a)).toEqual(maskAt(upper.face!.a));
+          tested += 1;
+        }
+        expect(tested, "at least one eligible room spans the transom").toBeGreaterThan(0);
+      } finally {
+        controller.setNight(null);
+        controller.set(false);
+      }
+      expect(Buffer.compare(Buffer.from(colours.array.buffer, colours.array.byteOffset, colours.array.byteLength), Buffer.from(before.buffer)), "exact colour restoration").toBe(0);
     }, { timeout: 60_000 });
   });
 
@@ -2910,7 +2990,8 @@ describe("mapped skyline geography", () => {
       const ray = new THREE.Raycaster();
       for (const [street, from, to, outward] of faces) {
         const a = projectGround(from), b = projectGround(to);
-        let slots = 0, wasGlass = false;
+        let slots = 0, wasGlass = false, width = 0;
+        const widths: number[] = [];
         // About 5 cm per sample: each window must appear as an unbroken
         // visible interval separated by a projecting granite pier.
         for (let sample = 1; sample < 900; sample += 1) {
@@ -2921,10 +3002,17 @@ describe("mapped skyline geography", () => {
           expect(first, `${street}: facade has no holes`).toBeDefined();
           const glass = first!.object.name === "Aon · window ribbons";
           if (glass && !wasGlass) slots += 1;
+          if (glass) width += 1;
+          else if (wasGlass) { widths.push(width); width = 0; }
           if (!glass) expect(first!.object.name).toBe("Aon · granite piers");
           wasGlass = glass;
         }
         expect(slots, `${street}: observed openings between sixteen piers`).toBe(15);
+        // Picardi's plan (1975 reprint, p44 Fig3) and the 10 ft truss module
+        // show regular pier spacing. Allow two scan samples of edge rounding,
+        // but reject the pinched terminal bays in the former geographic model.
+        expect(widths.length, `${street}: each opening closes on a pier`).toBe(15);
+        expect(Math.max(...widths) - Math.min(...widths), `${street}: uniform visible slot widths`).toBeLessThanOrEqual(2);
       }
     }, { timeout: 60_000 });
 

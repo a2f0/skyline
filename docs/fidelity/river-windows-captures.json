@@ -1,0 +1,414 @@
+{
+  "before": [
+    {
+      "url": "building-detail.html?building=building-river-plaza",
+      "view": "front",
+      "camera": [
+        255.53488788853429,
+        91.83275449342774,
+        350.10866154815466
+      ],
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
+      },
+      "artifacts": {
+        "grey": "river-windows-front-grey-before.png",
+        "day": "river-windows-front-day-before.png"
+      },
+      "detailFitBounds": {
+        "min": [
+          -28.388924044590993,
+          0,
+          -24.177206656071007
+        ],
+        "max": [
+          28.389064389246897,
+          159.6999969482422,
+          24.107949593928993
+        ]
+      },
+      "detailFitSource": "baseline mesh bounds"
+    },
+    {
+      "url": "building-detail.html?building=building-river-plaza",
+      "view": "side",
+      "camera": [
+        347.8039108217109,
+        128.57639702201777,
+        -253.85271237225732
+      ],
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
+      },
+      "artifacts": {
+        "grey": "river-windows-side-grey-before.png",
+        "day": "river-windows-side-day-before.png"
+      },
+      "detailFitBounds": {
+        "min": [
+          -28.388924044590993,
+          0,
+          -24.177206656071007
+        ],
+        "max": [
+          28.389064389246897,
+          159.6999969482422,
+          24.107949593928993
+        ]
+      },
+      "detailFitSource": "baseline mesh bounds"
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "skyline",
+      "camera": [
+        1471.7600000000002,
+        2,
+        1948.8
+      ],
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1600,
+        "height": 900
+      },
+      "artifacts": {
+        "grey": "aon-bays-skyline-grey-before.png",
+        "day": "aon-bays-skyline-day-before.png"
+      }
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "quarter",
+      "camera": [
+        7113.138684118265,
+        2659.7604547218775,
+        5289.014664703931
+      ],
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1600,
+        "height": 900
+      },
+      "artifacts": {
+        "grey": "aon-bays-quarter-grey-before.png",
+        "day": "aon-bays-quarter-day-before.png"
+      }
+    },
+    {
+      "url": "building-detail.html?building=building-river-plaza",
+      "view": "front",
+      "camera": [
+        122.65674618649649,
+        83.94084139512657,
+        168.0521575431143
+      ],
+      "zoomKeyPresses": 16,
+      "viewLabel": "hidden",
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
+      },
+      "artifacts": {
+        "grey": "river-windows-front-close-grey-before.png",
+        "day": "river-windows-front-close-day-before.png"
+      },
+      "detailFitBounds": {
+        "min": [
+          -28.388924044590993,
+          0,
+          -24.177206656071007
+        ],
+        "max": [
+          28.389064389246897,
+          159.6999969482422,
+          24.107949593928993
+        ]
+      },
+      "detailFitSource": "baseline mesh bounds"
+    },
+    {
+      "url": "building-detail.html?building=building-river-plaza",
+      "view": "side",
+      "camera": [
+        166.9458771944212,
+        101.57778980884979,
+        -121.84930193868351
+      ],
+      "zoomKeyPresses": 16,
+      "viewLabel": "hidden",
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
+      },
+      "artifacts": {
+        "grey": "river-windows-side-close-grey-before.png",
+        "day": "river-windows-side-close-day-before.png"
+      },
+      "detailFitBounds": {
+        "min": [
+          -28.388924044590993,
+          0,
+          -24.177206656071007
+        ],
+        "max": [
+          28.389064389246897,
+          159.6999969482422,
+          24.107949593928993
+        ]
+      },
+      "detailFitSource": "baseline mesh bounds"
+    }
+  ],
+  "after": [
+    {
+      "url": "building-detail.html?building=building-river-plaza",
+      "view": "front",
+      "camera": [
+        255.53488788853429,
+        91.83275449342774,
+        350.10866154815466
+      ],
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
+      },
+      "artifacts": {
+        "grey": "river-windows-front-grey-after.png",
+        "day": "river-windows-front-day-after.png"
+      },
+      "detailFitBounds": {
+        "min": [
+          -28.388924044590993,
+          0,
+          -24.177206656071007
+        ],
+        "max": [
+          28.389064389246897,
+          159.6999969482422,
+          24.107949593928993
+        ]
+      },
+      "detailFitSource": "baseline bounds injected in building-detail.js through capture route"
+    },
+    {
+      "url": "building-detail.html?building=building-river-plaza",
+      "view": "side",
+      "camera": [
+        347.8039108217109,
+        128.57639702201777,
+        -253.85271237225732
+      ],
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
+      },
+      "artifacts": {
+        "grey": "river-windows-side-grey-after.png",
+        "day": "river-windows-side-day-after.png"
+      },
+      "detailFitBounds": {
+        "min": [
+          -28.388924044590993,
+          0,
+          -24.177206656071007
+        ],
+        "max": [
+          28.389064389246897,
+          159.6999969482422,
+          24.107949593928993
+        ]
+      },
+      "detailFitSource": "baseline bounds injected in building-detail.js through capture route"
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "skyline",
+      "camera": [
+        1471.7600000000002,
+        2,
+        1948.8
+      ],
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1600,
+        "height": 900
+      },
+      "artifacts": {
+        "grey": "aon-bays-skyline-grey-after.png",
+        "day": "aon-bays-skyline-day-after.png"
+      },
+      "contextChanges": [
+        "FID-AON-003",
+        "FID-RIV-001"
+      ]
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "quarter",
+      "camera": [
+        7113.138684118265,
+        2659.7604547218775,
+        5289.014664703931
+      ],
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1600,
+        "height": 900
+      },
+      "artifacts": {
+        "grey": "aon-bays-quarter-grey-after.png",
+        "day": "aon-bays-quarter-day-after.png"
+      },
+      "contextChanges": [
+        "FID-AON-003",
+        "FID-RIV-001"
+      ]
+    },
+    {
+      "url": "building-detail.html?building=building-river-plaza",
+      "view": "front",
+      "camera": [
+        122.65674618649649,
+        83.94084139512657,
+        168.0521575431143
+      ],
+      "zoomKeyPresses": 16,
+      "viewLabel": "hidden",
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
+      },
+      "artifacts": {
+        "grey": "river-windows-front-close-grey-after.png",
+        "day": "river-windows-front-close-day-after.png"
+      },
+      "detailFitBounds": {
+        "min": [
+          -28.388924044590993,
+          0,
+          -24.177206656071007
+        ],
+        "max": [
+          28.389064389246897,
+          159.6999969482422,
+          24.107949593928993
+        ]
+      },
+      "detailFitSource": "baseline bounds injected in building-detail.js through capture route"
+    },
+    {
+      "url": "building-detail.html?building=building-river-plaza",
+      "view": "side",
+      "camera": [
+        166.9458771944212,
+        101.57778980884979,
+        -121.84930193868351
+      ],
+      "zoomKeyPresses": 16,
+      "viewLabel": "hidden",
+      "buildingId": "building-river-plaza",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "capture": {
+        "selector": "#building",
+        "width": 1142,
+        "height": 740
+      },
+      "artifacts": {
+        "grey": "river-windows-side-close-grey-after.png",
+        "day": "river-windows-side-close-day-after.png"
+      },
+      "detailFitBounds": {
+        "min": [
+          -28.388924044590993,
+          0,
+          -24.177206656071007
+        ],
+        "max": [
+          28.389064389246897,
+          159.6999969482422,
+          24.107949593928993
+        ]
+      },
+      "detailFitSource": "baseline bounds injected in building-detail.js through capture route"
+    }
+  ]
+}
