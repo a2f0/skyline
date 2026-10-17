@@ -463,10 +463,12 @@ Intermediate parts have less certainty than the overall height:
 - The Sheraton Grand Chicago Riverwalk stands across the river, right of The Buckingham, where
   the drawing paints a lit crown. Its levels stand on the Skyscraper Center's datum, with
   Emporis's floor-to-floor, roof and crown heights over its top floor: the arms' roof at
-  94.76 m, the corner's two floors higher at 100.1 m, and 12.2 m drums of maroon fins on the
-  original three round ends, the corner's to the published 112.3 m. The 2026-10-17
-  pass restores the lower east wing at an estimated 84.08 m and its round end at
-  86.75 m, provisionally sharing the crown assembly pending finer measurements. The Skyscraper Center's tip, 50 cm
+  94.76 m and the corner's two floors higher at 100.1 m, with the main 12.2 m
+  louvered crown reaching the published 112.3 m. The 2026-10-17 passes restore
+  the lower east wing at an estimated 84.08 m and its round end at 86.75 m,
+  then give the crowns stepped frames and narrow louvers. Photographic ratios
+  shorten the arm crowns to about 7.2 m and the wing crown to about 6 m; those
+  secondary dimensions remain estimates. The Skyscraper Center's tip, 50 cm
   higher, names no feature the photographs resolve, so the model stops at the drum's top; see
   the [Sheraton Grand reference audit](sheraton-grand-reference.md).
 - Three Illinois Center stands between 340 on the Park and The Buckingham from the drawing's
@@ -476,7 +478,8 @@ Intermediate parts have less certainty than the overall height:
   drawn tower there stands about 140 layer units higher, so the drawing's group keeps its
   label; see the [Three Illinois Center reference audit](three-illinois-center-reference.md).
 - Swissôtel Chicago stands behind Three Illinois Center and The Buckingham. Its triangular
-  glass tower takes the published 139.3 m over OpenStreetMap's 45 levels, a panel to each,
+  glass tower retains the published 139.3 m over 45 facade modules, each divided
+  into an opaque floor band and a vision panel using 2012 photographic ratios,
   and its west corner closes the seam where those two models' corners leave sky; see the
   [Swissôtel reference audit](swissotel-reference.md).
 

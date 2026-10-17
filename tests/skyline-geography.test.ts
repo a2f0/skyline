@@ -2569,9 +2569,10 @@ describe("mapped skyline geography", () => {
         for (const material of materials) material?.dispose();
       });
     });
-    test("keeps its mapped L and east wing, four finned drums and punched windows", () => {
+    test("keeps its mapped L and east wing, four louvered crowns and punched windows", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Sheraton Grand")!;
       expect(groundFootprints(record).map((part) => part.way)).toEqual([592122464, 1269924305]);
+      for (const way of [1269924305, 1269924304]) expect(record.parts.find((part) => part.way === way)!.estimatedHeight).toBe(true);
       const mappedGround = buildingGroundBounds(record);
       expect(mappedGround.size[0]).toBeGreaterThan(90);
       expect(mappedGround.size[0]).toBeLessThan(100);
@@ -2585,19 +2586,19 @@ describe("mapped skyline geography", () => {
         return ray.intersectObjects(meshes, false)[0];
       };
       // On the Skyscraper Center's datum: the top floor at 97 m, the corner's roof 3.1 m over
-      // it, the arms two floors of 2.67 m lower, and 12.2 m drums, the corner's to 112.3 m.
+      // it, the arms two floors of 2.67 m lower, and the main 12.2 m crown to 112.3 m; smaller crowns use photo ratios.
       const [corner, arms] = [100.1, 100.1 - 2 * 2.67];
       expect(record.parts.map((part) => [part.way, part.bottom, part.top])).toEqual([[592122464, 0, 94.76], [1269924307, 94.76, 100.1], [1269924305, 0, 84.08], [1269924304, 84.08, 86.75]]);
       const down = (x: number, z: number) => hit([x, 300, z], [0, -1, 0])!.point.y;
       near(down(407.44, -465.95), corner + 12.2, 1e-3);
-      near(down(439.52, -462.06), arms + 12.2, 1e-3);
-      near(down(409.75, -498.32), arms + 12.2, 1e-3);
+      near(down(439.52, -462.06), 101.96, 1e-3);
+      near(down(409.75, -498.32), 101.96, 1e-3);
       near(down(425, -462), arms, 1e-3);
       // JeremyA's pre-2013 fountain photograph shows the lower eastern slab
       // and its fourth round crown. Map levels give the relative roof steps;
       // these are estimates on the existing datum, not surveyed heights.
       near(down(461, -458), 84.08, 1e-3);
-      near(down(482.703, -457.389), 98.95, 1e-3);
+      near(down(482.703, -457.389), 92.75, 1e-3);
       expect(hit([482.7, 50, -420], [0, 0, -1])!.object.parent).toBe(model.building);
       expect(model.building.userData["buildingId"]).toBe(record.id);
       // The corner's round tower over the arms, sampled from the south-west.
@@ -2609,12 +2610,49 @@ describe("mapped skyline geography", () => {
         expect(found!.object.name).toBe(name);
         return (found!.object as THREE.Mesh).geometry.getAttribute("color").getX(found!.face!.a);
       };
-      // A drum's 24 facets, sampled toward its centre, alternate cream and maroon fins.
-      const facet = (k: number) => {
-        const angle = (k + 0.5) / 24 * Math.PI * 2, [x, z] = [439.52 + 12 * Math.cos(angle), -462.06 + 12 * Math.sin(angle)];
-        return tone(hit([x, arms + 6, z], [-Math.cos(angle), 0, -Math.sin(angle)]), "Sheraton Grand · drums");
+      // Griffin's 2007 close view shows narrow pale uprights over dark
+      // horizontal louvers, not 50% pale vertical stripes. About twelve
+      // uprights cross the visible half: infer 24 around the whole screen.
+      const crownHit = (angle: number, y: number) => hit(
+        [439.52 + 12 * Math.cos(angle), y, -462.06 + 12 * Math.sin(angle)],
+        [-Math.cos(angle), 0, -Math.sin(angle)],
+      )!;
+      const pale = Array.from({ length: 720 }, (_, k) => is(palette.drum)(tone(crownHit(k / 720 * Math.PI * 2, arms + 5), "Sheraton Grand · drums")));
+      expect(pale.filter((value, k) => value && !pale[(k + pale.length - 1) % pale.length]).length).toBe(24);
+      const paleShare = pale.filter(Boolean).length / pale.length;
+      expect(paleShare).toBeGreaterThan(0.1);
+      expect(paleShare).toBeLessThan(0.25);
+      // Between uprights, the inferred upper screen occupies about
+      // 60% of this smaller assembly and has about twenty horizontal slats.
+      // Probe actual relief, so a painted stripe cannot satisfy this check.
+      const reach = (y: number) => {
+        const p = crownHit(5 * Math.PI / 180, y).point;
+        return Math.hypot(p.x - 439.52, p.z + 462.06);
       };
-      expect(Array.from({ length: 6 }, (_, k) => is(k % 2 ? palette.fin : palette.drum)(facet(k))), "the fins").toEqual(Array(6).fill(true));
+      let slats = 0, onSlat = false;
+      for (let y = 97.47; y < 101.95; y += 0.02) {
+        const now = reach(y) > 6.72;
+        if (now && !onSlat) slats += 1;
+        onSlat = now;
+      }
+      expect(slats).toBe(20);
+      // The stepped lower frame projects beyond the recessed upper screen.
+      expect(reach(arms + 0.25) - reach(arms + 5)).toBeGreaterThan(0.45);
+      expect(reach(arms + 1.4) - reach(arms + 5)).toBeGreaterThan(0.2);
+      // The principal and wing crowns have distinct base/screen splits too.
+      const crownRadius = (east: number, north: number, y: number) => {
+        const angle = 5 * Math.PI / 180; // clear of both posts and 7.5° polygon corners
+        const p = hit([east + 12 * Math.cos(angle), y, -north + 12 * Math.sin(angle)], [-Math.cos(angle), 0, -Math.sin(angle)])!.point;
+        return Math.hypot(p.x - east, p.z + north);
+      };
+      expect(crownRadius(407.44, 465.95, 103.5) - crownRadius(407.44, 465.95, 111)).toBeGreaterThan(0.2);
+      expect(crownRadius(482.703, 457.389, 87.75) - crownRadius(482.703, 457.389, 91)).toBeGreaterThan(0.2);
+      for (const [east, north, screenBase] of [[407.44, 465.95, 106.9], [482.703, 457.389, 88.75]] as const) {
+        const below = crownRadius(east, north, screenBase - 0.02), above = crownRadius(east, north, screenBase + 0.01);
+        expect(below - above, "the upper core steps in at this crown's estimated screen height").toBeGreaterThan(0.01);
+        expect(below - above).toBeLessThan(0.03);
+        expect(crownRadius(east, north, screenBase + 0.06) - above, "the first louver projects just above the split").toBeGreaterThan(0.1);
+      }
       // The east arm's south face: a window 1.5 m tall 80 cm over each floor line, counted
       // down from the top floor at 97 m, 35 of them under the arms' roof.
       const south = (x: number, y: number) => tone(hit([x, y, -420], [0, 0, -1]), "Sheraton Grand · precast and windows");
@@ -2718,7 +2756,7 @@ describe("mapped skyline geography", () => {
   });
 
   describe("Swissôtel", () => {
-    test("keeps its mapped triangle and the glass grid, a panel to each of 45 floors", () => {
+    test("keeps its mapped triangle and separates vision panes from opaque floor bands", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Swissôtel")!;
       const model = models["Swissôtel"]!;
       model.building.updateMatrixWorld(true);
@@ -2734,7 +2772,7 @@ describe("mapped skyline geography", () => {
       const pitch = 139.3 / 45;
       const palette = swissotelPalette, is = (hex: number) => (r: number) => Math.abs(r - new THREE.Color(hex).r) < 0.002;
       const glass = (r: number) => [...palette.glass, palette.lit, palette.dim].some((hex) => is(hex)(r));
-      expect(glass(new THREE.Color(palette.frame).r), "the frame does not pass for glass").toBe(false);
+      expect([palette.frame, palette.spandrel].some((hex) => glass(new THREE.Color(hex).r)), "neither frames nor opaque bands pass for glass").toBe(false);
       const tone = (found: THREE.Intersection | undefined) => {
         expect(found!.object.name).toBe("Swissôtel · curtain wall");
         return (found!.object as THREE.Mesh).geometry.getAttribute("color").getX(found!.face!.a);
@@ -2744,15 +2782,24 @@ describe("mapped skyline geography", () => {
         for (let s = from; s < to; s += step) { const now = glass(sample(s)); if (now && !inside) runs += 1; inside = now; }
         return runs;
       };
-      // The south face, sampled from the south between two mullions: a panel to each floor
-      // between transoms on the floor lines, and the coping.
+      // The south face: retain 45 modules, but each has an opaque lower band
+      // and a shorter vision pane, divided by a secondary transom.
       const south = (x: number, y: number) => tone(hit([x, y, -240], [0, 0, -1]));
       let pane = 450;
       while (!glass(south(pane, 20 * pitch + 1.5))) pane += 0.01;
       pane += 0.2;
       expect(count(0.3, 139.28, (y) => south(pane, y), 0.02), "a panel to each floor").toBe(45);
       const lines = Array.from({ length: 44 }, (_, k) => (k + 1) * pitch);
-      expect(lines.flatMap((y, k) => [is(palette.frame)(south(pane, y)), glass(south(pane, y - 0.05)), glass(south(pane, y + 0.05))].every(Boolean) ? [] : [k + 1]), "floor lines without a transom between panels").toEqual([]);
+      expect(lines.flatMap((y, k) => [is(palette.frame)(south(pane, y)), glass(south(pane, y - 0.05)), is(palette.spandrel)(south(pane, y + 0.05))].every(Boolean) ? [] : [k + 1]), "floor lines without a transom between panels").toEqual([]);
+      // Independently require a band near 45% of each 3.1 m module and a
+      // divider near 1.4 m; ordinary panes must not reach the floor slab.
+      for (let floor = 0; floor < 45; floor += 1) {
+        const base = floor * pitch;
+        expect(is(palette.spandrel)(south(pane, base + 0.5))).toBe(true);
+        expect(is(palette.spandrel)(south(pane, base + 1.3))).toBe(true);
+        expect(is(palette.frame)(south(pane, base + 1.4))).toBe(true);
+        expect(glass(south(pane, base + 1.5))).toBe(true);
+      }
       expect([glass(south(pane, 139.15)), is(palette.frame)(south(pane, 139.25))], "the coping").toEqual([true, true]);
       // Mullions 1.5 m apart: from one, ten panes to the mullion ten modules on.
       let line = 440;
@@ -2768,6 +2815,37 @@ describe("mapped skyline geography", () => {
       }));
       expect(grade).toEqual(mapped);
     }, { timeout: 60_000 });
+
+    test("keeps opaque floor bands and frames out of room lights and window reflections", () => {
+      const model = models["Swissôtel"]!;
+      const wall = model.building.getObjectByName("Swissôtel · curtain wall") as THREE.Mesh;
+      const colours = wall.geometry.getAttribute("color");
+      const before = Array.from(colours.array);
+      const frame = new THREE.Color(0x414141).r, band = new THREE.Color(0x909090).r;
+      const controller = createSkylineColour([model]);
+      try {
+        controller.set(true);
+        controller.setNight({ darkness: 1, activity: 1, outlineStrength: 0.05 });
+        const reflections = wall.geometry.getAttribute("skylineGlass");
+        const lights = wall.geometry.getAttribute("skylineWindow");
+        let opaque = 0, rooms = 0;
+        for (let vertex = 0; vertex < colours.count; vertex += 1) {
+          const grey = before[vertex * 3]!;
+          if (Math.abs(grey - frame) < 1e-6 || Math.abs(grey - band) < 1e-6) {
+            opaque += 1;
+            expect(reflections.getX(vertex)).toBe(0);
+            expect(lights.getZ(vertex)).toBe(0);
+            expect([colours.getX(vertex), colours.getY(vertex), colours.getZ(vertex)]).toEqual([grey, grey, grey]);
+          } else if (lights.getZ(vertex) === 1) rooms += 1;
+        }
+        expect(opaque).toBeGreaterThan(1000);
+        expect(rooms).toBeGreaterThan(100);
+      } finally {
+        controller.setNight(null);
+        controller.set(false);
+      }
+      expect(Array.from(colours.array)).toEqual(before);
+    });
 
     test("closes the seam between Three Illinois Center and The Buckingham from the photograph's eye", () => {
       // The skyline camera: the eye on the shore by the Adler Planetarium, its angles and
@@ -3055,6 +3133,10 @@ describe("geographic layout in the study", () => {
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
     expect(await page.locator("#dimensions-body tr").count()).toBe(34);
+    const sheratonRow = page.locator("#dimensions-body tr").filter({ hasText: "Sheraton Grand" });
+    expect(await sheratonRow.locator('a[href="https://www.openstreetmap.org/way/1269924305"]').textContent()).toBe("part 1269924305");
+    expect(await sheratonRow.locator("td").nth(0).textContent()).toBe("+444.6, +477.6");
+    expect(await sheratonRow.locator("td").nth(2).textContent()).toBe("95.0 × 59.9");
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))

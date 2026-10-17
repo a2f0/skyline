@@ -142,7 +142,7 @@ records sample sensitivity and lighting limits. A material's most common grey sh
 measured colour, scaled by the exposure below, and its other greys scale with their brightness
 against it, so darker surfaces stay darker; a colour pushed past white keeps its hue at its
 brightest. The exposure is 1.4. The following brightness comparisons were recorded before the sky-reflection
-layer, Kemper facade corrections and Blue Cross's spandrel material split were added; glass now varies with the camera. The original render-to-photograph brightness of the sourced buildings'
+layer, Kemper facade corrections, Blue Cross's spandrel material split and Swissôtel's opaque bands (FID-SWI-002) were added; glass now varies with the camera. The original render-to-photograph brightness of the sourced buildings'
 main materials in the skyline view at 1600 × 900: Two Prudential's stone and Blue Cross's glass
 reach 0.97 and 0.96 of the photograph's in linear light, Aon's granite 0.86 and One Prudential's
 limestone 0.80, while Crain's nearly white aluminium, past white at this exposure, reaches 0.66. The

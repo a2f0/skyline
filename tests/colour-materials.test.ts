@@ -251,19 +251,27 @@ describe("colour trial", () => {
     try {
       for (const model of sourced) {
         const id = idOf(model), measured = measuredColours[id]!;
+        const linear = new Map(Object.values(measured).filter((entry): entry is number => typeof entry === "number").map((entry) => [entry, new THREE.Color(entry)]));
         for (const mesh of meshesOf(model)) {
           const [base, tones = {}] = batchOf(id, mesh.name)!, greys = greysOf.get(mesh)!;
+          let mismatch: { vertex: number; material: MaterialName; rgb: readonly number[]; expected: readonly number[] } | undefined;
+          // Inspect every vertex, but report once per mesh. Millions of repeated
+          // assertions and colour conversions can time out as geometry grows.
           coloursOf(mesh).forEach((rgb, index) => {
             const material = tones[toneOf(greys[index]!)] ?? base, entry = measured[material];
             const source = typeof entry === "string" ? measured[entry] : entry;
             if (typeof source !== "number") {
-              expect(rgb, `${id}: ${mesh.name}'s ${material} stays grey`).toEqual([greys[index]!, greys[index]!, greys[index]!]);
+              const grey = greys[index]!;
+              if (rgb.some((channel) => channel !== grey)) mismatch ??= { vertex: index, material, rgb, expected: [grey, grey, grey] };
               return;
             }
             // The same hue: proportional to the measured colour in linear light.
-            const { r, g, b } = new THREE.Color(source), [cr, cg, cb] = rgb, scale = (cr + cg + cb) / (r + g + b);
-            [cr - r * scale, cg - g * scale, cb - b * scale].forEach((offset) => expect(Math.abs(offset), `${id}: ${mesh.name}'s ${material} in ${typeof entry === "string" ? entry : material}'s hue`).toBeLessThan(1e-5));
+            const { r, g, b } = linear.get(source)!, [cr, cg, cb] = rgb, scale = (cr + cg + cb) / (r + g + b);
+            if (!(Math.abs(cr - r * scale) < 1e-5 && Math.abs(cg - g * scale) < 1e-5 && Math.abs(cb - b * scale) < 1e-5)) {
+              mismatch ??= { vertex: index, material, rgb, expected: [r * scale, g * scale, b * scale] };
+            }
           });
+          expect(mismatch, `${id}: ${mesh.name} preserves every material's grey or measured hue`).toBeUndefined();
         }
       }
     } finally {
