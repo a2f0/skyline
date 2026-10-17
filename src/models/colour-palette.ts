@@ -221,6 +221,9 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   // docs/swissotel-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
   "building-swissotel": {
     ...glass(0x475056, "blue-green glass"),
+    // FID-SWI-002: mixed panorama sample does not resolve these separately.
+    "opaque spandrel": null,
+    aluminium: null,
     neutral: null,
   },
   // docs/north-michigan-180-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg. Only the

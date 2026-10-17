@@ -1,0 +1,158 @@
+{
+  "before": [
+    {
+      "url": "building-detail.html?building=building-swissotel",
+      "view": "front",
+      "camera": [
+        224.20453506491083,
+        80.17998168787362,
+        307.1829069337984
+      ],
+      "buildingId": "building-swissotel",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "swissotel-bands-front-grey-before.png",
+        "day": "swissotel-bands-front-day-before.png"
+      }
+    },
+    {
+      "url": "building-detail.html?building=building-swissotel",
+      "view": "side",
+      "camera": [
+        305.16073466083566,
+        112.41859833151297,
+        -222.72860595542278
+      ],
+      "buildingId": "building-swissotel",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "swissotel-bands-side-grey-before.png",
+        "day": "swissotel-bands-side-day-before.png"
+      }
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "skyline",
+      "camera": [
+        1471.7600000000002,
+        2,
+        1948.8
+      ],
+      "buildingId": "building-swissotel",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "swissotel-bands-skyline-grey-before.png",
+        "day": "swissotel-bands-skyline-day-before.png"
+      }
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "quarter",
+      "camera": [
+        7113.138684118265,
+        2659.7604547218775,
+        5289.014664703931
+      ],
+      "buildingId": "building-swissotel",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "swissotel-bands-quarter-grey-before.png",
+        "day": "swissotel-bands-quarter-day-before.png"
+      }
+    }
+  ],
+  "after": [
+    {
+      "url": "building-detail.html?building=building-swissotel",
+      "view": "front",
+      "camera": [
+        224.20453506491083,
+        80.17998168787362,
+        307.1829069337984
+      ],
+      "buildingId": "building-swissotel",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "swissotel-bands-front-grey-after.png",
+        "day": "swissotel-bands-front-day-after.png"
+      }
+    },
+    {
+      "url": "building-detail.html?building=building-swissotel",
+      "view": "side",
+      "camera": [
+        305.16073466083566,
+        112.41859833151297,
+        -222.72860595542278
+      ],
+      "buildingId": "building-swissotel",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "swissotel-bands-side-grey-after.png",
+        "day": "swissotel-bands-side-day-after.png"
+      }
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "skyline",
+      "camera": [
+        1471.7600000000002,
+        2,
+        1948.8
+      ],
+      "buildingId": "building-swissotel",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "swissotel-bands-skyline-grey-after.png",
+        "day": "swissotel-bands-skyline-day-after.png"
+      }
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "quarter",
+      "camera": [
+        7113.138684118265,
+        2659.7604547218775,
+        5289.014664703931
+      ],
+      "buildingId": "building-swissotel",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce",
+      "artifacts": {
+        "grey": "swissotel-bands-quarter-grey-after.png",
+        "day": "swissotel-bands-quarter-day-after.png"
+      }
+    }
+  ]
+}

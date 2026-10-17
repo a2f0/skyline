@@ -448,7 +448,7 @@ frame or screen material. This pass changes material area and relief, not sample
 values, shared lighting or reflective-glass classification. It avoids treating
 the shaded orange/brown pixels in Griffin's photograph as a sunny-day palette.
 
-### Acceptance and retained comparisons
+### Crown acceptance and retained comparisons
 
 Raycasts now independently require 24 narrow pale interruptions around a screen,
 10–25% pale coverage, twenty distinct projecting horizontal slats and lower

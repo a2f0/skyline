@@ -478,7 +478,8 @@ Intermediate parts have less certainty than the overall height:
   drawn tower there stands about 140 layer units higher, so the drawing's group keeps its
   label; see the [Three Illinois Center reference audit](three-illinois-center-reference.md).
 - Swissôtel Chicago stands behind Three Illinois Center and The Buckingham. Its triangular
-  glass tower takes the published 139.3 m over OpenStreetMap's 45 levels, a panel to each,
+  glass tower retains the published 139.3 m over 45 facade modules, each divided
+  into an opaque floor band and a vision panel using 2012 photographic ratios,
   and its west corner closes the seam where those two models' corners leave sky; see the
   [Swissôtel reference audit](swissotel-reference.md).
 
