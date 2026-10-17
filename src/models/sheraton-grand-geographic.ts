@@ -6,7 +6,8 @@ import type { GeoBuilding } from "./skyline-geography-data.js";
 
 // The Sheraton Grand Chicago Riverwalk, 301 East North Water Street (Solomon Cordwell Buenz,
 // 1992): the geographic layout's model, on mapped tower 592122464, corner part
-// 1269924307, and east-wing parts 1269924305/1269924304. The original layout has no model of it. The drawing's `buckingham-east` group,
+// 1269924307, and east-wing parts 1269924305/1269924304. The original layout has no
+// model of it. The drawing's `buckingham-east` group,
 // right of The Buckingham, is its corner: a lit crown over a tower of windows.
 //
 // A cream precast tower on an L, its arms ending in round towers, of punched windows at the
@@ -100,6 +101,7 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
 
   // The skins, one box to a chain of runs turning less than 30°, so the round ends carry one:
   // a window 1.4 m wide in each 2.4 m bay, set out from the chain's middle, on every floor.
+  const towerRows = rowsFor(0.25, h.arms);
   const skin = (outline: Vec2[], base: number, top: number, seed: number, sharedWith?: Vec2[]) => {
     const plan = planOf(outline), heights = rowsFor(base, top);
     const same = (a: Vec2, b: Vec2) => Math.hypot(a[0] - b[0], a[1] - b[1]) < 1e-6;
@@ -126,7 +128,10 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
         const to = k1 === chain.runs.length - 1 ? s1 : chain.starts[k1]! + plan[chain.runs[k1]!]!.length - 0.09;
         chainSkin(kit, wall, plan, chain, k0, k1, from, to, columns, heights, 0.02, 0.07, (bay, r) => {
           const middle = (columns[bay - 1]! + columns[bay]!) / 2;
-          return r % 2 === 1 && centres.some((c) => Math.abs(middle - c) < 0.7) ? paneColor(r, bay, seed * 16 + index) : precast;
+          // Keep the original tower's floor seed through the split at the
+          // wing roof, rather than restarting its window pattern above it.
+          const row = seed === 0 ? towerRows.findIndex((y) => Math.abs(y - heights[r]!) < 1e-5) : r;
+          return r % 2 === 1 && centres.some((c) => Math.abs(middle - c) < 0.7) ? paneColor(row, bay, seed * 16 + index) : precast;
         }, precast);
         k0 = k1 + 1;
       }

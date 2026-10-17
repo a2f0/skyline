@@ -3,7 +3,7 @@ import { createBuildingStudy } from "./study-viewer.js";
 import { skylineAzimuth } from "./skyline-comparison.js";
 import { geographicBuildings } from "./models/skyline-geography-data.js";
 import type { GeoBuilding } from "./models/skyline-geography-data.js";
-import { createGeographicBuilding, footprintMetrics, geographicOrigin } from "./models/skyline-geography.js";
+import { createGeographicBuilding, buildingGroundBounds, groundFootprints, geographicOrigin } from "./models/skyline-geography.js";
 import { createTimeLighting } from "./time-of-day.js";
 import { createDaylight, createSkylineColour } from "./models/colour-materials.js";
 
@@ -41,7 +41,7 @@ export function showBuildingDetail({ root, id, frame, signal, colour = false, on
 }
 
 function showBuilding(record: GeoBuilding, root: Document | ShadowRoot, frame: HTMLElement, signal: AbortSignal, initiallyColoured: boolean, onColourChange?: (enabled: boolean) => void): BuildingDetail {
-  const footprint = footprintMetrics(record.footprint.coordinates);
+  const footprint = buildingGroundBounds(record);
   // Centred on its mapped outline: ground coordinates are east and north, the scene's x and -z.
   const model = createGeographicBuilding(record, [-footprint.center[0], footprint.center[1]]);
   // The page names the building before the 3D view starts, so a failed start leaves it named.
@@ -56,9 +56,12 @@ function showBuilding(record: GeoBuilding, root: Document | ShadowRoot, frame: H
   const source = link(document, record.heightSource, record.heightFromDrawing ? `${number(record.height)}, measured on the drawing` : `${number(record.height)} architectural${osm}`);
   heights.replaceChildren(source, ...record.tipHeight !== record.height ? [` · tip ${number(record.tipHeight)}`] : []);
   root.querySelector<HTMLElement>("#building-note")!.textContent = record.note;
-  const way = link(document, `https://www.openstreetmap.org/way/${record.footprint.way}`, `OpenStreetMap way ${record.footprint.way}`);
+  const ways = groundFootprints(record).flatMap((part, index) => [
+    ...index ? [" and "] : [],
+    link(document, `https://www.openstreetmap.org/way/${part.way}`, `OpenStreetMap way ${part.way}`),
+  ]);
   root.querySelector<HTMLElement>("#building-facts")!.replaceChildren(
-    `Mapped outline ${footprint.size[0].toFixed(1)} × ${footprint.size[1].toFixed(1)} m, from `, way,
+    `Mapped outline ${footprint.size[0].toFixed(1)} × ${footprint.size[1].toFixed(1)} m, from `, ...ways,
     `. Model: ${model.triangleCount.toLocaleString("en-US")} triangles.`,
   );
   const min = new THREE.Vector3(Infinity, Infinity, Infinity), max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);

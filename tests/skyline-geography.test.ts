@@ -6,7 +6,7 @@ import type { Browser, Page } from "playwright";
 import * as THREE from "../src/vendor/three-r186.js";
 import type { BuildingModel, Vec2, Vec3 } from "../src/models/building-kit.js";
 import { geographicBuildings, geographicStreets } from "../src/models/skyline-geography-data.js";
-import { projectGround, footprintMetrics, createGeographicBuilding, createGeographicRoads, streetWidth } from "../src/models/skyline-geography.js";
+import { projectGround, footprintMetrics, createGeographicBuilding, buildingGroundBounds, groundFootprints, createGeographicRoads, streetWidth } from "../src/models/skyline-geography.js";
 import { floorLevel, onePrudentialLevels, wallStations } from "../src/models/one-prudential-tower.js";
 import { trumpSpire } from "../src/models/trump-geographic.js";
 import { trumpLevels } from "../src/models/trump-tower.js";
@@ -139,10 +139,11 @@ describe("mapped skyline geography", () => {
       });
       near(bounds.min[1], 0, 1e-5);
       near(bounds.max[1], height, 0.001);
-      near(groundBounds.min[0], metrics.min[0], 0.03);
-      near(groundBounds.max[0], metrics.max[0], 0.03);
-      near(-groundBounds.max[1], metrics.min[1], 0.03);
-      near(-groundBounds.min[1], metrics.max[1], 0.03);
+      const mappedGround = buildingGroundBounds(record);
+      near(groundBounds.min[0], mappedGround.min[0], 0.03);
+      near(groundBounds.max[0], mappedGround.max[0], 0.03);
+      near(-groundBounds.max[1], mappedGround.min[1], 0.03);
+      near(-groundBounds.min[1], mappedGround.max[1], 0.03);
     }
   }, { timeout: 180_000 });
 
@@ -2542,6 +2543,11 @@ describe("mapped skyline geography", () => {
   describe("Sheraton Grand Chicago Riverwalk", () => {
     test("keeps its mapped L and east wing, four finned drums and punched windows", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Sheraton Grand")!;
+      expect(groundFootprints(record).map((part) => part.way)).toEqual([592122464, 1269924305]);
+      const mappedGround = buildingGroundBounds(record);
+      expect(mappedGround.size[0]).toBeGreaterThan(90);
+      expect(mappedGround.size[0]).toBeLessThan(100);
+      expect(mappedGround.center[0]).toBeGreaterThan(440);
       const model = models["Sheraton Grand"]!;
       model.building.updateMatrixWorld(true);
       const meshes = model.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[];

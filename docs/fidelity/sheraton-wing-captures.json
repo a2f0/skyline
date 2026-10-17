@@ -1,0 +1,182 @@
+{
+  "before": [
+    {
+      "url": "building-detail.html?building=building-buckingham-east",
+      "view": "front",
+      "camera": [
+        246.56727289209164,
+        68.54815185425016,
+        337.8221213045648
+      ],
+      "detailFit": {
+        "height": 240,
+        "width": 250
+      },
+      "groundCenter": [
+        444.5811637107537,
+        477.5721836025862
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce"
+    },
+    {
+      "url": "building-detail.html?building=building-buckingham-east",
+      "view": "side",
+      "camera": [
+        335.59825236044156,
+        104.00233116125833,
+        -244.94413081156603
+      ],
+      "detailFit": {
+        "height": 240,
+        "width": 250
+      },
+      "groundCenter": [
+        444.5811637107537,
+        477.5721836025862
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce"
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "skyline",
+      "camera": [
+        1471.7600000000002,
+        2,
+        1948.8
+      ],
+      "detailFit": {
+        "height": 240,
+        "width": 250
+      },
+      "groundCenter": [
+        444.5811637107537,
+        477.5721836025862
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce"
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "quarter",
+      "camera": [
+        7113.138684118265,
+        2659.7604547218775,
+        5289.014664703931
+      ],
+      "detailFit": {
+        "height": 240,
+        "width": 250
+      },
+      "groundCenter": [
+        444.5811637107537,
+        477.5721836025862
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce"
+    }
+  ],
+  "after": [
+    {
+      "url": "building-detail.html?building=building-buckingham-east",
+      "view": "front",
+      "camera": [
+        246.56727289209164,
+        68.54815185425016,
+        337.8221213045648
+      ],
+      "detailFit": {
+        "height": 240,
+        "width": 250
+      },
+      "groundCenter": [
+        444.5811637107537,
+        477.5721836025862
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce"
+    },
+    {
+      "url": "building-detail.html?building=building-buckingham-east",
+      "view": "side",
+      "camera": [
+        335.59825236044156,
+        104.00233116125833,
+        -244.94413081156603
+      ],
+      "detailFit": {
+        "height": 240,
+        "width": 250
+      },
+      "groundCenter": [
+        444.5811637107537,
+        477.5721836025862
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce"
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "skyline",
+      "camera": [
+        1471.7600000000002,
+        2,
+        1948.8
+      ],
+      "detailFit": {
+        "height": 240,
+        "width": 250
+      },
+      "groundCenter": [
+        444.5811637107537,
+        477.5721836025862
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce"
+    },
+    {
+      "url": "skyline-3d.html?controls=open",
+      "view": "quarter",
+      "camera": [
+        7113.138684118265,
+        2659.7604547218775,
+        5289.014664703931
+      ],
+      "detailFit": {
+        "height": 240,
+        "width": 250
+      },
+      "groundCenter": [
+        444.5811637107537,
+        477.5721836025862
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "reducedMotion": "reduce"
+    }
+  ]
+}

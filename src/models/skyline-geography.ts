@@ -61,6 +61,23 @@ export function footprintMetrics(coordinates: [number, number][]): { min: Vec2; 
   return { min, max, center: min.map((n, i) => (n + max[i]!) / 2) as Vec2, size: min.map((n, i) => max[i]! - n) as Vec2, area };
 }
 
+// Some complexes have separately mapped wings beyond the primary way. Keep
+// their source ways intact, and opt in only disjoint ground parts of this model.
+export function groundFootprints(record: GeoBuilding): GeoBuilding["footprint"][] {
+  if (!record.groundFootprintWays) return [record.footprint];
+  return record.groundFootprintWays.map((way) => {
+    const part = record.parts.find((entry) => entry.way === way && entry.bottom === 0);
+    if (!part) throw new Error(`Missing ground footprint ${way} for ${record.id}`);
+    return part;
+  });
+}
+
+export function buildingGroundBounds(record: GeoBuilding): { min: Vec2; max: Vec2; center: Vec2; size: Vec2 } {
+  // Only extrema are meaningful for concatenated rings, not a polygon's area.
+  const { min, max, center, size } = footprintMetrics(groundFootprints(record).flatMap((part) => part.coordinates));
+  return { min, max, center, size };
+}
+
 function plan(coordinates: [number, number][]): Plan {
   const points = coordinates.map((p) => { const [east, north] = projectGround(p); return [east, -north] as Vec2; });
   const area = points.reduce((sum, a, i) => {
@@ -308,8 +325,18 @@ export function createGeographicGround(offset: [number, number] = [0, 0]): { gro
   group.add(streets);
   const outlines: Vec3[] = [];
   for (const record of geographicBuildings) {
-    const points: Vec3[] = record.footprint.coordinates.map((p) => { const [x, y] = projectGround(p); return [x, 0.1, -y]; });
-    points.forEach((p, i) => outlines.push(p, points[(i + 1) % points.length]!));
+    const edges = new Map<string, { points: [Vec3, Vec3]; count: number }>();
+    for (const footprint of groundFootprints(record)) {
+      const points: Vec3[] = footprint.coordinates.map((p) => { const [x, y] = projectGround(p); return [x, 0.1, -y]; });
+      points.forEach((p, i) => {
+        const q = points[(i + 1) % points.length]!;
+        const key = [p.join(","), q.join(",")].sort().join(";");
+        const prior = edges.get(key);
+        edges.set(key, { points: [p, q], count: (prior?.count ?? 0) + 1 });
+      });
+    }
+    // Shared mapped boundaries are inside the complex, not its ground outline.
+    for (const edge of edges.values()) if (edge.count === 1) outlines.push(...edge.points);
   }
   const footprints = lines(outlines, 0xc9c9c9);
   group.add(footprints);

@@ -57,6 +57,8 @@ so the model stands on its datum and takes Emporis's differences.
 | Top floor | 97 m | The Skyscraper Center: the highest occupied floor |
 | Corner's roof | 100.1 m | Emporis: 10.25 ft from the top floor to the main roof |
 | Arms' roof | 94.76 m | Two floors lower, the mapped arms' 32 levels to the corner's 34 |
+| East wing roof (estimated, 2026-10-17) | 84.08 m | 28 mapped levels relative to the corner |
+| East wing round end (estimated, 2026-10-17) | 86.75 m | 29 mapped levels relative to the corner |
 | Drums | 12.2 m | Emporis: 40.06 ft from the main roof to the architectural top |
 | Corner drum's top | 112.3 m | The Skyscraper Center |
 | Tip | 112.8 m, not modelled | The Skyscraper Center |
@@ -76,14 +78,16 @@ it more. The photographs show each arm one slab with the L to its round end, so 
 builds the mapped L to the arms' roof, at their mapped 32 levels. The corner's round tower
 rises on its mapped part, two floors over it, to the corner's roof.
 
-The drums stand on the three round ends, circles fitted to the mapped parts' arcs within
-11 cm:
+The original three drums stand on the round ends, circles fitted to the mapped
+parts' arcs within 11 cm. Corrected on 2026-10-17: the restored east wing adds a
+fourth round end, fitted within 1.7 cm:
 
 | Drum | Centre, east and north of Crain | Radius |
 | --- | --- | ---: |
 | Corner | 407.44, 465.95 m | 7.97 m |
 | East arm | 439.52, 462.06 m | 7.37 m |
 | North arm | 409.75, 498.32 m | 7.39 m |
+| East wing (restored 2026-10-17) | 482.703, 457.389 m | 7.391 m |
 
 Projected through the geographic camera, the corner drum spans 7,423 to 7,544 layer units,
 from 2,231 to 2,135. The drawn crown is as tall, 92 units against 96, and stands about 115
@@ -117,14 +121,14 @@ Omitted:
   overlaps, and covered omissions.
 - `tests/skyline-geography.test.ts` raycasts:
   - the corner drum's top at 112.3 m, the arms' drums' at 106.96 m and the arms' roof at
-    94.76 m, and the record's two parts;
+    94.76 m, plus the restored wing roof at 84.08 m and fourth crown at 98.95 m;
   - a drum's facets, cream and fin in turn;
   - the corner's two floors over the arms' roof, a window on each with its sill and head,
     and its own roof at 100.1 m under the drum;
   - the east arm's south face: 35 windows, one to each floor line under the arms' roof,
     with a sill and a head 5 cm either side;
   - the model's exported palette, whose window tones no wall shares;
-  - the exact mapped L at grade.
+  - the exact mapped L and restored east wing at grade (four record parts).
 
   Every mesh is closed.
 
@@ -249,8 +253,11 @@ are not runtime assets.
   Rechecked all eleven relation parts, including the 4–6-level podium parts and
   the 33-level inner block, plus the separate 29-level round end. Ways 1269924305
   and 1269924304 remain version 1, tagged 28 and 29 levels. Their exact node
-  coordinates enter the existing building's `parts`; the primary tower footprint,
-  placement and ownership stay anchored to way 592122464. The wing shares the old
+  coordinates enter the existing building's `parts`. The primary tower source
+  stays way 592122464; explicit ground ways 592122464 and 1269924305 supply the
+  combined 95.0 × 59.9 m bounds for detail centering, facts and ground outlines.
+  Shared edges are internal and omitted from the ground outline. Ownership and
+  geographic coordinates remain unchanged. The wing shares the old
   eastern arc, extending about 43 m beyond it. Coordinate precision is not survey
   accuracy; allow approximately a metre for tracing uncertainty.
 
@@ -278,14 +285,18 @@ Raycasts verify the lower eastern roof, the fourth crown and punched windows
 among opaque precast on the added south face. The new meshes remain children of
 the existing building for picking. Both mapped cores remain closed. Facade skins
 are omitted on the shared internal arc below the wing roof, with closed end caps;
-this removes the coplanar overlaps found during the first geometry check.
+this removes the coplanar overlaps found during the first geometry check. The
+upper tower skin retains its original floor seed after the height split, so the
+restored wing does not reshuffle the existing upper floors' window tones.
 
 Captures use a 1600 × 1000 viewport and reduced motion. Detail URLs are
 `building-detail.html?building=building-buckingham-east`, with colour toggled on
 and off; skyline URLs are `skyline-3d.html?controls=open`. Each pair keeps the
 same preset and camera position. For detail comparisons only, the capture route
 fixes `fit` to `{height: 240, width: 250}` in the served detail module, keeping
-framing identical when the wing changes the normal automatic fit. Canvas-only
+framing identical when the wing changes the normal automatic fit. Both phases
+use the combined ground centre (444.581164 east, 477.572184 north metres),
+including the old model before it had the wing. Canvas-only
 images exclude the changing descriptive text. The production detail still fits
 its whole model automatically.
 
@@ -293,7 +304,7 @@ its whole model automatically.
 | --- | --- | --- |
 | Front | [before](fidelity/sheraton-wing-front-grey-before.png) / [after](fidelity/sheraton-wing-front-grey-after.png) | [before](fidelity/sheraton-wing-front-day-before.png) / [after](fidelity/sheraton-wing-front-day-after.png) |
 | Side | [before](fidelity/sheraton-wing-side-grey-before.png) / [after](fidelity/sheraton-wing-side-grey-after.png) | [before](fidelity/sheraton-wing-side-day-before.png) / [after](fidelity/sheraton-wing-side-day-after.png) |
-| Skyline | [before](fidelity/sheraton-wing-skyline-grey-before.png) / [after](fidelity/sheraton-wing-skyline-grey-after.png) | [before](fidelity/sheraton-wing-skyline-day-before.png) / [after](fidelity/sheraton-wing-skyline-day-after.png) |
+| Skyline (unchanged; hotel out of frame) | [gray](fidelity/sheraton-wing-skyline-grey-after.png) | [day](fidelity/sheraton-wing-skyline-day-after.png) |
 | Elevated | [before](fidelity/sheraton-wing-quarter-grey-before.png) / [after](fidelity/sheraton-wing-quarter-grey-after.png) | [before](fidelity/sheraton-wing-quarter-day-before.png) / [after](fidelity/sheraton-wing-quarter-day-after.png) |
 
 Visual review: the close views now show the lower extension and fourth crown in
