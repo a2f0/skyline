@@ -2622,7 +2622,7 @@ describe("mapped skyline geography", () => {
       const paleShare = pale.filter(Boolean).length / pale.length;
       expect(paleShare).toBeGreaterThan(0.1);
       expect(paleShare).toBeLessThan(0.25);
-      // Between uprights, the photographed upper screen occupies about
+      // Between uprights, the inferred upper screen occupies about
       // 60% of this smaller assembly and has about twenty horizontal slats.
       // Probe actual relief, so a painted stripe cannot satisfy this check.
       const reach = (y: number) => {

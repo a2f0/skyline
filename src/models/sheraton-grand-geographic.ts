@@ -37,6 +37,8 @@ const h = sheratonLevels;
 // use photo ratios (7.2/6 m, about ±1.5 m), not copies of the main assembly.
 export const sheratonDrums = Object.freeze([
   { centre: [407.44, 465.95] as Vec2, radius: 7.97, base: h.corner, height: h.drum, screen: h.screen },
+  // Secondary screen/base splits are inferred from the shallow-base appearance;
+  // unlike the main screen, their exact proportions have no pixel measurement.
   { centre: [439.52, 462.06] as Vec2, radius: 7.37, base: h.arms, height: 7.2, screen: 4.5 },
   { centre: [409.75, 498.32] as Vec2, radius: 7.39, base: h.arms, height: 7.2, screen: 4.5 },
   { centre: [482.703, 457.389] as Vec2, radius: 7.391, base: h.wingEnd, height: 6, screen: 4 },
@@ -76,7 +78,7 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
   const wall = kit.batch("Sheraton Grand · precast and windows", kit.material(0xffffff, { vertexColors: true }));
   const drums = kit.batch("Sheraton Grand · drums", kit.material(0xffffff, { vertexColors: true }));
   const tower = orient(polygonOf(projectPlan(record.parts[0]!.coordinates)));
-  const circle = (centre: Vec2, radius: number, sides = 24): Vec2[] => orient(Array.from({ length: sides }, (_, k) => {
+  const circle = (centre: Vec2, radius: number, sides: number): Vec2[] => orient(Array.from({ length: sides }, (_, k) => {
     const angle = (k / sides) * Math.PI * 2;
     return [centre[0] + radius * Math.cos(angle), -centre[1] + radius * Math.sin(angle)] as Vec2;
   }));
@@ -134,6 +136,7 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
     };
     for (let k = 0; k < 24; k += 1) {
       const angle = k / 24 * Math.PI * 2;
+      // The 2 cm clearance from the core avoids coplanar caps; slats join the posts.
       post(angle, k % 2 ? 0.14 : 0.42, screenRadius - 0.10, screenRadius + 0.10, screenBase, base + height);
       if (k % 2 === 0) {
         post(angle, 0.65, radius - 0.75, radius + 0.12, base + 0.5, base + baseHeight / 2 + 0.08);
@@ -186,7 +189,8 @@ export function createSheratonGrandGeographicBuilding(record: GeoBuilding, proje
   skin(wing, 0.25, h.wing, 2, tower);
   skin(wingEnd, h.wing, h.wingEnd, 3);
 
-  const model = kit.finish({ height: h.top, outlines: [shell, drums], opacity: 0.16 });
+  // Outlining every louver adds pale rings that wash out the dark screens.
+  const model = kit.finish({ height: h.top, outlines: [shell], opacity: 0.16 });
   model.building.position.set(offset[0], 0, offset[1]);
   model.building.userData["geography"] = record;
   model.building.userData["geographicDetail"] = { levels: h, source: "docs/sheraton-grand-reference.md" };

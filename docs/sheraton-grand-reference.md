@@ -407,7 +407,7 @@ with an assembly about 135 px high (±10–15 px at the trim boundaries).
 Using the mapped radius ratio 7.39/7.97 gives
 `12.2 × (135/290) × (378/273) × (7.39/7.97) ≈ 7.3 m`.
 Similar radial setbacks and vertical foreshortening are assumptions, so use
-**7.2 ± 1.5 m**, with about 4.5 m of upper screen. The east arm takes the same
+**7.2 ± 1.5 m**. The 4.5 m screen/2.7 m base split is an inference from the shallower-base appearance, not a measured pixel ratio. The east arm takes the same
 family by inference; the dusk fountain photograph corroborates a small crown,
 but does not independently fix its dimensions.
 
@@ -417,7 +417,7 @@ x ≈ 295–415, y ≈ 105–160) also has a short screen and low base. Its roug
 round-end diameter, suggest roughly 5.5–6.8 m before allowance for setbacks
 and perspective. Kaufmann's rightmost crown (x ≈ 350–430, y ≈ 220–255)
 corroborates a low base under a dark screen. The wing now uses **6 ± 1.5 m**,
-of which 4 m is screen. These estimates supersede the first wing pass's
+with an inferred 4 m screen/2 m base split, also not a measured pixel ratio. These estimates supersede the first wing pass's
 provisional copy of the principal 12.2 m assembly. Arm crown tops become
 101.96 m and the wing crown 92.75 m; their decimals are arithmetic, not survey
 precision. The published principal top remains 112.3 m.
@@ -437,6 +437,9 @@ precision. The shorter secondary bases use only sparse lower framing. Applying t
 principal crown's stepped-frame family to all four is still an explicit approximation; FID-SHER-004 retains that distinction for better
 side elevations and drawings. Closed recessed cores approximate the dark
 screen interiors; genuine see-through louver construction remains unresolved.
+Automatic pale outlines are omitted from the entire crown batch: outlining each
+slat added two pale rings and washed out the dark-screen hierarchy in grayscale.
+The visible relief now comes from the closed surfaces and their lighting.
 
 The `drums` batch retains cream precast for pale framing and the explicit
 neutral-grey fallback for uncalibrated maroon screens. Its obsolete neutral
@@ -478,7 +481,9 @@ preserves placement and shows the three shorter secondary crowns; fine slats are
 legible in the close views. All four views restored their initial grey PNG
 byte for byte after colour toggling in the completed capture run. An earlier
 front capture failed that exact-restoration comparison; an unchanged rerun
-passed without relaxing the assertion. Full shipping validation and independent
+passed without relaxing the assertion. FID-CAP-001 tracks the unresolved cause;
+passing retained pairs do not establish whether settling or restoration caused
+the initial difference. Full shipping validation and independent
 review are recorded in the pull request.
 
 Remaining work: FID-SHER-003 covers guestroom/podium bands and bay counts;
