@@ -122,9 +122,11 @@ describe("Chicago time and sunlight", () => {
     const version = material.version, key = material.customProgramCacheKey();
     facade.setNight({ ...night, activity: 0.24 }, false, false);
     expect(uniforms["skylineActivity"]!.value).toBe(0.24);
-    const warm = uniforms["skylineWindowWarm"]!.value as THREE.Color;
-    expect(warm.r).toBe(warm.g);
-    expect(warm.r).toBe(warm.b);
+    for (const name of ["skylineWindowWarm", "skylineWindowWhite", "skylineWindowCool"]) {
+      const tint = uniforms[name]!.value as THREE.Color;
+      expect(tint.r).toBe(tint.g);
+      expect(tint.r).toBe(tint.b);
+    }
     facade.setNight(night, true, true);
     expect(uniforms["skylineDarkness"]!.value, "architectural lighting stays on during a celebration").toBe(1);
     expect(uniforms["skylineWindowsSuppressed"]!.value).toBe(1);
@@ -136,6 +138,45 @@ describe("Chicago time and sunlight", () => {
     facade.setNight(null, false, false);
     expect(material.onBeforeCompile).toBe(original);
     material.dispose(); geometry.dispose();
+  });
+
+  test("gives buildings coherent fixture mixes independent of room brightness and occupancy", () => {
+    const positions: number[] = [];
+    for (let floor = 0; floor < 20; floor += 1) for (let bay = 0; bay < 12; bay += 1) {
+      for (const [x, y] of [[0, 0], [2, 0], [2, 3], [0, 0], [2, 3], [0, 3]]) {
+        positions.push(bay * 7 + x!, floor * 3.4 + y!, 0);
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.computeVertexNormals();
+    const means: number[] = [];
+    for (const id of ["layer3", "building-kemper", "building-blue-cross-blue-shield", "building-crain-communications", "building-swissotel", "building-river-plaza"]) {
+      const mask = nightWindowMask(geometry, id, () => "lit window");
+      const tints = Array.from({ length: 240 }, (_, pane) => mask[pane * 24 + 3]!);
+      const mean = tints.reduce((sum, tint) => sum + tint, 0) / tints.length;
+      means.push(mean);
+      expect(Math.min(...tints)).toBeGreaterThanOrEqual(0);
+      expect(Math.max(...tints)).toBeLessThanOrEqual(1);
+      expect(Math.max(...tints) - Math.min(...tints)).toBeGreaterThan(0.15);
+      // Rooms on one tenant floor share more of their fixture mix than the
+      // whole building does; neither schedule nor brightness determines tint.
+      for (let floor = 0; floor < 20; floor += 1) {
+        const row = tints.slice(floor * 12, (floor + 1) * 12);
+        expect(Math.max(...row) - Math.min(...row)).toBeLessThan(Math.max(...tints) - Math.min(...tints));
+      }
+      for (const component of [0, 1]) {
+        const values = tints.map((_, pane) => mask[pane * 24 + component]!);
+        const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+        const covariance = values.reduce((sum, value, i) => sum + (value - average) * (tints[i]! - mean), 0);
+        const variance = values.reduce((sum, value) => sum + (value - average) ** 2, 0) * tints.reduce((sum, tint) => sum + (tint - mean) ** 2, 0);
+        expect(Math.abs(covariance / Math.sqrt(variance))).toBeLessThan(0.25);
+      }
+      const lamps = nightWindowMask(geometry, id, () => "crown lights");
+      expect(new Set(Array.from({ length: 240 }, (_, pane) => lamps[pane * 24 + 3])).size, "an architectural lamp assembly uses one fixture tint").toBe(1);
+    }
+    expect(Math.max(...means) - Math.min(...means), "buildings must not converge on the same mix").toBeGreaterThan(0.4);
+    geometry.dispose();
   });
 
   test("keeps both triangles of a pane together after odd triangles, and separates diagonal bays", () => {

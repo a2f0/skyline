@@ -276,8 +276,8 @@ scene's Chicago coordinates using [NOAA's general solar-position equations](http
 The world axes are east/up/south, independent of the camera. `time-of-day.ts` uses solar
 elevation to blend the clear-sky colours in `models/colour-palette.ts`, direct sunlight,
 ambient/fill light and ground colours. These sky colours are illustrated, not measured
-weather. At dusk, small groups of existing office panes gradually illuminate in warm and
-soft-white tones; the night grows quieter after midnight, with some early arrivals before
+weather. At dusk, small groups of existing office panes gradually illuminate in warm,
+neutral and cool white tones; the night grows quieter after midnight, with some early arrivals before
 dawn. Daylight fades the emission away. This is an illustrated daily pattern, not measured
 occupancy. Existing crown, band and sign lights remain on through the night. A celebration
 takes precedence over ordinary windows on its building so its lettering stays clear.
@@ -291,6 +291,28 @@ detail. The facade shader combines glass reflections and window emission using u
 time changes add no geometry, shader recompilation, external requests or animation loop.
 Grayscale previews keep the lighting neutral, and **reset light** restores the original
 outlines and materials along with the sky.
+
+Each building has a stable dominant fixture mix, with smaller differences among tenant
+floors and rooms. Tint has its own seed, independent of brightness and occupancy, so the
+brightest rooms do not all share one colour. Architectural lamps share a separate tint
+within each building. The three white-light anchors are illustrated appearance choices,
+not measured fixture inventories or calibrated Kelvin values. The range is informed by
+the U.S. Department of Energy's [Understanding LED Color-Tunable Products](https://www.energy.gov/cmei/ssl/understanding-led-color-tunable-products)
+(accessed 2026-10-17; publication date unspecified): its white-tuning section describes
+warm, neutral and cool sources, while its applications discuss tenant preferences and
+room finishes. This supports varying white-light families; it does not establish any
+particular Chicago building's lamps. Daylight materials keep their measured palette.
+The time preview also allows cool architectural fixtures; the original grayscale
+night preset and the source photograph's documented cap colours remain separate.
+
+The 2026-10-17 [before](fidelity/night-lighting-2026-10-17/before.png) and
+[after](fidelity/night-lighting-2026-10-17/after.png) captures use
+`skyline-3d.html?colour=1&controls=open`, the skyline camera, 1600 × 1000,
+reduced motion and Oct 15, 2026 at 8 PM Chicago time. Visual review shows warmer
+and cooler buildings with restrained differences within their facades. The noon
+capture was byte-identical before/after; 4 AM retained fewer lit rooms, and the
+grayscale preview remained neutral. Browser regressions check all three visible
+lamp families, scrubbing repeatability, celebrations and exact preset restoration.
 
 Each viewer and open building detail owns and reuses one small sky texture, disposed when
 that view closes. In the viewer, its premultiplied alpha reveals the existing stars through

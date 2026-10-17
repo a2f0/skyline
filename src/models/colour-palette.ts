@@ -309,8 +309,9 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
 // the day study's sky), and the sun's warm white, chosen.
 export const daylightColours = { sky: 0x9ebbdb, horizon: 0xc4d1e1, sun: 0xfff4e6 } as const;
 
-// Art-directed night illumination: quiet cool facades and a mix of warm office lamps.
-export const nightColours = { ambient: 0xa1afc8, fill: 0x8d9fbd, window: 0xffcf91, windowWhite: 0xffedce } as const;
+// Illustrated warm, neutral and cool white fixtures; not calibrated Kelvin values.
+// DOE's white-tuning overview informs the range; see docs/viewer.md (time of day).
+export const nightColours = { ambient: 0xa1afc8, fill: 0x8d9fbd, window: 0xffc17d, windowWhite: 0xffedda, windowCool: 0xdceaff } as const;
 
 // Illustrated clear-sky time previews. Solar elevation chooses the stops; these are
 // artistic colours, separate from the photograph-calibrated daytime palette above.

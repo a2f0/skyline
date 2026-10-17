@@ -44,6 +44,11 @@ const architectural = new Set<MaterialName>(["lamp", "crown lights", "band light
 export function nightWindowMask(geometry: THREE.BufferGeometry, buildingId: string, materialOf: (vertex: number) => MaterialName): Float32Array {
   const positions = geometry.getAttribute("position"), normals = geometry.getAttribute("normal");
   const mask = new Float32Array(positions.count * 4);
+  // A dominant fixture family per building, with smaller tenant-floor and room
+  // differences. Independent seeds keep colour from tracking occupancy/brightness.
+  // These are illustrated white-light mixes, not surveyed fixture temperatures.
+  const buildingTint = hash(`${buildingId}:fixture`);
+  const architecturalTint = 0.15 + 0.65 * hash(`${buildingId}:architectural-fixture`);
   const samePoint = (a: number, b: number) => positions.getX(a) === positions.getX(b) && positions.getY(a) === positions.getY(b) && positions.getZ(a) === positions.getZ(b);
   for (let first = 0; first < positions.count;) {
     const name = materialOf(first), crown = architectural.has(name);
@@ -66,13 +71,16 @@ export function nightWindowMask(geometry: THREE.BufferGeometry, buildingId: stri
     const floor = Math.round(y / count / 3.4), across = Math.floor(x / count / 7), depth = Math.floor(z / count / 7);
     const room = hash(`${buildingId}:${floor}:${across}:${depth}`);
     const brightness = hash(`${buildingId}:${floor}:${across}:${depth}:brightness`);
+    const tint = crown ? architecturalTint : 0.65 * buildingTint
+      + 0.2 * hash(`${buildingId}:${floor}:fixture`)
+      + 0.15 * hash(`${buildingId}:${floor}:${across}:${depth}:fixture`);
     for (let vertex = first; vertex < end; vertex += 1) {
       if (materialOf(vertex) !== name) continue;
       const rank = name === "lit window" ? 0.05 + room * 0.8 : 0.3 + room * 0.75;
       mask[vertex * 4] = rank;
       mask[vertex * 4 + 1] = crown ? 0.3 : 0.25 + brightness * 0.45;
       mask[vertex * 4 + 2] = crown ? 2 : 1;
-      mask[vertex * 4 + 3] = brightness;
+      mask[vertex * 4 + 3] = tint;
     }
     first = end;
   }
