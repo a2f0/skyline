@@ -372,8 +372,9 @@ cadence, not a new surveyed facade dimension.
 
 The same figure explicitly labels core **95 ft (28.956 m)**, bay **155 ft
 (47.244 m)**, inside walls **185 ft (56.388 m)** and outside walls **194 ft
-(59.1312 m)**. The 155 ft extent includes the end-column region; it is not
-fifteen 10 ft centre intervals. These distinct dimensions supersede treating
+(59.1312 m)**. The drawn 155 ft extent appears to include the end-column region; that
+interpretation is inferred from the dimension endpoints, rather than stated
+in the text. It is not fifteen 10 ft centre intervals. These distinct dimensions supersede treating
 one square width as interchangeable with a glazing plane or pier-tip bound.
 They strengthen FID-AON-002, but the steel plan alone does not resolve the
 1990–1992 granite-cladding section, its relation to the current map trace or
