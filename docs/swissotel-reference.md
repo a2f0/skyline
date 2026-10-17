@@ -69,7 +69,9 @@ the strip is not settled as the Swissôtel; see the [label audit](building-label
   - A coping at the roof.
 - **Roof:** flat.
 
-Colours follow the drawing's greys.
+Vision panes and frames retain the drawing's greys. The opaque bands use a pale
+neutral fallback to preserve the photographed band/pane hierarchy; see the
+2026-10-17 material decisions below.
 
 Omitted:
 
@@ -148,7 +150,8 @@ layer's exposure of 1.4, on the building's surfaces of that material and in this
 its null ones grey. In the skyline view at 1600 × 900 under the day lights, the view sees a sliver
 of its south face beside the Buckingham, partly in its shadow: it renders `50, 56, 61` at its median
 against the photograph's `71, 80, 86`, 0.5 in linear light, and 0.75 where it is out of the shadow.
-
+These are historical comparisons, before the FID-SWI-002 opaque bands and frame
+material split; they do not measure the current mixed-material sliver.
 
 ## 2026-10-17 — opaque floor bands and vision windows (FID-SWI-002)
 
@@ -229,8 +232,10 @@ it does not supply a separately calibrated spandrel or metal colour.
 `colour-palette.ts` consequently gives `opaque spandrel` and `aluminium` null
 entries. FID-SWI-004 retains separate colour and surface-gloss calibration.
 
-Frames and opaque bands no longer receive the viewer's vision-window reflection
-mask or room-light mask. This approximates opaque surface response within the
+Frames and opaque bands do not receive the viewer's vision-window reflection
+mask or room-light mask. Frames were already unlit; their correction removes
+only the reflection mask. The new opaque bands replace portions of the old
+vision panes, including areas previously eligible for room lighting. This approximates opaque surface response within the
 existing material system; real glass-backed spandrels can still reflect their
 surroundings, as the photographs show. Their own gloss response remains
 unresolved rather than being represented as illuminated room glazing.
@@ -261,8 +266,12 @@ quarter presets. Each is toggled to sunny-day colour and back.
 | Skyline | [before](fidelity/swissotel-bands-skyline-grey-before.png) / [after](fidelity/swissotel-bands-skyline-grey-after.png) | [before](fidelity/swissotel-bands-skyline-day-before.png) / [after](fidelity/swissotel-bands-skyline-day-after.png) |
 | Quarter | [before](fidelity/swissotel-bands-quarter-grey-before.png) / [after](fidelity/swissotel-bands-quarter-grey-after.png) | [before](fidelity/swissotel-bands-quarter-day-before.png) / [after](fidelity/swissotel-bands-quarter-day-after.png) |
 
-Visual review finds the repeated pale bands and shorter dark panes in both
-close views and both modes. Placement and the narrow visible skyline sliver
+Visual review finds the repeated pale bands and shorter panes in both close
+views and modes. In grayscale, the existing bright panes (about 12% of modules)
+approach the pale band's brightness and interrupt its contrast, producing a
+patchwork appearance. The remaining panes read darker. Retain this explicit
+trade-off rather than assign an unsupported daylight hue to the opaque bands;
+separate band colour/gloss calibration remains FID-SWI-004. Placement and the narrow visible skyline sliver
 remain consistent. The first neutral band value made the bands darker than
 vision glass in daylight; the final pale fallback restores the observed
 hierarchy without introducing an unsourced hue. One capture attempt failed the
