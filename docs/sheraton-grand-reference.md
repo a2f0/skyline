@@ -110,10 +110,11 @@ Omitted:
 - the block in the inner corner between the arms, tagged 33 levels, a floor over the arms'
   roof;
 - the exact crown construction and dimensions; the 2026-10-17 pass adds a
-  photographic approximation of the stepped base within the existing 12.2 m assembly;
+  photographic approximation of stepped bases, preserving the main 12.2 m assembly
+  and estimating shorter secondary crowns;
 - the published tip, 50 cm over the corner drum;
-- the east wing was omitted until the 2026-10-17 correction below; its exact roof
-  dimensions and crown detailing remain estimated (FID-SHER-002);
+- the east wing's exact roof dimensions and the crowns' detailed sections,
+  which remain estimated (FID-SHER-004);
 - the low parts under the rest of the complex's outline;
 - the drums' openness, the signs and the entrances.
 
@@ -132,11 +133,14 @@ Omitted:
   - the east arm's south face: 35 windows, one to each floor line under the arms' roof,
     with a sill and a head 5 cm either side;
   - the model's exported palette, whose window tones no wall shares;
-  - the exact mapped L and restored east wing at grade (four record parts).
+  - the exact mapped L and restored east wing at grade (both ground parts).
 
   Every mesh is closed.
 
 ## 2026-10-05 — the 28-level east wing (FID-SHER-001)
+
+*Corrected on 2026-10-17:* the [wing restoration below](#2026-10-17--restore-the-east-wing-fid-sher-001)
+supersedes this historical omission and the approximately 75 m inference.
 
 [#72](https://github.com/a2f0/skyline/issues/72) found that the September audit's "low parts"
 were not all low. Checked again here through the OpenStreetMap API on October 5, 2026:
@@ -333,7 +337,9 @@ in the pull request for this pass.
 Next: FID-SHER-002 should replace the tall striped crown cylinders with the
 photographed stepped bases and louvered screens, and resolve their dimensions.
 FID-SHER-003 should separate the low podium from the repeated guestroom grid and
-check facade row/bay counts against dated elevations. These remain open; this
+check facade row/bay counts against dated elevations. The two skins currently
+leave an approximately 11 cm core-coloured seam at their straight join and centre
+their window bays independently; a continuous bay layout belongs in that pass. These remain open; this
 pass corrects the missing wing's mass, not every Sheraton detail.
 
 

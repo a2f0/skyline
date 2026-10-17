@@ -2572,6 +2572,7 @@ describe("mapped skyline geography", () => {
     test("keeps its mapped L and east wing, four louvered crowns and punched windows", () => {
       const record = geographicBuildings.find((r) => r.shortName === "Sheraton Grand")!;
       expect(groundFootprints(record).map((part) => part.way)).toEqual([592122464, 1269924305]);
+      for (const way of [1269924305, 1269924304]) expect(record.parts.find((part) => part.way === way)!.estimatedHeight).toBe(true);
       const mappedGround = buildingGroundBounds(record);
       expect(mappedGround.size[0]).toBeGreaterThan(90);
       expect(mappedGround.size[0]).toBeLessThan(100);
@@ -3078,6 +3079,10 @@ describe("geographic layout in the study", () => {
     originalBounds = await page.evaluate(() => window.__buildingStudy!.modelBounds);
     originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
     expect(await page.locator("#dimensions-body tr").count()).toBe(34);
+    const sheratonRow = page.locator("#dimensions-body tr").filter({ hasText: "Sheraton Grand" });
+    expect(await sheratonRow.locator('a[href="https://www.openstreetmap.org/way/1269924305"]').textContent()).toBe("part 1269924305");
+    expect(await sheratonRow.locator("td").nth(0).textContent()).toBe("+444.6, +477.6");
+    expect(await sheratonRow.locator("td").nth(2).textContent()).toBe("95.0 × 59.9");
     await page.locator('[data-layout="geographic"]').click();
     await settle(page);
     expect(await page.evaluate(() => [window.__buildingStudy!.layout, window.__buildingStudy!.projection, window.__buildingStudy!.activeView]))

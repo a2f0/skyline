@@ -79,7 +79,8 @@
       "artifacts": {
         "grey": "sheraton-wing-skyline-grey-after.png",
         "day": "sheraton-wing-skyline-day-after.png"
-      }
+      },
+      "artifactNote": "Before and after were captured and compared byte for byte. They are identical; both entries intentionally reuse the retained after file."
     },
     {
       "url": "skyline-3d.html?controls=open",
@@ -189,7 +190,8 @@
       "artifacts": {
         "grey": "sheraton-wing-skyline-grey-after.png",
         "day": "sheraton-wing-skyline-day-after.png"
-      }
+      },
+      "artifactNote": "Before and after were captured and compared byte for byte. They are identical; both entries intentionally reuse the retained after file."
     },
     {
       "url": "skyline-3d.html?controls=open",
