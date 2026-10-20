@@ -148,9 +148,9 @@ styles and the host's apart. `mountSkyline` returns at once with an instance:
   frame, the viewer doesn't stop when its element merely leaves the page: always call
   `destroy`.
 
-The viewer shows what the embedded viewer always has: the twinkling stars and the
-traced loading silhouette, the 3D skyline with its control bar, the OpenStreetMap
-credit, a small **show original** button until the first 3D frame (and again if the
+The viewer shows what the embedded viewer always has: the traced loading silhouette,
+the 3D skyline with its control bar, the twinkling stars, which come out after the
+skyline's first frame, the OpenStreetMap credit, a small **show original** button until the first 3D frame (and again if the
 graphics context is lost), so the original drawing stays reachable even if WebGL or
 the scene's code cannot load, building details in a panel over the skyline, and
 reduced motion. `F`, pressed inside the viewer, shows its element fullscreen.

@@ -30,16 +30,31 @@
   background: transparent;
 }
 
+/* The stars come out after the skyline, in either theme: hidden while the scene boots, or
+   once its graphics context is lost, they fade in after its first frame, or, with reduced
+   motion, simply appear. The original drawing shows them as soon as it is opened. */
 .stars {
   z-index: 0;
   pointer-events: none;
+  transition: opacity 1.6s ease-in-out 0.4s;
+}
+
+.skyline-viewer[data-booting] > .stars {
+  visibility: hidden;
+  opacity: 0;
+  transition: none;
+}
+
+.skyline-viewer:has(> .drawing:not([hidden])) > .stars { transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stars { transition: none; }
 }
 
 /* Keep this boot palette in sync with skyline-shell.ts and index.html. It gives
    way to the scene's own sky at the first frame. The original drawing always
    keeps its dark sky, including when opened during loading or after a failure. */
 .skyline-viewer[data-theme="light"][data-booting] { color-scheme: light; background: #f5f5f5; color: #444; }
-.skyline-viewer[data-theme="light"][data-booting] > .stars { visibility: hidden; }
 .skyline-viewer[data-theme="light"][data-booting] .loading { color: #444; }
 .skyline-viewer[data-theme="light"][data-booting] .skyline-trace { stroke: #555; }
 .skyline-viewer[data-theme="light"][data-booting] .skyline-trace-tip { stroke: #222; filter: drop-shadow(0 0 9px #22222266); }
