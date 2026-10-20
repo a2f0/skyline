@@ -45,6 +45,8 @@
   transition: none;
 }
 
+.skyline-viewer:has(> .drawing:not([hidden])) > .stars { transition: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .stars { transition: none; }
 }

@@ -532,8 +532,11 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
             expect(await page.locator("#loading").textContent()).toContain("WebGL 2");
             expect(await page.locator("#loading").evaluate((node) => getComputedStyle(node).color)).toBe(theme === "light" ? "rgb(68, 68, 68)" : "rgb(187, 187, 187)");
             expect(await page.locator("#menu-toggle").isDisabled()).toBe(true);
+            expect(await page.locator("#stars").isVisible()).toBe(false);
             await page.locator("#embedded-original").click();
             expect(await page.locator("#drawing").isVisible()).toBe(true);
+            // The stars wait for a skyline that never came, and show at once with the drawing.
+            expect(await page.locator("#stars").evaluate((sky) => [getComputedStyle(sky).visibility, getComputedStyle(sky).opacity])).toEqual(["visible", "1"]);
             await page.locator("#return-skyline-3d").press("Enter");
             expect(await focused(page)).toBe("embedded-original");
             await page.unroute("**/skyline-3d.js");
