@@ -256,6 +256,11 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
           const box = (await region.boundingBox())!;
           expect([box.width, box.height], "the viewer fills its container").toEqual([viewport.width, viewport.height]);
           expect(await page.locator("#stars circle").count(), "the stars render in the page").toBe(96);
+          // The stars come out after the skyline's first frame: they fade in, or, with reduced
+          // motion, simply appear.
+          expect(await page.locator("#stars").isVisible()).toBe(true);
+          expect(await page.locator("#stars").evaluate((sky) => getComputedStyle(sky).transitionDuration)).toBe(viewport.width < 600 ? "0s" : "1.6s");
+          await page.waitForFunction(() => getComputedStyle(document.querySelector("#host > [role=region]")!.shadowRoot!.querySelector("#stars")!).opacity === "1");
           // Without the host's engine, the scene loads the copy in the assets.
           expect(requested.some((url) => url.endsWith("/nested/skyline/vendor/three-r186.bundle.js"))).toBe(true);
           await page.locator("#embedded-original").waitFor({ state: "hidden" });
@@ -461,8 +466,10 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
               await page.locator(".skyline-trace").waitFor();
             } else {
               await mount(page);
-              await page.locator("#host #stars circle").first().waitFor({ state: "attached" });
             }
+            // The stars arrive first but wait for the skyline, here on the dark backdrop.
+            await page.locator("#host #stars circle").first().waitFor({ state: "attached" });
+            expect(await page.locator("#host #stars").isVisible(), `the stars wait while ${stage} loads`).toBe(false);
             // Keep the destroyed instance's root, which the page no longer shows, to see that
             // nothing starts in it once the held load arrives.
             await page.evaluate(() => {

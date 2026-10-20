@@ -363,6 +363,11 @@ its place (`skyline-viewer.ts`). Ten randomly selected stars (about 10%) softly 
 stay fixed during animation, resizing, and debug toggles. Star positions use percentages and their
 radii stay fixed so resizing does not stretch the stars.
 
+The stars come out after the skyline. They stay hidden while the scene boots, in either theme, and
+again if its graphics context is lost. Once the first frame renders, they fade in over about two
+seconds, starting just after the towers appear. With reduced motion they appear without fading.
+Opening the original drawing shows them at once.
+
 Each twinkling star has its own slow cycle of approximately 40–67 seconds and a random starting
 phase. Brightness varies subtly between 42% and 60% opacity, with fresh brightness levels each
 cycle, gradual transitions, and quiet pauses between twinkles.
