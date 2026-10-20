@@ -7,9 +7,10 @@ it was fitted to. It is live at [skyline.devopsrockstars.com](https://skyline.de
 
 ## Run it locally
 
-With [Bun](https://bun.sh) installed (the version is pinned in `mise.toml`):
+With [mise](https://mise.jdx.dev/) installed:
 
 ```sh
+mise install                       # Bun and Node from mise.toml
 bun install --ignore-scripts
 bun run build:site
 python3 -m http.server -d dist
