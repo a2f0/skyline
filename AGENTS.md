@@ -45,7 +45,7 @@ npm (included with Node), and system tar. The published package supports Node.js
 publishing CI separately runs `bun run check:package` on Node 22 to verify that floor.
 
 Install test dependencies with `bun install --ignore-scripts`. Use Bun (pinned
-in `mise.toml`; `mise use` installs it) and Google Chrome, then run
+in `mise.toml`; `mise install` installs it) and Google Chrome, then run
 `bun run check` (or `bun scripts/check.ts`). It times every step, prints a table
 when it finishes whether it passed or failed, and appends the run to
 `skyline-timings.log` in the Git common directory; `bun scripts/show-timings.ts`

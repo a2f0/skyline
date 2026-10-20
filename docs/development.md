@@ -28,6 +28,7 @@ browser suites. Local checks and CI use the same Node.js LTS release; the publis
 package continues to support Node.js 22+. Then:
 
 ```sh
+mise install
 bun install --ignore-scripts
 sh scripts/git/install-hooks.sh
 ```
@@ -266,8 +267,10 @@ public reports.
 Invoke `$update-dependencies` in Codex or `/update-dependencies` in Claude Code.
 The managed skill inventories package and toolchain dependencies, CI pins and
 infrastructure providers, follows upstream migrations and validates compatible
-groups before shipping. Keep `mise.toml` runtime versions and the publish
-workflow aligned; CI additionally tests the packed package on its Node 22 support
+groups before shipping. The test and pack jobs install Bun and Node from
+`mise.toml`; keep `packageManager` and the isolated npm publisher's Node pin
+aligned with it. The pack job disables the tool cache because its output goes
+to the trusted publisher. CI additionally tests the packed package on its Node 22 support
 floor. Locally, put an installed Node 22 release first on `PATH` and run
 `bun run check:package` for that check. The optional package peer remains the supported r186 series;
 regenerate its standalone browser bundle with `bun run vendor:three` when the

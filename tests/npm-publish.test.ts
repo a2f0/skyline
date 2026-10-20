@@ -81,13 +81,15 @@ describe("the publish workflow", () => {
   test("builds with the runtime versions mise.toml pins", () => {
     const pins = Bun.TOML.parse(readFileSync(path.join(root, "mise.toml"), "utf8")) as { tools: { bun: string; node: string } };
     for (const job of [tests, pack]) {
-      const setup = job.steps.find((step) => step.uses?.startsWith("oven-sh/setup-bun@"));
-      expect(setup?.with?.["bun-version"]).toBe(pins.tools.bun);
+      const setup = job.steps.find((step) => step.uses?.startsWith("jdx/mise-action@"));
+      expect(setup?.with?.["install_args"]).toBe("bun node");
     }
-    for (const job of [tests, pack, publish]) {
-      const setup = job.steps.find((step) => step.uses?.startsWith("actions/setup-node@"));
-      expect(setup?.with?.["node-version"]).toBe(pins.tools.node);
-    }
+    const packTools = pack.steps.find((step) => step.uses?.startsWith("jdx/mise-action@"));
+    expect(packTools?.with?.["cache"]).toBe(false);
+    const publisher = publish.steps.find((step) => step.uses?.startsWith("actions/setup-node@"));
+    expect(publisher?.with?.["node-version"]).toBe(pins.tools.node);
+    const metadata = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")) as { packageManager: string };
+    expect(metadata.packageManager).toBe(`bun@${pins.tools.bun}`);
   });
 
   test("also tests the packed library on its declared Node support floor", () => {

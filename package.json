@@ -11,6 +11,7 @@
     "access": "public"
   },
   "type": "module",
+  "packageManager": "bun@1.4.3",
   "sideEffects": ["./site/**/*.js"],
   "files": ["lib/", "site/", "NOTICE.md", "docs/package.md", "docs/skyline-geography.md"],
   "main": "./lib/skyline-package.js",
