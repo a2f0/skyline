@@ -7,6 +7,8 @@ import type { ClickEvent } from "@a2f0/ct-client";
 import { dist } from "../scripts/build-site.js";
 
 const production = "https://skyline.devopsrockstars.com";
+const preview = "https://preview.example.test";
+const local = "http://127.0.0.1:8000";
 const endpoint = "https://ct.a2f0.net/v1/clicks";
 const types: Record<string, string> = { ".html": "text/html", ".svg": "image/svg+xml", ".js": "text/javascript", ".css": "text/css" };
 interface Batch { site: string; events: ClickEvent[] }
@@ -17,18 +19,20 @@ afterAll(async () => { await browser?.close(); });
 
 // Every request is intercepted before navigation. Production-shaped addresses
 // exercise the real origin guard without sending anything to either live service.
-async function session({ automated = false, optOut = false, extension = false } = {}) {
+async function session({ automated = false, optOut = false, extension = false, gpc = false, dnt = false } = {}) {
   const context = await browser.newContext();
   const batches: Batch[] = [], requests: string[] = [];
-  await context.addInitScript(({ automated, optOut, extension }) => {
+  await context.addInitScript(({ automated, optOut, extension, gpc, dnt }) => {
     if (!automated) Object.defineProperty(navigator, "webdriver", { get: () => false });
+    Object.defineProperty(navigator, "globalPrivacyControl", { get: () => gpc });
+    Object.defineProperty(navigator, "doNotTrack", { get: () => dnt ? "1" : null });
     if (optOut) localStorage.setItem("ct:opt-out", "1");
     if (extension) {
       const disable = () => document.documentElement?.setAttribute("data-ct-disabled", "");
       new MutationObserver(disable).observe(document, { childList: true });
       disable();
     }
-  }, { automated, optOut, extension });
+  }, { automated, optOut, extension, gpc, dnt });
   await context.route("**/*", async (route) => {
     const request = route.request(), url = new URL(request.url());
     requests.push(request.url());
@@ -37,7 +41,7 @@ async function session({ automated = false, optOut = false, extension = false } 
       await route.fulfill({ status: 202, headers: { "Access-Control-Allow-Origin": production }, body: "{}" });
       return;
     }
-    if (![production, "https://preview.example.test"].includes(url.origin)) { await route.abort(); return; }
+    if (![production, preview, local].includes(url.origin)) { await route.abort(); return; }
     if (url.pathname === "/host.html") {
       await route.fulfill({ contentType: "text/html", body: `<!doctype html><div id="host" style="height:600px"></div><script type="module">
         import { mountViewer } from '/skyline-shell.js';
@@ -87,13 +91,13 @@ async function flush(page: Page, expectBatch = false) {
 async function close(context: BrowserContext) { await context.close(); }
 
 describe("standalone site click tracking", () => {
-  test("all pages and the SVG capture real clicks with fixed routes and no private URL or DOM data", async () => {
+  test("all pages and the SVG override GPC with fixed routes and no private URL or DOM data", async () => {
     for (const [pathname, normalized] of [
       ["/", "/"], ["/skyline-3d", "/skyline-3d"], ["/building-detail.html", "/building-detail"],
       ["/skyline-study", "/skyline-study"], ["/building-study.html", "/building-study"],
       ["/skyline-webgl", "/skyline-webgl"], ["/skyline-animated.svg", "/skyline-animated.svg"],
     ] as const) {
-      const { context, page, batches } = await session();
+      const { context, page, batches } = await session({ gpc: true });
       try {
         await loaded(page, `${pathname}?private=secret#personal-fragment`);
         await clickFixture(page);
@@ -132,11 +136,11 @@ describe("standalone site click tracking", () => {
     } finally { await close(context); }
   }, 30_000);
 
-  test("automation, preview origins and both opt-out mechanisms never send clicks", async () => {
-    for (const options of [{ automated: true }, { optOut: true }, { extension: true }, { preview: true }]) {
-      const { context, page, batches } = await session(options);
+  test("GPC override preserves DNT, automation, opt-outs and local or preview origin guards", async () => {
+    for (const options of [{ dnt: true }, { automated: true }, { optOut: true }, { extension: true }, { preview: true }, { local: true }]) {
+      const { context, page, batches } = await session({ ...options, gpc: true });
       try {
-        await loaded(page, "/", "preview" in options ? "https://preview.example.test" : production);
+        await loaded(page, "/", "preview" in options ? preview : "local" in options ? local : production);
         await clickFixture(page);
         await flush(page);
         expect(batches).toEqual([]);
@@ -145,7 +149,7 @@ describe("standalone site click tracking", () => {
   }, 60_000);
 
   test("opt-out discards queued events and synthetic clicks never enter the queue", async () => {
-    const { context, page, batches } = await session();
+    const { context, page, batches } = await session({ gpc: true });
     try {
       await loaded(page);
       await clickFixture(page);
@@ -164,7 +168,7 @@ describe("standalone site click tracking", () => {
   }, 30_000);
 
   test("a reusable viewer mounted on the production origin does not load or initialize tracking", async () => {
-    const { context, page, batches, requests } = await session();
+    const { context, page, batches, requests } = await session({ gpc: true });
     try {
       await page.goto(`${production}/host.html`);
       await page.locator("#menu-toggle").click();

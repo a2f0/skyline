@@ -52,7 +52,7 @@
     }
   },
   "dependencies": {
-    "@a2f0/ct-client": "0.1.0",
+    "@a2f0/ct-client": "0.1.2",
     "@types/three": "0.186.0"
   },
   "scripts": {

@@ -19,6 +19,6 @@ const routes: Readonly<Record<string, string>> = {
 };
 const route = routes[location.pathname];
 if (location.origin === "https://skyline.devopsrockstars.com" && route) {
-  const tracker = createTracker({ site: "skyline", capture: "all", page: () => route });
+  const tracker = createTracker({ site: "skyline", capture: "all", overrideGpc: true, page: () => route });
   tracker.init();
 }
