@@ -76,6 +76,9 @@ repository holds the `.secrets` link and, in `src/`, assets the site never reque
 new top-level runtime files in `src/` there or they will not ship. Top-level
 `.ts` files in `src/models/` ship automatically as compiled `.js`, and their
 `.svg` excerpts ship as-is; nested directories and other file types do not.
+The site's click tracker initializes only in standalone page bootstraps on the
+production origin; never initialize it from reusable viewer or package modules.
+`docs/click-tracking.md` covers the pinned client asset, privacy and test guards.
 `terraform/` owns only the custom-domain binding. Its state lives in Skyline's own
 Cloudflare R2 bucket, `skyline-terraform-state`, through the complete S3 backend
 in `terraform/versions.tf`; no AWS credentials are involved. Terraform credentials

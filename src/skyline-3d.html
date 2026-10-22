@@ -8,6 +8,7 @@
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="study.css" />
     <title>3D Chicago Skyline</title>
+    <script type="module" src="click-tracking-page.js"></script>
   </head>
   <body class="skyline-3d">
     <main class="viewport" id="viewport">
@@ -32,35 +33,35 @@
       <p class="visually-hidden" id="celebration-announcement" role="status"></p>
       <noscript><style>#loading { display: none; }</style><p class="loading">Enable JavaScript to explore the 3D skyline.</p></noscript>
       <section class="detail-panel" id="building-detail" role="dialog" aria-label="Building detail" hidden>
-        <button type="button" class="detail-close" id="detail-close" aria-label="Close building detail" title="Close (Esc)">×</button>
+        <button type="button" class="detail-close" id="detail-close" data-ct="skyline.detail-close" aria-label="Close building detail" title="Close (Esc)">×</button>
       </section>
     </main>
     <footer class="control-bar" aria-label="3D skyline controls">
       <!-- Chicago's six-pointed star, after devopsrockstars' white-star-only.svg, drawn in
            the bar's muted grey: points 12 units out, the notches between them 4.66. -->
-      <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="camera-views model-display scene-notes" aria-label="Skyline controls" title="Show the controls">
+      <button type="button" class="menu-toggle" id="menu-toggle" data-ct="skyline.menu-toggle" aria-expanded="false" aria-controls="camera-views model-display scene-notes" aria-label="Skyline controls" title="Show the controls">
         <svg viewBox="-12 -12 24 24" aria-hidden="true" focusable="false"><path d="M0-12 2.33-4.04 10.39-6 4.66 0 10.39 6 2.33 4.04 0 12-2.33 4.04-10.39 6-4.66 0-10.39-6-2.33-4.04Z" /></svg>
       </button>
       <div class="button-group camera-views" id="camera-views" role="group" aria-label="Camera views">
-        <button type="button" data-view="skyline" aria-pressed="true">skyline view</button>
-        <button type="button" data-view="quarter" aria-pressed="false">three-quarter</button>
-        <button type="button" data-view="side" aria-pressed="false">side</button>
-        <button type="button" data-view="top" aria-pressed="false">ground plan ↓</button>
-        <button type="button" data-view="heights" aria-pressed="false">height comparison</button>
-        <button type="button" id="reset">reset view</button>
+        <button type="button" data-view="skyline" data-ct="skyline.view.skyline" aria-pressed="true">skyline view</button>
+        <button type="button" data-view="quarter" data-ct="skyline.view.quarter" aria-pressed="false">three-quarter</button>
+        <button type="button" data-view="side" data-ct="skyline.view.side" aria-pressed="false">side</button>
+        <button type="button" data-view="top" data-ct="skyline.view.top" aria-pressed="false">ground plan ↓</button>
+        <button type="button" data-view="heights" data-ct="skyline.view.heights" aria-pressed="false">height comparison</button>
+        <button type="button" id="reset" data-ct="skyline.reset">reset view</button>
       </div>
       <div class="button-group model-display" id="model-display" role="group" aria-label="Model display">
-        <button type="button" id="streets" aria-pressed="true">streets</button>
-        <button type="button" id="footprints" aria-pressed="false">footprints</button>
-        <button type="button" id="wireframe" aria-pressed="false">wireframe</button>
-        <button type="button" id="colour" aria-pressed="false" title="Colour trial: a sunny day, each measured building in its photographed colours; the rest stay grey">colour</button>
-        <button type="button" id="turntable" aria-pressed="false" aria-describedby="motion-status">turntable</button>
-        <button type="button" id="show-original" title="Compare with the original skyline SVG" hidden>show original</button>
+        <button type="button" id="streets" data-ct="skyline.streets" aria-pressed="true">streets</button>
+        <button type="button" id="footprints" data-ct="skyline.footprints" aria-pressed="false">footprints</button>
+        <button type="button" id="wireframe" data-ct="skyline.wireframe" aria-pressed="false">wireframe</button>
+        <button type="button" id="colour" data-ct="skyline.colour" aria-pressed="false" title="Colour trial: a sunny day, each measured building in its photographed colours; the rest stay grey">colour</button>
+        <button type="button" id="turntable" data-ct="skyline.turntable" aria-pressed="false" aria-describedby="motion-status">turntable</button>
+        <button type="button" id="show-original" data-ct="skyline.show-original" title="Compare with the original skyline SVG" hidden>show original</button>
         <div class="time-controls">
           <label for="time-of-day"><span id="time-caption">Chicago time</span> <span id="time-date"></span></label>
           <input id="time-of-day" type="range" min="0" max="1439" step="1" value="0" aria-labelledby="time-caption" />
           <output id="time-value" for="time-of-day" aria-live="off">original night</output>
-          <button type="button" id="reset-light" disabled title="Restore the original lighting preset">reset light</button>
+          <button type="button" id="reset-light" data-ct="skyline.reset-light" disabled title="Restore the original lighting preset">reset light</button>
         </div>
         <div class="celebration-controls" id="celebration-controls" role="group" aria-label="Celebratory window lighting">
           <span class="celebration-caption">lights</span>
@@ -107,7 +108,7 @@
     <div class="context-menu" id="building-menu" hidden>
       <p class="context-menu-title" id="building-menu-title"></p>
       <div role="menu" aria-labelledby="building-menu-title">
-        <a role="menuitem" id="building-detail-link" href="building-detail.html">building detail</a>
+        <a role="menuitem" id="building-detail-link" data-ct="skyline.building-detail-link" href="building-detail.html">building detail</a>
         <div id="building-lighting-menu" role="group" aria-label="Celebratory window lighting" hidden></div>
       </div>
     </div>

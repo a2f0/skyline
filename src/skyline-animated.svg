@@ -18684,6 +18684,8 @@
        font-weight="600">Building name</text>
   </g>
   <script><![CDATA[
+    // Analytics is optional and must not prevent the drawing from loading.
+    import("./click-tracking-page.js").catch(() => {});
     (() => {
       const svg = document.documentElement;
       const tooltip = document.querySelector("#building-tooltip");

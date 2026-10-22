@@ -264,18 +264,18 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
     const nav = element(document, "nav", { className: "controls" }, { "aria-label": "Skyline controls" });
     const button = (id: string, text: string, attributes: Record<string, string> = {}) =>
       element(document, "button", { type: "button", id, textContent: text }, { "aria-pressed": "false", ...attributes });
-    const fullscreenButton = button("fullscreen", "fullscreen");
+    const fullscreenButton = button("fullscreen", "fullscreen", { "data-ct": "viewer.fullscreen" });
     fullscreenButton.hidden = !document.fullscreenEnabled;
     fullscreenButton.addEventListener("click", () => void toggleFullscreen(), listening);
     nav.append(fullscreenButton);
     for (const [name, toggle] of Object.entries(toggles) as [keyof typeof toggles, (typeof toggles)[keyof typeof toggles]][]) {
-      const toggleButton = button(toggle.id, toggle.label);
+      const toggleButton = button(toggle.id, toggle.label, { "data-ct": `viewer.mode.${name}` });
       toggleButton.addEventListener("click", () => showMode(mode === name ? "3d" : name), listening);
       nav.append(toggleButton);
     }
     nav.append(
-      element(document, "a", { href: new URL("building-study.html", assets).href, textContent: "3d building" }),
-      element(document, "a", { href: new URL("skyline-study.html", assets).href, textContent: "skyline study" }),
+      element(document, "a", { href: new URL("building-study.html", assets).href, textContent: "3d building" }, { "data-ct": "viewer.building-study" }),
+      element(document, "a", { href: new URL("skyline-study.html", assets).href, textContent: "skyline study" }, { "data-ct": "viewer.skyline-study" }),
     );
     const debugButton = button("debug-motion", "debug motion", { "aria-describedby": "stars-motion-status" });
     const motionStatus = element(document, "p", { className: "motion-status", id: "stars-motion-status" }, { role: "status" });
