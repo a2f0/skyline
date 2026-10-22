@@ -76,10 +76,12 @@ async function clickFixture(page: Page) {
   await page.locator("#private-element-id").click();
 }
 
-async function flush(page: Page) {
+async function flush(page: Page, expectBatch = false) {
+  const sent = expectBatch ? page.waitForResponse(endpoint) : null;
   await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
-  // The flush starts synchronously; allow the intercepted request to complete.
-  await page.waitForTimeout(100);
+  if (sent) await sent;
+  // Negative cases give an unexpected request time to arrive before asserting.
+  else await page.waitForTimeout(100);
 }
 
 async function close(context: BrowserContext) { await context.close(); }
@@ -96,7 +98,7 @@ describe("standalone site click tracking", () => {
         await loaded(page, `${pathname}?private=secret#personal-fragment`);
         await clickFixture(page);
         expect(batches).toEqual([]); // queued until a lifecycle flush
-        await flush(page);
+        await flush(page, true);
         expect(batches.length, pathname).toBe(1);
         expect(batches[0]!.site).toBe("skyline");
         expect(batches[0]!.events).toHaveLength(1);
@@ -115,14 +117,15 @@ describe("standalone site click tracking", () => {
     try {
       await loaded(page);
       await page.locator('[data-ct="viewer.mode.enhanced"]').click();
-      await flush(page);
+      await flush(page, true);
       expect(batches[0]!.events.map(({ label }) => label)).toEqual(["viewer.mode.enhanced"]);
       const frame = page.frames().find((frame) => frame.url().endsWith("/skyline-animated.svg"));
       expect(frame).toBeDefined();
       await frame!.waitForFunction(() => performance.getEntriesByType("resource").some((entry) => entry.name.endsWith("/vendor/ct-client.js")));
       await page.frameLocator('iframe[src$="skyline-animated.svg"]').locator("svg").click({ position: { x: 100, y: 100 } });
+      const sent = page.waitForResponse(endpoint);
       await frame!.evaluate(() => window.dispatchEvent(new Event("pagehide")));
-      await page.waitForTimeout(100);
+      await sent;
       expect(batches).toHaveLength(2);
       expect(batches[1]!.events).toHaveLength(1);
       expect(batches[1]!.events[0]!.page).toBe("/skyline-animated.svg");
@@ -155,7 +158,7 @@ describe("standalone site click tracking", () => {
       await flush(page);
       expect(batches).toEqual([]);
       await page.mouse.click(80, 80);
-      await flush(page);
+      await flush(page, true);
       expect(batches[0]!.events).toHaveLength(1);
     } finally { await close(context); }
   }, 30_000);

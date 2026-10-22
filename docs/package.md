@@ -90,6 +90,8 @@ same entrypoints, declarations, and complete viewer assets.
 The declared `@a2f0/ct-client` dependency supplies the standalone site's pinned
 analytics asset during this build. Package imports and viewer mounts do not
 initialize tracking; only the standalone production site's page bootstraps do.
+Npm consumers also receive this dependency, although their tarball already
+contains the built asset, so both install methods keep the same dependency graph.
 
 ## Copy the viewer assets
 

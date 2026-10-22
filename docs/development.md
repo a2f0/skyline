@@ -11,7 +11,7 @@ explains the tooling behind it.
 | --- | --- |
 | `src/` | The site: pages, styles, drawings, the viewer's shell and module, browser and package entry modules, and their build configs |
 | `src/models/` | Building models, the shared building kit, and the drawing excerpts they were fitted to |
-| `src/vendor/` | The vendored Three.js bundle, its declarations, and its license |
+| `src/vendor/` | The vendored Three.js bundle, declarations and license, plus the click client's declaration shim; the build copies its published ESM into `dist/vendor/ct-client.js` |
 | `scripts/` | Build, check, deploy, and measuring tools, and the Git hooks |
 | `tests/` | Unit and browser suites and the shared fidelity measurements |
 | `docs/` | Topic documentation, building reference audits, and fidelity evidence |
