@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="study.css" />
     <!-- Framed by another page, the page leaves its links to the frame's own controls. -->
     <script>if (window.frameElement) document.documentElement.classList.add("framed");</script>
+    <script type="module" src="click-tracking-page.js"></script>
   </head>
   <body>
     <!-- The viewer's panel renders .detail-root in a shadow root of its own (skyline-3d.ts). -->
@@ -34,15 +35,15 @@
               </div>
               <div class="toolbar" aria-label="Building detail controls">
                 <div class="button-group" role="group" aria-label="Camera views">
-                  <button type="button" data-view="front">front</button>
-                  <button type="button" data-view="quarter" aria-pressed="true">three-quarter</button>
-                  <button type="button" data-view="side">side</button>
-                  <button type="button" id="reset">reset view</button>
+                  <button type="button" data-view="front" data-ct="detail.view.front">front</button>
+                  <button type="button" data-view="quarter" data-ct="detail.view.quarter" aria-pressed="true">three-quarter</button>
+                  <button type="button" data-view="side" data-ct="detail.view.side">side</button>
+                  <button type="button" id="reset" data-ct="detail.reset">reset view</button>
                 </div>
                 <div class="button-group" role="group" aria-label="Model display">
-                  <button type="button" id="wireframe" aria-pressed="false">wireframe</button>
-                  <button type="button" id="colour" aria-pressed="false" title="Show the building in sunny-day colour">colour</button>
-                  <button type="button" id="turntable" aria-pressed="false" aria-describedby="motion-status">turntable</button>
+                  <button type="button" id="wireframe" data-ct="detail.wireframe" aria-pressed="false">wireframe</button>
+                  <button type="button" id="colour" data-ct="detail.colour" aria-pressed="false" title="Show the building in sunny-day colour">colour</button>
+                  <button type="button" id="turntable" data-ct="detail.turntable" aria-pressed="false" aria-describedby="motion-status">turntable</button>
                 </div>
               </div>
             </div>

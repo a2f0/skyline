@@ -6,7 +6,7 @@ Three.js in `src/vendor/`; keep the root to repository configuration, and
 `docs/development.md` maps the layout. Sources live as `.ts`; the browser module
 graph (the viewer's `viewer-page.ts`, `skyline-shell.ts`, `skyline-viewer.ts`,
 `markup.ts`, `three-engine.ts`, `solar-time.ts` and `time-of-day.ts`; the pages'
-`study-loader.ts`, `skyline-3d-page.ts` and `building-detail-page.ts`; `study-viewer.ts`, `skyline-study.ts`,
+`study-loader.ts`, `skyline-3d-page.ts`, `building-detail-page.ts` and `click-tracking-page.ts`; `study-viewer.ts`, `skyline-study.ts`,
 `skyline-comparison.ts`, `skyline-3d.ts`, `building-study.ts`, `building-detail.ts`, and `models/*.ts`, all
 under `src/`) compiles to `dist/` with tsc, which is the only build step, and
 `dist/` is gitignored. Each keeps its path within `src/` in `dist/`, so page URLs
@@ -54,7 +54,7 @@ runner checks managed skill drift, tool configuration and dependency advisories,
 repository, verifies the vendored engine and license against the locked dependencies,
 runs the attribution, signatures, hooks, timings, merge guard, deploy verification, deploy secrets loader, local dependency runtime, grayscale,
 skyline-loading, package, reference excerpt, and building kit checks, then
-builds `dist/` and starts its own temporary server for the hover regressions,
+builds `dist/` and starts its own temporary server for click-tracking and hover regressions,
 both 3D study browser suites, the building
 detail suite, and the full-screen 3D skyline suite against the compiled site.
 It closes the server afterward. Study pages share `study-viewer.ts`, `study.css`, and
@@ -76,6 +76,9 @@ repository holds the `.secrets` link and, in `src/`, assets the site never reque
 new top-level runtime files in `src/` there or they will not ship. Top-level
 `.ts` files in `src/models/` ship automatically as compiled `.js`, and their
 `.svg` excerpts ship as-is; nested directories and other file types do not.
+The site's click tracker initializes only in standalone page bootstraps on the
+production origin; never initialize it from reusable viewer or package modules.
+`docs/click-tracking.md` covers the pinned client asset, privacy and test guards.
 `terraform/` owns only the custom-domain binding. Its state lives in Skyline's own
 Cloudflare R2 bucket, `skyline-terraform-state`, through the complete S3 backend
 in `terraform/versions.tf`; no AWS credentials are involved. Terraform credentials

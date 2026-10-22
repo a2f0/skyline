@@ -59,6 +59,7 @@ async function main() {
   try {
     const env = { ...process.env, SKYLINE_TEST_URL: server.origin };
     const browserSuite = (file: string) => timings.run(`test:${path.basename(file, ".test.ts")}`, () => run(process.execPath, ["test", `tests/${file}`], env));
+    await browserSuite("click-tracking.test.ts");
     await browserSuite("building-hover.test.ts");
     await browserSuite("building-study.test.ts");
     await browserSuite("building-detail.test.ts");

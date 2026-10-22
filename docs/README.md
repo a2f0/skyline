@@ -10,6 +10,7 @@
   **lights** badges and the limits of each reconstruction.
 - [Using Skyline as a package](package.md): installing, building, mounting, and importing the
   `@a2f0/skyline` ESM package, and how each merge releases it to npm.
+- [Click tracking](click-tracking.md): collected fields, browser opt-out, and production-only initialization.
 
 ## The drawing and the city
 

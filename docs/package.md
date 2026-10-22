@@ -87,6 +87,11 @@ it does not install Skyline's development dependencies or run dependency
 lifecycle scripts. Keep `trustedDependencies` unchanged. Run `bun install` after
 adding the script. Both the published tarball and this GitHub build expose the
 same entrypoints, declarations, and complete viewer assets.
+The declared `@a2f0/ct-client` dependency supplies the standalone site's pinned
+analytics asset during this build. Package imports and viewer mounts do not
+initialize tracking; only the standalone production site's page bootstraps do.
+Npm consumers also receive this dependency, although their tarball already
+contains the built asset, so both install methods keep the same dependency graph.
 
 ## Copy the viewer assets
 

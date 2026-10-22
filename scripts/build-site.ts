@@ -9,11 +9,16 @@
 import { cp, mkdir, readdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 
 export const root = path.resolve(import.meta.dirname, "..");
 // Entries below are paths within src/, and each keeps that path in dist/.
 export const src = path.join(root, "src");
 export const dist = path.join(root, "dist");
+
+// The published client is already standalone browser ESM; copy the exact pinned
+// artifact alongside our tsc output without introducing another build pipeline.
+const dependencyFiles = [{ from: fileURLToPath(import.meta.resolve("@a2f0/ct-client")), to: "vendor/ct-client.js" }];
 
 // Reachable from index.html and the viewer it mounts, the two study pages, the WebGL viewer,
 // the 3D skyline, and the building detail its context menu opens.
@@ -37,6 +42,7 @@ const staticFiles = [
 // with the same filename; removing or renaming one must fail the build rather
 // than ship a site whose script tags point at nothing.
 const compiledEntries = [
+  "click-tracking-page.ts",
   "viewer-page.ts",
   "skyline-shell.ts",
   "skyline-viewer.ts",
@@ -86,7 +92,7 @@ async function sourceEntries(): Promise<{ static: string[]; compiled: string[] }
 // static assets. scripts/verify-deploy.ts derives the published set the same way.
 export async function publishedFiles(): Promise<string[]> {
   const { static: staticSet, compiled } = await sourceEntries();
-  return [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet].sort();
+  return [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to)].sort();
 }
 
 // Compiles the browser module graph into dist/, keeping each module's path
@@ -110,7 +116,12 @@ export async function buildSite() {
     await mkdir(path.dirname(target), { recursive: true });
     await cp(path.join(src, entry), target);
   }
-  const entries = [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet];
+  for (const { from, to } of dependencyFiles) {
+    const target = path.join(dist, to);
+    await mkdir(path.dirname(target), { recursive: true });
+    await cp(from, target);
+  }
+  const entries = [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to)];
   const sizes = await Promise.all(entries.map(async (entry) => {
     try {
       return (await stat(path.join(dist, entry))).size;
@@ -119,7 +130,7 @@ export async function buildSite() {
     }
   }));
   const bytes = sizes.reduce((total, size) => total + size, 0);
-  console.log(`Built ${compiled.length} modules and staged ${staticSet.length} static files (${(bytes / 1024 / 1024).toFixed(2)} MB) into dist/.`);
+  console.log(`Built ${compiled.length} modules and staged ${staticSet.length + dependencyFiles.length} static files (${(bytes / 1024 / 1024).toFixed(2)} MB) into dist/.`);
   return entries;
 }
 

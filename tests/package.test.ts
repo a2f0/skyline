@@ -113,7 +113,7 @@ console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
     expect(result.engine).toContain("PCFSoftShadowMap");
   }, { timeout: 60_000 });
 
-  test("builds a GitHub source install with only the host's compiler and types", async () => {
+  test("builds a GitHub source install with declared dependencies and the host's compiler and types", async () => {
     const host = path.join(temporary, "github-consumer");
     const source = path.join(host, "node_modules/.bun/@a2f0+skyline@github/node_modules/@a2f0/skyline");
     const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8" }).split("\0").filter(Boolean);
@@ -125,6 +125,10 @@ console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
     for (const dependency of ["typescript", "@tsconfig", "@webgpu"]) {
       await symlink(path.join(root, "node_modules", dependency), path.join(host, "node_modules", dependency));
     }
+    // GitHub installs receive declared runtime dependencies, including the
+    // standalone analytics artifact copied into the site's assets.
+    await mkdir(path.join(host, "node_modules/@a2f0"), { recursive: true });
+    await symlink(path.join(root, "node_modules/@a2f0/ct-client"), path.join(host, "node_modules/@a2f0/ct-client"));
     // Real type files behind Bun-style symlinks reproduce declaration
     // portability failures that a flat checkout dependency layout can conceal.
     const types = path.join(host, "node_modules/.bun/types/node_modules/@types");
