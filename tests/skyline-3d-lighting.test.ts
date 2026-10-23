@@ -8,7 +8,7 @@ import { createGeographicBuilding, footprintMetrics } from "../src/models/skylin
 import { celebrations } from "../src/models/celebrations.js";
 import type * as THREE from "../src/vendor/three-r186.js";
 import { isThreeDeprecation } from "./three-warnings.js";
-import { chroma, lampTints, litPixels, near, nightChanges, openScene, origin, pageWatch, pixelAt, settle, steadyScreenshot } from "./skyline-3d-page.js";
+import { chroma, lampTints, litPixels, near, nightChanges, openScene, origin, pageWatch, pixelAt, settle, expectChangedPicture, expectSamePicture } from "./skyline-3d-page.js";
 
 describe("full-screen 3D skyline", () => {
   let browser!: Browser;
@@ -34,7 +34,7 @@ describe("full-screen 3D skyline", () => {
     await page.mouse.move(1, 1);
     await settle(page);
     const canvas = page.locator("#building");
-    const snapshot = () => steadyScreenshot(canvas, { style: ".scene-notes { visibility: hidden !important; }" });
+    const snapshot = () => canvas.screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
     const baseline = await snapshot();
     const identity = await page.evaluate(() => ({ names: window.__buildingStudy!.modelNames, triangles: window.__buildingStudy!.triangleCount, camera: window.__buildingStudy!.cameraPosition }));
     // Count actual rendered white pixels, so a correct controller with a broken
@@ -64,7 +64,7 @@ describe("full-screen 3D skyline", () => {
     expect(await chroma(page)).toBe(0);
     await page.locator("[data-celebration=thanks]").press("Space");
     await settle(page);
-    expect(await snapshot()).toEqual(baseline);
+    await expectSamePicture(page, await snapshot(), baseline, "turning a celebration off restores the unlit scene");
     expect(await page.evaluate(() => ({ names: window.__buildingStudy!.modelNames, triangles: window.__buildingStudy!.triangleCount, camera: window.__buildingStudy!.cameraPosition }))).toEqual(identity);
 
     await page.locator("[data-celebration=cubs]").click();
@@ -298,7 +298,7 @@ describe("full-screen 3D skyline", () => {
       const slider = page.getByRole("slider", { name: "Chicago time" });
       expect(await page.locator("#time-date").textContent()).toBe("Oct 15, 2026");
       const canvas = page.locator("#building");
-      const snapshot = () => steadyScreenshot(canvas, { style: ".scene-notes { visibility: hidden !important; }" });
+      const snapshot = () => canvas.screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
       const preset = await snapshot();
       const originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
       const skies: number[][] = [];
@@ -339,7 +339,7 @@ describe("full-screen 3D skyline", () => {
       await page.locator("#reset-light").click();
       expect(await slider.evaluate((element) => (element.getRootNode() as Document | ShadowRoot).activeElement === element), "reset keeps keyboard focus in the controls").toBe(true);
       await settle(page);
-      expect((await snapshot()).equals(preset), "reset restores the exact sunny preset, including reflections and shadows").toBe(true);
+      await expectSamePicture(page, await snapshot(), preset, "reset restores the exact sunny preset, including reflections and shadows");
       expect(await page.locator("#time-value").textContent()).toBe("sunny day");
       await page.locator(".control-bar #colour").click();
       await settle(page);
@@ -350,7 +350,7 @@ describe("full-screen 3D skyline", () => {
       await page.locator("#reset-light").click();
       expect(await slider.evaluate((element) => (element.getRootNode() as Document | ShadowRoot).activeElement === element), "reset keeps keyboard focus in the controls").toBe(true);
       await settle(page);
-      expect((await snapshot()).equals(grey), "reset restores the exact original night").toBe(true);
+      await expectSamePicture(page, await snapshot(), grey, "reset restores the exact original night");
       await slider.fill("720");
       const box = (await canvas.boundingBox())!;
       const record = geographicBuildings.find(({ id }) => id === "layer3")!;
@@ -378,14 +378,14 @@ describe("full-screen 3D skyline", () => {
       const detailAt = async (minute: number) => {
         await slider.fill(String(minute));
         await settle(page);
-        return steadyScreenshot(page.locator(".detail-host #building"));
+        return page.locator(".detail-host #building").screenshot();
       };
       const detailEvening = await detailAt(1200), detailEarly = await detailAt(240);
       const detailChange = await nightChanges(page, detailEvening, detailEarly), detailQuiet = await litPixels(page, detailEarly);
       expect(detailQuiet, "the floating detail keeps some overnight rooms lit").toBeGreaterThan(30);
       expect(detailChange.brighter, "the floating detail follows the skyline's occupancy cycle").toBeGreaterThan(100);
       expect(detailChange.dimmer).toBeLessThan(detailChange.brighter * 0.05);
-      expect((await detailAt(1200)).equals(detailEvening), "the detail restores the same rooms when scrubbing back").toBe(true);
+      await expectSamePicture(page, await detailAt(1200), detailEvening, "the detail restores the same rooms when scrubbing back");
       await slider.fill("1080");
       await settle(page);
       const detailColour = page.locator(".detail-host #colour");
@@ -474,7 +474,7 @@ describe("full-screen 3D skyline", () => {
       await page.goto(`${origin}/${route}?colour=1&controls=open`);
       await openScene(page);
       const slider = page.locator("#time-of-day");
-      const snapshot = () => steadyScreenshot(page.locator("#building"), { style: ".scene-notes { visibility: hidden !important; }" });
+      const snapshot = () => page.locator("#building").screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
       const preset = await snapshot();
       const at = async (minute: number) => { await slider.fill(String(minute)); await settle(page); return snapshot(); };
       const evening = await at(1200), early = await at(240);
@@ -486,22 +486,22 @@ describe("full-screen 3D skyline", () => {
       expect(quiet, "some windows and architectural lights remain overnight").toBeGreaterThan(100);
       expect(change.brighter, "rooms light up above unchanged stars and architectural lamps").toBeGreaterThan(1000);
       expect(change.dimmer, "increasing occupancy overwhelmingly brightens rooms").toBeLessThan(change.brighter * 0.05);
-      expect((await at(1200)).equals(evening), "scrubbing back recreates the same rooms").toBe(true);
+      await expectSamePicture(page, await at(1200), evening, "scrubbing back recreates the same rooms");
       await page.locator('[data-celebration="cubs"]').click();
       await settle(page);
-      expect((await snapshot()).equals(evening), "a celebration replaces ordinary windows on its tower").toBe(false);
+      await expectChangedPicture(page, await snapshot(), evening, "a celebration replaces ordinary windows on its tower");
       await page.locator('[data-celebration="cubs"]').click();
       await settle(page);
-      expect((await snapshot()).equals(evening), "switching a celebration off restores its ordinary rooms").toBe(true);
+      await expectSamePicture(page, await snapshot(), evening, "switching a celebration off restores its ordinary rooms");
       await page.locator(".control-bar #colour").click();
       await settle(page);
       expect(await chroma(page), "window emission also obeys greyscale").toBe(0);
       await page.locator(".control-bar #colour").click();
       await settle(page);
-      expect((await snapshot()).equals(evening)).toBe(true);
+      await expectSamePicture(page, await snapshot(), evening, "colour off and on again restores the evening");
       await page.locator("#reset-light").click();
       await settle(page);
-      expect((await snapshot()).equals(preset), "reset restores the exact daytime facades and outlines").toBe(true);
+      await expectSamePicture(page, await snapshot(), preset, "reset restores the exact daytime facades and outlines");
     }
     expect(shaderErrors).toEqual([]);
     await page.close();
@@ -567,14 +567,14 @@ describe("full-screen 3D skyline", () => {
       await detailToggle.click();
       expect(await toggle.getAttribute("aria-pressed")).toBe("false");
       await settle(page);
-      const grey = await steadyScreenshot(detail.locator("canvas"));
+      const grey = await detail.locator("canvas").screenshot();
       await toggle.click();
       expect(await detailToggle.getAttribute("aria-pressed")).toBe("true");
       await settle(page);
-      expect((await detail.locator("canvas").screenshot()).equals(grey)).toBe(false);
+      await expectChangedPicture(page, await detail.locator("canvas").screenshot(), grey, "colour reaches the floating detail");
       await toggle.click();
       await settle(page);
-      expect((await steadyScreenshot(detail.locator("canvas"))).equals(grey), "detail returns to exactly the same greys").toBe(true);
+      await expectSamePicture(page, await detail.locator("canvas").screenshot(), grey, "detail returns to exactly the same greys");
       await page.locator("#detail-close").click();
     }
     await page.goto(`${origin}/building-detail.html?building=building-three-illinois-center&colour=1`);

@@ -4,7 +4,7 @@
 import { expect } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import type { Frame, Locator, Page } from "playwright";
+import type { Frame, Page } from "playwright";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 import { createGeographicBuilding } from "../src/models/skyline-geography.js";
 import { toneOf } from "../src/models/colour-materials.js";
@@ -146,17 +146,28 @@ export async function openScene(page: Page) {
   return page;
 }
 
-// A screenshot that two captures in a row agree on, for the checks that compare pictures
-// exactly. On a busy machine Chrome can capture one rendered frame a level apart in a few
-// thousand pixels, with no new frame drawn, before it settles.
-export async function steadyScreenshot(locator: Locator, options: Parameters<Locator["screenshot"]>[0] = {}) {
-  let previous = await locator.screenshot(options);
-  for (let attempt = 0; attempt < 10; attempt += 1) {
-    const next = await locator.screenshot(options);
-    if (next.equals(previous)) return next;
-    previous = next;
-  }
-  return previous;
+// Screenshots of a canvas that should match exactly can still differ by a level in a few
+// thousand pixels: on a busy machine Chrome composites one rendered frame, where the canvas is
+// partly transparent, a level apart from one capture to the next, with no new frame drawn. So
+// pictures compare by their largest difference in any channel: the same picture within that
+// level, and a change only beyond it.
+export const pictureDifference = (page: Page, a: Buffer, b: Buffer) => page.evaluate(async (images) => {
+  const [first, second] = await Promise.all(images.map(async (data) => {
+    const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob(), { colorSpaceConversion: "none", premultiplyAlpha: "none" });
+    const context = new OffscreenCanvas(bitmap.width, bitmap.height).getContext("2d")!;
+    context.drawImage(bitmap, 0, 0);
+    return context.getImageData(0, 0, bitmap.width, bitmap.height);
+  }));
+  if (first!.width !== second!.width || first!.height !== second!.height) return Infinity;
+  let widest = 0;
+  for (let i = 0; i < first!.data.length; i += 1) widest = Math.max(widest, Math.abs(first!.data[i]! - second!.data[i]!));
+  return widest;
+}, [a.toString("base64"), b.toString("base64")]);
+export async function expectSamePicture(page: Page, actual: Buffer, expected: Buffer, message: string) {
+  if (!actual.equals(expected)) expect(await pictureDifference(page, actual, expected), message).toBeLessThanOrEqual(1);
+}
+export async function expectChangedPicture(page: Page, actual: Buffer, expected: Buffer, message: string) {
+  expect(await pictureDifference(page, actual, expected), message).toBeGreaterThan(1);
 }
 
 // Every page a suite watches has the viewer's hooks, and reports its page errors, requests

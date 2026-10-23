@@ -8,7 +8,7 @@ import { createGeographicSkyline } from "../src/skyline-scene.js";
 import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
-import { blueCrossScreen, boxHeight, boxWidth, boxX, boxY, chroma, near, openScene, origin, pageWatch, pixelAt, settle, shiftX, shiftY, steadyScreenshot, viewerHooks } from "./skyline-3d-page.js";
+import { blueCrossScreen, boxHeight, boxWidth, boxX, boxY, chroma, near, openScene, origin, pageWatch, pixelAt, settle, shiftX, shiftY, expectChangedPicture, expectSamePicture, viewerHooks } from "./skyline-3d-page.js";
 
 describe("full-screen 3D skyline", () => {
   let browser!: Browser;
@@ -602,7 +602,7 @@ describe("full-screen 3D skyline", () => {
     // Seen in height comparison, each changes the picture, and pressing it again restores it.
     await page.locator('[data-view="heights"]').click();
     await settle(page);
-    const picture = () => steadyScreenshot(page.locator("#building"));
+    const picture = () => page.locator("#building").screenshot();
     for (const [id, pressed] of [["streets", "true"], ["footprints", "false"]] as const) {
       const button = page.locator(`#${id}`);
       expect(await button.getAttribute("aria-pressed")).toBe(pressed);
@@ -610,11 +610,11 @@ describe("full-screen 3D skyline", () => {
       await button.click();
       await settle(page);
       expect(await button.getAttribute("aria-pressed")).toBe(String(pressed === "false"));
-      expect((await picture()).equals(before), `${id} changes the ground`).toBe(false);
+      await expectChangedPicture(page, await picture(), before, `${id} changes the ground`);
       await button.click();
       await settle(page);
       expect(await button.getAttribute("aria-pressed")).toBe(pressed);
-      expect((await picture()).equals(before), `${id} restores the ground`).toBe(true);
+      await expectSamePicture(page, await picture(), before, `${id} restores the ground`);
     }
     // Every view is drawn in greys with no filter to make it so: the buildings, the streets,
     // the footprints and the names over them.
@@ -633,7 +633,7 @@ describe("full-screen 3D skyline", () => {
     // turning colour off returns exactly the celebration's greys. Snapshots leave out the scene
     // notes, which name the celebration.
     const colour = page.locator("#colour"), cubs = page.locator('[data-celebration="cubs"]');
-    const scene = () => steadyScreenshot(page.locator("#building"), { style: ".scene-notes { visibility: hidden !important; }" });
+    const scene = () => page.locator("#building").screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
     // Blue Cross's crown screen, as red and blue: the sky alone would pass a test of hue.
     const screen = blueCrossScreen();
     const screenAt = async () => {
@@ -654,7 +654,7 @@ describe("full-screen 3D skyline", () => {
     await colour.click();
     await settle(page);
     expect(await colour.getAttribute("aria-pressed")).toBe("false");
-    expect((await scene()).equals(grey), "colour off restores the greys").toBe(true);
+    await expectSamePicture(page, await scene(), grey, "colour off restores the greys");
     await cubs.click();
     await settle(page);
     const lit = await scene();
@@ -666,10 +666,10 @@ describe("full-screen 3D skyline", () => {
     expect(await screenAt(), "a celebration keeps the colour").toBeGreaterThan(25);
     await colour.click();
     await settle(page);
-    expect((await scene()).equals(lit), "colour off restores the celebration's greys").toBe(true);
+    await expectSamePicture(page, await scene(), lit, "colour off restores the celebration's greys");
     await cubs.click();
     await settle(page);
-    expect((await scene()).equals(grey), "lights off restores the greys").toBe(true);
+    await expectSamePicture(page, await scene(), grey, "lights off restores the greys");
     // Escape inside the bar folds the toolbar back behind the star and returns focus to it.
     // The folding groups take no focus, so Tab from the star does not land in them.
     await page.locator("#wireframe").focus();
