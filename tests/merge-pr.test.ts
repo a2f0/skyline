@@ -20,9 +20,13 @@ function fixture(options: { preflightFailure?: boolean; confirmed?: boolean; mes
       if (options.mergeFailure) throw Object.assign(new Error("Shared merge failed"), { stderr: null });
       return "";
     }
+    if (file === "git") {
+      expect(args).toEqual(["branch", "--show-current"]);
+      return "chore/normalize-tooling";
+    }
     if (args[0] === "repo") return "a2f0/skyline";
     if (args[0] === "pr") {
-      if (called) expect(args[2]).toBe("123");
+      expect(args[2]).toBe(called ? "123" : "chore/normalize-tooling");
       return JSON.stringify({
         number: called ? options.mergedNumber ?? 123 : 123, title: options.title ?? "chore: change",
         state: called && options.confirmed !== false ? "MERGED" : "OPEN",

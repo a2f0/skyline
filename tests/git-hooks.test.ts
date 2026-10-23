@@ -303,6 +303,24 @@ describe("push signature enforcement", () => {
     }
   }, 60_000);
 
+  test("does not mistake a signature-looking commit body for a raw signature header", () => {
+    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-forged-signature-"));
+    const previousHead = git(["rev-parse", "HEAD"]).output.trim();
+    try {
+      execFileSync("git", ["init", "--bare", "--quiet", "--initial-branch=unused", remote]);
+      const message = "test: forged signature header\n\ngpgsig -----BEGIN SSH SIGNATURE-----\n forged body\n -----END SSH SIGNATURE-----";
+      expect(git(["commit", "--no-gpg-sign", "--allow-empty", "-m", message]).ok).toBe(true);
+      const unsigned = git(["rev-parse", "HEAD"]).output.trim();
+      const push = git(["push", remote, "HEAD:refs/heads/feat/forged-header"]);
+      expect(push.ok).toBe(false);
+      expect(push.output).toContain(unsigned);
+      expect(push.output).toContain("Signature does not meet");
+    } finally {
+      git(["reset", "--hard", previousHead]);
+      rmSync(remote, { recursive: true, force: true });
+    }
+  }, 60_000);
+
   test("refuses a stale installed policy snapshot before pushing", () => {
     const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-signatures-remote-"));
     const source = path.join(repo, "agent-tool.json");

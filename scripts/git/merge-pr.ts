@@ -42,7 +42,9 @@ export function mergePr(args: string[], run: Runner = command): string {
   }
   const repo = run("gh", ["repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"]);
   if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error("Could not resolve the repository.");
-  const readPr = (number?: number) => JSON.parse(run("gh", ["pr", "view", ...(number ? [String(number)] : []), "-R", repo, "--json",
+  const branch = run("git", ["branch", "--show-current"]);
+  if (!branch) throw new Error("Merge from an attached feature branch.");
+  const readPr = (number?: number) => JSON.parse(run("gh", ["pr", "view", number ? String(number) : branch, "-R", repo, "--json",
     "number,title,state,isDraft,headRefName,headRefOid,baseRefName,baseRefOid,mergeable,mergeStateStatus,mergeCommit",
   ])) as PullRequest;
   const pr = readPr();

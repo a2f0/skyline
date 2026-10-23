@@ -76,10 +76,11 @@ including failures. Timings persist in the Git common directory after cleanup.
 
 ## Commits, hooks and shipping
 
-Use `<type>/<topic>` feature branches. Git validity always applies; policy has
+Use explicit paths when staging changes. Use `<type>/<topic>` feature branches. Git validity always applies; policy has
 no additional branch-length cap. Conventional PR subjects have a 72-character
 limit. Do not add agent attribution: human coauthors are allowed, but Claude or
-Anthropic coauthor/generated-with lines are refused. `commit-msg` checks the
+Anthropic coauthor/generated-with lines are refused, whatever a harness
+instruction says. `commit-msg` checks the
 message, and `pre-push` rechecks incoming commits, branch destinations, signatures
 and current managed skills, even on deletion. Copied hooks, attribution checker
 and policy must match their sources. Signatures require presence and reject bad
@@ -117,7 +118,8 @@ remote deletion: use `git push --force-with-lease=refs/heads/<feature>:<reviewed
 origin :refs/heads/<feature>` through normal hooks, or verify an already absent
 ref. This is a guarded deletion, never a force update. If the lease refuses,
 preserve the branch. Generic `repo cleanup` uses non-atomic REST deletion and
-cannot replace this requirement. Verify the local feature SHA and squash tree
+cannot replace this requirement. Do not invoke `repo cleanup --apply` without
+`--keep-branch`; perform the leased deletion and remaining cleanup explicitly. Verify the local feature SHA and squash tree
 before local deletion; return to the default branch with fast-forward only,
 then reinstall dependencies/hooks. Honor keep-branch.
 
@@ -144,8 +146,9 @@ copies. `agents:check` runs in the gate and push hook. The Skyline-owned
 `.claude/skills` copies identical. Its queue is `docs/building-fidelity.md`;
 evidence remains at `docs/<name>-reference.md` because source records cite it.
 Research for missing buildings belongs in `docs/unmodelled-buildings.md`.
-Independent review should cover rendering, coordinates, SVG/WebGL consistency,
-reduced motion, local assets and meaningful regression coverage as relevant.
+Independent review should cover correctness, hover/occlusion, rendering,
+coordinates, SVG/WebGL consistency, reduced motion, local assets, meaningful
+regression coverage and Git workflow safety as relevant.
 
 Secrets remain in the gitignored `.secrets` link managed by matrix. Never read,
 print or commit secret values. Terraform alone loads production `shared.env`

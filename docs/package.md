@@ -81,6 +81,12 @@ prepare the same artifacts:
 }
 ```
 
+**Source-pin migration:** starting with 0.2.43, the documented build entrypoint
+moved from `scripts/build-package.ts` to `scripts/build/build-package.ts`. When
+updating an older GitHub commit pin, update the application's `postinstall` path
+at the same time. This is a breaking change for source installations using that
+path; npm tarballs and library exports keep their existing entrypoints.
+
 The host needs TypeScript 7, `@tsconfig/strictest`, `@types/bun`, and `@types/node`
 as development dependencies. The build resolves those tools from the host;
 it does not install Skyline's development dependencies or run dependency
@@ -376,9 +382,11 @@ It also runs the
 tarball and viewer package suite on Node.js 22 to verify the supported minimum.
 Only when those pass does it build and pack the tarball; both jobs run without
 publish rights, and the publish job receives only that tarball and runs
-`npm publish --ignore-scripts`. Dispatching the workflow on another branch
-(`gh workflow run npm-publish.yml --ref <branch>`) runs only the tests, in a queue of its own,
-so it never displaces a pending publish.
+`npm publish --ignore-scripts`. Dispatching the workflow on another branch that
+satisfies the configured naming policy (`<type>/<topic>`, plus the documented
+exemptions) runs only the tests, in a queue of its own. Use
+`gh workflow run npm-publish.yml --ref <branch>`;
+that queue never displaces a pending publish.
 
 npm adds a trusted publisher only to a package that already exists, so the first version
 is published by hand from an up-to-date `main`. Until then the workflow fails with that

@@ -193,7 +193,9 @@ every non-deleted destination branch through shared `branch check --pre-push`,
 then checks attribution and shared signature policy for incoming commits.
 Conventional `<type>/<topic>` names are required except `main` and `master`,
 with no extra length cap. CI passes its actual ref name directly instead of
-changing the checkout to validate it.
+changing the checkout to validate it. Local full checks require an attached branch;
+in detached CI, `CI=true` skips the implicit local check and the workflow validates
+its explicit ref name.
 
 Signatures require presence and reject provably bad signatures, without requiring
 every contributor's key locally. The configured `present` mode accepts G/U/E/X/Y/R;
