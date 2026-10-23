@@ -29,7 +29,7 @@ photographs, not a survey or construction drawings.
   and the lightwell is lined with white-glazed brick"; an open lightwell "surrounded by a
   ring of offices".
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront. The
-  drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its camera;
+  drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its camera;
   see [the geographic audit](skyline-geography.md#skyline-camera). At the building, about
   10 of the drawing's layer units are one metre of height. The photograph shows:
   - the Michigan front's eleven bays of paired windows, with a belt under the top three
@@ -153,12 +153,12 @@ lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
 unknown; inspected 2026-10-09). It records the building under the city's night lighting in 2013,
 so these are **observed** night colours, not the materials' daylight colours.
 
-Method: `scripts/measure-group.ts` aligned the building's drawn group with the photograph
+Method: `scripts/fidelity/measure-group.ts` aligned the building's drawn group with the photograph
 (`skyline.svg` places the image at x −15558.758, y −1754.2251, 26553.332 × 7086.6665 in the
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts night building-railway-exchange`
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts night building-railway-exchange`
 reproduces these rows and prints the palette entries they gave, decoding the photograph in Chrome
 without colour management. Single pixels at this scale mix neighbouring materials, which the
 quartiles show; the medians are the values used.
@@ -206,7 +206,7 @@ are lit, and the east faces are in shade (observed).
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-railway-exchange`
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-railway-exchange`
 downloads each photograph once, checks its SHA-256, and reproduces these rows and the palette's
 entries, decoding in Chrome without colour management. The building is about 65 pixels wide in the
 rendition, so single pixels mix neighbouring materials, which the quartiles show; the medians are

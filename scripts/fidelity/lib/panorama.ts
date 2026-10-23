@@ -1,13 +1,13 @@
 // The colour trial's daytime panorama, Chicago.jpg in its 3840 × 551 px rendition, fitted to the
-// mapped buildings; scripts/panorama-owners.ts prints what this finds. The panorama is
+// mapped buildings; scripts/fidelity/panorama-owners.ts prints what this finds. The panorama is
 // cylindrical: a column is linear in bearing from the photographer's eye, and a row linear in the
 // tangent of elevation. The fit starts from the drawing's fitted eye, which stands at nearly the
 // same spot, and finds the eye and both lines that best match tower silhouettes read against the
 // sky, Michigan Avenue corners and roof rows. Each pixel then goes to the nearest mapped building
 // part a ray from the eye meets, every part a prism from its bottom to its top, with the outward
 // bearing of the face it meets: 90° is an east front, 180° a south face.
-import { geographicBuildings } from "../../src/models/skyline-geography-data.js";
-import { projectGround } from "../../src/models/skyline-geography.js";
+import { geographicBuildings } from "../../../src/models/skyline-geography-data.js";
+import { projectGround } from "../../../src/models/skyline-geography.js";
 
 export type Vec2 = [number, number];
 interface Prism { building: string; ring: Vec2[]; bottom: number; top: number }

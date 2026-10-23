@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs Terraform for the skyline.devopsrockstars.com custom domain.
 #
-# Usage: scripts/terraform.sh <init|plan|apply|destroy|output> [terraform args...]
+# Usage: scripts/deploy/terraform.sh <init|plan|apply|destroy|output> [terraform args...]
 #
 # Content deploys do not go through here. `bun run deploy` publishes the Worker;
 # this stack only attaches the hostname to it.
@@ -21,7 +21,7 @@ esac
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 # shellcheck source=./secrets.sh
-source "$REPO_ROOT/scripts/secrets.sh"
+source "$REPO_ROOT/scripts/deploy/secrets.sh"
 load_deploy_secrets
 use_state_credentials
 

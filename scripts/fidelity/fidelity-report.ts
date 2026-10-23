@@ -7,12 +7,12 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import type { Browser } from "playwright";
-import { startServer } from "./lib/static-server.js";
+import { startServer } from "../lib/static-server.js";
 import { launch, openStudy, command } from "./lib/study-page.js";
-import { fitted, landmarks, landmarkTolerance, models } from "../tests/skyline-landmarks.js";
-import { viewports, checkSpec, measureStudy } from "../tests/study-fidelity.js";
+import { fitted, landmarks, landmarkTolerance, models } from "../../tests/skyline-landmarks.js";
+import { viewports, checkSpec, measureStudy } from "../../tests/study-fidelity.js";
 
-const usage = `Usage: bun scripts/fidelity-report.ts [--json file] [--root dir]
+const usage = `Usage: bun scripts/fidelity/fidelity-report.ts [--json file] [--root dir]
   Prints landmark errors, column residuals, sight-line gaps, silhouettes, and triangles
   at the skyline test's five layouts. --json also writes the raw numbers; --root serves
   another checkout (default: this one).`;
@@ -75,10 +75,10 @@ const table = (title: string, columns: string[], rows: (string | number)[][]) =>
 
 command(usage, { json: { type: "string" }, root: { type: "string" } }, async ({ values }) => {
   checkSpec({ fitted, models });
-  const root = path.resolve((values["root"] as string) || path.join(import.meta.dirname, ".."));
+  const root = path.resolve((values["root"] as string) || path.join(import.meta.dirname, "../.."));
   // The study pages load the compiled modules, so the default serves a fresh
   // build; --root serves another checkout as-is (pre-build checkouts are JS-era).
-  const serveRoot = values["root"] ? root : (await import("./build-site.js").then(({ buildSite, dist }) => buildSite().then(() => dist)));
+  const serveRoot = values["root"] ? root : (await import("../build/build-site.js").then(({ buildSite, dist }) => buildSite().then(() => dist)));
   const server = await startServer(serveRoot);
   const results: Record<string, StudyResult> = {};
   let browser: Browser | undefined;

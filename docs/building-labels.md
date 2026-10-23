@@ -46,7 +46,7 @@ Wabash beside it. See the [330 North Wabash audit](north-wabash-reference.md).
 
 Checked on 2026-09-28. The geographic layout's camera, fitted to the mapped buildings'
 roofs and tips, projects any mapped building into the drawing's layer space.
-`scripts/fit-geographic-camera.ts` describes the fit.
+`scripts/fidelity/fit-geographic-camera.ts` describes the fit.
 
 The comparison used an OpenStreetMap extract of the drawn area:
 [the Loop's east side](https://api.openstreetmap.org/api/0.6/map?bbox=-87.6320,41.8760,-87.6150,41.8920)

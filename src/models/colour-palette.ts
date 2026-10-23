@@ -7,7 +7,7 @@ import type { MaterialName } from "./colour-materials.js";
 // value is the per-channel median, in sRGB, of one material's pixels in a box of the photograph,
 // on a sunlit face where the photograph shows one; the building's reference audit records every
 // box, the rule that picked its pixels, their count and quartiles, and
-// scripts/sample-colours.ts measures them again. A material may instead name another of its
+// scripts/fidelity/sample-colours.ts measures them again. A material may instead name another of its
 // building's materials, whose colour it takes at its own grey's brightness, for a surface the
 // photograph does not resolve; null leaves it grey. A building with no entry stays grey. This is
 // the one file in the repository allowed colours, which tests/grayscale.test.ts exempts by name.
@@ -143,7 +143,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   },
   // FID-COL-005, the Michigan Avenue wall. Its fronts face east, into the photograph's shade; where a
   // building shows only that front, its stone or terracotta is the shaded median's sunlit estimate,
-  // through the shade-to-sun ratio of the Railway Exchange's terracotta (scripts/sample-colours.ts,
+  // through the shade-to-sun ratio of the Railway Exchange's terracotta (scripts/fidelity/sample-colours.ts,
   // the day study's shade): provisional, since cross-checks disagree with that ratio.
   // docs/borg-warner-reference.md, 2026-10-10 — Daytime colours from Chicago.jpg.
   "building-200-south-michigan": {
@@ -254,7 +254,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
   },
   // Michigan Avenue fronts Grant Park's trees hide in the panorama: measured in a close-up under an
   // overcast sky and calibrated to the panorama through Willoughby Tower's limestone beside them,
-  // its ratio in linear light between the two photographs (scripts/sample-colours.ts, the day
+  // its ratio in linear light between the two photographs (scripts/fidelity/sample-colours.ts, the day
   // study's references). Their glass, reflecting the overcast, stays grey.
   // docs/chicago-athletic-association-reference.md, 2026-10-10 — Daytime colours from a close-up calibrated to Chicago.jpg.
   "building-chicago-athletic-association": {
@@ -309,7 +309,7 @@ export const measuredColours: Readonly<Record<string, Readonly<Partial<Record<Ma
 };
 
 // The sunny day the colour toggle shows: the sky's blue at the top of the view and its haze just
-// above the horizon, each the median of a clear box of the same panorama (scripts/sample-colours.ts,
+// above the horizon, each the median of a clear box of the same panorama (scripts/fidelity/sample-colours.ts,
 // the day study's sky), and the sun's warm white, chosen.
 export const daylightColours = { sky: 0x9ebbdb, horizon: 0xc4d1e1, sun: 0xfff4e6 } as const;
 

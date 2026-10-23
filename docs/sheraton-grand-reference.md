@@ -38,7 +38,7 @@ construction drawings.
   - an open drum of maroon fins on each round end, the corner's highest;
   - the drums floodlit at night.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront. The
-  drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its camera;
+  drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its camera;
   see [the geographic audit](skyline-geography.md#skyline-camera). Right of The Buckingham,
   from about 7,300 to 7,430 layer units, the photograph shows a golden lit crown from 2,160
   to 2,260 over a tower of lit windows. The drawing paints the crown in pale and dark greys,
@@ -189,7 +189,7 @@ Commons' 3840 × 551 px rendition,
 repository. No change to these materials between 2008 and the drawing's 2013 panorama is known to
 this audit.
 
-Identification: `bun scripts/panorama-owners.ts building-buckingham-east` places the hotel's south
+Identification: `bun scripts/fidelity/panorama-owners.ts building-buckingham-east` places the hotel's south
 face at x 2127–2151 and its corner drum's faces at x 2152–2162, its roof at row 412, with the
 photographer's eye fitted as for FID-COL-005, 10 m east and 100 m south of the drawing's fitted eye,
 at 1.6 px RMS: a ray from that eye through each pixel meets the nearest mapped part, which owns the
@@ -201,7 +201,7 @@ script's `--box` option reports and `tests/panorama-owners.test.ts` checks.
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-buckingham-east`
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-buckingham-east`
 downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
 entries, decoding in Chrome without colour management.
 

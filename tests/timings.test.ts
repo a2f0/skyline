@@ -2,9 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { appendRun, createTimings, logPath, readRuns, runTable, stepTable } from "../scripts/lib/timings.js";
-import type { Run } from "../scripts/lib/timings.js";
-import { summarise } from "../scripts/show-timings.js";
+import { appendRun, createTimings, logPath, readRuns, runTable, stepTable } from "../scripts/testing/timings.js";
+import type { Run } from "../scripts/testing/timings.js";
+import { summarise } from "../scripts/testing/show-timings.js";
 
 // Clocks the test drives, so a timing test does not itself depend on timing.
 // Durations come from a monotonic clock and the timestamp from the wall clock,

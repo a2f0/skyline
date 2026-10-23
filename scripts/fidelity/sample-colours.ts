@@ -13,15 +13,15 @@
 // sample in a second photograph, for a building the study's own does not resolve, takes that
 // photograph's calibration where the study gives it a reference: the ratio between one material's
 // medians in the study's photograph and in the second, measured beside it in the same light.
-// Locate new boxes in skyline.jpg with scripts/measure-group.ts, whose photo crop frames a
-// building there, and in the day panorama with scripts/panorama-owners.ts, which reports the
+// Locate new boxes in skyline.jpg with scripts/fidelity/measure-group.ts, whose photo crop frames a
+// building there, and in the day panorama with scripts/fidelity/panorama-owners.ts, which reports the
 // share of a box a building owns on one face.
 import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { Browser } from "playwright";
 import { channelRatios, hex, scaled } from "./lib/shade.js";
-import { startServer } from "./lib/static-server.js";
+import { startServer } from "../lib/static-server.js";
 import { launch, command } from "./lib/study-page.js";
 
 interface Sample {
@@ -411,7 +411,7 @@ async function fetchPhoto(name: string, directory: string): Promise<void> {
   const { source, sha256 } = photos[name]!, target = path.join(directory, name);
   const digest = () => createHash("sha256").update(readFileSync(target)).digest("hex");
   if (existsSync(target) && digest() === sha256) return;
-  if (!/^https:/.test(source)) copyFileSync(path.join(import.meta.dirname, "..", source), target);
+  if (!/^https:/.test(source)) copyFileSync(path.join(import.meta.dirname, "../..", source), target);
   else {
     // Wikimedia asks for a descriptive agent, and answers 429 to a busy address: wait and retry,
     // for about 25 minutes in all.
@@ -427,7 +427,7 @@ async function fetchPhoto(name: string, directory: string): Promise<void> {
   if (digest() !== sha256) throw new Error(`${name} does not match its SHA-256, ${sha256}; the source has changed.`);
 }
 
-const usage = `Usage: bun scripts/sample-colours.ts <day|night> [building-id]
+const usage = `Usage: bun scripts/fidelity/sample-colours.ts <day|night> [building-id]
   Measures a study's samples, or one building's, and prints its audit rows and colour-palette.ts
   entries.`;
 
@@ -437,7 +437,7 @@ command(usage, {}, async ({ positionals }) => {
   if (!study) throw new Error(usage);
   const chosen = ids.length ? ids : Object.keys(study.samples);
   for (const id of chosen) if (!study.samples[id]) throw new Error(`No ${name} samples for ${id}; there are ${Object.keys(study.samples).join(", ")}.`);
-  const directory = path.join(import.meta.dirname, "..", "node_modules", ".cache", "skyline-colour-photos");
+  const directory = path.join(import.meta.dirname, "../..", "node_modules", ".cache", "skyline-colour-photos");
   mkdirSync(directory, { recursive: true });
   // The chosen samples' photographs, and the shade pairs' where a chosen sample is shaded.
   const needed = chosen.flatMap((id) => study.samples[id]!);

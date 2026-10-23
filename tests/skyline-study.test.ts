@@ -26,13 +26,13 @@ const twoPrudentialModule = models.find((model) => model.id === twoPrudential)!.
 const twoPrudentialSpec = fitted.find((spec) => spec.id === twoPrudential)!;
 const aonModule = models.find((model) => model.id === aon)!.module;
 const aonSpec = fitted.find((spec) => spec.id === aon)!;
-// The layouts come from the shared list, so scripts/fidelity-report.js measures the same pages.
+// The layouts come from the shared list, so scripts/fidelity/fidelity-report.js measures the same pages.
 const [desktop, laptop, tablet, tall, phone] = viewports;
 const silhouetteSlack = 0.001 / 1.20834767 / 1.19979319;
 
 async function checkReferenceMatch(page: Page) {
   // Landmarks, columns, and sight lines come from tests/skyline-landmarks.js through the
-  // shared maths in tests/study-fidelity.js, which scripts/fidelity-report.js also uses.
+  // shared maths in tests/study-fidelity.js, which scripts/fidelity/fidelity-report.js also uses.
   const { deviations, buildings } = await page.evaluate(
     measureStudy as unknown as (arg: unknown) => Promise<MeasureResult>,
     { landmarks, landmarkTolerance, fitted, models },

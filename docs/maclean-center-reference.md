@@ -29,7 +29,7 @@ published history, the drawing and photographs, not a survey or construction dra
   building was built in 1908 as the Illinois Athletic Club, and the school acquired it in
   1993.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront. The
-  drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its camera;
+  drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its camera;
   see [the geographic audit](skyline-geography.md#skyline-camera). At the building, about
   9.4 of the drawing's layer units are one metre of height. The photograph shows:
   - the narrow front's five columns of windows;
@@ -145,7 +145,7 @@ repository. It looks from nearly the drawing's viewpoint on a sunny day, five ye
 night panorama the drawing traces. No change to these materials between 2008 and 2013 is known to
 this audit. Grant Park's trees hide the wall's lower floors; every box stops above them.
 
-Identification: `bun scripts/panorama-owners.ts building-maclean-center` fits the rendition to the
+Identification: `bun scripts/fidelity/panorama-owners.ts building-maclean-center` fits the rendition to the
 mapped buildings, with the photographer's eye 10 m east and 100 m south of the drawing's fitted eye,
 at 1.6 px RMS over seven tower silhouettes against the sky, four Michigan Avenue corners where a
 sunlit south face meets a shaded front, and four roofs. A ray from that eye through each pixel meets
@@ -167,13 +167,13 @@ in red as the cutoff moves; Six North's sunlit brick and shaded front differ by 
 lighter terracotta. Borg-Warner's spandrels, sunlit and shaded, differ by only about 1.2, though
 glossy enamel reflects the sky as much as it scatters the sun. So the estimates are provisional,
 uncertain by a factor of two or more in linear light, until a second matte material showing both
-faces confirms the ratio. `bun scripts/sample-colours.ts day` measures the pair and prints each
+faces confirms the ratio. `bun scripts/fidelity/sample-colours.ts day` measures the pair and prints each
 estimate. Glass keeps its measured value: it reflects the sky rather than scattering the sun.
 
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-maclean-center`
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-maclean-center`
 downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
 entries, decoding in Chrome without colour management. The building's visible faces are 17 pixels
 wide in all, so single pixels mix neighbouring materials, which the quartiles show; the medians are

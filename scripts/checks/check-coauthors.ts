@@ -3,8 +3,8 @@
 // trailer; this one rejects only the agent attribution, so a human pairing
 // trailer still passes.
 //
-//   bun scripts/check-coauthors.ts --range <rev-range...>  # commits in a range
-//   bun scripts/check-coauthors.ts --message <file>        # a message being written
+//   bun scripts/checks/check-coauthors.ts --range <rev-range...>  # commits in a range
+//   bun scripts/checks/check-coauthors.ts --message <file>        # a message being written
 //
 // --range takes whatever `git log` takes, so the pre-push hook can ask for
 // "<sha> --not --remotes": every commit a push would transfer that no remote
@@ -92,7 +92,7 @@ export function reportMessage(lines: string[]): string {
   ].join("\n");
 }
 
-const USAGE = "Usage: bun scripts/check-coauthors.ts --range <rev-range...> | --message <file>";
+const USAGE = "Usage: bun scripts/checks/check-coauthors.ts --range <rev-range...> | --message <file>";
 export function checkCoauthors(args: string[], run: Runner = command): string | null {
   const [flag, value] = args;
   if (args.length < 2 || !value || (flag !== "--range" && flag !== "--message")) throw new Error(USAGE);

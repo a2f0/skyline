@@ -3,12 +3,12 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { buildSite, dist } from "./build-site.js";
-import { startServer } from "./lib/static-server.js";
+import { buildSite, dist } from "../build/build-site.js";
+import { startServer } from "../lib/static-server.js";
 import { launch, settle, command } from "./lib/study-page.js";
-import { geographicBuildings } from "../src/models/skyline-geography-data.js";
+import { geographicBuildings } from "../../src/models/skyline-geography-data.js";
 
-command("Usage: bun scripts/render-colours.ts [--out directory] [building-id ...]", { out: { type: "string" } }, async ({ values, positionals }) => {
+command("Usage: bun scripts/fidelity/render-colours.ts [--out directory] [building-id ...]", { out: { type: "string" } }, async ({ values, positionals }) => {
   const ids = positionals.length ? [...new Set(positionals)] : ["building-three-illinois-center", "building-michigan-plaza-south-tower", "building-crain-communications", "building-chicago-athletic-association"];
   for (const id of ids) if (!geographicBuildings.some((record) => record.id === id)) throw new Error(`Unknown geographic building: ${id}`);
   const out = path.resolve(values["out"] as string || path.join(os.tmpdir(), "skyline-colours"));

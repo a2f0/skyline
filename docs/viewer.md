@@ -165,14 +165,14 @@ top, lit by the scene's sun, 1.27 and 1.21, Swissôtel's sliver beside the Bucki
 shadow, 0.5, and the close-ups' Michigan fronts, in the scene's shade, 0.41 to 0.51 of their
 calibrated sunlit colours. The exposure is kept for all thirty-four. The scene's sun stands in the
 south-west, so the east faces the camera sees are in shade, as the photograph's are, and bluer, lit
-by the sky. `scripts/sample-colours.ts day` measures every colour again from the photographs, and
-`scripts/panorama-owners.ts` locates the mapped buildings in the panorama, pixel by pixel and face
+by the sky. `scripts/fidelity/sample-colours.ts day` measures every colour again from the photographs, and
+`scripts/fidelity/panorama-owners.ts` locates the mapped buildings in the panorama, pixel by pixel and face
 by face. The sampler's `night` study keeps the first measurements, of the night panorama the drawing
 traces, which the day replaced.
 
 The sky's two colours are each the median of a clear box of the panorama's 3840 × 551 px rendition
 (SHA-256 `a1d033489368cfa22a2d178d6a2ad82d00f9b529189836bee739b89b2e8cba41`), measured as the
-buildings' are; `bun scripts/sample-colours.ts day sky` reproduces them. The sun's warm white,
+buildings' are; `bun scripts/fidelity/sample-colours.ts day sky` reproduces them. The sun's warm white,
 `255, 244, 230`, is chosen, not measured.
 
 | Sample | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
@@ -197,9 +197,9 @@ Turning colour off restores every grey. Without a time preview, it also restores
 shader callbacks and cache keys; during a preview, the facade shader keeps the night lights in greyscale.
 The mask is reused across toggles and released with its geometry. No environment image is fetched.
 
-Run `bun scripts/render-colours.ts` for matching grey/day skyline and elevated comparisons,
+Run `bun scripts/fidelity/render-colours.ts` for matching grey/day skyline and elevated comparisons,
 mobile views and front/side close-ups, written to `/tmp/skyline-colours` by default. Pass building IDs as positional arguments
-to select close-ups, for example `bun scripts/render-colours.ts building-kemper`;
+to select close-ups, for example `bun scripts/fidelity/render-colours.ts building-kemper`;
 `--out <directory>` keeps before/after runs separate. Every close-up and skyline
 pair checks that colour changes the canvas and that toggling it off restores
 the grayscale canvas exactly within that browser run. A successful run writes
@@ -217,11 +217,11 @@ material of a sourced building is measured, named or left grey, finds each measu
 building and in its audit's daytime entry, and checks the day's sky and lights. Removing the trial
 means first separating the time preview's facade lighting (`models/night-windows.ts`, `setNight`,
 and `nightColours`) from the shared palette, materials and reflection layer if that preview is to stay.
-Then remove the trial's palette, materials, reflection layer and their tests, `scripts/sample-colours.ts` and `scripts/panorama-owners.ts` with
-their `scripts/lib/panorama.ts` and `scripts/lib/shade.ts`, the tests
+Then remove the trial's palette, materials, reflection layer and their tests, `scripts/fidelity/sample-colours.ts` and `scripts/fidelity/panorama-owners.ts` with
+their `scripts/fidelity/lib/panorama.ts` and `scripts/fidelity/lib/shade.ts`, the tests
 `tests/panorama-owners.test.ts` and `tests/colour-shade.test.ts` and their lines in
-`scripts/check.ts`, the colour options and toggles in the viewer and building details, the roads' daytime grey in `skyline-3d.ts`,
-`scripts/render-colours.ts`, the viewer's
+`scripts/testing/check.ts`, the colour options and toggles in the viewer and building details, the roads' daytime grey in `skyline-3d.ts`,
+`scripts/fidelity/render-colours.ts`, the viewer's
 `setDaylight` with its `Daylight` type, and the exemption.
 
 The page shares `study-viewer.ts`, `study.css`, and `study-loader.ts` with the
@@ -336,7 +336,7 @@ The 3D skyline's loading indicator is an inline SVG roofline traced left to righ
 faded and repeated until the first 3D frame appears. It is a level orthographic elevation of the
 mapped buildings, viewed from the skyline camera's horizontal direction, with no perspective or
 facade edges. Reduced motion shows the complete outline. After adding or changing buildings, run
-`bun scripts/skyline-loading.ts` to refresh the inline path in `skyline-3d.html`;
+`bun scripts/checks/skyline-loading.ts` to refresh the inline path in `skyline-3d.html`;
 `bun run check` catches a stale outline. The normal site build still only compiles TypeScript and
 copies assets.
 

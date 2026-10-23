@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { boxShare, drawingEye, fitPanorama, line, meet, owners, panoramaColumns, panoramaRows } from "../scripts/lib/panorama.js";
+import { boxShare, drawingEye, fitPanorama, line, meet, owners, panoramaColumns, panoramaRows } from "../scripts/fidelity/lib/panorama.js";
 
 // The colour trial's panorama audits (FID-COL-005 and FID-COL-006) quote this fit and place their
 // samples by its pixel owners; these keep a geography change from moving them unnoticed.

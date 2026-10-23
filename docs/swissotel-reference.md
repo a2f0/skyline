@@ -25,7 +25,7 @@ OpenStreetMap, published data and photographs, not a survey or construction draw
   2014: the tower beside Three Illinois Center, its panels in about 46 rows above Upper Wacker
   Drive.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront. The
-  drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its camera;
+  drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its camera;
   see [the geographic audit](skyline-geography.md#skyline-camera). At The Buckingham's west
   edge, from 6,878 to 6,904 layer units, the photograph shows a narrow dark strip, its top at
   1,869. The drawing's `buckingham-west` group hatches a strip there.
@@ -118,7 +118,7 @@ Commons' 3840 × 551 px rendition,
 repository. No change to these materials between 2008 and the drawing's 2013 panorama is known to
 this audit.
 
-Identification: `bun scripts/panorama-owners.ts building-swissotel` places the hotel's south face at
+Identification: `bun scripts/fidelity/panorama-owners.ts building-swissotel` places the hotel's south face at
 x 2070–2112 from row 368, with the photographer's eye fitted as for FID-COL-005, 10 m east and 100 m
 south of the drawing's fitted eye, at 1.6 px RMS: a ray from that eye through each pixel meets the
 nearest mapped part, which owns the pixel, and the face it meets gives the pixel's direction. The
@@ -130,7 +130,7 @@ the script's `--box` option reports and `tests/panorama-owners.test.ts` checks.
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-swissotel` downloads
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-swissotel` downloads
 the photograph once, checks its SHA-256, and reproduces these rows and the palette's entries,
 decoding in Chrome without colour management.
 

@@ -84,7 +84,7 @@ The box is on the tall tower's broad west face, above the traffic lights and bel
 shaft. Dark pixels select the frame/spandrels, while blue pixels select sky-facing panes and
 exclude warm office lights and reflected neighbouring masonry. Boxes are half-open in this
 rendition, medians and quartiles in sRGB. Reproduce with
-`bun scripts/sample-colours.ts day building-michigan-plaza-south-tower`.
+`bun scripts/fidelity/sample-colours.ts day building-michigan-plaza-south-tower`.
 
 | Sample | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |

@@ -28,7 +28,7 @@ construction drawings.
   41st-floor observatory, and "a 73-foot-tall antenna for WGN" welded "into a nearly
   12-foot-deep socket at the top of a 311-foot-tall tubular steel mast mounted on the roof".
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront.
-  The drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its
+  The drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its
   camera; see [the geographic audit](skyline-geography.md#skyline-camera). At One
   Prudential about 8.1 of the drawing's layer units, or 6.1 photo pixels, are one metre:
   through that camera the mapped south face spans 487.7 units against the drawn one's
@@ -192,13 +192,13 @@ lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
 unknown; inspected 2026-10-09). It records the building under the city's night lighting in 2013,
 so these are **observed** night colours, not the materials' daylight colours.
 
-Method: `scripts/measure-group.ts` aligned the building's drawn group with the photograph
+Method: `scripts/fidelity/measure-group.ts` aligned the building's drawn group with the photograph
 (`skyline.svg` places the image at x −15558.758, y −1754.2251, 26553.332 × 7086.6665 in the
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
 quartiles of red, green and blue.
-`bun scripts/sample-colours.ts night building-one-prudential-plaza` reproduces these rows and prints
+`bun scripts/fidelity/sample-colours.ts night building-one-prudential-plaza` reproduces these rows and prints
 the palette entries they gave, decoding the photograph in Chrome without colour management. Single
 pixels at this scale mix neighbouring materials, which the quartiles show; the medians are the
 values used.
@@ -249,7 +249,7 @@ are lit, and the east faces are in shade (observed).
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-one-prudential-plaza`
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-one-prudential-plaza`
 downloads each photograph once, checks its SHA-256, and reproduces these rows and the palette's
 entries, decoding in Chrome without colour management. The building is about 75 pixels wide in the
 rendition, so single pixels mix neighbouring materials, which the quartiles show; the medians are

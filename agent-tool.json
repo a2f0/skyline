@@ -1,8 +1,59 @@
 {
   "schemaVersion": 1,
-  "subject": { "maxLength": 72 },
-  "merge": { "requireChecks": false, "requiredChecks": [] },
-  "review": { "timeoutMs": 1200000 },
-  "versions": { "packages": ["."] },
-  "pr": { "rejectClaudeBranding": true }
+  "subject": {
+    "maxLength": 72
+  },
+  "merge": {
+    "requireChecks": false,
+    "requiredChecks": []
+  },
+  "review": {
+    "timeoutMs": 1200000
+  },
+  "versions": {
+    "packages": [
+      "."
+    ]
+  },
+  "pr": {
+    "rejectClaudeBranding": true
+  },
+  "branch": {
+    "maxLength": null,
+    "exempt": [
+      "main",
+      "master"
+    ]
+  },
+  "commits": {
+    "signatures": "present",
+    "signatureHeaderFallback": true,
+    "rejectCoauthors": false,
+    "rejectClaudeAttribution": false,
+    "subjects": false
+  },
+  "hooks": {
+    "files": [
+      {
+        "source": "scripts/git/hooks/commit-msg",
+        "target": "commit-msg",
+        "executable": true
+      },
+      {
+        "source": "scripts/git/hooks/pre-push",
+        "target": "pre-push",
+        "executable": true
+      },
+      {
+        "source": "scripts/checks/check-coauthors.ts",
+        "target": "check-coauthors.ts",
+        "executable": false
+      },
+      {
+        "source": "agent-tool.json",
+        "target": "agent-tool.json",
+        "executable": false
+      }
+    ]
+  }
 }

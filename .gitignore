@@ -2,7 +2,7 @@
 node_modules/
 .secrets
 dist/
-lib/
+/lib/
 site/
 *.tgz
 .wrangler/

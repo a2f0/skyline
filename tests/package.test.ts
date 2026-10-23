@@ -7,8 +7,8 @@ import { pathToFileURL } from "node:url";
 import { Script } from "node:vm";
 import { chromium } from "playwright";
 import type { Browser, Page } from "playwright";
-import { buildPackage } from "../scripts/build-package.js";
-import { publishedFiles, root } from "../scripts/build-site.js";
+import { buildPackage } from "../scripts/build/build-package.js";
+import { publishedFiles, root } from "../scripts/build/build-site.js";
 import { startServer } from "../scripts/lib/static-server.js";
 import { isThreeDeprecation } from "./three-warnings.js";
 
@@ -139,6 +139,8 @@ console.log(JSON.stringify({ dom: typeof window, copy: typeof copySkylineAssets,
     // The installed GitHub source has neither generated artifacts nor its own
     // node_modules. The consuming application's postinstall builds it explicitly.
     expect(await Bun.file(path.join(source, "lib/skyline-package.js")).exists()).toBe(false);
+    // Existing hosts use the documented original source path; keep proving
+    // that it forwards to the grouped implementation without local dev deps.
     execFileSync(process.execPath, [path.join(source, "scripts/build-package.ts")], { cwd: host, stdio: "pipe" });
     const { mountSkyline } = await import(pathToFileURL(path.join(source, "lib/skyline-package.js")).href) as { mountSkyline: unknown };
     expect(typeof mountSkyline).toBe("function");

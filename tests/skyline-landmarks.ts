@@ -12,7 +12,7 @@ const twoPrudential = "building-two-prudential-plaza";
 const northWabash = "building-330-north-wabash";
 const aon = "layer3";
 
-// The excerpts the study shows under the scene; scripts/reference-svg.js regenerates them.
+// The excerpts the study shows under the scene; scripts/fidelity/reference-svg.js regenerates them.
 // Paths are within src/, which the built site serves at its root, so they are also the URLs
 // the study pages and tests fetch.
 interface Reference {
@@ -99,7 +99,7 @@ const landmarkTolerance = 0.0151;
 // models, in meters east, up, and south of Crain's mapped centre, against the drawing
 // points above for the same features. Tips stand over their mapped parts, and roof
 // corners are the mapped outline vertices that the drawn corners show from the
-// photograph's viewpoint. scripts/fit-geographic-camera.ts solves the camera from them.
+// photograph's viewpoint. scripts/fidelity/fit-geographic-camera.ts solves the camera from them.
 // The tower the drawing labels Michigan Plaza South is 330 North Wabash: its mapped roof
 // corners land on the drawn ones, and One Prudential covers its east face where the
 // drawing does. The mapped Michigan Plaza South stands behind One Prudential.

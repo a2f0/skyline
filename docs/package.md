@@ -76,10 +76,15 @@ prepare the same artifacts:
 ```json
 {
   "scripts": {
-    "postinstall": "bun node_modules/@a2f0/skyline/scripts/build-package.ts"
+    "postinstall": "bun node_modules/@a2f0/skyline/scripts/build/build-package.ts"
   }
 }
 ```
+
+The original documented source entrypoint, `scripts/build-package.ts`, remains
+as a compatibility export and launcher for existing `postinstall` commands.
+New source installations can use the grouped path above. The implementation
+lives only under `scripts/build/`; npm tarballs and library exports are unchanged.
 
 The host needs TypeScript 7, `@tsconfig/strictest`, `@types/bun`, and `@types/node`
 as development dependencies. The build resolves those tools from the host;
@@ -350,6 +355,12 @@ files directly; bundlers do not automatically copy that directory.
 
 ## Releases
 
+The pack job installs the exact agent-tool dependency, then `bun run release:plan`
+uses its shared public-registry decision and GitHub step output. After merge,
+`bun run agent-tool release verify @a2f0/skyline <version> <merge-sha> --workflow
+'Publish npm package'` verifies the matching workflow, registry metadata and
+tarball integrity. Registry propagation is polled before reporting a missing release.
+
 ship-pr bumps the `package.json` patch version on every merge (see
 [the PR workflow](development.md#pr-workflow)), and the
 [publish workflow](../.github/workflows/npm-publish.yml) publishes each version newer than
@@ -370,9 +381,11 @@ It also runs the
 tarball and viewer package suite on Node.js 22 to verify the supported minimum.
 Only when those pass does it build and pack the tarball; both jobs run without
 publish rights, and the publish job receives only that tarball and runs
-`npm publish --ignore-scripts`. Dispatching the workflow on another branch
-(`gh workflow run npm-publish.yml --ref <branch>`) runs only the tests, in a queue of its own,
-so it never displaces a pending publish.
+`npm publish --ignore-scripts`. Dispatching the workflow on another branch that
+satisfies the configured naming policy (`<type>/<topic>`, plus the documented
+exemptions) runs only the tests, in a queue of its own. Use
+`gh workflow run npm-publish.yml --ref <branch>`;
+that queue never displaces a pending publish.
 
 npm adds a trusted publisher only to a package that already exists, so the first version
 is published by hand from an up-to-date `main`. Until then the workflow fails with that

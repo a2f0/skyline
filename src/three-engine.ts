@@ -1,6 +1,6 @@
 // The Three.js engine the viewer's scene renders with. The standalone site always uses the
 // vendored bundle. In the package's assets, vendor/three-r186.js is a small module generated
-// by scripts/build-package.ts that takes a host's engine from here when one was provided,
+// by scripts/build/build-package.ts that takes a host's engine from here when one was provided,
 // and imports the vendored bundle otherwise; a host provides its own through `mountSkyline`'s
 // `three` option, so a page that already runs Three.js does not download and run a second.
 import type * as THREE from "three";

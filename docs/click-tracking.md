@@ -62,7 +62,7 @@ It verifies GPC-enabled collection on every page and the SVG, and checks that
 the other opt-outs, automation guards and local or preview origin restrictions
 still block collection with GPC enabled.
 
-`scripts/build-site.ts` copies the exact pinned package's standalone ESM into
+`scripts/build/build-site.ts` copies the exact pinned package's standalone ESM into
 `dist/vendor/ct-client.js`; no new bundler or CDN script is needed. Its small
 declaration shim resolves types from the installed package. Both runtime files
 are in the published asset allowlist, including package asset copies. If a

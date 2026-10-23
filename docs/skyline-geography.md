@@ -40,7 +40,7 @@ reusing the original layout's fitted one, which describes the drawing's own
 geometry, not a place. The mapped buildings stay where they are mapped; only
 the camera is fitted.
 
-`scripts/fit-geographic-camera.ts` solves the study's orbit camera, aimed at the
+`scripts/fidelity/fit-geographic-camera.ts` solves the study's orbit camera, aimed at the
 centre of the reference excerpt's frame, against the 26 correspondences in
 `geographicLandmarks` in `tests/skyline-landmarks.ts`. These pair mapped spire
 tips, eaves, roof corners, and Crain's peaks, shoulders, foot and step with

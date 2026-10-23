@@ -2,11 +2,11 @@ import { readdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync, spawn } from "node:child_process";
-import { startServer } from "./lib/static-server.js";
-import { dist } from "./build-site.js";
-import { appendRun, createTimings, logPath, stepTable } from "./lib/timings.js";
+import { startServer } from "../lib/static-server.js";
+import { dist } from "../build/build-site.js";
+import { appendRun, createTimings, logPath, stepTable } from "./timings.js";
 
-const root = path.resolve(import.meta.dirname, "..");
+const root = path.resolve(import.meta.dirname, "../..");
 // Steps run side by side, so each command's output is held back and printed whole, under its
 // step's label, when the command ends; streamed, their logs would interleave line by line.
 function run(label: string, command: string, args: string[], env: NodeJS.ProcessEnv = process.env) {
@@ -51,7 +51,7 @@ const suites = [
   "indexed-raycast.test.ts", "dependency-runtime.test.ts", "secrets.test.ts", "celebration-lighting.test.ts",
   "panorama-owners.test.ts", "grayscale.test.ts", "skyline-loading.test.ts", "time-of-day.test.ts",
   "verify-deploy.test.ts", "colour-shade.test.ts", "merge-pr.test.ts", "npm-publish.test.ts",
-  "timings.test.ts", "check-coauthors.test.ts", "check-signed-commits.test.ts", "building-fidelity-skill.test.ts",
+  "timings.test.ts", "check-coauthors.test.ts", "building-fidelity-skill.test.ts",
 ];
 const slots = process.env["CI"] === "true" ? 1 : Math.max(2, Math.floor(os.availableParallelism() / 2));
 
@@ -60,7 +60,7 @@ async function main() {
   if (baseSha && !/^[a-f0-9]{40}$/.test(baseSha)) throw new Error("SKYLINE_BASE_SHA must be a full commit SHA.");
   // A suite left off the list would never run.
   const unlisted = readdirSync(path.join(root, "tests")).filter((file) => file.endsWith(".test.ts") && !suites.includes(file));
-  if (unlisted.length) throw new Error(`scripts/check.ts does not run ${unlisted.join(", ")}; add it to the suites.`);
+  if (unlisted.length) throw new Error(`scripts/testing/check.ts does not run ${unlisted.join(", ")}; add it to the suites.`);
   // The repository checks come first and in order: each takes about a second at most, and a
   // run whose types or tools are wrong has no suite result worth waiting for.
   await timings.run("whitespace", async () => {
@@ -70,16 +70,20 @@ async function main() {
   });
   await step("agents:check", ["run", "agents:check"]);
   await step("agent-tool:config", [path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts"), "config", "show"]);
+  if (process.env["CI"] !== "true") {
+    const branch = execFileSync("git", ["branch", "--show-current"], { cwd: root, encoding: "utf8" }).trim();
+    if (branch) await step("lint:branch-name", ["run", "lint:branch-name", branch]);
+  }
   await step("audit", ["audit"]);
   // The strictest-config typecheck over the whole repository.
   await step("typecheck", [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]);
-  await step("vendor:three", ["scripts/vendor-three.ts", "--check"]);
-  await step("reference-svg", ["scripts/reference-svg.ts", "--check"]);
-  await step("skyline-loading", ["scripts/skyline-loading.ts", "--check"]);
+  await step("vendor:three", ["scripts/build/vendor-three.ts", "--check"]);
+  await step("reference-svg", ["scripts/fidelity/reference-svg.ts", "--check"]);
+  await step("skyline-loading", ["scripts/checks/skyline-loading.ts", "--check"]);
   // Building the package builds the site into dist/ on its way to lib/ and site/. It is built
   // once, here, and the package suite told so: rebuilding dist/ itself, it would pull the
   // site from under the browser suites running beside it.
-  await step("build:package", ["scripts/build-package.ts"]);
+  await step("build:package", ["scripts/build/build-package.ts"]);
   const server = await timings.run("serve:dist", () => startServer(dist));
   try {
     const env = { ...process.env, SKYLINE_TEST_URL: server.origin, SKYLINE_PACKAGE_BUILT: "1" };

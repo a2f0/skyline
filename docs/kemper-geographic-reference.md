@@ -104,7 +104,7 @@ resolved here; it is recorded for comparison only.
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-kemper` downloads the
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-kemper` downloads the
 photograph once, checks its SHA-256, and reproduces these rows and the palette's entries, decoding
 in Chrome without colour management. The building is about 13 pixels wide in the rendition, so
 single pixels mix neighbouring materials, which the quartiles show; the medians are the values used.
@@ -186,7 +186,7 @@ Validation:
   around smaller windows; daylight no longer reads as an almost continuous
   glass wall. This is visual acceptance of the proportions, not a claim that
   the earlier whole-face panorama brightness ratio is now calibrated.
-- `bun scripts/render-colours.ts --out /tmp/skyline-fidelity-oct11/pass-one-after building-kemper`
+- `bun scripts/fidelity/render-colours.ts --out /tmp/skyline-fidelity-oct11/pass-one-after building-kemper`
   also captured and inspected the side view, skyline and elevated context;
   the baseline is `pass-one-before` in the same temporary directory. Detail URLs
   are `building-detail.html?building=building-kemper`, front/side presets, toggled
@@ -235,7 +235,7 @@ each panel supplies a same-face, same-overcast-light reference. Small interior
 boxes avoid the edges and glass. These samples represent the pre-2013 facade;
 no replacement-panel history is established.
 
-`bun scripts/sample-colours.ts day building-kemper` now reproduces the following
+`bun scripts/fidelity/sample-colours.ts day building-kemper` now reproduces the following
 half-open pixel boxes in the 1216 × 2400 close-up, selecting **all** pixels:
 
 | Surface | Box x0, y0, x1, y1 | Pixels (share) | Median R, G, B | Quartiles R / G / B |
@@ -339,7 +339,7 @@ Validation and retained evidence:
   [before](fidelity/kemper-bays-side-before.png) and
   [after](fidelity/kemper-bays-side-after.png), retain both modes. The piers now
   maintain one regular rhythm across each face instead of restarting at map vertices.
-- `bun scripts/render-colours.ts --out /tmp/skyline-more-fidelity/round-one-after building-kemper`
+- `bun scripts/fidelity/render-colours.ts --out /tmp/skyline-more-fidelity/round-one-after building-kemper`
   captured front/side detail, skyline/quarter context, and mobile daylight;
   `round-one-before` is the baseline. URLs/presets and 1600 × 1000 viewport are
   recorded in each run's `captures.json`, with reduced motion. All four paired
@@ -409,7 +409,7 @@ Validation:
   [side](fidelity/kemper-crown-side-after.png) pairs show both grayscale and
   sunny colour after the change. All use a 1600 × 1000 viewport and reduced
   motion. Skyline/quarter context and mobile daylight were also inspected.
-- Reproduce with `bun scripts/render-colours.ts --out /tmp/skyline-more-fidelity/round-two-after building-kemper`;
+- Reproduce with `bun scripts/fidelity/render-colours.ts --out /tmp/skyline-more-fidelity/round-two-after building-kemper`;
   `round-two-before` records the merged first pass. Each run's `captures.json`
   records URLs/presets. Colour changes all four canvases; switching it off
   restores each grayscale canvas exactly. Browser page/console errors: none.

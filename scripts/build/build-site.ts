@@ -11,7 +11,7 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
-export const root = path.resolve(import.meta.dirname, "..");
+export const root = path.resolve(import.meta.dirname, "../..");
 // Entries below are paths within src/, and each keeps that path in dist/.
 export const src = path.join(root, "src");
 export const dist = path.join(root, "dist");
@@ -89,7 +89,7 @@ async function sourceEntries(): Promise<{ static: string[]; compiled: string[] }
 }
 
 // Every file dist/ will hold: the compiled module paths (one .js per .ts) and the
-// static assets. scripts/verify-deploy.ts derives the published set the same way.
+// static assets. scripts/deploy/verify-deploy.ts derives the published set the same way.
 export async function publishedFiles(): Promise<string[]> {
   const { static: staticSet, compiled } = await sourceEntries();
   return [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to)].sort();
@@ -126,7 +126,7 @@ export async function buildSite() {
     try {
       return (await stat(path.join(dist, entry))).size;
     } catch {
-      throw new Error(`Cannot publish ${entry}: the build did not produce it. Update scripts/build-site.ts if it was renamed.`);
+      throw new Error(`Cannot publish ${entry}: the build did not produce it. Update scripts/build/build-site.ts if it was renamed.`);
     }
   }));
   const bytes = sizes.reduce((total, size) => total + size, 0);

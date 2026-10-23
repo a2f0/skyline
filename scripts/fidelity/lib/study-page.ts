@@ -1,7 +1,7 @@
 // Browser helpers for the dev scripts: system Chrome, a settled study page, and the
 // usual command-line handling.
 import { chromium, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from "playwright";
-import { command } from "./command.js";
+import { command } from "../../lib/command.js";
 
 const launch = (): Promise<Browser> => chromium.launch({ channel: "chrome", headless: true });
 const settle = (page: Page): Promise<void> => page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));

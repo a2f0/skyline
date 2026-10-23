@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import * as THREE from "../src/vendor/three-r186.js";
-import { skylineTrace } from "../scripts/skyline-loading.js";
+import { skylineTrace } from "../scripts/checks/skyline-loading.js";
 
 function box(width: number, height: number, x = 0, z = 0) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, 2));

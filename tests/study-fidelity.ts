@@ -1,5 +1,5 @@
 // Fidelity maths for the skyline study, shared by tests/skyline-study.test.ts and
-// scripts/fidelity-report.js so both compute the same numbers. measureStudy runs inside
+// scripts/fidelity/fidelity-report.js so both compute the same numbers. measureStudy runs inside
 // the study page: Playwright sends its source, so it must not use anything outside itself.
 import type { BrowserContextOptions } from "playwright";
 import type { Vec3 } from "../src/models/building-kit.js";

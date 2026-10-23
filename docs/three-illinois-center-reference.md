@@ -36,7 +36,7 @@ construction drawings.
   - the penthouse as a plain band of the same bronze, with the mullions carried through it;
   - a glazed lobby behind columns, under a fascia about 1.4 spandrels deep.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront. The
-  drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its camera;
+  drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its camera;
   see [the geographic audit](skyline-geography.md#skyline-camera). Between 340 on the Park
   and The Buckingham, from 6,789 to 6,882 layer units, the photograph shows a dark tower:
   - an unlit band 52 units deep under its top at 1,996;
@@ -135,7 +135,7 @@ No photograph is shipped with the viewer.
 The unbroken band above the top window row anchors the bronze sample. The glass box is on the
 broad face below it; the rule selects its blue sky reflections, excluding the dark spandrels.
 Boxes use half-open pixel coordinates in that rendition. Medians and quartiles are sRGB.
-Reproduce with `bun scripts/sample-colours.ts day building-three-illinois-center`.
+Reproduce with `bun scripts/fidelity/sample-colours.ts day building-three-illinois-center`.
 
 | Sample | Box | Rule | Pixels (share) | Median R, G, B | Quartiles R / G / B |
 | --- | --- | --- | ---: | --- | --- |

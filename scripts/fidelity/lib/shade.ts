@@ -1,4 +1,4 @@
-// The colour trial's ratio estimates (scripts/sample-colours.ts), each a per-channel ratio between
+// The colour trial's ratio estimates (scripts/fidelity/sample-colours.ts), each a per-channel ratio between
 // two measurements of one material in linear light: a colour measured on a face in shade, as it
 // would read in the sun, through the ratio between one material's sunlit and shaded faces; and a
 // colour measured in a second photograph, as the study's photograph would show it, through the

@@ -37,7 +37,7 @@ survey or construction drawings.
   - [the skyline from the Adler Planetarium's Skyline Walk](https://commons.wikimedia.org/wiki/File:Chicago_skycrapers_in_New_Eastside_from_the_Adler_Planetarium_Skyline_Walk_(52031707882).jpg),
     the drawing's own vantage.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront.
-  The drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its
+  The drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its
   camera; see [the geographic audit](skyline-geography.md#skyline-camera). At the tower,
   about 8.9 of the drawing's layer units are one metre.
 
@@ -179,7 +179,7 @@ about 25 pixels across and 4 pixels in height. It is the glass tower with a whit
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-340-on-the-park`
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-340-on-the-park`
 downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
 entries, decoding in Chrome without colour management. The building is about 65 pixels wide in the
 rendition, so single pixels mix neighbouring materials, which the quartiles show; the medians are

@@ -46,6 +46,7 @@ jobs:
       - run: bun install --frozen-lockfile --ignore-scripts
       # Everything a merge must pass locally, including the package suite and
       # the browser suites in the runner's Google Chrome.
+      - run: bun run lint:branch-name "$GITHUB_REF_NAME"
       - run: bun run check
       # The published library still supports Node 22. Exercise the actual
       # tarball and in-page viewer on that floor, independently of our LTS tools.
@@ -75,10 +76,9 @@ jobs:
           cache: false
       # Publish only a version newer than npm's latest, so re-runs and
       # out-of-order runs succeed without publishing.
+      - run: bun install --frozen-lockfile --ignore-scripts
       - id: decide
-        run: bun scripts/npm-publish-decision.ts
-      - if: steps.decide.outputs.publish == 'true'
-        run: bun install --frozen-lockfile --ignore-scripts
+        run: bun run release:plan
       # Builds lib/ and site/ and packs them; the test job already drove a
       # packed tarball through the package suite.
       - if: steps.decide.outputs.publish == 'true'

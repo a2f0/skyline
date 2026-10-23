@@ -1,4 +1,4 @@
-// scripts/verify-deploy.ts guards a deploy, so its failure paths matter more than its happy one.
+// scripts/deploy/verify-deploy.ts guards a deploy, so its failure paths matter more than its happy one.
 // Every case here is a way the checker could report success while the site is wrong, which is the
 // only defect class that makes a checker worse than nothing. No network: the script takes its
 // request function as a dependency, so each origin below is a plain object.
@@ -6,8 +6,8 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { verifyDeploy, forbiddenPaths, parseTracked, urlFor, walk } from "../scripts/verify-deploy.js";
-import type { RequestAnswer, VerifyOptions } from "../scripts/verify-deploy.js";
+import { verifyDeploy, forbiddenPaths, parseTracked, urlFor, walk } from "../scripts/deploy/verify-deploy.js";
+import type { RequestAnswer, VerifyOptions } from "../scripts/deploy/verify-deploy.js";
 
 const ORIGIN = "http://origin";
 const bytes = (text: string) => Buffer.from(text);
@@ -130,12 +130,12 @@ describe("deploy verification", () => {
 
   test("derives the forbidden set instead of listing it", async () => {
     const derived = await forbiddenPaths(["index.html", "models/a.js"], {
-      tracked: ["src/index.html", "src/models/a.js", "src/models/a.ts", "src/skyline.jpg", "scripts/secrets.sh", "README.md", ""],
+      tracked: ["src/index.html", "src/models/a.js", "src/models/a.ts", "src/skyline.jpg", "scripts/deploy/secrets.sh", "README.md", ""],
       secrets: [".secrets/prod/shared.env", ".secrets/ci/secrets.env"],
     });
     // Sources under src/ are probed at their repository paths and at the site root, where a build
     // would put them; only the published URLs are left out.
-    expect(derived).toEqual([".secrets/ci/secrets.env", ".secrets/prod/shared.env", "README.md", "models/a.ts", "scripts/secrets.sh", "skyline.jpg",
+    expect(derived).toEqual([".secrets/ci/secrets.env", ".secrets/prod/shared.env", "README.md", "models/a.ts", "scripts/deploy/secrets.sh", "skyline.jpg",
       "src/index.html", "src/models/a.js", "src/models/a.ts", "src/skyline.jpg"]);
   });
 

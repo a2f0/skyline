@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # Publishes the site to the skyline-devopsrockstars Worker.
 #
-# Usage: scripts/deploy.sh [wrangler arguments...]
+# Usage: scripts/deploy/deploy.sh [wrangler arguments...]
 #
-# Run scripts/terraform.sh apply once to attach skyline.devopsrockstars.com to
+# Run scripts/deploy/terraform.sh apply once to attach skyline.devopsrockstars.com to
 # the Worker. After that this script is the whole content deploy.
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-bun "$REPO_ROOT/scripts/build-site.ts"
+bun "$REPO_ROOT/scripts/build/build-site.ts"
 # Wrangler runs on its node shebang: its deployment step silently stops after
 # the asset upload under Bun's runtime, so deploys need Node.js 22+ alongside
 # Bun. Wrangler authenticates with its own stored credentials (`wrangler
@@ -64,5 +64,5 @@ elif [[ "$target_is_production" != true ]]; then
   echo "Skipping deploy verification: this run targeted another Worker."
   echo "Check it with: bun run verify:deploy -- --url <that origin>"
 else
-  bun "$REPO_ROOT/scripts/verify-deploy.ts"
+  bun "$REPO_ROOT/scripts/deploy/verify-deploy.ts"
 fi

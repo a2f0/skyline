@@ -194,7 +194,7 @@ The eight-building scene totals 170,215 triangles, within the 169,000–171,000 
 preserving their positions, nested transforms, and draw order. It also carries the source
 definitions used by Aon's in-group tonal overlays. Its padded viewBox matches the study's framing.
 `src/models/skyline-panorama.svg` carries all 38 of the drawing's building groups, identified and not,
-in the geographic layout's wider frame; `bun scripts/reference-svg.ts` regenerates both.
+in the geographic layout's wider frame; `bun scripts/fidelity/reference-svg.ts` regenerates both.
 
 The unidentified historic facade in front of the Heritage and the three buildings in front of
 Michigan Plaza (Millennium Park Plaza and 168 and 180 North Michigan Avenue, named since through

@@ -21,7 +21,7 @@ not a survey or construction drawings.
 - [CommercialCafe](https://www.commercialcafe.com/commercial-property/us/il/chicago/180-north-michigan-avenue-1/):
   built in 1927, 24 floors.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront. The
-  drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its camera;
+  drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its camera;
   see [the geographic audit](skyline-geography.md#skyline-camera). At the building, about
   7.7 of the drawing's layer units are one metre of height. The photograph shows brown
   masonry with arched top windows, and a dark facade continuing west of the drawn wall to
@@ -125,7 +125,7 @@ Commons' 3840 × 551 px rendition,
 repository. No change to these materials between 2008 and the drawing's 2013 panorama is known to
 this audit.
 
-Identification: `bun scripts/panorama-owners.ts building-michigan-plaza-front-middle` places the
+Identification: `bun scripts/fidelity/panorama-owners.ts building-michigan-plaza-front-middle` places the
 building's south face at x 1610–1629 below row 420, its modelled parapet, with the photographer's
 eye fitted as for FID-COL-005, 10 m east and 100 m south of the drawing's fitted eye, at 1.6 px RMS:
 a ray from that eye through each pixel meets the nearest mapped part, which owns the pixel, and the
@@ -142,7 +142,7 @@ Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-ope
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
 quartiles of red, green and blue.
-`bun scripts/sample-colours.ts day building-michigan-plaza-front-middle` downloads the photograph
+`bun scripts/fidelity/sample-colours.ts day building-michigan-plaza-front-middle` downloads the photograph
 once, checks its SHA-256, and reproduces these rows and the palette's entries, decoding in Chrome
 without colour management.
 

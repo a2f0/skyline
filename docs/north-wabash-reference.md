@@ -115,7 +115,7 @@ One Prudential, roof at y 325; Millennium Park Plaza stands in front of its lowe
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-330-north-wabash`
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-330-north-wabash`
 downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
 entries, decoding in Chrome without colour management. The building is about 56 pixels wide in the
 rendition, so single pixels mix neighbouring materials, which the quartiles show; the medians are
