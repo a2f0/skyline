@@ -41,7 +41,7 @@ covers installing, asset copying, mounting, imports, and releases.
 ## Development
 
 ```sh
-sh scripts/git/install-hooks.sh   # once per clone
+bun run hooks:install             # once per clone
 bun run check                     # typecheck, unit and browser suites; needs Google Chrome
 bun run deploy                    # publish to Cloudflare; needs Node.js 22+ and wrangler login
 ```

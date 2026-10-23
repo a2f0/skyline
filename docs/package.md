@@ -350,6 +350,12 @@ files directly; bundlers do not automatically copy that directory.
 
 ## Releases
 
+The pack job installs the exact agent-tool dependency, then `bun run release:plan`
+uses its shared public-registry decision and GitHub step output. After merge,
+`bun run agent-tool release verify @a2f0/skyline <version> <merge-sha> --workflow
+'Publish npm package'` verifies the matching workflow, registry metadata and
+tarball integrity. Registry propagation is polled before reporting a missing release.
+
 ship-pr bumps the `package.json` patch version on every merge (see
 [the PR workflow](development.md#pr-workflow)), and the
 [publish workflow](../.github/workflows/npm-publish.yml) publishes each version newer than

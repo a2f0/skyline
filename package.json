@@ -12,8 +12,16 @@
   },
   "type": "module",
   "packageManager": "bun@1.4.3",
-  "sideEffects": ["./site/**/*.js"],
-  "files": ["lib/", "site/", "NOTICE.md", "docs/package.md", "docs/skyline-geography.md"],
+  "sideEffects": [
+    "./site/**/*.js"
+  ],
+  "files": [
+    "lib/",
+    "site/",
+    "NOTICE.md",
+    "docs/package.md",
+    "docs/skyline-geography.md"
+  ],
   "main": "./lib/skyline-package.js",
   "types": "./lib/skyline-package.d.ts",
   "exports": {
@@ -72,15 +80,20 @@
     "renders": "bun scripts/fidelity/render-study.ts",
     "vendor:three": "bun scripts/build/vendor-three.ts",
     "deploy": "scripts/deploy/deploy.sh",
-    "verify:deploy": "bun scripts/deploy/verify-deploy.ts"
+    "verify:deploy": "bun scripts/deploy/verify-deploy.ts",
+    "hooks:install": "agent-tool hooks install --apply",
+    "hooks:check": "agent-tool hooks check",
+    "lint:branch-name": "agent-tool branch check",
+    "release:plan": "agent-tool release plan package.json --github-output",
+    "timings": "bun scripts/testing/show-timings.ts"
   },
   "devDependencies": {
-    "@a2f0/agent-tool": "0.1.17",
+    "@a2f0/agent-tool": "0.1.18",
     "@tsconfig/strictest": "^2.0.8",
     "@types/bun": "^1.4.3",
     "esbuild": "0.28.2",
-    "three": "0.186.1",
     "playwright": "1.64.1",
+    "three": "0.186.1",
     "typescript": "^7.0.2",
     "wrangler": "4.151.3"
   }

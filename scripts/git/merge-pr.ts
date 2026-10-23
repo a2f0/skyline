@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 
-const root = path.resolve(import.meta.dirname, "..");
+const root = path.resolve(import.meta.dirname, "../..");
 const agentTool = path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts");
 export type Runner = (file: string, args: string[]) => string;
 const command: Runner = (file, args) => {
@@ -34,42 +34,24 @@ interface PullRequest {
   mergeCommit: { oid: string } | null;
 }
 
-/** Skyline's checkout/base guards; agent-tool owns CI and the merge mutation. */
+/** Shared preflight/merge with Skyline's required landed-message verification. */
 export function mergePr(args: string[], run: Runner = command): string {
   const [head, base, baseSha] = args as [string, string, string];
   if (args.length !== 3 || !/^[a-f0-9]{40}$/.test(head) || !base || !/^[a-f0-9]{40}$/.test(baseSha)) {
-    throw new Error("Usage: bun scripts/merge-pr.ts reviewed-head-sha base-ref reviewed-base-sha");
+    throw new Error("Usage: bun scripts/git/merge-pr.ts reviewed-head-sha base-ref reviewed-base-sha");
   }
-  run("git", ["check-ref-format", `refs/heads/${base}`]);
-  const cleanHead = () => {
-    if (run("git", ["status", "--porcelain"])) throw new Error("Worktree is dirty; commit and review first.");
-    if (run("git", ["rev-parse", "HEAD"]) !== head) throw new Error("Local HEAD changed; re-review required.");
-  };
-  cleanHead();
-  run("git", ["merge-base", "--is-ancestor", baseSha, head]);
-  const branch = run("git", ["branch", "--show-current"]);
-  if (!branch || branch === base) throw new Error("Merge from the reviewed feature branch.");
   const repo = run("gh", ["repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"]);
   if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error("Could not resolve the repository.");
-  const readPr = () => JSON.parse(run("gh", ["pr", "view", branch, "-R", repo, "--json",
+  const readPr = (number?: number) => JSON.parse(run("gh", ["pr", "view", ...(number ? [String(number)] : []), "-R", repo, "--json",
     "number,title,state,isDraft,headRefName,headRefOid,baseRefName,baseRefOid,mergeable,mergeStateStatus,mergeCommit",
   ])) as PullRequest;
   const pr = readPr();
-  if (pr.state !== "OPEN" || pr.isDraft || pr.headRefName !== branch || pr.headRefOid !== head) {
-    throw new Error("PR is not open at the reviewed feature HEAD.");
-  }
-  if (pr.baseRefName !== base || pr.baseRefOid !== baseSha) throw new Error("PR base changed; synchronize and re-review.");
-  if (pr.mergeable !== "MERGEABLE" || pr.mergeStateStatus !== "CLEAN") throw new Error("PR is not ready for immediate merge.");
-  // This is a live API read, not a potentially stale remote-tracking ref.
-  const liveBase = run("gh", ["api", `repos/${repo}/git/ref/heads/${encodeURIComponent(base)}`, "--jq", ".object.sha"]);
-  if (liveBase !== baseSha) throw new Error("Base advanced before merge; synchronize and re-review.");
-  // Every merge publishes package.json's version to npm, so it must be the one
-  // ship-pr prepared against this base: without it the merge releases nothing,
-  // or claims a version the base already shipped.
-  run(process.execPath, [agentTool, "versions", "check", baseSha]);
-  cleanHead();
+  // Shared preflight owns clean checkout, exact local/PR HEAD, live reviewed
+  // base, ancestry, CI/readiness and package-version policy. Keep this directly
+  // beside the mutation; Skyline additionally verifies the stored squash text.
+  run(process.execPath, [agentTool, "pr", "preflight", head, base, baseSha]);
   run(process.execPath, [agentTool, "pr", "merge", pr.title, head, base]);
-  const merged = readPr();
+  const merged = readPr(pr.number);
   if (merged.number !== pr.number || merged.headRefOid !== head || merged.state !== "MERGED" || !merged.mergeCommit?.oid) {
     throw new Error("GitHub did not confirm the reviewed PR merged; inspect before cleanup.");
   }

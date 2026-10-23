@@ -51,7 +51,7 @@ const suites = [
   "indexed-raycast.test.ts", "dependency-runtime.test.ts", "secrets.test.ts", "celebration-lighting.test.ts",
   "panorama-owners.test.ts", "grayscale.test.ts", "skyline-loading.test.ts", "time-of-day.test.ts",
   "verify-deploy.test.ts", "colour-shade.test.ts", "merge-pr.test.ts", "npm-publish.test.ts",
-  "timings.test.ts", "check-coauthors.test.ts", "check-signed-commits.test.ts", "building-fidelity-skill.test.ts",
+  "timings.test.ts", "check-coauthors.test.ts", "building-fidelity-skill.test.ts",
 ];
 const slots = process.env["CI"] === "true" ? 1 : Math.max(2, Math.floor(os.availableParallelism() / 2));
 
@@ -70,6 +70,7 @@ async function main() {
   });
   await step("agents:check", ["run", "agents:check"]);
   await step("agent-tool:config", [path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts"), "config", "show"]);
+  if (!process.env["CI"]) await step("lint:branch-name", ["run", "lint:branch-name"]);
   await step("audit", ["audit"]);
   // The strictest-config typecheck over the whole repository.
   await step("typecheck", [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]);

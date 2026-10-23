@@ -1,12 +1,12 @@
 // Runs the hooks the way Git runs them. The check itself is unit-tested in
-// check-coauthors.test.ts and check-signed-commits.test.ts; an execution shows whether the hook
+// check-coauthors.test.ts and the pinned agent-tool suite; an execution shows whether the hook
 // reaches it at all. An earlier revision resolved `bun` off the invoking
 // process's PATH, which a hook does not reliably carry, so every commit was
 // refused with "bun: not found" — a check that refuses everything looks exactly
 // like a check that is working, unless the test reads why.
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -53,12 +53,10 @@ beforeAll(() => {
   writeFileSync(path.join(repo, "allowed-signers"), `test@example.com ${readFileSync(`${key}.pub`, "utf8")}`);
   git(["config", "gpg.ssh.allowedSignersFile", path.join(repo, "allowed-signers")]);
   git(["config", "tag.gpgsign", "false"]);
-  mkdirSync(path.join(repo, "scripts/git"), { recursive: true });
-  cpSync(path.join(root, "scripts/check-coauthors.ts"), path.join(repo, "scripts/check-coauthors.ts"));
-  cpSync(path.join(root, "scripts/check-signed-commits.ts"), path.join(repo, "scripts/check-signed-commits.ts"));
+  mkdirSync(path.join(repo, "scripts/checks"), { recursive: true });
+  cpSync(path.join(root, "scripts/checks/check-coauthors.ts"), path.join(repo, "scripts/checks/check-coauthors.ts"));
   cpSync(path.join(root, "scripts/lib"), path.join(repo, "scripts/lib"), { recursive: true });
   cpSync(path.join(root, "scripts/git/hooks"), path.join(repo, "scripts/git/hooks"), { recursive: true });
-  cpSync(path.join(root, "scripts/git/install-hooks.sh"), path.join(repo, "scripts/git/install-hooks.sh"));
   cpSync(path.join(root, "mise.toml"), path.join(repo, "mise.toml"));
   // Exercise the installed shared tool against real managed copies, including
   // on the isolated PATH used to prove mise's runtime fallback.
@@ -73,7 +71,7 @@ beforeAll(() => {
   writeFileSync(path.join(repo, "file.txt"), "seed");
   git(["add", "-A"]);
   git(["-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", "seed"]);
-  execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
+  execFileSync(process.execPath, [path.join(repo, "node_modules/@a2f0/agent-tool/src/index.ts"), "hooks", "install", "--apply"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
 }, 60_000);
 
 afterAll(() => { if (repo) rmSync(repo, { recursive: true, force: true }); });
@@ -142,127 +140,18 @@ describe("the installed commit-msg hook", () => {
   });
 });
 
-describe("what the installer protects", () => {
-  test("refuses to run when the worktree's check has moved on from the installed copy", () => {
-    // The hooks run their own copy, so a branch editing the worktree cannot
-    // change what the gate does. It must say so rather than enforce the old
-    // rule silently.
-    const source = path.join(repo, "scripts/check-coauthors.ts");
-    const original = readFileSync(source, "utf8");
-    try {
-      writeFileSync(source, `${original}\n// a branch edits the check\n`);
-      const attempt = commit("fix: a clean message");
-      expect(attempt.ok).toBe(false);
-      expect(attempt.output).toContain("install-hooks.sh");
-    } finally {
-      writeFileSync(source, original);
-    }
-  });
-  test("leaves a hook it never installed alone", () => {
-    // Somebody else's pre-commit is not this installer's to disable.
-    const hooks = path.join(repo, ".git/hooks");
-    const mine = path.join(hooks, "pre-commit");
-    writeFileSync(mine, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
-    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-    expect(existsSync(mine)).toBe(true);
-  });
-  test("removes a hook it installed once the repository stops shipping it", () => {
-    const hooks = path.join(repo, ".git/hooks");
-    const retired = path.join(repo, "scripts/git/hooks/post-commit");
-    writeFileSync(retired, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
-    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-    expect(existsSync(path.join(hooks, "post-commit"))).toBe(true);
-    rmSync(retired);
-    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-    expect(existsSync(path.join(hooks, "post-commit"))).toBe(false);
-  });
-  test("keeps the first backup across reinstalls, and keeps later replacements too", () => {
-    // The .bak holds what was there before this installer ever ran. A second
-    // install must not overwrite it — but a hook something else replaced in the
-    // meantime must not be destroyed unrecorded either, so the source has to
-    // change between installs for this to pin anything.
-    const hooks = path.join(repo, ".git/hooks");
-    const source = path.join(repo, "scripts/git/hooks/commit-msg");
-    const shipped = readFileSync(source, "utf8");
-    const bak = path.join(hooks, "commit-msg.bak"), previous = path.join(hooks, "commit-msg.bak.previous");
-    for (const stale of [bak, previous]) rmSync(stale, { force: true });
-    try {
-      writeFileSync(path.join(hooks, "commit-msg"), "#!/bin/sh\n# somebody else's\nexit 0\n", { mode: 0o755 });
-      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-      expect(readFileSync(bak, "utf8")).toContain("somebody else's");
-      // A third party replaces the managed hook, and the shipped one changes,
-      // so the installer genuinely has something different to write.
-      writeFileSync(path.join(hooks, "commit-msg"), "#!/bin/sh\n# another manager\nexit 0\n", { mode: 0o755 });
-      writeFileSync(source, `${shipped}\n# a later revision\n`);
-      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-      expect(readFileSync(bak, "utf8"), "the original backup survives").toContain("somebody else's");
-      expect(readFileSync(previous, "utf8"), "the later replacement is kept too").toContain("another manager");
-    } finally {
-      writeFileSync(source, shipped);
-      for (const stale of [bak, previous]) rmSync(stale, { force: true });
-      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-      for (const stale of [bak, previous]) rmSync(stale, { force: true });
-    }
-  });
-  test("refuses a hooks path that points back at its own sources", () => {
-    // install_file removes the destination before copying, so a hooks path
-    // inside scripts/ would delete the tracked source and then fail.
-    // Including spellings that reach the same directory by another route: a
-    // lexical comparison would let ./scripts through and delete the source.
-    try {
-      for (const spelling of ["scripts/git/hooks", "./scripts/git/hooks", "scripts/git/../git/hooks"]) {
-        git(["config", "core.hooksPath", spelling]);
-        let failed = false;
-        try {
-          execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "pipe", env: hermetic(process.env) });
-        } catch { failed = true; }
-        expect(failed, `the installer must refuse ${spelling} rather than delete its own source`).toBe(true);
-        expect(existsSync(path.join(repo, "scripts/git/hooks/commit-msg")), spelling).toBe(true);
-        expect(existsSync(path.join(repo, "scripts/check-coauthors.ts")), spelling).toBe(true);
-      }
-    } finally {
-      git(["config", "--unset", "core.hooksPath"]);
-      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-    }
-  });
-  test("replaces a symlinked hook without writing through it", () => {
-    // Copying onto a symlink edits a target that may be shared with other
-    // repositories, and leaves the destination a symlink.
-    const hooks = path.join(repo, ".git/hooks");
-    const shared = path.join(repo, "shared-hook.sh");
-    writeFileSync(shared, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
-    rmSync(path.join(hooks, "commit-msg"));
-    symlinkSync(shared, path.join(hooks, "commit-msg"));
-    execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-    expect(lstatSync(path.join(hooks, "commit-msg")).isSymbolicLink()).toBe(false);
-    expect(readFileSync(shared, "utf8")).toBe("#!/bin/sh\nexit 0\n");
-  });
-  test("leaves no absolute hooks path for a moved clone to lose", () => {
-    // core.hooksPath would record this clone's location; Git silently skips a
-    // path that no longer exists, so both gates would fail open after a move.
-    // The installer records one only when a value is inherited from outside the
-    // repository, which the hermetic config here rules out.
-    const configured = git(["config", "--get", "core.hooksPath"]);
-    expect(configured.ok).toBe(false);
-  });
-  test("installs where the repository already points Git, rather than beside it", () => {
-    // A repo-scoped core.hooksPath is this repository's own choice. Installing
-    // into the default directory anyway would leave both gates configured and
-    // never run.
-    const elsewhere = path.join(repo, "my-hooks");
-    mkdirSync(elsewhere, { recursive: true });
-    git(["config", "core.hooksPath", elsewhere]);
-    try {
-      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-      expect(existsSync(path.join(elsewhere, "commit-msg"))).toBe(true);
-      const attempt = commit(`fix: a change\n\n${trailer}`);
-      expect(attempt.ok).toBe(false);
-      expect(attempt.output).toContain("agent attribution");
-    } finally {
-      git(["config", "--unset", "core.hooksPath"]);
-      execFileSync("sh", ["scripts/git/install-hooks.sh"], { cwd: repo, stdio: "ignore", env: hermetic(process.env) });
-    }
-  });
+describe("the installed hook trust boundary", () => {
+  for (const source of ["scripts/git/hooks/commit-msg", "scripts/checks/check-coauthors.ts", "agent-tool.json"]) {
+    test(`refuses worktree drift in ${source} before committing`, () => {
+      const filename = path.join(repo, source), original = readFileSync(filename, "utf8");
+      try {
+        writeFileSync(filename, `${original}\n`);
+        const attempt = commit("fix: a clean message");
+        expect(attempt.ok).toBe(false);
+        expect(attempt.output).toContain("bun run hooks:install");
+      } finally { writeFileSync(filename, original); }
+    });
+  }
 });
 
 describe("the installed pre-push hook", () => {
@@ -280,6 +169,24 @@ describe("the installed pre-push hook", () => {
       expect(push.output).toMatch(/"ok"\s*:\s*true/);
     } finally {
       rmSync(directory, { recursive: true, force: true });
+      rmSync(remote, { recursive: true, force: true });
+    }
+  }, 60_000);
+  test("validates every pushed destination branch and still checks skills on deletion", () => {
+    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-branch-remote-"));
+    const skill = path.join(repo, ".agents/skills/ship-pr/SKILL.md"), original = readFileSync(skill, "utf8");
+    try {
+      execFileSync("git", ["init", "--bare", "--quiet", "--initial-branch=unused", remote]);
+      const invalid = git(["push", remote, "HEAD:refs/heads/invalid-topic"]);
+      expect(invalid.ok).toBe(false);
+      expect(invalid.output).toContain("invalid-topic");
+      expect(git(["push", remote, "HEAD:refs/heads/feat/valid-topic"]).ok).toBe(true);
+      writeFileSync(skill, `${original}\nLocal drift\n`);
+      const deletion = git(["push", remote, ":refs/heads/feat/valid-topic"]);
+      expect(deletion.ok).toBe(false);
+      expect(deletion.output).toContain("Locally edited or unmanaged skill");
+    } finally {
+      writeFileSync(skill, original);
       rmSync(remote, { recursive: true, force: true });
     }
   }, 60_000);
@@ -358,9 +265,9 @@ describe("the installed pre-push hook", () => {
       // already sits unpushed on main. Subtracting local main rather than the
       // remotes would have let this through.
       git(["commit", "-q", "--allow-empty", "--no-verify", "-m", `fix: unpushed on main\n\n${trailer}`]);
-      git(["switch", "-q", "-c", "feature"]);
+      git(["switch", "-q", "-c", "feat/hooks"]);
       git(["commit", "-q", "--allow-empty", "-m", "fix: clean work on top"]);
-      const fresh = git(["push", "origin", "feature"]);
+      const fresh = git(["push", "origin", "feat/hooks"]);
       expect(fresh.ok, "a new branch must not smuggle an offending ancestor past the gate").toBe(false);
       expect(fresh.output).toContain("agent attribution");
     } finally {
@@ -381,11 +288,11 @@ describe("push signature enforcement", () => {
       expect(git(["commit", "--no-gpg-sign", "--allow-empty", "-m", "test: unsigned ancestor"]).ok).toBe(true);
       const unsigned = git(["rev-parse", "HEAD"]).output.trim();
       expect(git(["commit", "--allow-empty", "-m", "test: signed tip"]).ok).toBe(true);
-      for (const destination of ["main", "new-branch"]) {
+      for (const destination of ["main", "feat/new-branch"]) {
         const push = git(["push", "signatures", `HEAD:refs/heads/${destination}`]);
         expect(push.ok).toBe(false);
         expect(push.output).toContain(unsigned);
-        expect(push.output).toContain("missing or invalid signature");
+        expect(push.output).toContain("Signature does not meet");
       }
       // Deleting a ref carries no commits, even with an unsigned ancestor.
       expect(git(["push", "signatures", ":refs/heads/main"]).ok).toBe(true);
@@ -396,16 +303,16 @@ describe("push signature enforcement", () => {
     }
   }, 60_000);
 
-  test("refuses a stale installed signature checker before pushing", () => {
+  test("refuses a stale installed policy snapshot before pushing", () => {
     const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-signatures-remote-"));
-    const source = path.join(repo, "scripts/check-signed-commits.ts");
+    const source = path.join(repo, "agent-tool.json");
     const original = readFileSync(source, "utf8");
     try {
       execFileSync("git", ["init", "--bare", "--quiet", "--initial-branch=unused", remote]);
-      writeFileSync(source, `${original}\n// changed\n`);
+      writeFileSync(source, `${original}\n`);
       const push = git(["push", remote, "HEAD:refs/heads/main"]);
       expect(push.ok).toBe(false);
-      expect(push.output).toContain("installed signature check is stale");
+      expect(push.output).toContain("installed policy is stale");
     } finally {
       writeFileSync(source, original);
       rmSync(remote, { recursive: true, force: true });

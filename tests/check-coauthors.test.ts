@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { attributionIn, checkCoauthors, offendersIn, report } from "../scripts/check-coauthors.js";
-import type { Runner } from "../scripts/check-coauthors.js";
+import { attributionIn, checkCoauthors, offendersIn, report } from "../scripts/checks/check-coauthors.js";
+import type { Runner } from "../scripts/checks/check-coauthors.js";
 
 const trailer = "Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>";
 const generated = "🤖 Generated with [Claude Code](https://claude.com/claude-code)";
