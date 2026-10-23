@@ -184,7 +184,7 @@ as proof the intended check ran.
 coauthors pass. Skyline retains `scripts/checks/check-coauthors.ts` because its
 whole-word, line-anchored grammar permits names such as Claudette and
 `notanthropic.com`, permits prose discussing the policy, and catches whitespace
-before a trailer's colon. The shared 0.1.18 attribution grammar differs, so its
+before a trailer's colon. The pinned shared attribution grammar differs, so its
 attribution options remain disabled here. The local checker accepts
 `--message <file>` or `--range <revisions...>`; its behavioral fixtures remain.
 
