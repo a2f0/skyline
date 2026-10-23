@@ -37,7 +37,7 @@ describe("favicons", () => {
 
   test("only the deployed site carries them, not the package's viewer assets", async () => {
     const favicons = await faviconFiles();
-    const viewer = await publishedFiles(), deployed = await publishedFiles({ favicons: true });
+    const viewer = await publishedFiles(), deployed = await publishedFiles({ deployed: true });
     expect(viewer.filter((file) => favicons.includes(file))).toEqual([]);
     expect(deployed).toEqual([...viewer, ...favicons].sort());
   });

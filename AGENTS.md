@@ -34,7 +34,10 @@ automatically by extension, but nested directories and other types are not.
 Never publish repository sources, the unused source photograph or `.secrets`.
 Keep reusable viewer/package modules free from click-tracker initialization;
 only production-origin standalone bootstraps initialize it
-([click tracking](docs/click-tracking.md)).
+([click tracking](docs/click-tracking.md)). The site stays out of search by
+design: keep every page's robots noindex meta tag and the deployed `_headers`
+X-Robots-Tag, and keep `_headers` out of the package
+([search engines](docs/deploying.md#search-engines)).
 
 All rendered colours are grayscale, except the source photograph and opt-in
 colour trial defined in `src/models/colour-palette.ts`. Preserve the tests for

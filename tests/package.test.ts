@@ -45,6 +45,8 @@ describe("published Skyline package", () => {
     // The favicons are the deployed site's alone. The pages link them at the origin's root,
     // where a host serving a copy of the pages has its own.
     for (const file of await faviconFiles()) expect(files).not.toContain(`site/${file}`);
+    // Nor its `_headers`, which keeps the standalone site out of search: a host keeps its own headers.
+    expect(files).not.toContain("site/_headers");
     for (const file of ["lib/skyline-package.d.ts", "lib/skyline-shell.d.ts", "lib/skyline-three.d.ts", "lib/three-engine.d.ts", "site/vendor/three-r186.bundle.js", "site/skyline-viewer.js", "site/viewer.css", "lib/skyline-scene.d.ts", "lib/package-assets.d.ts", "lib/models/building-kit.d.ts", "lib/models/window-illumination.d.ts", "lib/models/celebrations.d.ts", "lib/vendor/three-r186.d.ts", "site/vendor/THREE-LICENSE.txt", "NOTICE.md"]) expect(files).toContain(file);
     expect(files.some((file) => /\.secrets|terraform|scripts\/|tests\/|skyline\.jpg|skyline\.svg$/.test(file))).toBe(false);
     const metadata = JSON.parse(await readFile(path.join(installed, "package.json"), "utf8")) as { name: string; private?: boolean; publishConfig?: { access?: string }; scripts: Record<string, string> };

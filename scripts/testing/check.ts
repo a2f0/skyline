@@ -53,6 +53,7 @@ const suites = [
   "panorama-owners.test.ts", "grayscale.test.ts", "skyline-loading.test.ts", "time-of-day.test.ts",
   "verify-deploy.test.ts", "colour-shade.test.ts", "merge-pr.test.ts", "npm-publish.test.ts",
   "timings.test.ts", "check-coauthors.test.ts", "building-fidelity-skill.test.ts", "favicons.test.ts",
+  "search-indexing.test.ts",
 ];
 const slots = process.env["CI"] === "true" ? 1 : Math.max(2, Math.floor(os.availableParallelism() / 2));
 

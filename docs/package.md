@@ -114,6 +114,9 @@ The copy holds no favicons. Its pages link `/favicon.ico`, `/favicon.svg` and
 `/apple-touch-icon.png` at the origin's root, so a page opened from the copy shows the
 host's own icons, as long as the host serves those three files; the mounted viewer never
 requests them. The standalone site renders its own icons at deploy time.
+Every page in the copy carries `<meta name="robots" content="noindex">`, as on the standalone
+site, so search engines leave the copied pages out wherever they are served. The copy holds no
+`_headers` file either; the response headers it is served with are the host's.
 The helper copies files into the supplied directory; it does not clear unrelated
 files already there. Use a dedicated directory for these assets, and clear it before
 copying an upgrade, so files a new version dropped do not linger. All the viewer's

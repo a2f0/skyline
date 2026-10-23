@@ -68,10 +68,11 @@ and checks the reference excerpts and skyline-loading trace, in order.
 It then builds the package, which builds `dist/`, renders the site's favicons into it, starts its
 own temporary server, and runs every suite in `tests/` under `bun test` — the attribution, hook,
 timings, merge guard, deploy verification, deploy secrets loader, local dependency runtime,
-grayscale, skyline-loading, favicon, package, building kit, and indexed raycast suites, and the
-browser suites against the compiled site — closing the server afterward. Suites run as many at a
-time as the machine has pairs of cores, longest first, and one at a time on CI (`CI=true`); each
-one's output prints whole when it ends, and the run reports every failing suite before it fails.
+grayscale, skyline-loading, favicon, search indexing, package, building kit, and indexed raycast
+suites, and the browser suites against the compiled site — closing the server afterward. Suites run
+as many at a time as the machine has pairs of cores, longest first, and one at a time on CI
+(`CI=true`); each one's output prints whole when it ends, and the run reports every failing suite
+before it fails.
 CI's Chrome draws WebGL in software, many times slower than a desktop's, so give a browser test a
 timeout of at least twice its time in the publish run's log.
 The package suite reads the package the runner built (`SKYLINE_PACKAGE_BUILT`) rather than
@@ -101,6 +102,8 @@ Together they cover:
 - the building kit's closed solids and analytic normals, and each fitted model's covered
   omissions and freedom from same-facing coplanar faces across its meshes;
 - SVG/WebGL hover regions and illumination;
+- that every page carries a robots noindex meta tag and names no canonical URL, and that the
+  deployed site's `_headers` sends `X-Robots-Tag: noindex, nofollow` while the package carries none;
 - both 3D studies, every mapped building's detail framed in each view, and the 3D skyline's
   context menu and detail panel;
 - the package's tarball and the viewer it mounts in a host's page: styles kept apart both
