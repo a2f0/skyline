@@ -29,6 +29,10 @@ its path within `src/`, so `src/index.html` is served at `/index.html`. Every to
 directories and other file types do not. New top-level runtime files in `src/` must be added to the
 list, and the script fails rather than publishing if a listed file has been renamed away.
 
+The build also renders the site's favicons into the root of `dist/` from `assets/brand/logo.svg`,
+through agent-tool's `favicons` target in `agent-tool.json`; they are generated on every build and
+never committed. Verification treats them as published files like any other.
+
 ## Verification
 
 `bun run deploy` then runs `scripts/deploy/verify-deploy.ts` against the live site, and

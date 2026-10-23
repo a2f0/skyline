@@ -137,11 +137,11 @@ export async function verifyDeploy(options: VerifyOptions, deps: VerifyDeps = {}
   // disk would pass a deploy of an older build. Build once and share it across entries.
   let built: Promise<void> | undefined;
   const readLocal = deps.readLocal || (async (entry) => {
-    built ??= buildSite().then(() => undefined);
+    built ??= buildSite({ favicons: true }).then(() => undefined);
     await built;
     return readFile(path.join(dist, entry));
   });
-  const published = deps.published || await publishedFiles();
+  const published = deps.published || await publishedFiles({ favicons: true });
   const forbidden = deps.forbidden || await forbiddenPaths(published, { ...(deps.tracked ? { tracked: deps.tracked } : {}), ...(deps.secrets ? { secrets: deps.secrets } : {}) });
   const clock = deps.now || Date.now;
   const started = clock();

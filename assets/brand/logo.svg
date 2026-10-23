@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The site's mark, from the drawing: a flat-topped tower, the tallest tower's spire and
+     Crain Communications' diagonal roof under two stars of the night sky. Every edge lies on
+     the 2-unit grid, so the 16-pixel favicon renders each building on whole pixels. Greys only,
+     like everything Skyline draws. agent-tool renders the favicons from this file. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>Chicago Skyline</title>
+  <rect width="32" height="32" rx="6" fill="#000000"/>
+  <circle cx="5" cy="5" r="1" fill="#9e9e9e"/>
+  <circle cx="27" cy="7" r="1" fill="#9e9e9e"/>
+  <path fill="#6e6e6e" d="M2 26V18H4V26ZM10 26V14H12V26ZM18 26V12H20V26ZM26 26V20H30V26Z"/>
+  <path fill="#ffffff" d="M4 26V10H10V26ZM12 26V8H14V2H16V8H18V26ZM20 26V12L26 18V26ZM2 26H30V28H2Z"/>
+  <path fill="#000000" d="M6 12H8V14H6ZM6 16H8V18H6ZM6 20H8V22H6ZM14 10H16V12H14ZM14 14H16V16H14ZM14 18H16V20H14ZM22 18H24V20H22ZM22 22H24V24H22Z"/>
+</svg>

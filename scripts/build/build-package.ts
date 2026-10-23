@@ -11,6 +11,7 @@ import { buildSite, dist, root, src } from "./build-site.js";
 
 export async function buildPackage() {
   const lib = path.join(root, "lib"), site = path.join(root, "site");
+  // Without the favicons, which belong to the deployed site and not the viewer (build-site.ts).
   await buildSite();
   await rm(lib, { recursive: true, force: true });
   await rm(site, { recursive: true, force: true });

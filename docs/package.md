@@ -56,7 +56,8 @@ bun add /tmp/a2f0-skyline-<version>.tgz
 ```
 
 The tarball includes `lib/` (ESM and declarations), `site/` (the complete static
-viewer), package documentation, and third-party notices. Sources, test fixtures,
+viewer), package documentation, and third-party notices. The standalone site's favicons are
+not part of `site/` ([why](#copy-the-viewer-assets)). Sources, test fixtures,
 credentials, deployment configuration, and the unused source photograph are
 excluded. No viewer assets load from a CDN.
 
@@ -109,6 +110,10 @@ await copySkylineAssets('./public/skyline');
 ```
 
 Serve that directory over HTTP at `/skyline/`, preserving all its relative paths.
+The copy holds no favicons. Its pages link `/favicon.ico`, `/favicon.svg` and
+`/apple-touch-icon.png` at the origin's root, so a page opened from the copy shows the
+host's own icons, as long as the host serves those three files; the mounted viewer never
+requests them. The standalone site renders its own icons at deploy time.
 The helper copies files into the supplied directory; it does not clear unrelated
 files already there. Use a dedicated directory for these assets, and clear it before
 copying an upgrade, so files a new version dropped do not linger. All the viewer's

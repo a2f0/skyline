@@ -6,10 +6,12 @@
 // the pages in src/, the 18MB source photograph that the site never requests,
 // so an ignore list that fell out of date would publish them. Only the compiled
 // modules and the static files named here reach Cloudflare.
+import { execFile } from "node:child_process";
 import { cp, mkdir, readdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 
 export const root = path.resolve(import.meta.dirname, "../..");
 // Entries below are paths within src/, and each keeps that path in dist/.
@@ -88,18 +90,44 @@ async function sourceEntries(): Promise<{ static: string[]; compiled: string[] }
   return { static: staticSet, compiled };
 }
 
+// The standalone site's favicons, which agent-tool renders from assets/brand/logo.svg as the
+// `favicons` target in agent-tool.json. Only the deployed site serves them, at its root, and its
+// pages link them there. The package's viewer assets leave them out: a host that mounts the viewer
+// or serves its pages from a subdirectory keeps its own icons at its root, and a GitHub source
+// build runs without Skyline's development dependencies, agent-tool among them.
+export interface SiteOptions {
+  /** Also renders the favicons into dist/. The site build, its deploy and verification do. */
+  favicons?: boolean;
+}
+
+const agentTool = path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts");
+async function images(args: string[]): Promise<string> {
+  const { stdout } = await promisify(execFile)(process.execPath, [agentTool, "images", ...args], { cwd: root, maxBuffer: 1 << 24 });
+  return stdout;
+}
+
+/** The favicon files agent-tool.json declares, as paths within dist/. */
+export async function faviconFiles(): Promise<string[]> {
+  const { targets } = JSON.parse(await images(["list", "favicons"])) as { targets: { files: string[] }[] };
+  return targets.flatMap(({ files }) => files).sort();
+}
+
+export async function renderFavicons(destination: string = dist): Promise<void> {
+  await images(["build", "favicons", "--out", destination]);
+}
+
 // Every file dist/ will hold: the compiled module paths (one .js per .ts) and the
-// static assets. scripts/deploy/verify-deploy.ts derives the published set the same way.
-export async function publishedFiles(): Promise<string[]> {
+// static assets, and the favicons when asked for. The package suite checks the viewer
+// assets against the set without them; scripts/deploy/verify-deploy.ts checks the
+// deployed site against the set with them.
+export async function publishedFiles({ favicons = false }: SiteOptions = {}): Promise<string[]> {
   const { static: staticSet, compiled } = await sourceEntries();
-  return [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to)].sort();
+  return [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to), ...(favicons ? await faviconFiles() : [])].sort();
 }
 
 // Compiles the browser module graph into dist/, keeping each module's path
 // relative to src/ and its name so the existing script tags load unchanged.
 export async function compileBrowser() {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
   const run = promisify(execFile);
   const tsc = path.join(path.dirname(createRequire(import.meta.url).resolve("typescript/package.json")), "bin/tsc");
   const { stdout, stderr } = await run(process.execPath, [tsc, "-p", path.join(src, "tsconfig.build.json")], { cwd: root, maxBuffer: 1 << 24 });
@@ -107,7 +135,7 @@ export async function compileBrowser() {
   if (stderr) throw new Error(stderr.trim());
 }
 
-export async function buildSite() {
+export async function buildSite({ favicons = false }: SiteOptions = {}) {
   const { static: staticSet, compiled } = await sourceEntries();
   await rm(dist, { recursive: true, force: true });
   await compileBrowser();
@@ -121,7 +149,8 @@ export async function buildSite() {
     await mkdir(path.dirname(target), { recursive: true });
     await cp(from, target);
   }
-  const entries = [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to)];
+  if (favicons) await renderFavicons();
+  const entries = [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to), ...(favicons ? await faviconFiles() : [])];
   const sizes = await Promise.all(entries.map(async (entry) => {
     try {
       return (await stat(path.join(dist, entry))).size;
@@ -130,8 +159,8 @@ export async function buildSite() {
     }
   }));
   const bytes = sizes.reduce((total, size) => total + size, 0);
-  console.log(`Built ${compiled.length} modules and staged ${staticSet.length + dependencyFiles.length} static files (${(bytes / 1024 / 1024).toFixed(2)} MB) into dist/.`);
+  console.log(`Built ${compiled.length} modules and staged ${entries.length - compiled.length} static files (${(bytes / 1024 / 1024).toFixed(2)} MB) into dist/.`);
   return entries;
 }
 
-if (import.meta.main) buildSite().catch((error) => { console.error(error.message); process.exitCode = 1; });
+if (import.meta.main) buildSite({ favicons: true }).catch((error) => { console.error(error.message); process.exitCode = 1; });
