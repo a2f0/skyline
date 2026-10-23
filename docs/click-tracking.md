@@ -6,12 +6,13 @@ The standalone site at `https://skyline.devopsrockstars.com` uses
 `https://ct-admin.a2f0.net` and using its read-only data API require authentication.
 Accounts are provisioned through CT's CLI; there is no public registration.
 
-Each event contains a random event ID for retry deduplication, time, a fixed page
-name, the element tag, and an optional developer-supplied `data-ct` label. The client
+Each client event contains a random event ID for retry deduplication, time, a fixed
+page name, the element tag, and an optional developer-supplied `data-ct` label. The client
 does not read text, DOM IDs, classes, link addresses, query strings or form values,
 and creates no separate visitor or session identifier. Form fields, editable
-content and `data-ct-ignore` subtrees are excluded. Main view and navigation buttons have fixed labels. Other clicks,
-including the drawing and canvas, are counted by their element tag.
+content and `data-ct-ignore` subtrees are excluded. Main view and navigation buttons
+have fixed labels. Other clicks, including the drawing and canvas, are counted by
+their element tag.
 
 The collector also stores the full request IP address and approximate network
 geography supplied by Cloudflare, including country, region, city and timezone.
