@@ -5,6 +5,9 @@
 // this worth running: a 200 proves only that something answered, and a stale or empty file
 // reads identically to a correct one.
 //
+// Every file is also checked for the X-Robots-Tag the build's `_headers` gives every response, so a
+// deploy that lost it cannot pass: the site is kept out of search, and only its pages carry a meta tag.
+//
 // Three things are easy to get wrong, and all three are handled rather than documented away:
 //
 //   * `wrangler deploy` succeeding is not the edge serving the files. Assets can 404 for seconds
@@ -19,13 +22,14 @@ import { execFile } from "node:child_process";
 import { readFile, readdir, realpath, stat } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
-import { buildSite, dist, publishedFiles, root } from "../build/build-site.js";
+import { buildSite, dist, publishedFiles, robotsTag, root } from "../build/build-site.js";
 import { command } from "../lib/command.js";
 
 const usage = `Usage: bun scripts/deploy/verify-deploy.ts [--url origin] [--attempts n] [--delay ms] [--timeout ms] [--deadline ms]
   Checks that every file scripts/build/build-site.ts publishes is served byte for byte against a fresh
-  local build, and that nothing else in the repository is reachable at all. Published files are
-  retried, because Cloudflare's edge can lag a successful wrangler upload by a few seconds.
+  local build with X-Robots-Tag: ${robotsTag}, and that nothing else in the repository is reachable
+  at all. Published files are retried, because Cloudflare's edge can lag a successful wrangler
+  upload by a few seconds.
   --url defaults to https://skyline.devopsrockstars.com.`;
 
 const sha = (buffer: Buffer) => createHash("sha256").update(buffer).digest("hex");
@@ -86,6 +90,8 @@ export interface RequestAnswer {
   resolved: boolean;
   status: number;
   body: Buffer;
+  /** The X-Robots-Tag header, or null when the response has none. */
+  robots: string | null;
   error?: string;
 }
 
@@ -93,9 +99,9 @@ export interface RequestAnswer {
 export async function request(url: string, { redirect, timeout }: { redirect: RequestRedirect; timeout: number }): Promise<RequestAnswer> {
   try {
     const response = await fetch(url, { redirect, signal: AbortSignal.timeout(timeout) });
-    return { resolved: true, status: response.status, body: Buffer.from(await response.arrayBuffer()) };
+    return { resolved: true, status: response.status, body: Buffer.from(await response.arrayBuffer()), robots: response.headers.get("x-robots-tag") };
   } catch (error) {
-    return { resolved: false, status: 0, body: Buffer.alloc(0), error: error instanceof Error ? error.message : String(error) };
+    return { resolved: false, status: 0, body: Buffer.alloc(0), robots: null, error: error instanceof Error ? error.message : String(error) };
   }
 }
 
@@ -111,6 +117,14 @@ async function attempt(send: (url: string, options: { redirect: RequestRedirect;
   }
   return { ...last!, attempts };
 }
+
+// Directives compare without case or spacing, and a header may add others, but it must hold every
+// directive the build's `_headers` sends.
+const directives = (value: string | null) => new Set((value ?? "").split(",").map((directive) => directive.trim().toLowerCase()).filter(Boolean));
+const keepsOutOfSearch = (robots: string | null) => {
+  const served = directives(robots);
+  return [...directives(robotsTag)].every((directive) => served.has(directive));
+};
 
 export interface VerifyDeps {
   request?: (url: string, options: { redirect: RequestRedirect; timeout: number }) => Promise<RequestAnswer>;
@@ -137,11 +151,11 @@ export async function verifyDeploy(options: VerifyOptions, deps: VerifyDeps = {}
   // disk would pass a deploy of an older build. Build once and share it across entries.
   let built: Promise<void> | undefined;
   const readLocal = deps.readLocal || (async (entry) => {
-    built ??= buildSite({ favicons: true }).then(() => undefined);
+    built ??= buildSite({ deployed: true }).then(() => undefined);
     await built;
     return readFile(path.join(dist, entry));
   });
-  const published = deps.published || await publishedFiles({ favicons: true });
+  const published = deps.published || await publishedFiles({ deployed: true });
   const forbidden = deps.forbidden || await forbiddenPaths(published, { ...(deps.tracked ? { tracked: deps.tracked } : {}), ...(deps.secrets ? { secrets: deps.secrets } : {}) });
   const clock = deps.now || Date.now;
   const started = clock();
@@ -162,10 +176,14 @@ export async function verifyDeploy(options: VerifyOptions, deps: VerifyDeps = {}
       failures.push(`${entry} is served but differs from the local build: ${result.body.length} bytes served against ${local.length} built`);
       continue;
     }
+    if (!keepsOutOfSearch(result.robots)) {
+      failures.push(`${entry} is served with X-Robots-Tag ${result.robots === null ? "missing" : `"${result.robots}"`} rather than "${robotsTag}"`);
+      continue;
+    }
     served += 1;
     if (result.attempts > 1) slow += 1;
   }
-  console.log(`  ${served}/${published.length} published files served byte for byte${slow ? `, ${slow} only after a retry` : ""}`);
+  console.log(`  ${served}/${published.length} published files served byte for byte with X-Robots-Tag: ${robotsTag}${slow ? `, ${slow} only after a retry` : ""}`);
 
   let probed = 0;
   for (const entry of forbidden) {
@@ -208,6 +226,6 @@ if (import.meta.main) {
       for (const failure of failures) console.error(`  FAIL: ${failure}`);
       throw new Error(`${failures.length} deploy check${failures.length === 1 ? "" : "s"} failed against ${origin}.`);
     }
-    console.log(`PASS: ${origin} serves all ${published} published files byte for byte, and none of the other ${forbidden} files in the repository is reachable.`);
+    console.log(`PASS: ${origin} serves all ${published} published files byte for byte with X-Robots-Tag: ${robotsTag}, and none of the other ${forbidden} files in the repository is reachable.`);
   });
 }

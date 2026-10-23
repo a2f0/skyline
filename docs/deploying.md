@@ -33,6 +33,19 @@ The build also renders the site's favicons into the root of `dist/` from `assets
 through agent-tool's `favicons` target in `agent-tool.json`; they are generated on every build and
 never committed. Verification treats them as published files like any other.
 
+## Search engines
+
+The site is the package's viewer and study site, and it stays out of search by design: every page
+carries `<meta name="robots" content="noindex">`, and the build writes `dist/_headers`, which gives
+every response `X-Robots-Tag: noindex, nofollow`. The header reaches what no meta tag can, such as the
+drawings, models, scripts, favicons, redirects and 404s. Wrangler reads `_headers` as configuration
+and does not serve it, and the package's viewer assets leave it out, so a host serving a copy of the
+pages keeps the meta tags but sets its own headers. The site publishes no canonical URLs and no
+sitemap. Its `robots.txt` is the one Cloudflare manages for the zone, which allows search crawlers and
+asks AI training crawlers to stay away; the site serves none of its own. Whether the site should
+rank is a product decision that has not been made, and changing it starts with removing both the
+meta tags and the header.
+
 ## Verification
 
 `bun run deploy` then runs `scripts/deploy/verify-deploy.ts` against the live site, and
@@ -42,11 +55,13 @@ aimed somewhere else (`--env`, `-e`, `--name`), and says which, because checking
 publishing to another Worker would report the previous deploy as though it were this one.
 `--outdir` and `--outfile` still publish, so they are still verified.
 
-It asserts two things:
+It asserts three things:
 
 - Every file the allowlist publishes is served **byte for byte** against a fresh local build. A
   deploy is a copy of a build, so anything else is a bad deploy, and comparing hashes catches a
   file served empty or stale, which a status code does not.
+- Every published file is served with `X-Robots-Tag: noindex, nofollow`, so a deploy that lost
+  `_headers` fails rather than letting the site's files into search.
 - Nothing else in the repository is reachable at all. That set is derived from `git ls-files` and
   a walk of `.secrets`, minus what `scripts/build/build-site.ts` publishes, because a hand-kept list of
   forbidden paths is a sample and a sample cannot prove absence. The walk follows the `.secrets`
@@ -102,7 +117,8 @@ in. No AWS account or credential is involved. `tests/secrets.test.ts` covers it.
 Order matters on a first apply, and only there: wrangler must publish the Worker before Terraform
 can point a hostname at it. Cloudflare serves `.html` requests with a 307 to the extensionless
 path, so `building-study.html` lands on `/building-study` with identical content; `wrangler.jsonc`
-explains why the alternative costs more than the redirect.
+explains why the alternative costs more than the redirect. `wrangler.jsonc` also turns off the
+Worker's `workers.dev` route and preview URLs, so the custom domain is its only hostname.
 
 ## Local secrets
 

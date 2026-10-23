@@ -1,12 +1,19 @@
 {
   // Assets-only Worker: no `main`, so Cloudflare serves dist/ directly and the
-  // request never reaches a script. `bun run build:site` compiles dist/.
+  // request never reaches a script. `bun run build:site` compiles dist/, and
+  // writes dist/_headers, which gives every response X-Robots-Tag: noindex,
+  // nofollow (scripts/build/build-site.ts).
   //
   // skyline.devopsrockstars.com is attached to this Worker by terraform/, which
   // matches how every other host in the zone is served. Deploy order matters on
   // a first apply: the Worker must exist before the domain can point at it.
   "name": "devopsrockstars-skyline-prod",
   "compatibility_date": "2026-09-15",
+  // The custom domain is the site's only hostname. Without these, wrangler also serves every
+  // deploy from devopsrockstars-skyline-prod.<subdomain>.workers.dev and each version from its
+  // own preview URL, duplicate copies of the site that nothing links to.
+  "workers_dev": false,
+  "preview_urls": false,
   "assets": {
     "directory": "./dist",
 

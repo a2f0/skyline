@@ -7,7 +7,7 @@
 // so an ignore list that fell out of date would publish them. Only the compiled
 // modules and the static files named here reach Cloudflare.
 import { execFile } from "node:child_process";
-import { cp, mkdir, readdir, rm, stat } from "node:fs/promises";
+import { cp, mkdir, readdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
@@ -90,14 +90,26 @@ async function sourceEntries(): Promise<{ static: string[]; compiled: string[] }
   return { static: staticSet, compiled };
 }
 
-// The standalone site's favicons, which agent-tool renders from assets/brand/logo.svg as the
-// `favicons` target in agent-tool.json. Only the deployed site serves them, at its root, and its
-// pages link them there. The package's viewer assets leave them out: a host that mounts the viewer
-// or serves its pages from a subdirectory keeps its own icons at its root, and a GitHub source
-// build runs without Skyline's development dependencies, agent-tool among them.
+// The standalone site's own root files: its favicons, which agent-tool renders from
+// assets/brand/logo.svg as the `favicons` target in agent-tool.json, and its `_headers`. Only the
+// deployed site serves them, at its root, and its pages link the favicons there. The package's
+// viewer assets leave them out: a host that mounts the viewer or serves its pages from a
+// subdirectory keeps its own icons and response headers, and a GitHub source build runs without
+// Skyline's development dependencies, agent-tool among them.
 export interface SiteOptions {
-  /** Also renders the favicons into dist/. The site build, its deploy and verification do. */
-  favicons?: boolean;
+  /** Also writes the deployed site's root files into dist/. The site build, its deploy and verification do. */
+  deployed?: boolean;
+}
+
+// The standalone site is the package's viewer and study site, kept out of search by design (#17).
+// Every page carries a robots noindex meta tag, which also travels with the copies other sites
+// serve. This header covers every response on each hostname of the Worker: the pages, and also
+// the drawings, models, scripts, favicons, redirects and 404s that no meta tag reaches. Wrangler
+// reads `_headers` as configuration rather than uploading it, so it is never served as a file.
+export const robotsTag = "noindex, nofollow";
+
+export async function writeSiteHeaders(destination: string = dist): Promise<void> {
+  await writeFile(path.join(destination, "_headers"), `/*\n  X-Robots-Tag: ${robotsTag}\n`);
 }
 
 const agentTool = path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts");
@@ -116,13 +128,13 @@ export async function renderFavicons(destination: string = dist): Promise<void> 
   await images(["build", "favicons", "--out", destination]);
 }
 
-// Every file dist/ will hold: the compiled module paths (one .js per .ts) and the
-// static assets, and the favicons when asked for. The package suite checks the viewer
+// Every file dist/ will serve: the compiled module paths (one .js per .ts) and the
+// static assets, and the favicons for the deployed site. The package suite checks the viewer
 // assets against the set without them; scripts/deploy/verify-deploy.ts checks the
-// deployed site against the set with them.
-export async function publishedFiles({ favicons = false }: SiteOptions = {}): Promise<string[]> {
+// deployed site against the set with them. `_headers` is configuration, never served.
+export async function publishedFiles({ deployed = false }: SiteOptions = {}): Promise<string[]> {
   const { static: staticSet, compiled } = await sourceEntries();
-  return [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to), ...(favicons ? await faviconFiles() : [])].sort();
+  return [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to), ...(deployed ? await faviconFiles() : [])].sort();
 }
 
 // Compiles the browser module graph into dist/, keeping each module's path
@@ -135,7 +147,7 @@ export async function compileBrowser() {
   if (stderr) throw new Error(stderr.trim());
 }
 
-export async function buildSite({ favicons = false }: SiteOptions = {}) {
+export async function buildSite({ deployed = false }: SiteOptions = {}) {
   const { static: staticSet, compiled } = await sourceEntries();
   await rm(dist, { recursive: true, force: true });
   await compileBrowser();
@@ -149,8 +161,11 @@ export async function buildSite({ favicons = false }: SiteOptions = {}) {
     await mkdir(path.dirname(target), { recursive: true });
     await cp(from, target);
   }
-  if (favicons) await renderFavicons();
-  const entries = [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to), ...(favicons ? await faviconFiles() : [])];
+  if (deployed) {
+    await renderFavicons();
+    await writeSiteHeaders();
+  }
+  const entries = [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to), ...(deployed ? await faviconFiles() : [])];
   const sizes = await Promise.all(entries.map(async (entry) => {
     try {
       return (await stat(path.join(dist, entry))).size;
@@ -163,4 +178,4 @@ export async function buildSite({ favicons = false }: SiteOptions = {}) {
   return entries;
 }
 
-if (import.meta.main) buildSite({ favicons: true }).catch((error) => { console.error(error.message); process.exitCode = 1; });
+if (import.meta.main) buildSite({ deployed: true }).catch((error) => { console.error(error.message); process.exitCode = 1; });

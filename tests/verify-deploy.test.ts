@@ -11,8 +11,10 @@ import type { RequestAnswer, VerifyOptions } from "../scripts/deploy/verify-depl
 
 const ORIGIN = "http://origin";
 const bytes = (text: string) => Buffer.from(text);
-const answer = (status: number, text = ""): RequestAnswer => ({ resolved: true, status, body: bytes(text) });
-const unresolved = (message: string): RequestAnswer => ({ resolved: false, status: 0, body: Buffer.alloc(0), error: message });
+// Like the deployed Worker, whose `_headers` reaches every response, the fake origin sends the
+// X-Robots-Tag unless a case says otherwise.
+const answer = (status: number, text = "", robots: string | null = "noindex, nofollow"): RequestAnswer => ({ resolved: true, status, body: bytes(text), robots });
+const unresolved = (message: string): RequestAnswer => ({ resolved: false, status: 0, body: Buffer.alloc(0), robots: null, error: message });
 
 // `routes` maps a path to an answer, or to a function of the attempt number for flaky behaviour.
 // Anything unrouted is a 404, which is what a correctly deployed site does with an unpublished path.
@@ -72,6 +74,20 @@ describe("deploy verification", () => {
     const lagging = await run({ "a.js": (attempt) => (attempt < 3 ? answer(404) : answer(200, "hello")) });
     expect(lagging.failures).toEqual([]);
     expect(lagging.served).toBe(1);
+  });
+
+  test("fails a file served without the X-Robots-Tag that keeps the site out of search", async () => {
+    const indexable = await run({ "a.js": answer(200, "hello", null) });
+    expect(indexable.served).toBe(0);
+    expect(indexable.failures).toEqual(['a.js is served with X-Robots-Tag missing rather than "noindex, nofollow"']);
+    const partial = await run({ "a.js": answer(200, "hello", "noindex") });
+    expect(partial.failures).toEqual(['a.js is served with X-Robots-Tag "noindex" rather than "noindex, nofollow"']);
+  });
+
+  test("reads X-Robots-Tag directives in any case, spacing and order, beside others", async () => {
+    for (const robots of ["noindex,nofollow", " NoFollow , NOINDEX ", "noindex, nofollow, noarchive"]) {
+      expect((await run({ "a.js": answer(200, "hello", robots) })).failures).toEqual([]);
+    }
   });
 
   test("fails a published file that never answers", async () => {
