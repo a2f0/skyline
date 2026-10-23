@@ -8,7 +8,7 @@ import { createGeographicBuilding, footprintMetrics } from "../src/models/skylin
 import { celebrations } from "../src/models/celebrations.js";
 import type * as THREE from "../src/vendor/three-r186.js";
 import { isThreeDeprecation } from "./three-warnings.js";
-import { chroma, lampTints, litPixels, near, nightChanges, openScene, origin, pageWatch, pixelAt, settle } from "./skyline-3d-page.js";
+import { chroma, lampTints, litPixels, near, nightChanges, openScene, origin, pageWatch, pixelAt, settle, steadyScreenshot } from "./skyline-3d-page.js";
 
 describe("full-screen 3D skyline", () => {
   let browser!: Browser;
@@ -34,7 +34,7 @@ describe("full-screen 3D skyline", () => {
     await page.mouse.move(1, 1);
     await settle(page);
     const canvas = page.locator("#building");
-    const snapshot = () => canvas.screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
+    const snapshot = () => steadyScreenshot(canvas, { style: ".scene-notes { visibility: hidden !important; }" });
     const baseline = await snapshot();
     const identity = await page.evaluate(() => ({ names: window.__buildingStudy!.modelNames, triangles: window.__buildingStudy!.triangleCount, camera: window.__buildingStudy!.cameraPosition }));
     // Count actual rendered white pixels, so a correct controller with a broken
@@ -298,7 +298,7 @@ describe("full-screen 3D skyline", () => {
       const slider = page.getByRole("slider", { name: "Chicago time" });
       expect(await page.locator("#time-date").textContent()).toBe("Oct 15, 2026");
       const canvas = page.locator("#building");
-      const snapshot = () => canvas.screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
+      const snapshot = () => steadyScreenshot(canvas, { style: ".scene-notes { visibility: hidden !important; }" });
       const preset = await snapshot();
       const originalCamera = await page.evaluate(() => window.__buildingStudy!.cameraPosition);
       const skies: number[][] = [];
@@ -378,7 +378,7 @@ describe("full-screen 3D skyline", () => {
       const detailAt = async (minute: number) => {
         await slider.fill(String(minute));
         await settle(page);
-        return page.locator(".detail-host #building").screenshot();
+        return steadyScreenshot(page.locator(".detail-host #building"));
       };
       const detailEvening = await detailAt(1200), detailEarly = await detailAt(240);
       const detailChange = await nightChanges(page, detailEvening, detailEarly), detailQuiet = await litPixels(page, detailEarly);
@@ -474,7 +474,7 @@ describe("full-screen 3D skyline", () => {
       await page.goto(`${origin}/${route}?colour=1&controls=open`);
       await openScene(page);
       const slider = page.locator("#time-of-day");
-      const snapshot = () => page.locator("#building").screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
+      const snapshot = () => steadyScreenshot(page.locator("#building"), { style: ".scene-notes { visibility: hidden !important; }" });
       const preset = await snapshot();
       const at = async (minute: number) => { await slider.fill(String(minute)); await settle(page); return snapshot(); };
       const evening = await at(1200), early = await at(240);
@@ -567,14 +567,14 @@ describe("full-screen 3D skyline", () => {
       await detailToggle.click();
       expect(await toggle.getAttribute("aria-pressed")).toBe("false");
       await settle(page);
-      const grey = await detail.locator("canvas").screenshot();
+      const grey = await steadyScreenshot(detail.locator("canvas"));
       await toggle.click();
       expect(await detailToggle.getAttribute("aria-pressed")).toBe("true");
       await settle(page);
       expect((await detail.locator("canvas").screenshot()).equals(grey)).toBe(false);
       await toggle.click();
       await settle(page);
-      expect((await detail.locator("canvas").screenshot()).equals(grey), "detail returns to exactly the same greys").toBe(true);
+      expect((await steadyScreenshot(detail.locator("canvas"))).equals(grey), "detail returns to exactly the same greys").toBe(true);
       await page.locator("#detail-close").click();
     }
     await page.goto(`${origin}/building-detail.html?building=building-three-illinois-center&colour=1`);

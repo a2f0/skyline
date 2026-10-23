@@ -4,7 +4,7 @@
 import { expect } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import type { Frame, Page } from "playwright";
+import type { Frame, Locator, Page } from "playwright";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 import { createGeographicBuilding } from "../src/models/skyline-geography.js";
 import { toneOf } from "../src/models/colour-materials.js";
@@ -144,6 +144,19 @@ export function viewerHooks() {
 export async function openScene(page: Page) {
   await page.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
   return page;
+}
+
+// A screenshot that two captures in a row agree on, for the checks that compare pictures
+// exactly. On a busy machine Chrome can capture one rendered frame a level apart in a few
+// thousand pixels, with no new frame drawn, before it settles.
+export async function steadyScreenshot(locator: Locator, options: Parameters<Locator["screenshot"]>[0] = {}) {
+  let previous = await locator.screenshot(options);
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const next = await locator.screenshot(options);
+    if (next.equals(previous)) return next;
+    previous = next;
+  }
+  return previous;
 }
 
 // Every page a suite watches has the viewer's hooks, and reports its page errors, requests

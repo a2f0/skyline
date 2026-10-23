@@ -8,7 +8,7 @@ import { createGeographicSkyline } from "../src/skyline-scene.js";
 import { geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
-import { blueCrossScreen, boxHeight, boxWidth, boxX, boxY, chroma, near, openScene, origin, pageWatch, pixelAt, settle, shiftX, shiftY, viewerHooks } from "./skyline-3d-page.js";
+import { blueCrossScreen, boxHeight, boxWidth, boxX, boxY, chroma, near, openScene, origin, pageWatch, pixelAt, settle, shiftX, shiftY, steadyScreenshot, viewerHooks } from "./skyline-3d-page.js";
 
 describe("full-screen 3D skyline", () => {
   let browser!: Browser;
@@ -602,7 +602,7 @@ describe("full-screen 3D skyline", () => {
     // Seen in height comparison, each changes the picture, and pressing it again restores it.
     await page.locator('[data-view="heights"]').click();
     await settle(page);
-    const picture = () => page.locator("#building").screenshot();
+    const picture = () => steadyScreenshot(page.locator("#building"));
     for (const [id, pressed] of [["streets", "true"], ["footprints", "false"]] as const) {
       const button = page.locator(`#${id}`);
       expect(await button.getAttribute("aria-pressed")).toBe(pressed);
@@ -633,7 +633,7 @@ describe("full-screen 3D skyline", () => {
     // turning colour off returns exactly the celebration's greys. Snapshots leave out the scene
     // notes, which name the celebration.
     const colour = page.locator("#colour"), cubs = page.locator('[data-celebration="cubs"]');
-    const scene = () => page.locator("#building").screenshot({ style: ".scene-notes { visibility: hidden !important; }" });
+    const scene = () => steadyScreenshot(page.locator("#building"), { style: ".scene-notes { visibility: hidden !important; }" });
     // Blue Cross's crown screen, as red and blue: the sky alone would pass a test of hue.
     const screen = blueCrossScreen();
     const screenAt = async () => {
