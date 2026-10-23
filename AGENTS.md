@@ -54,7 +54,7 @@ runner checks managed skill drift, tool configuration and dependency advisories,
 repository, verifies the vendored engine and license against the locked dependencies, and
 checks the reference excerpts and skyline-loading trace, in order. It then builds the package,
 which builds `dist/`, starts its own temporary server, and runs every suite in `tests/`, several
-at a time and longest first: the attribution, signatures, hooks, timings, merge guard, deploy
+at a time (one at a time on CI, whose Chrome renders in software) and longest first: the attribution, signatures, hooks, timings, merge guard, deploy
 verification, deploy secrets loader, local dependency runtime, grayscale, skyline-loading,
 package, building kit, and indexed raycast checks, and, against the compiled site, the click-tracking and hover
 regressions, both 3D study browser suites, the building detail suite, and both full-screen 3D
