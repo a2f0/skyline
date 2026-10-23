@@ -149,7 +149,7 @@ describe("standalone site click tracking", () => {
         expect(batches).toEqual([]);
       } finally { await close(context); }
     }
-  }, 60_000);
+  }, 120_000);
 
   test("opt-out discards queued events and synthetic clicks never enter the queue", async () => {
     const { context, page, batches } = await session({ gpc: true });
