@@ -47,7 +47,8 @@ It then builds the package, which builds `dist/`, starts its own temporary serve
 suite in `tests/` under `bun test` — the attribution, hook, timings, merge guard, deploy
 verification, deploy secrets loader, local dependency runtime, grayscale, skyline-loading, package,
 building kit, and indexed raycast suites, and the browser suites against the compiled site — closing the server
-afterward. Suites run as many at a time as the machine has pairs of cores, longest first; each
+afterward. Suites run as many at a time as the machine has pairs of cores, longest first, and one
+at a time on CI (`CI=true`), whose Chrome draws WebGL in software; each
 one's output prints whole when it ends, and the run reports every failing suite before it fails.
 The package suite reads the package the runner built (`SKYLINE_PACKAGE_BUILT`) rather than
 rebuilding `dist/` under the browser suites. A suite missing from the list in `scripts/check.ts`

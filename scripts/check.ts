@@ -40,7 +40,10 @@ const step = (label: string, args: string[], env?: NodeJS.ProcessEnv) => timings
 // Every suite, longest first, so the slowest is not left to start last. Each is its own
 // `bun test` process, so a failure names its file. A browser suite keeps about two cores busy
 // between Chrome's processes and its own, and starting them all at once slows every suite
-// enough to time tests out, so as many run at once as the machine has pairs of cores.
+// enough to time tests out, so as many run at once as the machine has pairs of cores. CI's
+// Chrome draws WebGL in software, more than ten times slower, where some tests come within a
+// minute of their timeouts alone and two suites at once on a four-core runner pass them, so
+// on CI (GitHub Actions sets CI=true) suites run one at a time.
 const suites = [
   "package.test.ts", "skyline-3d.test.ts", "skyline-3d-lighting.test.ts", "building-detail.test.ts",
   "building-kit.test.ts", "skyline-geography.test.ts", "skyline-study.test.ts", "click-tracking.test.ts",
@@ -50,7 +53,7 @@ const suites = [
   "verify-deploy.test.ts", "colour-shade.test.ts", "merge-pr.test.ts", "npm-publish.test.ts",
   "timings.test.ts", "check-coauthors.test.ts", "check-signed-commits.test.ts", "building-fidelity-skill.test.ts",
 ];
-const slots = Math.max(2, Math.floor(os.availableParallelism() / 2));
+const slots = process.env["CI"] === "true" ? 1 : Math.max(2, Math.floor(os.availableParallelism() / 2));
 
 async function main() {
   const baseSha = process.env["SKYLINE_BASE_SHA"];
