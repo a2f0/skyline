@@ -389,10 +389,12 @@ system preference.
 
 **show original** compares the enhanced skyline with `skyline-original-fit.svg`. You can also open
 the star's controls at the bottom of the 3D skyline for **show original**; the original drawing's
-bottom **3d skyline** button returns to the same camera and open controls. The self-contained
-comparison file gives the original vector `Landscape` layer the same viewBox, bottom alignment,
-and artwork offset as the enhanced skyline; the source-photo layer from `skyline.svg` has been
-removed. [Development](development.md#updating-the-drawing) describes how the drawing is
+bottom **3d skyline** button returns to the same camera and open controls. The toolbar's **show
+original** stays hidden while the 3D skyline boots and appears with its first frame, or as soon as
+the scene fails to load or loses its graphics context, so the drawing stays reachable then. The
+self-contained comparison file gives the original vector `Landscape` layer the same viewBox, bottom
+alignment, and artwork offset as the enhanced skyline; the source-photo layer from `skyline.svg`
+has been removed. [Development](development.md#updating-the-drawing) describes how the drawing is
 re-exported from Inkscape.
 
 ## WebGL prototype
