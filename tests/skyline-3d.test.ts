@@ -45,6 +45,9 @@ describe("full-screen 3D skyline", () => {
         expect(await scene.locator(".control-bar").evaluate((bar) => getComputedStyle(bar).backgroundColor)).toBe(light ? "rgb(245, 245, 245)" : "rgb(8, 8, 8)");
         expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
         expect(await scene.evaluate(() => window.__buildingStudy?.ready)).toBeUndefined();
+        // The toolbar's show original waits for the scene; its other modes stay.
+        expect(await page.locator("#toggle-skyline").isHidden()).toBe(true);
+        expect(await page.locator("#toggle-webgl").isVisible()).toBe(true);
         const bounds = (await trace.boundingBox())!;
         expect(bounds.width).toBeCloseTo(Math.min(720, width - 48) / 3, 1);
         expect(bounds.x).toBeGreaterThanOrEqual(0);
@@ -81,6 +84,7 @@ describe("full-screen 3D skyline", () => {
         release();
         await scene.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
         expect(await scene.locator("#loading").isHidden()).toBe(true);
+        expect(await page.locator("#toggle-skyline").isVisible()).toBe(true);
         expect(await scene.locator(".control-bar").evaluate((bar) => getComputedStyle(bar).backgroundColor)).toBe(light ? "rgb(245, 245, 245)" : "rgb(8, 8, 8)");
         expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
         await scene.locator("#menu-toggle").click();
@@ -111,6 +115,7 @@ describe("full-screen 3D skyline", () => {
     await scene.waitForFunction(() => window.__viewerRoot?.querySelector("#loading")?.textContent!.includes("WebGL 2"));
     expect(await scene.locator("#menu-toggle").isDisabled()).toBe(true);
     expect(await scene.locator("#time-of-day").isDisabled()).toBe(true);
+    expect(await page.locator("#toggle-skyline").isVisible(), "a failed load ends the boot").toBe(true);
     await page.locator("#toggle-skyline").click();
     await page.locator("#return-skyline-3d").press("Enter");
     expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
@@ -119,6 +124,19 @@ describe("full-screen 3D skyline", () => {
     expect(await scene.locator("#loading").textContent()).toContain("WebGL 2");
     await page.close();
   });
+
+  test("keeps the toolbar's show original when the graphics context is lost after the first frame", async () => {
+    const page = await browser.newPage();
+    await page.addInitScript(viewerHooks);
+    try {
+      await page.goto(`${origin}/index.html`);
+      await openScene(page);
+      await page.evaluate(() => window.__viewerRoot!.querySelector<HTMLCanvasElement>(".skyline-3d > #viewport > #building")!
+        .getContext("webgl2")!.getExtension("WEBGL_lose_context")!.loseContext());
+      await page.waitForFunction(() => window.__viewerRoot!.querySelector("#loading")!.textContent!.includes("graphics context was interrupted"));
+      expect(await page.locator("#toggle-skyline").isVisible()).toBe(true);
+    } finally { await page.close(); }
+  }, { timeout: 120_000 });
 
   test("stands the mapped buildings where the skyline viewer draws them, at every layout", async () => {
     // The page frames the drawing's viewBox through the geographic skyline camera, centred

@@ -64,6 +64,9 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
   // Keep the drawing reachable until the first 3D frame succeeds, even if the scene's
   // markup or code never loads, and again if its graphics context is lost.
   let sceneUnavailable = true;
+  // The toolbar's show original waits while the scene boots, until its first frame, a
+  // failure to load, or a lost graphics context.
+  let booting = true;
   const frames: Partial<Record<keyof typeof prototypes, HTMLIFrameElement>> = {};
   const toolbar = navigation ? createToolbar() : null;
 
@@ -83,6 +86,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
         button.setAttribute("aria-pressed", String(showing));
         button.title = showing ? home.title : toggle.title;
       }
+      toolbar.querySelector<HTMLButtonElement>(`#${toggles.original.id}`)!.hidden = booting;
     }
   }
   function showMode(next: Mode) {
@@ -159,6 +163,8 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
       if (signal.aborted) return new Promise(() => {});
       const message = element(document, "p", { className: "loading", textContent: SCENE_FAILURE }, { role: "status" });
       scene.append(message);
+      booting = false;
+      updateView();
       throw error;
     }
     if (signal.aborted) return new Promise(() => {});
@@ -189,11 +195,13 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
           onShowOriginal: showOriginal,
           onReady() {
             sceneUnavailable = false;
+            booting = false;
             updateView();
             resolve();
           },
           onUnavailable() {
             sceneUnavailable = true;
+            booting = false;
             updateView();
           },
         });
@@ -205,6 +213,8 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
       // press away.
       scene.querySelector<HTMLElement>("#loading")!.textContent = SCENE_FAILURE;
       scene.querySelectorAll<HTMLButtonElement | HTMLInputElement>("button, input").forEach((control) => { control.disabled = true; });
+      booting = false;
+      updateView();
       throw error;
     }
   }
