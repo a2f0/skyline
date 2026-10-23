@@ -147,17 +147,34 @@ function overlapArea(a: Triangle, b: Triangle) {
 }
 
 // Same-facing pairs of triangles, in or across the meshes, sharing area within 2 mm of either's
-// plane, as the two meshes and a corner of the first.
+// plane, as the two meshes and a corner of the first. Pairs are found through a grid of 4 m
+// cells: each triangle sits in every cell its padded bounds touch, and a pair is tested only in
+// the cell holding the low corner of the box the two share. Searching a plane's whole bucket
+// instead costs a facade's triangles each other, quadratically.
 function coplanarOverlaps(meshes: { name: string; triangles: Triangle[] }[]) {
   const triangles = meshes.flatMap((mesh) => mesh.triangles.map((triangle) => ({ ...triangle, mesh: mesh.name })));
   triangles.forEach((triangle, index) => { triangle.id = index; });
-  const lookup = planeIndex(triangles), overlaps: (string | Vec3 | undefined)[][] = [];
-  for (const a of triangles) {
-    for (const b of lookup(a.normal, a.offset)) {
-      if (b.id! > a.id! && dot(a.normal, b.normal) > 0 && meet(a, b) && (onPlane(b, a) || onPlane(a, b)) && overlapArea(a, b) > 1e-5) overlaps.push([a.mesh, b.mesh, a.points[0]!]);
+  const cell = (value: number) => Math.floor(value / 4), cells = new Map<string, Triangle[]>();
+  for (const triangle of triangles) {
+    const [x0, y0, z0] = triangle.min.map(cell) as Vec3, [x1, y1, z1] = triangle.max.map(cell) as Vec3;
+    for (let x = x0; x <= x1; x += 1) for (let y = y0; y <= y1; y += 1) for (let z = z0; z <= z1; z += 1) {
+      const key = `${x},${y},${z}`;
+      if (!cells.has(key)) cells.set(key, []);
+      cells.get(key)!.push(triangle);
     }
   }
-  return overlaps;
+  const overlaps: [Triangle, Triangle][] = [];
+  for (const [key, list] of cells) {
+    const home = key.split(",").map(Number);
+    for (let i = 0; i < list.length; i += 1) {
+      for (let j = i + 1; j < list.length; j += 1) {
+        const a = list[i]!.id! < list[j]!.id! ? list[i]! : list[j]!, b = a === list[i] ? list[j]! : list[i]!;
+        if (dot(a.normal, b.normal) > 0.9999 && meet(a, b) && [0, 1, 2].every((axis) => cell(Math.max(a.min[axis]!, b.min[axis]!)) === home[axis])
+          && (onPlane(b, a) || onPlane(a, b)) && overlapArea(a, b) > 1e-5) overlaps.push([a, b]);
+      }
+    }
+  }
+  return overlaps.sort(([a, b], [c, d]) => a.id! - c.id! || b.id! - d.id!).map(([a, b]) => [a.mesh, b.mesh, a.points[0]!]);
 }
 
 // The omitted face as triangles in its own plane, ear-clipped so a concave face works.
@@ -438,7 +455,9 @@ describe("fitted and geographic models", () => {
         : (await load(models.find((model) => model.id === id)!.module))[models.find((model) => model.id === id)!.factory]();
     }
   }, { timeout: 180_000 });
-  const meshesOf = (id: string) => (built[id]!.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[]).map((mesh) => ({
+  // Read once per model: every check below only reads the triangles.
+  const meshes: Record<string, { name: string; triangles: Triangle[] }[]> = {};
+  const meshesOf = (id: string) => meshes[id] ??= (built[id]!.building.children.filter((child) => (child as THREE.Mesh).isMesh) as THREE.Mesh[]).map((mesh) => ({
     name: mesh.name, triangles: trianglesOf({ positions: mesh.geometry.getAttribute("position").array, normals: mesh.geometry.getAttribute("normal").array }),
   }));
 

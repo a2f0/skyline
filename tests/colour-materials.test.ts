@@ -133,7 +133,7 @@ describe("colour trial", () => {
     }
     expect(glass).toBeGreaterThan(0);
     expect(stone, "mixed batches keep masonry and metal matte").toBeGreaterThan(0);
-  });
+  }, { timeout: 30_000 });
 
   test("names a material for every batch of every building, and nothing the models lack", () => {
     expect(Object.keys(colourMaterials).sort()).toEqual(models.map(idOf).sort());

@@ -380,10 +380,10 @@ SKYLINE_BASE_SHA=<40-char sha> bun scripts/check.ts     # or bun run check
 ```
 
 `SKYLINE_BASE_SHA` must be a full forty-character lowercase hex SHA; a short SHA or a branch name
-aborts the whole run before any suite. The runner runs, in order: the whitespace and merge-helper
-checks, the reference excerpt check, and the kit's Node suite; then, once it has started its own
-server, all three browser suites — the hover regressions, the single-building study, and the
-skyline study. It needs Node 22.12+ and system Google Chrome;
+aborts the whole run before any suite. The runner runs the whitespace, typecheck, and reference
+excerpt checks first; then, once it has built the site and started its own server, every suite, a
+few at a time — the kit's geometry suite beside the browser suites, among them the hover
+regressions, the single-building study, and the skyline study. It needs Node 22.12+ and system Google Chrome;
 `bun install --ignore-scripts` installs no browser.
 
 Then, and this is not optional:

@@ -51,13 +51,15 @@ when it finishes whether it passed or failed, and appends the run to
 `skyline-timings.log` in the Git common directory; `bun scripts/show-timings.ts`
 reads it back; Skyline’s shipping policy requires printing it at the end. The check
 runner checks managed skill drift, tool configuration and dependency advisories, typechecks the
-repository, verifies the vendored engine and license against the locked dependencies,
-runs the attribution, signatures, hooks, timings, merge guard, deploy verification, deploy secrets loader, local dependency runtime, grayscale,
-skyline-loading, package, reference excerpt, and building kit checks, then
-builds `dist/` and starts its own temporary server for click-tracking and hover regressions,
-both 3D study browser suites, the building
-detail suite, and the full-screen 3D skyline suite against the compiled site.
-It closes the server afterward. Study pages share `study-viewer.ts`, `study.css`, and
+repository, verifies the vendored engine and license against the locked dependencies, and
+checks the reference excerpts and skyline-loading trace, in order. It then builds the package,
+which builds `dist/`, starts its own temporary server, and runs every suite in `tests/`, several
+at a time and longest first: the attribution, signatures, hooks, timings, merge guard, deploy
+verification, deploy secrets loader, local dependency runtime, grayscale, skyline-loading,
+package, building kit, and indexed raycast checks, and, against the compiled site, the click-tracking and hover
+regressions, both 3D study browser suites, the building detail suite, and both full-screen 3D
+skyline suites. It reports every failing suite, not just the first, and closes the server
+afterward; a new suite must join the list in `scripts/check.ts`, which refuses to run without it. Study pages share `study-viewer.ts`, `study.css`, and
 `study-loader.ts`; keep model geometry and scene-specific placement and camera
 presets in their own modules. Use explicit paths when staging changes. Do not modify the vendored Three.js bundle as incidental cleanup.
 For branch review/shipping, set `SKYLINE_BASE_SHA` to the fetched base commit so

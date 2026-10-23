@@ -42,11 +42,16 @@ bun run check
 The runner checks managed skill drift, tool configuration and dependency advisories
 (`bun audit`), typechecks the repository
 (`tsc --noEmit`), verifies the vendored engine and license (`vendor:three --check`),
-and runs the attribution, hook, timings, merge guard, deploy verification,
-deploy secrets loader, local dependency runtime, grayscale, skyline-loading, package, reference
-excerpt, and building kit suites under `bun test`.
-It then builds `dist/`, starts its own temporary server, and runs the browser suites against the
-compiled site, closing the server afterward.
+and checks the reference excerpts and skyline-loading trace, in order.
+It then builds the package, which builds `dist/`, starts its own temporary server, and runs every
+suite in `tests/` under `bun test` — the attribution, hook, timings, merge guard, deploy
+verification, deploy secrets loader, local dependency runtime, grayscale, skyline-loading, package,
+building kit, and indexed raycast suites, and the browser suites against the compiled site — closing the server
+afterward. Suites run as many at a time as the machine has pairs of cores, longest first; each
+one's output prints whole when it ends, and the run reports every failing suite before it fails.
+The package suite reads the package the runner built (`SKYLINE_PACKAGE_BUILT`) rather than
+rebuilding `dist/` under the browser suites. A suite missing from the list in `scripts/check.ts`
+stops the run before it starts.
 The advisory audit requires registry access, so the full check cannot run offline;
 any advisory or registry failure blocks publishing as explained in [Releases](package.md#releases).
 
@@ -110,7 +115,7 @@ from that exact base; Skyline requires this form before shipping.
 `bun run check` times every step, prints a table when it finishes, and appends the run to
 `skyline-timings.log` in the Git common directory — per clone, never committed. A run that fails
 records too: the run that died is the one whose breakdown is worth reading, and its failing step is
-marked.
+marked. Suites run side by side, so their rows add up to more than the total.
 
 ```
 step                   seconds

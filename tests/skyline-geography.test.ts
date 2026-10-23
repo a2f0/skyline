@@ -33,6 +33,8 @@ import { createSkylineColour } from "../src/models/colour-materials.js";
 import { crain, geographicLandmarks } from "./skyline-landmarks.js";
 import { viewports } from "./study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
+// The facade checks cast thousands of rays at whole buildings; this indexes their triangles.
+import "./indexed-raycast.js";
 
 
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
