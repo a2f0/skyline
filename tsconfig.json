@@ -12,8 +12,7 @@
   "include": [
     "src/*.ts",
     "src/models/*.ts",
-    "scripts/*.ts",
-    "scripts/lib/*.ts",
+    "scripts/**/*.ts",
     "tests/*.ts",
     "src/vendor/three-r186.d.ts"
   ]

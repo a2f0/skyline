@@ -22,7 +22,7 @@ construction drawings.
 - [Wikipedia's Historic Michigan Boulevard District](https://en.wikipedia.org/wiki/Historic_Michigan_Boulevard_District):
   the University Club, 76 East Monroe, by Holabird & Roche.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront. The
-  drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its camera;
+  drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its camera;
   see [the geographic audit](skyline-geography.md#skyline-camera). At the club, about 9.2 of
   the drawing's layer units are one metre of height. The photograph shows:
   - the Gothic front's tall arched windows under a band and a crenellated parapet;
@@ -137,7 +137,7 @@ repository. It looks from nearly the drawing's viewpoint on a sunny day, five ye
 night panorama the drawing traces. No change to these materials between 2008 and 2013 is known to
 this audit. Grant Park's trees hide the wall's lower floors; every box stops above them.
 
-Identification: `bun scripts/panorama-owners.ts building-university-club` fits the rendition to the
+Identification: `bun scripts/fidelity/panorama-owners.ts building-university-club` fits the rendition to the
 mapped buildings, with the photographer's eye 10 m east and 100 m south of the drawing's fitted eye,
 at 1.6 px RMS over seven tower silhouettes against the sky, four Michigan Avenue corners where a
 sunlit south face meets a shaded front, and four roofs. A ray from that eye through each pixel meets
@@ -150,7 +150,7 @@ the walls' highest row, which the option cannot test.
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-university-club`
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-university-club`
 downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
 entries, decoding in Chrome without colour management. The building's visible faces are 29 pixels
 wide in all, so single pixels mix neighbouring materials, which the quartiles show; the medians are
@@ -184,5 +184,5 @@ photograph sees edge-on.
 The sampler's day study also measures this club's limestone on its Michigan front in Teemu008's 2012
 sunlit close-up of the Gage group, `171, 162, 152` (box 10, 480, 125, 800, sat 0–0.35, val 0.5–1),
 as the reference that calibrates that close-up to the panorama for the Keith and Ascher Buildings
-(`keith-ascher-reference.md`). `bun scripts/sample-colours.ts day building-university-club` prints
+(`keith-ascher-reference.md`). `bun scripts/fidelity/sample-colours.ts day building-university-club` prints
 that row after the FID-COL-005 rows; this building's palette entry is unchanged.

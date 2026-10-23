@@ -123,7 +123,7 @@ Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-ope
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
 quartiles of red, green and blue.
-`bun scripts/sample-colours.ts day building-michigan-plaza-front-tall` downloads the photograph
+`bun scripts/fidelity/sample-colours.ts day building-michigan-plaza-front-tall` downloads the photograph
 once, checks its SHA-256, and reproduces these rows and the palette's entries, decoding in Chrome
 without colour management. The building is about 14 pixels wide in the rendition, so single pixels
 mix neighbouring materials, which the quartiles show; the medians are the values used.

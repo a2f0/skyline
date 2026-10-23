@@ -37,7 +37,7 @@ drawing and photographs, not surveys or construction drawings.
 - [SAH Archipedia](https://web.archive.org/web/20250101221147/https://sah-archipedia.org/buildings/IL-01-031-0005):
   "The exterior is defined by a grid of unadorned structural concrete and aluminum windows."
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront. The
-  drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its camera;
+  drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its camera;
   see [the geographic audit](skyline-geography.md#skyline-camera). Between Two Prudential and
   Aon, from 4,687 to 4,787 layer units, the photograph shows:
   - a pale top to 1,917, over a dark band to about 2,050;
@@ -155,7 +155,7 @@ repository. No change to these materials between 2008 and the drawing's 2013 pan
 this audit.
 
 Identification: between Two Prudential and Aon the rendition shows these two buildings in a slit at
-x 1797–1809. `bun scripts/panorama-owners.ts building-river-plaza building-office-west-of-aon` gives
+x 1797–1809. `bun scripts/fidelity/panorama-owners.ts building-river-plaza building-office-west-of-aon` gives
 River Plaza rows 374–396 there and Two Illinois Center's south face from row 396 down, at x
 1802–1809, with the photographer's eye fitted as for FID-COL-005, 10 m east and 100 m south of the
 drawing's fitted eye, at 1.6 px RMS: a ray from that eye through each pixel meets the nearest mapped
@@ -178,7 +178,7 @@ Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-ope
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
 quartiles of red, green and blue.
-`bun scripts/sample-colours.ts day building-office-west-of-aon building-river-plaza` downloads the
+`bun scripts/fidelity/sample-colours.ts day building-office-west-of-aon building-river-plaza` downloads the
 photograph once, checks its SHA-256, and reproduces these rows and the palette's entries, decoding
 in Chrome without colour management. At these distances a pixel spans about 1.1 m.
 

@@ -118,7 +118,7 @@ These stand in the plan view but not in the skyline view:
 ## Comparing candidates with the drawing
 
 A candidate is tested by projecting its mapped outline through the fitted camera
-(`scripts/fit-geographic-camera.ts`) and comparing its projected span and top with the drawn group.
+(`scripts/fidelity/fit-geographic-camera.ts`) and comparing its projected span and top with the drawn group.
 The drawing sits right of the projection toward the south end of the panorama, by an amount that
 grows southward, in layer units at the drawn front:
 

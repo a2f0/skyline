@@ -1,4 +1,4 @@
-// scripts/secrets.sh loads Terraform's credentials from the .secrets link into matrix-secrets, and
+// scripts/deploy/secrets.sh loads Terraform's credentials from the .secrets link into matrix-secrets, and
 // hands the R2 state key to the S3 backend under the AWS names it reads.
 // Each case runs the real loader in a throwaway Git repository whose .secrets links to a fixture
 // folder laid out like matrix-secrets, under a clean environment so the caller's own credentials
@@ -9,7 +9,7 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-const loader = path.resolve(import.meta.dirname, "..", "scripts", "secrets.sh");
+const loader = path.resolve(import.meta.dirname, "..", "scripts", "deploy", "secrets.sh");
 const reported = ["TF_VAR_cloudflare_api_token", "TF_VAR_cloudflare_account_id", "CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"];
 const scratches: string[] = [];
 

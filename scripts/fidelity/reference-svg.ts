@@ -4,14 +4,14 @@
 // come from tests/skyline-landmarks.js.
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { command } from "./lib/command.js";
-import { panorama, reference } from "../tests/skyline-landmarks.js";
+import { command } from "../lib/command.js";
+import { panorama, reference } from "../../tests/skyline-landmarks.js";
 
 const excerpts = [reference, panorama];
-const usage = `Usage: bun scripts/reference-svg.ts [--check]
+const usage = `Usage: bun scripts/fidelity/reference-svg.ts [--check]
   Rewrites ${excerpts.map(({ path: file }) => `src/${file}`).join(" and ")} from src/${reference.source}. --check verifies them without writing.`;
 // Excerpt paths are within src/, where the built site serves them.
-const src = path.resolve(import.meta.dirname, "../src");
+const src = path.resolve(import.meta.dirname, "../../src");
 const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 // A group's raw text through its matching </g>, counting nested groups. The id must be the
@@ -48,7 +48,7 @@ command(usage, { check: { type: "boolean" } }, async ({ values, positionals }) =
   for (const excerpt of excerpts) {
     const target = path.join(src, excerpt.path), svg = render(excerpt);
     if (values["check"]) {
-      if (readFileSync(target, "utf8") !== svg) throw new Error(`src/${excerpt.path} is out of date; run bun scripts/reference-svg.ts.`);
+      if (readFileSync(target, "utf8") !== svg) throw new Error(`src/${excerpt.path} is out of date; run bun scripts/fidelity/reference-svg.ts.`);
       console.log(`PASS: src/${excerpt.path} matches its ${excerpt.groups.length} source groups.`);
     } else {
       writeFileSync(target, svg);

@@ -4,7 +4,7 @@ import path from "node:path";
 import { chromium } from "playwright";
 import type { Browser, BrowserContext, Page } from "playwright";
 import type { ClickEvent } from "@a2f0/ct-client";
-import { dist } from "../scripts/build-site.js";
+import { dist } from "../scripts/build/build-site.js";
 
 const production = "https://skyline.devopsrockstars.com";
 const preview = "https://preview.example.test";
@@ -124,6 +124,8 @@ describe("standalone site click tracking", () => {
       await page.locator('[data-ct="viewer.mode.enhanced"]').click();
       await flush(page, true);
       expect(batches[0]!.events.map(({ label }) => label)).toEqual(["viewer.mode.enhanced"]);
+      // The click queues the event before the lazy drawing frame finishes navigating.
+      await page.frameLocator('iframe[src$="skyline-animated.svg"]').locator("svg").waitFor({ state: "visible" });
       const frame = page.frames().find((frame) => frame.url().endsWith("/skyline-animated.svg"));
       expect(frame).toBeDefined();
       await frame!.waitForFunction(() => performance.getEntriesByType("resource").some((entry) => entry.name.endsWith("/vendor/ct-client.js")));

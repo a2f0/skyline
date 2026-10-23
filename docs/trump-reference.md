@@ -37,7 +37,7 @@ construction drawings.
   11,500 curtain-wall panels of glass in aluminium, "6 feet, 3 inches"; other accounts
   give them as 10 by 6 ft.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront.
-  The drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its
+  The drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its
   camera; see [the geographic audit](skyline-geography.md#skyline-camera). Through that
   camera the mapped shaft spans the drawn one, 3889–4213 layer units against 3890–4217, and
   the mapped crown the drawn crown, 4036–4204 against 4038–4208.
@@ -192,7 +192,7 @@ Prudential.
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-trump-tower-only`
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-trump-tower-only`
 downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
 entries, decoding in Chrome without colour management. The building is about 40 pixels wide in the
 rendition, so single pixels mix neighbouring materials, which the quartiles show; the medians are

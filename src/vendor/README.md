@@ -23,7 +23,7 @@ bun run vendor:three
 bun run check
 ```
 
-`scripts/vendor-three.ts` bundles `three-entry.js` as minified ESM, preserves
+`scripts/build/vendor-three.ts` bundles `three-entry.js` as minified ESM, preserves
 upstream legal comments, and copies the installed Three.js license. Regenerate
 this checked-in bundle whenever its pinned engine or bundler changes.
 `bun run vendor:three --check` rebuilds in memory and compares the bundle and

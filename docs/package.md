@@ -76,7 +76,7 @@ prepare the same artifacts:
 ```json
 {
   "scripts": {
-    "postinstall": "bun node_modules/@a2f0/skyline/scripts/build-package.ts"
+    "postinstall": "bun node_modules/@a2f0/skyline/scripts/build/build-package.ts"
   }
 }
 ```

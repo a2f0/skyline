@@ -57,7 +57,7 @@ export function createGeographicSkyline(anchor: Vec3 = [0, 0, 0]): GeographicSky
     shadowCamera: { left: -1300, right: 1300, top: 1300, bottom: -1300, near: 1, far: 2600 },
   };
   // The drawing traces a lakefront photograph. Fitting the mapped buildings'
-  // roofs and tips to their drawn positions (scripts/fit-geographic-camera.ts)
+  // roofs and tips to their drawn positions (scripts/fidelity/fit-geographic-camera.ts)
   // puts its eye on the shore by the Adler Planetarium, 2 m above the street
   // datum, looking up at the skyline; it is held there while the angles and lens
   // are refitted, since the drawing barely tells its distance from its lens. The

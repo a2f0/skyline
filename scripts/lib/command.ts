@@ -1,6 +1,6 @@
 // Command-line handling shared by the scripts in scripts/. It lives apart from
 // study-page.js so a script that needs no browser does not pull playwright into its
-// import graph: scripts/verify-deploy.js runs on the deploy path, where dev
+// import graph: scripts/deploy/verify-deploy.js runs on the deploy path, where dev
 // dependencies may not be installed.
 import { parseArgs, type ParseArgsOptionsConfig } from "node:util";
 

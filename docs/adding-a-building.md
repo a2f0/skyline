@@ -15,16 +15,16 @@ at one uniform scale; the lessons below held through that too.
 
 ## The loop in brief
 
-The scripts below are development tools; `scripts/build-site.ts` does not ship them, and each
+The scripts below are development tools; `scripts/build/build-site.ts` does not ship them, and each
 prints its options with `--help`.
 
-1. **Measure the group.** `bun scripts/measure-group.ts <group-id>` accepts a group id or a
+1. **Measure the group.** `bun scripts/fidelity/measure-group.ts <group-id>` accepts a group id or a
    `data-building-id`. It writes every shape's id, fill, layer-space bounds, and flattened vertices
    as JSON, with aligned crops of the drawing and the source photo. Layer space is the group
    parent's space, which equals `skyline.svg`'s root; all drawing points use it.
 2. **Extend the reference and framing.** Add the group to `reference.groups` in
    `tests/skyline-landmarks.ts`, update its `viewBox`, `title`, and `description`, and run
-   `bun scripts/reference-svg.ts`; the check runs it with `--check`. If an in-group overlay needs
+   `bun scripts/fidelity/reference-svg.ts`; the check runs it with `--check`. If an in-group overlay needs
    source gradients or clips, list their ids in `reference.defs`. In `skyline-study.ts`, import and
    place the model and add it to `createBuildingStudy`'s `models`. A building outside the current
    viewBox means reframing, not a local edit: keep the viewBox and `fit` aspects aligned, then
@@ -48,23 +48,23 @@ prints its options with `--help`.
    silhouette bound, belong in `tests/skyline-study.test.ts`; the optional `silhouette` only feeds
    such a check. That test also holds the scene to its explicit triangle budget, so raise that
    bound deliberately if the new model needs more.
-5. **Fit with the fidelity report.** `bun scripts/fidelity-report.ts` prints every landmark error,
+5. **Fit with the fidelity report.** `bun scripts/fidelity/fidelity-report.ts` prints every landmark error,
    column residual in layer units, sight-line gap, projected silhouette, and triangle count at the
    five layouts the test checks, from the code the test asserts with. `--json <file>` also writes
    the raw numbers, and `--root` measures another checkout, such as an archive of `main`, for a
    before-and-after comparison.
-6. **Check renders.** `bun scripts/render-study.ts --building <id>` writes the standard stills to
+6. **Check renders.** `bun scripts/fidelity/render-study.ts --building <id>` writes the standard stills to
    `/tmp/skyline-renders`: skyline, wireframe, three-quarter, side, zoomed, four elevated orbits,
    full pages, a reference overlay, and close-ups. Look for holes, z-fighting, and anything outside
    the drawn silhouette.
 7. **Run the check** with `bun run check`. After deploying, `bun run verify:deploy` confirms the new
-   model is served byte for byte; `scripts/deploy.sh` runs it for you.
+   model is served byte for byte; `scripts/deploy/deploy.sh` runs it for you.
 
 A building for the geographic layout alone also needs its record in
 `src/models/skyline-geography-data.ts`, a `src/models/<name>-geographic.ts` module that
 `src/models/skyline-geography.ts` dispatches to, a reference audit in `docs/`, and a row in [Modelled
 buildings](buildings.md); after it lands, refresh the loading outline with
-`bun scripts/skyline-loading.ts`.
+`bun scripts/checks/skyline-loading.ts`.
 
 ## What the drawing is, and is not
 
@@ -115,7 +115,7 @@ produces errors that look like a bad fit rather than a unit error.
 ## 1. Measure
 
 ```
-bun scripts/measure-group.ts <group-id> [--out dir] [--padding fraction]
+bun scripts/fidelity/measure-group.ts <group-id> [--out dir] [--padding fraction]
 ```
 
 It accepts a group id, a `data-building-id`, or the id without its `building-` prefix, and writes
@@ -181,7 +181,7 @@ the skyline scene moves `lightPosition` back along the same direction. The skyli
 every building and platform vertex in the actual shadow camera; the solo study retains its preset.
 
 `src/models/skyline-reference.svg` is generated and byte-compared. Edit `reference.viewBox`, `title`,
-`description`, `groups`, or source definition ids in `defs` and then run `bun scripts/reference-svg.ts`, or `bun run check` fails
+`description`, `groups`, or source definition ids in `defs` and then run `bun scripts/fidelity/reference-svg.ts`, or `bun run check` fails
 early. Note that `reference-svg.ts` matches a group by its `id` attribute **only** — the same
 string that works for `measure-group.ts` may not work here.
 
@@ -224,7 +224,7 @@ its wing 1.327× and 1.267×. One consistent exaggeration is a sign of a sound f
 are a sign of a drifting one.
 
 ```
-bun scripts/fidelity-report.ts [--json file] [--root dir]
+bun scripts/fidelity/fidelity-report.ts [--json file] [--root dir]
 ```
 
 `--json` takes a **file path**, not a boolean, and writes relative to the current directory.
@@ -376,7 +376,7 @@ whether the scene legitimately changed or your build is wrong.
 ## 7. Verify
 
 ```
-SKYLINE_BASE_SHA=<40-char sha> bun scripts/check.ts     # or bun run check
+SKYLINE_BASE_SHA=<40-char sha> bun scripts/testing/check.ts     # or bun run check
 ```
 
 `SKYLINE_BASE_SHA` must be a full forty-character lowercase hex SHA; a short SHA or a branch name
@@ -389,7 +389,7 @@ regressions, the single-building study, and the skyline study. It needs Node 22.
 Then, and this is not optional:
 
 ```
-bun scripts/render-study.ts [--out dir] [--building id] [--root dir]
+bun scripts/fidelity/render-study.ts [--out dir] [--building id] [--root dir]
 ```
 
 Stills land in `/tmp/skyline-renders` by default. `--building` accepts an id from the `models`
@@ -405,7 +405,7 @@ three consecutive times as a flake check; both `bun run fidelity` and `bun run r
 `--` separator to pass flags.
 
 Once it is deployed, `bun run verify:deploy` confirms the site serves the new model byte for byte
-and that nothing outside the allowlist became reachable. `scripts/deploy.sh` runs it after wrangler,
+and that nothing outside the allowlist became reachable. `scripts/deploy/deploy.sh` runs it after wrangler,
 because wrangler reporting success is not the same as the edge serving the files.
 
 ## Three instruments, three blind spots

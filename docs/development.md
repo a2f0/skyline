@@ -12,10 +12,21 @@ explains the tooling behind it.
 | `src/` | The site: pages, styles, drawings, the viewer's shell and module, browser and package entry modules, and their build configs |
 | `src/models/` | Building models, the shared building kit, and the drawing excerpts they were fitted to |
 | `src/vendor/` | The vendored Three.js bundle, declarations and license, plus the click client's declaration shim; the build copies its published ESM into `dist/vendor/ct-client.js` |
-| `scripts/` | Build, check, deploy, and measuring tools, and the Git hooks |
+| `scripts/build/` | Site/package builds and vendored-engine regeneration |
+| `scripts/checks/` | Skyline-specific generated-asset checks |
+| `scripts/testing/` | Parallel suite runner and session timing reports |
+| `scripts/deploy/` | Cloudflare publication, live verification, and Terraform command/credential loading |
+| `scripts/fidelity/` | Building measurement, camera fitting, rendering, and colour research; domain helpers in `lib/` |
+| `scripts/git/hooks/` | Repository hook bodies |
+| `scripts/lib/` | Command parsing and temporary static server shared across script groups |
 | `tests/` | Unit and browser suites and the shared fidelity measurements |
 | `docs/` | Topic documentation, building reference audits, and fidelity evidence |
 | `terraform/` | The custom-domain binding |
+
+Package scripts remain the supported entrypoints when their names already exist. Keep
+application-specific orchestration here and shared Git/GitHub/release mechanics in the
+exact-pinned agent-tool. Update imports, runtime root resolution, tests, docs and both
+repository-owned skill copies whenever moving a script.
 
 `src/` also keeps the drawing's sources, `skyline.svg` and the photograph `skyline.jpg` it links,
 which the site never requests. The root holds only repository configuration. Builds write
@@ -51,7 +62,7 @@ afterward. Suites run as many at a time as the machine has pairs of cores, longe
 at a time on CI (`CI=true`), whose Chrome draws WebGL in software; each
 one's output prints whole when it ends, and the run reports every failing suite before it fails.
 The package suite reads the package the runner built (`SKYLINE_PACKAGE_BUILT`) rather than
-rebuilding `dist/` under the browser suites. A suite missing from the list in `scripts/check.ts`
+rebuilding `dist/` under the browser suites. A suite missing from the list in `scripts/testing/check.ts`
 stops the run before it starts.
 The advisory audit requires registry access, so the full check cannot run offline;
 any advisory or registry failure blocks publishing as explained in [Releases](package.md#releases).
@@ -128,7 +139,7 @@ test:building-kit        428.4
 total                    512.5
 ```
 
-`bun scripts/show-timings.ts` reads the log back, printing the last run's steps and, once a branch
+`bun scripts/testing/show-timings.ts` reads the log back, printing the last run's steps and, once a branch
 has more than one run, a line per run. `--since <iso>` bounds it to one session, which is what
 `ship-pr` passes: a resumed or reused branch carries earlier runs too, and reporting one of those
 as the latest would show an old success for an attempt that failed before it ever checked.

@@ -8,11 +8,11 @@ import { mkdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { Browser, BrowserContextOptions, Locator, Page } from "playwright";
-import { startServer } from "./lib/static-server.js";
+import { startServer } from "../lib/static-server.js";
 import { launch, openStudy, settle, command } from "./lib/study-page.js";
-import { models } from "../tests/skyline-landmarks.js";
+import { models } from "../../tests/skyline-landmarks.js";
 
-const usage = `Usage: bun scripts/render-study.ts [--out dir] [--building id] [--root dir]
+const usage = `Usage: bun scripts/fidelity/render-study.ts [--out dir] [--building id] [--root dir]
   Writes PNG stills to --out (default: ${path.join(os.tmpdir(), "skyline-renders")}). --building adds
   close-ups of that model (for example building-heritage-at-millennium-park); --root serves
   another checkout.`;
@@ -71,14 +71,14 @@ async function closeupClip(page: Page, entry: ModelEntry) {
 }
 
 command(usage, { out: { type: "string" }, building: { type: "string" }, root: { type: "string" } }, async ({ values }) => {
-  const root = path.resolve((values["root"] as string) || path.join(import.meta.dirname, ".."));
+  const root = path.resolve((values["root"] as string) || path.join(import.meta.dirname, "../.."));
   const out = path.resolve((values["out"] as string) || path.join(os.tmpdir(), "skyline-renders"));
   const entry = (values["building"] && models.find((model) => model.id === values["building"])) as ModelEntry | undefined;
   if (values["building"] && !entry) throw new Error(`Unknown building ${values["building"]}; expected one of ${models.map((model) => model.id).join(", ")}.`);
   mkdirSync(out, { recursive: true });
   // The study pages load the compiled modules, so the default serves a fresh
   // build; --root serves another checkout as-is (pre-build checkouts are JS-era).
-  const serveRoot = values["root"] ? root : (await import("./build-site.js").then(({ buildSite, dist }) => buildSite().then(() => dist)));
+  const serveRoot = values["root"] ? root : (await import("../build/build-site.js").then(({ buildSite, dist }) => buildSite().then(() => dist)));
   const server = await startServer(serveRoot);
   const written: string[] = [];
   const errors: string[] = [];

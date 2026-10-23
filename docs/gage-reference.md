@@ -43,7 +43,7 @@ survey or construction drawings.
   to each bay on eleven floors over the shopfronts, and the ornament over the inner piers;
   the lower red fronts of 24 and 30 South Michigan beside it.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront. The
-  drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its camera;
+  drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its camera;
   see [the geographic audit](skyline-geography.md#skyline-camera). At the building, about
   9 of the drawing's layer units are one metre of height. The photograph shows:
   - the cream Michigan front, three bays of windows to a floor, its top above the
@@ -187,7 +187,7 @@ its top 10–15 pixels.
 Method: each sample is a box in the close-up's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, and the per-channel sRGB
 median of those pixels (0–255), with their count, their share of the box and the quartiles of red,
-green and blue, as in the panorama. `bun scripts/sample-colours.ts day building-michigan-west-right`
+green and blue, as in the panorama. `bun scripts/fidelity/sample-colours.ts day building-michigan-west-right`
 downloads the photographs once, checks their SHA-256, and reproduces these rows, the calibration and
 the palette's entries, decoding in Chrome without colour management.
 
@@ -195,7 +195,7 @@ Calibration: the close-up's colours are carried into the panorama's light throug
 them, on the same front and in the same light, that the panorama shows sunlit. Each channel's ratio,
 in linear light, between the reference's median in the panorama and its median in the close-up
 scales the close-up's medians, and the colour is scaled back to white if it passes, keeping its hue:
-the same arithmetic as FID-COL-005's shade estimate (`scripts/lib/shade.ts`).
+the same arithmetic as FID-COL-005's shade estimate (`scripts/fidelity/lib/shade.ts`).
 `tests/colour-shade.test.ts` re-derives the palette's calibrated entries from the medians below. The
 calibration assumes the reference and the building share one light and that the reference's material
 reads the same on its two faces; it carries a close-up's exposure, white balance and light, not its

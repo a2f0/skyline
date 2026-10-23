@@ -38,7 +38,7 @@ construction drawings.
   - the end bays open through at the middle band;
   - the emblem screen over the block's roof.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront.
-  The drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its
+  The drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its
   camera; see [the geographic audit](skyline-geography.md#skyline-camera). At the tower,
   8.7 of the drawing's layer units, or 6.6 photo pixels, are one metre.
 
@@ -139,13 +139,13 @@ lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
 unknown; inspected 2026-10-09). It records the building under the city's night lighting in 2013,
 so these are **observed** night colours, not the materials' daylight colours.
 
-Method: `scripts/measure-group.ts` aligned the building's drawn group with the photograph
+Method: `scripts/fidelity/measure-group.ts` aligned the building's drawn group with the photograph
 (`skyline.svg` places the image at x −15558.758, y −1754.2251, 26553.332 × 7086.6665 in the
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
 quartiles of red, green and blue.
-`bun scripts/sample-colours.ts night building-blue-cross-blue-shield` reproduces these rows and
+`bun scripts/fidelity/sample-colours.ts night building-blue-cross-blue-shield` reproduces these rows and
 prints the palette entries they gave, decoding the photograph in Chrome without colour management.
 Single pixels at this scale mix neighbouring materials, which the quartiles show; the medians are
 the values used.
@@ -207,7 +207,7 @@ Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-ope
 unless the box names the close-up, a rule on hue (degrees), saturation and value (0–1) choosing one
 material's pixels in it, or all of them, and the per-channel sRGB median of those pixels (0–255),
 with their count, their share of the box and the quartiles of red, green and blue.
-`bun scripts/sample-colours.ts day building-blue-cross-blue-shield` downloads each photograph once,
+`bun scripts/fidelity/sample-colours.ts day building-blue-cross-blue-shield` downloads each photograph once,
 checks its SHA-256, and reproduces these rows and the palette's entries, decoding in Chrome without
 colour management. The building is about 80 pixels wide in the rendition, so single pixels mix
 neighbouring materials, which the quartiles show; the medians are the values used. Samples take the
@@ -287,7 +287,7 @@ remain in place.
 
 ### Colour decisions and limits
 
-Re-ran `bun scripts/sample-colours.ts day building-blue-cross-blue-shield`; its
+Re-ran `bun scripts/fidelity/sample-colours.ts day building-blue-cross-blue-shield`; its
 hash-checked sources reproduce the FID-COL-003 rows above exactly: 6,300 panorama
 pixels give **125, 137, 146** for mixed glass/spandrels, 13,759 close-up screen
 pixels give **51, 74, 96**, and 2,846 column pixels give **176, 189, 205**. The
@@ -316,7 +316,7 @@ resolved glass/spandrel samples and calibrated framing colour.
 
 ### Paired visual acceptance and regressions
 
-Captured with `bun scripts/render-colours.ts --out /tmp/blue-cross-fidelity/before
+Captured with `bun scripts/fidelity/render-colours.ts --out /tmp/blue-cross-fidelity/before
 building-blue-cross-blue-shield` and the final `after-review` directory. Each run
 used **1600 × 1000**, reduced motion, identical `front` / `side` detail presets
 and `skyline` / `quarter` skyline presets. The successful runs' `captures.json`
@@ -386,7 +386,7 @@ and roofing retain grey fallbacks. FID-BCBS-004 retains the colour-calibration g
 
 Before/after captures use **1600 × 1000**, reduced motion, identical cameras,
 and each comparison places grayscale left and sunny colour right. Front, side,
-skyline and quarter were captured with `scripts/render-colours.ts`; the two
+skyline and quarter were captured with `scripts/fidelity/render-colours.ts`; the two
 additional detail cameras use `front` followed by 18 ArrowRight steps (north)
 or 9 ArrowLeft steps (west), each step 10 degrees. The focused canvas was blurred
 before screenshots to exclude its keyboard focus ring from toggle comparisons.

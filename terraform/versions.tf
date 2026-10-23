@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 1.11, < 2.0"
 
   # State lives in Skyline's own Cloudflare R2 bucket (S3-compatible).
-  # scripts/terraform.sh maps the production tier's TF_STATE_* key to the AWS
+  # scripts/deploy/terraform.sh maps the production tier's TF_STATE_* key to the AWS
   # variables this backend reads.
   backend "s3" {
     bucket = "skyline-terraform-state"

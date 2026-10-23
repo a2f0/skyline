@@ -18,12 +18,12 @@ bun install --ignore-scripts
 bun run deploy
 ```
 
-`bun run deploy` compiles the browser modules into `dist/` via `scripts/build-site.ts` and then
+`bun run deploy` compiles the browser modules into `dist/` via `scripts/build/build-site.ts` and then
 runs `wrangler deploy`. There is still no bundler and no transformation beyond tsc's per-file emit.
 
 The staged set is an allowlist, not an ignore list: the repository holds the `.secrets` link, test
 fixtures, and, in `src/` beside the pages, the 18MB `src/skyline.jpg` source photograph that the
-site never requests, so only files named in `scripts/build-site.ts` reach Cloudflare. Each keeps
+site never requests, so only files named in `scripts/build/build-site.ts` reach Cloudflare. Each keeps
 its path within `src/`, so `src/index.html` is served at `/index.html`. Every top-level
 `src/models/*.ts` ships automatically as compiled `.js` and its `.svg` excerpt ships as-is; nested
 directories and other file types do not. New top-level runtime files in `src/` must be added to the
@@ -31,7 +31,7 @@ list, and the script fails rather than publishing if a listed file has been rena
 
 ## Verification
 
-`bun run deploy` then runs `scripts/verify-deploy.ts` against the live site, and
+`bun run deploy` then runs `scripts/deploy/verify-deploy.ts` against the live site, and
 `bun run verify:deploy` runs it on its own (`--url` points it elsewhere; `SKYLINE_SKIP_VERIFY=1`,
 and only `1`, skips it). A deploy skips verification when it published nothing (`--dry-run`) or
 aimed somewhere else (`--env`, `-e`, `--name`), and says which, because checking production after
@@ -44,7 +44,7 @@ It asserts two things:
   deploy is a copy of a build, so anything else is a bad deploy, and comparing hashes catches a
   file served empty or stale, which a status code does not.
 - Nothing else in the repository is reachable at all. That set is derived from `git ls-files` and
-  a walk of `.secrets`, minus what `scripts/build-site.ts` publishes, because a hand-kept list of
+  a walk of `.secrets`, minus what `scripts/build/build-site.ts` publishes, because a hand-kept list of
   forbidden paths is a sample and a sample cannot prove absence. The walk follows the `.secrets`
   link and any link inside it, so every file in its tier folders is probed.
 
@@ -69,22 +69,22 @@ Cloudflare R2 bucket, `skyline-terraform-state`, which Terraform reaches through
 `terraform/versions.tf` holds the complete backend, so `init` takes no backend configuration. The
 state moved there from `skyline/website/terraform.tfstate` in the AWS S3 bucket
 `tearleads-terraform-state`, which Skyline used to share, as a byte-for-byte copy made before the
-backend changed; nothing reads the old object. Because the copy came first, `scripts/terraform.sh`
+backend changed; nothing reads the old object. Because the copy came first, `scripts/deploy/terraform.sh`
 initializes with `-reconfigure`, which switches a working directory still set up for the old
 bucket without migrating anything. A plan against an empty R2 key would propose creating the live
 binding again, so treat that as missing state, not as drift. The stack rarely changes and is not
 part of a content deploy:
 
 ```sh
-scripts/terraform.sh plan
-scripts/terraform.sh apply
+scripts/deploy/terraform.sh plan
+scripts/deploy/terraform.sh apply
 ```
 
-`scripts/terraform.sh` needs `TF_VAR_cloudflare_api_token` and `TF_VAR_cloudflare_account_id`
+`scripts/deploy/terraform.sh` needs `TF_VAR_cloudflare_api_token` and `TF_VAR_cloudflare_account_id`
 (the token needs Workers Scripts:Edit and Zone:Read on the zone), plus the state bucket's R2 key,
 `TF_STATE_ACCESS_KEY_ID` and `TF_STATE_SECRET_ACCESS_KEY` in `.secrets/prod/app.env`, which is the
 S3 key of an account token limited to that bucket. It reads them from production's tier of
-`.secrets`. `scripts/secrets.sh` loads `.secrets/prod/shared.env`, holding values shared across
+`.secrets`. `scripts/deploy/secrets.sh` loads `.secrets/prod/shared.env`, holding values shared across
 projects, and then `.secrets/prod/app.env`, holding Skyline's own, each when present, so a value
 in `app.env` wins. It fails loudly, pointing here, when neither file exists or a Cloudflare variable
 is still unset, and re-exports the Cloudflare pair under the `CLOUDFLARE_*` names Terraform

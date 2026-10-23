@@ -68,8 +68,8 @@ record the era represented by a change rather than silently mixing dates.
 ## Colour evidence and material decisions
 
 Keep the 2013 building form and the colour trial's sunny-day lighting distinct.
-Use `scripts/sample-colours.ts day <building-id>` and its source records when
-revisiting measured colours; `scripts/panorama-owners.ts` can check which mapped
+Use `scripts/fidelity/sample-colours.ts day <building-id>` and its source records when
+revisiting measured colours; `scripts/fidelity/panorama-owners.ts` can check which mapped
 face owns a panorama sample. Record the exact image/rendition, sample boxes,
 pixel rules/counts, face orientation, light/shade, and any calibration reference
 alongside RGB results. Photograph pixels are appearance measurements, not
@@ -99,13 +99,13 @@ Capture before/after pairs in **both modes**, with the same camera, viewport,
 and reduced motion within each pair. Use
 `building-detail.html?building=<existing-id>` and the same URL with `&colour=1`
 for close views; use `skyline-3d.html` and `skyline-3d.html?colour=1` for placement
-and occlusion. Inspect other faces when affected. `bun scripts/render-colours.ts --out <directory> <building-id ...>`
+and occlusion. Inspect other faces when affected. `bun scripts/fidelity/render-colours.ts --out <directory> <building-id ...>`
 captures paired skyline/elevated views and front/side close-ups of the selected
 buildings, checking that colour-on changes each canvas and colour-off restores
 it in both detail and skyline views. `captures.json` records the successful
 run's URLs, presets, viewport and artifact names. Without IDs
 it uses a default sample; name the buildings assessed in this pass. The current
-`scripts/render-study.ts` renders the **original** layout; its output alone
+`scripts/fidelity/render-study.ts` renders the **original** layout; its output alone
 cannot validate a geographic correction. The geographic study is useful for
 placement but does not substitute for the colour-enabled pages.
 

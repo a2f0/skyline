@@ -8,11 +8,11 @@
 // but it is not where the photograph was taken. --eye holds its ground position too, for
 // the same reason: the drawing trades the eye's distance against the lens, so a free eye
 // can drift off the lakefront walk for a fraction of a layer unit.
-import { command } from "./lib/command.js";
-import { geographicLandmarks, reference } from "../tests/skyline-landmarks.js";
-import type { Vec3 } from "../src/models/building-kit.js";
+import { command } from "../lib/command.js";
+import { geographicLandmarks, reference } from "../../tests/skyline-landmarks.js";
+import type { Vec3 } from "../../src/models/building-kit.js";
 
-const usage = `Usage: bun scripts/fit-geographic-camera.ts [--height meters] [--eye east,south]
+const usage = `Usage: bun scripts/fidelity/fit-geographic-camera.ts [--height meters] [--eye east,south]
   Prints the geographic skyline camera fitted to the drawing, with its eye held --height
   meters above the street datum (default 2) and, with --eye, held that many meters east
   and south of Crain's mapped centre.`;

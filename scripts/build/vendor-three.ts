@@ -3,11 +3,11 @@ import path from "node:path";
 import { copyFile, readFile, writeFile } from "node:fs/promises";
 import { build } from "esbuild";
 
-const root = path.resolve(import.meta.dirname, "..");
+const root = path.resolve(import.meta.dirname, "../..");
 const vendor = path.join(root, "src/vendor");
 const args = process.argv.slice(2);
 const check = args.length === 1 && args[0] === "--check";
-if (args.length && !check) throw new Error("Usage: bun scripts/vendor-three.ts [--check]");
+if (args.length && !check) throw new Error("Usage: bun scripts/build/vendor-three.ts [--check]");
 const bundle = path.join(vendor, "three-r186.js");
 const installedLicense = path.join(root, "node_modules/three/LICENSE");
 const license = path.join(vendor, "THREE-LICENSE.txt");

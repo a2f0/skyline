@@ -46,9 +46,9 @@ publishing CI separately runs `bun run check:package` on Node 22 to verify that 
 
 Install test dependencies with `bun install --ignore-scripts`. Use Bun (pinned
 in `mise.toml`; `mise install` installs it) and Google Chrome, then run
-`bun run check` (or `bun scripts/check.ts`). It times every step, prints a table
+`bun run check` (or `bun scripts/testing/check.ts`). It times every step, prints a table
 when it finishes whether it passed or failed, and appends the run to
-`skyline-timings.log` in the Git common directory; `bun scripts/show-timings.ts`
+`skyline-timings.log` in the Git common directory; `bun scripts/testing/show-timings.ts`
 reads it back; Skyline’s shipping policy requires printing it at the end. The check
 runner checks managed skill drift, tool configuration and dependency advisories, typechecks the
 repository, verifies the vendored engine and license against the locked dependencies, and
@@ -59,7 +59,7 @@ verification, deploy secrets loader, local dependency runtime, grayscale, skylin
 package, building kit, and indexed raycast checks, and, against the compiled site, the click-tracking and hover
 regressions, both 3D study browser suites, the building detail suite, and both full-screen 3D
 skyline suites. It reports every failing suite, not just the first, and closes the server
-afterward; a new suite must join the list in `scripts/check.ts`, which refuses to run without it. Study pages share `study-viewer.ts`, `study.css`, and
+afterward; a new suite must join the list in `scripts/testing/check.ts`, which refuses to run without it. Study pages share `study-viewer.ts`, `study.css`, and
 `study-loader.ts`; keep model geometry and scene-specific placement and camera
 presets in their own modules. Use explicit paths when staging changes. Do not modify the vendored Three.js bundle as incidental cleanup.
 For branch review/shipping, set `SKYLINE_BASE_SHA` to the fetched base commit so
@@ -73,7 +73,7 @@ tsc's per-file emit. Deploying needs Bun and Node.js 22+: Wrangler runs under
 Node, because its deployment step stops silently after the asset upload under
 Bun's runtime, and it authenticates with its own stored credentials
 (`wrangler login`).
-The staged set is the allowlist in `scripts/build-site.ts`, because the
+The staged set is the allowlist in `scripts/build/build-site.ts`, because the
 repository holds the `.secrets` link and, in `src/`, assets the site never requests. Add
 new top-level runtime files in `src/` there or they will not ship. Top-level
 `.ts` files in `src/models/` ship automatically as compiled `.js`, and their
@@ -84,10 +84,10 @@ production origin; never initialize it from reusable viewer or package modules.
 `terraform/` owns only the custom-domain binding. Its state lives in Skyline's own
 Cloudflare R2 bucket, `skyline-terraform-state`, through the complete S3 backend
 in `terraform/versions.tf`; no AWS credentials are involved. Terraform credentials
-live in `.secrets/prod/`: `scripts/secrets.sh` loads `shared.env` and then
+live in `.secrets/prod/`: `scripts/deploy/secrets.sh` loads `shared.env` and then
 `app.env`, each when present, and nothing here reads `.secrets/ci/`. `app.env`
 holds the bucket's R2 key as `TF_STATE_ACCESS_KEY_ID` and
-`TF_STATE_SECRET_ACCESS_KEY`, which `scripts/terraform.sh` hands to Terraform
+`TF_STATE_SECRET_ACCESS_KEY`, which `scripts/deploy/terraform.sh` hands to Terraform
 alone under the AWS names the backend reads. `.secrets` is a gitignored
 link to `../matrix-secrets/skyline`, managed and backed up from the matrix
 repository (a2f0/matrix, `docs/secrets.md`); `docs/deploying.md` covers it.
@@ -108,7 +108,7 @@ whose solids are closed unless a call names a face another surface covers.
 `tests/building-kit.test.ts` checks those covers and fails on same-facing coplanar
 faces (z-fighting) across a fitted model's meshes. Drawing measurements live in
 `tests/skyline-landmarks.ts` and the shared fidelity maths in
-`tests/study-fidelity.ts`. The unshipped `scripts/measure-group.ts`,
+`tests/study-fidelity.ts`. The unshipped `scripts/fidelity/measure-group.ts`,
 `reference-svg.ts`, `fidelity-report.ts`, and `render-study.ts` cover
 measuring, fitting, and review; `docs/adding-a-building.md` gives the loop
 and the long form: the drawing's projection, the platform datum, how the fit
@@ -155,7 +155,7 @@ The harness keeps full stdout and stderr in a private local log, prints a compac
 status with its path, and preserves the command's exit status. Inspect failures
 with `bun run agent-tool logs <log-path>` and targeted searches; never infer a
 pass from a quiet log. Read review verdicts and findings directly. The required
-timing table still comes from `bun scripts/show-timings.ts --branch <branch>
+timing table still comes from `bun scripts/testing/show-timings.ts --branch <branch>
 --since <start-iso>` and must appear in the shipping report.
 Merge through `bun scripts/merge-pr.ts <reviewed-head> <base-branch>
 <reviewed-base-sha>` instead of invoking the generic merge command directly.
@@ -212,7 +212,7 @@ only with an explicit lease on that SHA, for example
 that has advanced. Delete the local branch only after verifying its reviewed
 SHA and the squash's tree, then return to the updated default branch.
 Record the shipping start time and feature branch, then print this session's
-timings even after cleanup: `bun scripts/show-timings.ts --branch <branch>
+timings even after cleanup: `bun scripts/testing/show-timings.ts --branch <branch>
 --since <start-iso>`. Include PR link, reviewer and fallback, repairs, validation,
 squash subject/SHA, the npm publish run and version, checkout and branch
 cleanup, and the timing table in the shipping report. Cloudflare deploys are

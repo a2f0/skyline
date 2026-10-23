@@ -41,7 +41,7 @@ photographs, not a survey or construction drawings.
     the drawing's own vantage. There the banded tower stands right of 340 on the Park; the
     turrets above it belong to a building behind.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront.
-  The drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its
+  The drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its
   camera; see [the geographic audit](skyline-geography.md#skyline-camera). At the tower,
   about 9.2 of the drawing's layer units are one metre.
 
@@ -133,7 +133,7 @@ Commons' 3840 × 551 px rendition,
 repository. No change to these materials between 2008 and the drawing's 2013 panorama is known to
 this audit.
 
-Identification: `bun scripts/panorama-owners.ts building-the-buckingham` places the building's south
+Identification: `bun scripts/fidelity/panorama-owners.ts building-the-buckingham` places the building's south
 face at x 2079–2113 and its east face at x 2114–2122, its roof at row 369, with the photographer's
 eye fitted as for FID-COL-005, 10 m east and 100 m south of the drawing's fitted eye, at 1.6 px RMS:
 a ray from that eye through each pixel meets the nearest mapped part, which owns the pixel, and the
@@ -147,7 +147,7 @@ checks.
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-the-buckingham`
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-the-buckingham`
 downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
 entries, decoding in Chrome without colour management.
 

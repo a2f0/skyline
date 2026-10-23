@@ -28,7 +28,7 @@ not a survey or construction drawings.
   - the crown's arched windows, three to a face between pinnacles;
   - an antenna the drawing does not show.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront. The
-  drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its camera;
+  drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its camera;
   see [the geographic audit](skyline-geography.md#skyline-camera). At the tower, about 8.9
   of the drawing's layer units are one metre.
 
@@ -165,7 +165,7 @@ stands at y 353; the paler tower with a green roof just right of it rises higher
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day building-willoughby-tower`
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day building-willoughby-tower`
 downloads the photograph once, checks its SHA-256, and reproduces these rows and the palette's
 entries, decoding in Chrome without colour management. The building is about 23 pixels wide in the
 rendition, so single pixels mix neighbouring materials, which the quartiles show; the medians are
@@ -196,5 +196,5 @@ The sampler's day study also measures this tower's limestone on its Michigan fro
 2012 overcast close-up of the Chicago Athletic Association, `179, 174, 166` (box 862, 0, 900, 780,
 sat 0–0.35, val 0.5–1), as the reference that calibrates that close-up to the panorama for the
 Athletic Association and the Gage Building (`chicago-athletic-association-reference.md` and
-`gage-reference.md`). `bun scripts/sample-colours.ts day building-willoughby-tower` prints that row
+`gage-reference.md`). `bun scripts/fidelity/sample-colours.ts day building-willoughby-tower` prints that row
 after the FID-COL-004 rows; this building's palette entry is unchanged.

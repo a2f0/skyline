@@ -19,11 +19,11 @@ import { execFile } from "node:child_process";
 import { readFile, readdir, realpath, stat } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
-import { buildSite, dist, publishedFiles, root } from "./build-site.js";
-import { command } from "./lib/command.js";
+import { buildSite, dist, publishedFiles, root } from "../build/build-site.js";
+import { command } from "../lib/command.js";
 
-const usage = `Usage: bun scripts/verify-deploy.ts [--url origin] [--attempts n] [--delay ms] [--timeout ms] [--deadline ms]
-  Checks that every file scripts/build-site.ts publishes is served byte for byte against a fresh
+const usage = `Usage: bun scripts/deploy/verify-deploy.ts [--url origin] [--attempts n] [--delay ms] [--timeout ms] [--deadline ms]
+  Checks that every file scripts/build/build-site.ts publishes is served byte for byte against a fresh
   local build, and that nothing else in the repository is reachable at all. Published files are
   retried, because Cloudflare's edge can lag a successful wrangler upload by a few seconds.
   --url defaults to https://skyline.devopsrockstars.com.`;

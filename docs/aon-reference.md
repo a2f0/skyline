@@ -32,7 +32,7 @@ construction drawings.
   checked September 28, 2026: in daylight the dark slots between the columns run unchanged
   up to the cap, with no band over the mechanical floors.
 - `skyline.jpg`, the repository's 2013 panorama from the Adler Planetarium's lakefront.
-  The drawing was traced from it, and `scripts/fit-geographic-camera.ts` recovers its
+  The drawing was traced from it, and `scripts/fidelity/fit-geographic-camera.ts` recovers its
   camera; see [the geographic audit](skyline-geography.md#skyline-camera). Across the
   tower's full silhouette, 6.2 photo pixels are one metre at Aon.
 
@@ -253,12 +253,12 @@ lakefront, the photograph the drawing traces (19915 × 5315 px; SHA-256
 unknown; inspected 2026-10-09). It records the building under the city's night lighting in 2013,
 so these are **observed** night colours, not the materials' daylight colours.
 
-Method: `scripts/measure-group.ts` aligned the building's drawn group with the photograph
+Method: `scripts/fidelity/measure-group.ts` aligned the building's drawn group with the photograph
 (`skyline.svg` places the image at x −15558.758, y −1754.2251, 26553.332 × 7086.6665 in the
 drawing's layer space). Each sample is a box in photograph pixels (x0, y0, x1, y1, half-open), a
 rule on hue (degrees), saturation and value (0–1) choosing one material's pixels in it, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts night layer3` reproduces these rows
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts night layer3` reproduces these rows
 and prints the palette entries they gave, decoding the photograph in Chrome without colour
 management. Single pixels at this scale mix neighbouring materials, which the quartiles show; the
 medians are the values used.
@@ -305,7 +305,7 @@ lit, and the east faces are in shade (observed).
 Method: each sample is a box in the rendition's pixels (x0, y0, x1, y1, half-open), a rule on hue
 (degrees), saturation and value (0–1) choosing one material's pixels in it, or all of them, and the
 per-channel sRGB median of those pixels (0–255), with their count, their share of the box and the
-quartiles of red, green and blue. `bun scripts/sample-colours.ts day layer3` downloads each
+quartiles of red, green and blue. `bun scripts/fidelity/sample-colours.ts day layer3` downloads each
 photograph once, checks its SHA-256, and reproduces these rows and the palette's entries, decoding
 in Chrome without colour management. The building is about 57 pixels wide in the rendition, so
 single pixels mix neighbouring materials, which the quartiles show; the medians are the values used.
@@ -339,7 +339,7 @@ photograph's `129, 135, 136`, 0.83, and bluer, its shade lit by the sky's colour
 The sampler's day study also measures Aon's granite in an overcast close-up of the Hyatt Regency
 from about 2007, `163, 165, 168` (box 530, 130, 610, 380, sat 0–0.12, val 0.6–1), as the reference
 that calibrates that close-up to the panorama for the Hyatt Regency's west tower
-(`hyatt-west-tower-reference.md`). `bun scripts/sample-colours.ts day layer3` prints that row after
+(`hyatt-west-tower-reference.md`). `bun scripts/fidelity/sample-colours.ts day layer3` prints that row after
 the FID-COL-003 rows; this building's palette entry is unchanged.
 
 ## 2026-10-17 — regular geographic end bays (FID-AON-003)

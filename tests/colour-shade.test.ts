@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import { channelRatios, hex, scaled } from "../scripts/lib/shade.js";
+import { channelRatios, hex, scaled } from "../scripts/fidelity/lib/shade.js";
 import { measuredColours } from "../src/models/colour-palette.js";
 
 // The colour trial's Michigan Avenue fronts (FID-COL-005) estimate a shaded front's sunlit colour
@@ -40,7 +40,7 @@ describe("shade estimate", () => {
 // The buildings the panorama hides (FID-COL-006) are measured in close-ups, each calibrated through a
 // reference beside them that the panorama shows sunlit; these re-derive the palette's calibrated
 // entries from the medians their audits record, and finds those medians in the audits. They are
-// the audits' figures, not the sampler's live table (scripts/sample-colours.ts runs as a command
+// the audits' figures, not the sampler's live table (scripts/fidelity/sample-colours.ts runs as a command
 // and measures in a browser), so a changed sample row is caught here once its audit changes.
 describe("close-up calibration", () => {
   test("gives the palette's calibrated colours from each close-up's reference and medians", () => {

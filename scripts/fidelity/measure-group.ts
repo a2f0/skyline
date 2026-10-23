@@ -11,10 +11,10 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { Browser, Page } from "playwright";
-import { startServer } from "./lib/static-server.js";
+import { startServer } from "../lib/static-server.js";
 import { launch, command } from "./lib/study-page.js";
 
-const usage = `Usage: bun scripts/measure-group.ts <group-id> [--out dir] [--padding fraction]
+const usage = `Usage: bun scripts/fidelity/measure-group.ts <group-id> [--out dir] [--padding fraction]
   <group-id> is a group id (building-kemper) or a data-building-id (one-prudential-plaza);
   every .interactive-building group that matches is measured. Writes <key>.json,
   <key>-drawing.png, and <key>-photo.png to --out (default: ${path.join(os.tmpdir(), "skyline-measure")}).`;
@@ -196,7 +196,7 @@ command(usage, { out: { type: "string" }, padding: { type: "string", default: "0
   const name = key.replace(/^building-/, "");
   mkdirSync(out, { recursive: true });
   // src/ holds the drawing, skyline.svg, and the photograph skyline.svg links beside it.
-  const server = await startServer(path.join(import.meta.dirname, "../src"));
+  const server = await startServer(path.join(import.meta.dirname, "../../src"));
   let browser: Browser | undefined;
   try {
     browser = await launch();

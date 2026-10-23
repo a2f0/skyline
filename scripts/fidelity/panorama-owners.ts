@@ -1,11 +1,11 @@
 // Locates the mapped buildings in the colour trial's daytime panorama, Chicago.jpg in its
-// 3840 × 551 px rendition (scripts/sample-colours.ts, the day study), through the fit in
-// scripts/lib/panorama.ts. It prints the fit and its residuals, each listed building's visible
+// 3840 × 551 px rendition (scripts/fidelity/sample-colours.ts, the day study), through the fit in
+// scripts/fidelity/lib/panorama.ts. It prints the fit and its residuals, each listed building's visible
 // faces, and, for a box, the share of its pixels one building owns on one face.
-import { command } from "./lib/command.js";
+import { command } from "../lib/command.js";
 import { boxShare, drawingEye, fitPanorama, owners, panoramaColumns, panoramaRows, records } from "./lib/panorama.js";
 
-const usage = `Usage: bun scripts/panorama-owners.ts [building-id...] [--box building,face,x0,y0,x1,y1]...
+const usage = `Usage: bun scripts/fidelity/panorama-owners.ts [building-id...] [--box building,face,x0,y0,x1,y1]...
   Prints the panorama fit and, for each building, its visible faces in the rendition: each face's
   bearing, pixel count and column span, and the building's highest row. Each --box reports the
   share of its pixels (x0, y0, x1, y1, half-open) the building owns on the face within 20°.`;
