@@ -28,7 +28,7 @@ landed squash-message verification, and atomic-lease cleanup requirements.
 
 The site's upload allowlist is `scripts/build/build-site.ts`. Add new top-level
 runtime files there; top-level model `.ts` and `.svg` files are included
-explicitly by extension, but nested directories and other types are not.
+automatically by extension, but nested directories and other types are not.
 Never publish repository sources, the unused source photograph or `.secrets`.
 Keep reusable viewer/package modules free from click-tracker initialization;
 only production-origin standalone bootstraps initialize it

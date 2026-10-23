@@ -70,7 +70,10 @@ async function main() {
   });
   await step("agents:check", ["run", "agents:check"]);
   await step("agent-tool:config", [path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts"), "config", "show"]);
-  if (process.env["CI"] !== "true") await step("lint:branch-name", ["run", "lint:branch-name"]);
+  if (process.env["CI"] !== "true") {
+    const branch = execFileSync("git", ["branch", "--show-current"], { cwd: root, encoding: "utf8" }).trim();
+    if (branch) await step("lint:branch-name", ["run", "lint:branch-name", branch]);
+  }
   await step("audit", ["audit"]);
   // The strictest-config typecheck over the whole repository.
   await step("typecheck", [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]);

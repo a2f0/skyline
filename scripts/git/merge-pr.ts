@@ -48,6 +48,10 @@ export function mergePr(args: string[], run: Runner = command): string {
     "number,title,state,isDraft,headRefName,headRefOid,baseRefName,baseRefOid,mergeable,mergeStateStatus,mergeCommit",
   ])) as PullRequest;
   const pr = readPr();
+  if (pr.state !== "OPEN" || pr.isDraft || pr.headRefName !== branch || pr.headRefOid !== head
+    || pr.baseRefName !== base || pr.baseRefOid !== baseSha) {
+    throw new Error("The selected PR does not match the reviewed open head and base.");
+  }
   // Shared preflight owns clean checkout, exact local/PR HEAD, live reviewed
   // base, ancestry, CI/readiness and package-version policy. Keep this directly
   // beside the mutation; Skyline additionally verifies the stored squash text.

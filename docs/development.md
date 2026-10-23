@@ -13,17 +13,19 @@ explains the tooling behind it.
 | `src/models/` | Building models, the shared building kit, and the drawing excerpts they were fitted to |
 | `src/vendor/` | The vendored Three.js bundle, declarations and license, plus the click client's declaration shim; the build copies its published ESM into `dist/vendor/ct-client.js` |
 | `scripts/build/` | Site/package builds and vendored-engine regeneration |
-| `scripts/checks/` | Skyline-specific generated-asset checks |
+| `scripts/checks/` | Skyline-specific asset and attribution checks |
 | `scripts/testing/` | Parallel suite runner and session timing reports |
 | `scripts/deploy/` | Cloudflare publication, live verification, and Terraform command/credential loading |
 | `scripts/fidelity/` | Building measurement, camera fitting, rendering, and colour research; domain helpers in `lib/` |
-| `scripts/git/hooks/` | Repository hook bodies |
+| `scripts/git/` | Repository hook bodies and landed squash-message adapter |
 | `scripts/lib/` | Command parsing and temporary static server shared across script groups |
 | `tests/` | Unit and browser suites and the shared fidelity measurements |
 | `docs/` | Topic documentation, building reference audits, and fidelity evidence |
 | `terraform/` | The custom-domain binding |
 
-Package scripts remain the supported entrypoints when their names already exist. Keep
+Package scripts remain the supported entrypoints when their names already exist.
+The documented public `scripts/build-package.ts` source-install entrypoint remains
+a compatibility launcher/export; build implementation lives under `scripts/build/`. Keep
 application-specific orchestration here and shared Git/GitHub/release mechanics in the
 exact-pinned agent-tool. Update imports, runtime root resolution, tests, docs and both
 repository-owned skill copies whenever moving a script.
@@ -193,9 +195,9 @@ every non-deleted destination branch through shared `branch check --pre-push`,
 then checks attribution and shared signature policy for incoming commits.
 Conventional `<type>/<topic>` names are required except `main` and `master`,
 with no extra length cap. CI passes its actual ref name directly instead of
-changing the checkout to validate it. Local full checks require an attached branch;
-in detached CI, `CI=true` skips the implicit local check and the workflow validates
-its explicit ref name.
+changing the checkout to validate it. Detached local checks (such as `git bisect`) skip only the implicit branch-name
+check; push destinations remain validated. In CI, `CI=true` skips that local check
+and the workflow validates its explicit ref name.
 
 Signatures require presence and reject provably bad signatures, without requiring
 every contributor's key locally. The configured `present` mode accepts G/U/E/X/Y/R;

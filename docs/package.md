@@ -81,11 +81,10 @@ prepare the same artifacts:
 }
 ```
 
-**Source-pin migration:** starting with 0.2.43, the documented build entrypoint
-moved from `scripts/build-package.ts` to `scripts/build/build-package.ts`. When
-updating an older GitHub commit pin, update the application's `postinstall` path
-at the same time. This is a breaking change for source installations using that
-path; npm tarballs and library exports keep their existing entrypoints.
+The original documented source entrypoint, `scripts/build-package.ts`, remains
+as a compatibility export and launcher for existing `postinstall` commands.
+New source installations can use the grouped path above. The implementation
+lives only under `scripts/build/`; npm tarballs and library exports are unchanged.
 
 The host needs TypeScript 7, `@tsconfig/strictest`, `@types/bun`, and `@types/node`
 as development dependencies. The build resolves those tools from the host;

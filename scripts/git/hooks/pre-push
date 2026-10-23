@@ -1,5 +1,5 @@
 #!/bin/sh
-# Checks managed skills, commit signatures, and agent attribution. Adapted from tearleads'
+# Checks branch destinations, managed skills, commit signatures, and agent attribution. Adapted from tearleads'
 # scripts/git/hooks/pre-push, with its timing, lint and test stages dropped:
 # this repository's suite runs from `bun run check`, and gating a push on the
 # browser suites would cost minutes on every push.
