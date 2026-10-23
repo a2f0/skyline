@@ -14,8 +14,9 @@ const types: Record<string, string> = { ".html": "text/html", ".svg": "image/svg
 interface Batch { site: string; events: ClickEvent[] }
 let browser: Browser;
 
-beforeAll(async () => { browser = await chromium.launch({ channel: "chrome", headless: true }); });
-afterAll(async () => { await browser?.close(); });
+// Chrome can take seconds to start and stop beside the other suites, past Bun's 5 s default.
+beforeAll(async () => { browser = await chromium.launch({ channel: "chrome", headless: true }); }, 60_000);
+afterAll(async () => { await browser?.close(); }, 60_000);
 
 // Every request is intercepted before navigation. Production-shaped addresses
 // exercise the real origin guard without sending anything to either live service.

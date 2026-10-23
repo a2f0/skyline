@@ -1,71 +1,86 @@
+import { readdirSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { execFileSync, spawn } from "node:child_process";
 import { startServer } from "./lib/static-server.js";
-import { buildSite, dist } from "./build-site.js";
+import { dist } from "./build-site.js";
 import { appendRun, createTimings, logPath, stepTable } from "./lib/timings.js";
 
 const root = path.resolve(import.meta.dirname, "..");
-function run(command: string, args: string[], env: NodeJS.ProcessEnv = process.env) {
+// Steps run side by side, so each command's output is held back and printed whole, under its
+// step's label, when the command ends; streamed, their logs would interleave line by line.
+function run(label: string, command: string, args: string[], env: NodeJS.ProcessEnv = process.env) {
   return new Promise<void>((resolve, reject) => {
-    const child = spawn(command, args, { cwd: root, env, stdio: "inherit" });
+    const child = spawn(command, args, { cwd: root, env, stdio: ["ignore", "pipe", "pipe"] });
+    const output: Buffer[] = [];
+    child.stdout.on("data", (chunk: Buffer) => output.push(chunk));
+    child.stderr.on("data", (chunk: Buffer) => output.push(chunk));
     child.on("error", reject);
-    child.on("exit", (code, signal) => code === 0 ? resolve() : reject(new Error(`${command} failed (${signal || code})`)));
+    child.on("close", (code, signal) => {
+      const text = Buffer.concat(output).toString().trimEnd();
+      console.log(`── ${label}${code === 0 ? "" : " FAILED"}${text ? `\n${text}` : ""}`);
+      code === 0 ? resolve() : reject(new Error(`${label} failed (${signal || code})`));
+    });
   });
 }
 
+// Runs the work a few at a time, in order, and waits for all of it before failing, so one run
+// reports every failure rather than the first.
+async function pool(slots: number, work: (() => Promise<unknown>)[]) {
+  const queue = [...work], failures: unknown[] = [];
+  await Promise.all(Array.from({ length: slots }, async () => {
+    for (let next = queue.shift(); next; next = queue.shift()) await next().catch((error: unknown) => { failures.push(error); });
+  }));
+  if (failures.length) throw new Error(failures.map((error) => (error instanceof Error ? error.message : String(error))).join("\n"));
+}
+
 const timings = createTimings();
-// The label a step is timed under. Suites keep their file's own name so a slow
-// row points straight at the file to run on its own.
-const suite = (file: string) => timings.run(`test:${path.basename(file, ".test.ts")}`, () => run(process.execPath, ["test", `tests/${file}`]));
+const step = (label: string, args: string[], env?: NodeJS.ProcessEnv) => timings.run(label, () => run(label, process.execPath, args, env));
+
+// Every suite, longest first, so the slowest is not left to start last. Each is its own
+// `bun test` process, so a failure names its file. A browser suite keeps about two cores busy
+// between Chrome's processes and its own, and starting them all at once slows every suite
+// enough to time tests out, so as many run at once as the machine has pairs of cores.
+const suites = [
+  "package.test.ts", "skyline-3d.test.ts", "skyline-3d-lighting.test.ts", "building-detail.test.ts",
+  "building-kit.test.ts", "skyline-geography.test.ts", "skyline-study.test.ts", "click-tracking.test.ts",
+  "git-hooks.test.ts", "building-hover.test.ts", "building-study.test.ts", "colour-materials.test.ts",
+  "dependency-runtime.test.ts", "secrets.test.ts", "celebration-lighting.test.ts", "panorama-owners.test.ts",
+  "grayscale.test.ts", "skyline-loading.test.ts", "time-of-day.test.ts", "verify-deploy.test.ts",
+  "colour-shade.test.ts", "merge-pr.test.ts", "npm-publish.test.ts", "timings.test.ts",
+  "check-coauthors.test.ts", "check-signed-commits.test.ts", "building-fidelity-skill.test.ts",
+];
+const slots = Math.max(2, Math.floor(os.availableParallelism() / 2));
 
 async function main() {
   const baseSha = process.env["SKYLINE_BASE_SHA"];
   if (baseSha && !/^[a-f0-9]{40}$/.test(baseSha)) throw new Error("SKYLINE_BASE_SHA must be a full commit SHA.");
+  // A suite left off the list would never run.
+  const unlisted = readdirSync(path.join(root, "tests")).filter((file) => file.endsWith(".test.ts") && !suites.includes(file));
+  if (unlisted.length) throw new Error(`scripts/check.ts does not run ${unlisted.join(", ")}; add it to the suites.`);
+  // The repository checks come first and in order: each takes about a second at most, and a
+  // run whose types or tools are wrong has no suite result worth waiting for.
   await timings.run("whitespace", async () => {
-    await run("git", ["diff", "--check"]);
-    await run("git", ["diff", "--cached", "--check"]);
-    if (baseSha) await run("git", ["diff", "--check", `${baseSha}...HEAD`]);
+    await run("whitespace", "git", ["diff", "--check"]);
+    await run("whitespace", "git", ["diff", "--cached", "--check"]);
+    if (baseSha) await run("whitespace", "git", ["diff", "--check", `${baseSha}...HEAD`]);
   });
-  await timings.run("agents:check", () => run(process.execPath, ["run", "agents:check"]));
-  await timings.run("agent-tool:config", () => run(process.execPath, [path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts"), "config", "show"]));
-  await timings.run("audit", () => run(process.execPath, ["audit"]));
+  await step("agents:check", ["run", "agents:check"]);
+  await step("agent-tool:config", [path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts"), "config", "show"]);
+  await step("audit", ["audit"]);
   // The strictest-config typecheck over the whole repository.
-  await timings.run("typecheck", () => run(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]));
-  await timings.run("vendor:three", () => run(process.execPath, ["scripts/vendor-three.ts", "--check"]));
-  await suite("check-coauthors.test.ts");
-  await suite("check-signed-commits.test.ts");
-  await suite("git-hooks.test.ts");
-  await suite("timings.test.ts");
-  await suite("building-fidelity-skill.test.ts");
-  await suite("merge-pr.test.ts");
-  await suite("npm-publish.test.ts");
-  await suite("verify-deploy.test.ts");
-  await suite("secrets.test.ts");
-  await suite("dependency-runtime.test.ts");
-  await suite("grayscale.test.ts");
-  await timings.run("reference-svg", () => run(process.execPath, ["scripts/reference-svg.ts", "--check"]));
-  await timings.run("skyline-loading", () => run(process.execPath, ["scripts/skyline-loading.ts", "--check"]));
-  await suite("skyline-loading.test.ts");
-  await suite("building-kit.test.ts");
-  await suite("celebration-lighting.test.ts");
-  await suite("colour-materials.test.ts");
-  await suite("time-of-day.test.ts");
-  await suite("panorama-owners.test.ts");
-  await suite("colour-shade.test.ts");
-  await suite("package.test.ts");
-  // The browser suites exercise the compiled site: build first, then serve dist/.
-  await timings.run("build:site", () => buildSite().then(() => undefined));
+  await step("typecheck", [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]);
+  await step("vendor:three", ["scripts/vendor-three.ts", "--check"]);
+  await step("reference-svg", ["scripts/reference-svg.ts", "--check"]);
+  await step("skyline-loading", ["scripts/skyline-loading.ts", "--check"]);
+  // Building the package builds the site into dist/ on its way to lib/ and site/. It is built
+  // once, here, and the package suite told so: rebuilding dist/ itself, it would pull the
+  // site from under the browser suites running beside it.
+  await step("build:package", ["scripts/build-package.ts"]);
   const server = await timings.run("serve:dist", () => startServer(dist));
   try {
-    const env = { ...process.env, SKYLINE_TEST_URL: server.origin };
-    const browserSuite = (file: string) => timings.run(`test:${path.basename(file, ".test.ts")}`, () => run(process.execPath, ["test", `tests/${file}`], env));
-    await browserSuite("click-tracking.test.ts");
-    await browserSuite("building-hover.test.ts");
-    await browserSuite("building-study.test.ts");
-    await browserSuite("building-detail.test.ts");
-    await browserSuite("skyline-study.test.ts");
-    await browserSuite("skyline-geography.test.ts");
-    await browserSuite("skyline-3d.test.ts");
+    const env = { ...process.env, SKYLINE_TEST_URL: server.origin, SKYLINE_PACKAGE_BUILT: "1" };
+    await pool(slots, suites.map((file) => () => step(`test:${path.basename(file, ".test.ts")}`, ["test", `tests/${file}`], env)));
   } finally {
     await timings.run("serve:stop", () => server.close());
   }

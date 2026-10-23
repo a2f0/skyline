@@ -20,7 +20,9 @@ interface PackResult {
 describe("published Skyline package", () => {
   let temporary: string, consumer: string, installed: string, packed: PackResult;
   beforeAll(async () => {
-    await buildPackage();
+    // The check runner builds the package itself, before this and the browser suites start:
+    // building here would rebuild dist/ under the suites reading it.
+    if (!process.env["SKYLINE_PACKAGE_BUILT"]) await buildPackage();
     temporary = await mkdtemp(path.join(os.tmpdir(), "skyline-package-test-"));
     consumer = path.join(temporary, "consumer");
     installed = path.join(consumer, "node_modules/@a2f0/skyline");
