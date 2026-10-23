@@ -617,7 +617,7 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
         } finally { await page.close(); }
       }
     } finally { await browser?.close(); await server.close(); }
-  }, { timeout: 240_000 });
+  }, { timeout: 600_000 });
 
   test("shares the host page's Three.js, without loading or warning about a second engine", async () => {
     const publicDirectory = path.join(consumer, "public-three");

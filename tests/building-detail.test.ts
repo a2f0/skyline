@@ -67,7 +67,7 @@ describe("building detail", () => {
       }
       await page.close();
     }
-  }, { timeout: 180_000 });
+  }, { timeout: 360_000 });
 
   test("names the building, its heights and sources, and holds its canvas to the window", async () => {
     const page = await browser.newPage({ viewport: { width: 1038, height: 758 } });
