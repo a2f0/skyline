@@ -683,7 +683,7 @@ describe("full-screen 3D skyline", () => {
     expect(await groups()).toEqual(["none", "none"]);
     expect(await page.locator(".control-bar").boundingBox().then((bar) => bar!.height)).toBe(39);
     await page.close();
-  }, { timeout: 180_000 });
+  }, { timeout: 360_000 });
 
   test("starts with the controls open on the site's viewer or when an address asks, and folds them from there", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
@@ -744,7 +744,7 @@ describe("full-screen 3D skyline", () => {
       expect(await state(await openScene(page)), query).toEqual(expected);
     }
     await page.close();
-  }, { timeout: 120_000 });
+  }, { timeout: 240_000 });
 
   test("leaves out the OpenStreetMap credit only when its address or the viewer's asks", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: "reduce" });

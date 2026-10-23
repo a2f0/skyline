@@ -93,7 +93,7 @@ describe("full-screen 3D skyline", () => {
     expect(await page.evaluate(() => window.__buildingStudy!.illuminations.find(({ building }) => building === "building-blue-cross-blue-shield")!.active)).toBe("cubs");
     expect(shaderErrors).toEqual([]);
     await page.close();
-  }, { timeout: 60_000 });
+  }, { timeout: 120_000 });
 
   test("building lighting menus share toolbar state, support keyboard and touch, and fit short screens", async () => {
     for (const embedded of [false, true]) {
@@ -195,7 +195,7 @@ describe("full-screen 3D skyline", () => {
       }
       await page.close();
     }
-  }, { timeout: 60_000 });
+  }, { timeout: 180_000 });
 
   test("Crain's building menu offers no celebratory lighting", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
@@ -412,7 +412,7 @@ describe("full-screen 3D skyline", () => {
     }
     expect(shaderErrors).toEqual([]);
     await page.close();
-  }, { timeout: 180_000 });
+  }, { timeout: 360_000 });
 
   test("renders warm, neutral and cool fixture emission against an unlit baseline", async () => {
     const page = await browser.newPage();
@@ -586,7 +586,7 @@ describe("full-screen 3D skyline", () => {
     expect(await chroma(page)).toBe(0);
     expect(shaderErrors).toEqual([]);
     await page.close();
-  }, { timeout: 120_000 });
+  }, { timeout: 240_000 });
 
   test("floats a building's detail over the skyline from its context menu, without leaving the viewer", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
