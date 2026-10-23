@@ -14,7 +14,8 @@ interface Node { box: number[]; triangles?: number[]; left?: Node; right?: Node 
 interface Index { position: Attribute; index: THREE.BufferAttribute | null; version: number; root: Node }
 
 const mesh = THREE.Mesh.prototype as unknown as { _computeIntersections: Intersections };
-const unindexed = mesh._computeIntersections;
+// Three's own triangle loop, which tests/indexed-raycast.test.ts compares the index against.
+export const unindexed = mesh._computeIntersections;
 const indexes = new WeakMap<THREE.BufferGeometry, Index>();
 
 function build(position: Attribute, index: THREE.BufferAttribute | null): Node {

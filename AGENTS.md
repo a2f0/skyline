@@ -56,7 +56,7 @@ checks the reference excerpts and skyline-loading trace, in order. It then build
 which builds `dist/`, starts its own temporary server, and runs every suite in `tests/`, several
 at a time and longest first: the attribution, signatures, hooks, timings, merge guard, deploy
 verification, deploy secrets loader, local dependency runtime, grayscale, skyline-loading,
-package, and building kit checks, and, against the compiled site, the click-tracking and hover
+package, building kit, and indexed raycast checks, and, against the compiled site, the click-tracking and hover
 regressions, both 3D study browser suites, the building detail suite, and both full-screen 3D
 skyline suites. It reports every failing suite, not just the first, and closes the server
 afterward; a new suite must join the list in `scripts/check.ts`, which refuses to run without it. Study pages share `study-viewer.ts`, `study.css`, and
