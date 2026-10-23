@@ -7,6 +7,7 @@ import { dist } from "../build/build-site.js";
 import { appendRun, createTimings, logPath, stepTable } from "./timings.js";
 
 const root = path.resolve(import.meta.dirname, "../..");
+const agentTool = path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts");
 // Steps run side by side, so each command's output is held back and printed whole, under its
 // step's label, when the command ends; streamed, their logs would interleave line by line.
 function run(label: string, command: string, args: string[], env: NodeJS.ProcessEnv = process.env) {
@@ -51,7 +52,7 @@ const suites = [
   "indexed-raycast.test.ts", "dependency-runtime.test.ts", "secrets.test.ts", "celebration-lighting.test.ts",
   "panorama-owners.test.ts", "grayscale.test.ts", "skyline-loading.test.ts", "time-of-day.test.ts",
   "verify-deploy.test.ts", "colour-shade.test.ts", "merge-pr.test.ts", "npm-publish.test.ts",
-  "timings.test.ts", "check-coauthors.test.ts", "building-fidelity-skill.test.ts",
+  "timings.test.ts", "check-coauthors.test.ts", "building-fidelity-skill.test.ts", "favicons.test.ts",
 ];
 const slots = process.env["CI"] === "true" ? 1 : Math.max(2, Math.floor(os.availableParallelism() / 2));
 
@@ -69,7 +70,7 @@ async function main() {
     if (baseSha) await run("whitespace", "git", ["diff", "--check", `${baseSha}...HEAD`]);
   });
   await step("agents:check", ["run", "agents:check"]);
-  await step("agent-tool:config", [path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts"), "config", "show"]);
+  await step("agent-tool:config", [agentTool, "config", "show"]);
   if (process.env["CI"] !== "true") {
     const branch = execFileSync("git", ["branch", "--show-current"], { cwd: root, encoding: "utf8" }).trim();
     if (branch) await step("lint:branch-name", ["run", "lint:branch-name", branch]);
@@ -84,6 +85,9 @@ async function main() {
   // once, here, and the package suite told so: rebuilding dist/ itself, it would pull the
   // site from under the browser suites running beside it.
   await step("build:package", ["scripts/build/build-package.ts"]);
+  // The package's site build leaves out the favicons, which only the deployed site serves;
+  // render them into dist/ so the suites see the pages as deployed.
+  await step("favicons", [agentTool, "images", "build", "favicons", "--out", dist]);
   const server = await timings.run("serve:dist", () => startServer(dist));
   try {
     const env = { ...process.env, SKYLINE_TEST_URL: server.origin, SKYLINE_PACKAGE_BUILT: "1" };

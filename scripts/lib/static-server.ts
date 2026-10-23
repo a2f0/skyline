@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-const types: Record<string, string> = { ".html": "text/html", ".svg": "image/svg+xml", ".js": "text/javascript", ".css": "text/css", ".jpg": "image/jpeg" };
+const types: Record<string, string> = { ".html": "text/html", ".svg": "image/svg+xml", ".js": "text/javascript", ".css": "text/css", ".jpg": "image/jpeg", ".png": "image/png", ".ico": "image/x-icon" };
 
 export async function startServer(root: string): Promise<{ origin: string; close(): Promise<void> }> {
   const base = path.resolve(root);

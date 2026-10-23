@@ -20,6 +20,7 @@ explains the tooling behind it.
 | `scripts/git/` | Repository hook bodies and landed squash-message adapter |
 | `scripts/lib/` | Command parsing and temporary static server shared across script groups |
 | `tests/` | Unit and browser suites and the shared fidelity measurements |
+| `assets/brand/` | `logo.svg`, the mark agent-tool renders the site's favicons from |
 | `docs/` | Topic documentation, building reference audits, and fidelity evidence |
 | `terraform/` | The custom-domain binding |
 
@@ -31,8 +32,16 @@ exact-pinned agent-tool. Update imports, runtime root resolution, tests, docs an
 repository-owned skill copies whenever moving a script.
 
 `src/` also keeps the drawing's sources, `skyline.svg` and the photograph `skyline.jpg` it links,
-which the site never requests. The root holds only repository configuration. Builds write
-`dist/` (the site), `lib/` and `site/` (the package); all three are gitignored.
+which the site never requests. The root holds only repository configuration and
+`assets/brand/logo.svg`, the source of the site's favicons. Builds write `dist/` (the site), `lib/`
+and `site/` (the package); all three are gitignored.
+
+`bun run build:site` also renders the favicons into `dist/` with agent-tool's `favicons` target in
+`agent-tool.json`: `favicon.svg` (the logo itself), `favicon.ico` (16, 32 and 48 pixels) and an
+opaque 180-pixel `apple-touch-icon.png`. Every page links them at the site root. They are never
+committed, and the package's viewer assets leave them out (see
+[the package guide](package.md#copy-the-viewer-assets)). Keep the logo plain static SVG, as
+agent-tool requires, on its 2-unit grid so the 16-pixel icon stays sharp, and in greys.
 
 ## Setup
 
@@ -56,14 +65,15 @@ The runner checks managed skill drift, tool configuration and dependency advisor
 (`bun audit`), typechecks the repository
 (`tsc --noEmit`), verifies the vendored engine and license (`vendor:three --check`),
 and checks the reference excerpts and skyline-loading trace, in order.
-It then builds the package, which builds `dist/`, starts its own temporary server, and runs every
-suite in `tests/` under `bun test` — the attribution, hook, timings, merge guard, deploy
-verification, deploy secrets loader, local dependency runtime, grayscale, skyline-loading, package,
-building kit, and indexed raycast suites, and the browser suites against the compiled site — closing the server
-afterward. Suites run as many at a time as the machine has pairs of cores, longest first, and one
-at a time on CI (`CI=true`); each one's output prints whole when it ends, and the run reports every
-failing suite before it fails. CI's Chrome draws WebGL in software, many times slower than a
-desktop's, so give a browser test a timeout of at least twice its time in the publish run's log.
+It then builds the package, which builds `dist/`, renders the site's favicons into it, starts its
+own temporary server, and runs every suite in `tests/` under `bun test` — the attribution, hook,
+timings, merge guard, deploy verification, deploy secrets loader, local dependency runtime,
+grayscale, skyline-loading, favicon, package, building kit, and indexed raycast suites, and the
+browser suites against the compiled site — closing the server afterward. Suites run as many at a
+time as the machine has pairs of cores, longest first, and one at a time on CI (`CI=true`); each
+one's output prints whole when it ends, and the run reports every failing suite before it fails.
+CI's Chrome draws WebGL in software, many times slower than a desktop's, so give a browser test a
+timeout of at least twice its time in the publish run's log.
 The package suite reads the package the runner built (`SKYLINE_PACKAGE_BUILT`) rather than
 rebuilding `dist/` under the browser suites. A suite missing from the list in `scripts/testing/check.ts`
 stops the run before it starts.

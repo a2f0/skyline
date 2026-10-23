@@ -10,7 +10,9 @@ in `docs/`, indexed by `docs/README.md`.
 ## Sources and tooling
 
 Keep application sources in `src/`, building models in `src/models/`, and the
-vendored engine in `src/vendor/`. The root holds repository configuration.
+vendored engine in `src/vendor/`. The root holds repository configuration and
+`assets/brand/logo.svg`, from which `build:site` renders the site's favicons with
+agent-tool (`images` in `agent-tool.json`); never commit rendered images.
 Browser modules compile with tsc only to the gitignored `dist/`, preserving
 paths below `src/`; package builds additionally emit `lib/` and `site/`. Do not
 introduce a bundler or modify the vendored Three.js bundle as incidental cleanup.

@@ -8,7 +8,7 @@ import { Script } from "node:vm";
 import { chromium } from "playwright";
 import type { Browser, Page } from "playwright";
 import { buildPackage } from "../scripts/build/build-package.js";
-import { publishedFiles, root } from "../scripts/build/build-site.js";
+import { faviconFiles, publishedFiles, root } from "../scripts/build/build-site.js";
 import { startServer } from "../scripts/lib/static-server.js";
 import { isThreeDeprecation } from "./three-warnings.js";
 
@@ -42,6 +42,9 @@ describe("published Skyline package", () => {
     const files = packed.files.map(({ path: file }) => file);
     expect(files.every((file) => /^(lib\/|site\/|docs\/(package|skyline-geography)\.md$|NOTICE\.md$|README\.md$|package\.json$)/.test(file))).toBe(true);
     for (const file of await publishedFiles()) expect(files).toContain(`site/${file}`);
+    // The favicons are the deployed site's alone. The pages link them at the origin's root,
+    // where a host serving a copy of the pages has its own.
+    for (const file of await faviconFiles()) expect(files).not.toContain(`site/${file}`);
     for (const file of ["lib/skyline-package.d.ts", "lib/skyline-shell.d.ts", "lib/skyline-three.d.ts", "lib/three-engine.d.ts", "site/vendor/three-r186.bundle.js", "site/skyline-viewer.js", "site/viewer.css", "lib/skyline-scene.d.ts", "lib/package-assets.d.ts", "lib/models/building-kit.d.ts", "lib/models/window-illumination.d.ts", "lib/models/celebrations.d.ts", "lib/vendor/three-r186.d.ts", "site/vendor/THREE-LICENSE.txt", "NOTICE.md"]) expect(files).toContain(file);
     expect(files.some((file) => /\.secrets|terraform|scripts\/|tests\/|skyline\.jpg|skyline\.svg$/.test(file))).toBe(false);
     const metadata = JSON.parse(await readFile(path.join(installed, "package.json"), "utf8")) as { name: string; private?: boolean; publishConfig?: { access?: string }; scripts: Record<string, string> };
@@ -171,6 +174,8 @@ console.log(JSON.stringify({ mount: typeof mountSkyline, copy: typeof copySkylin
     await mkdir(publicDirectory, { recursive: true });
     const { copySkylineAssets } = await import(pathToFileURL(path.join(installed, "lib/package-assets.js")).href) as { copySkylineAssets(destination: string): Promise<void> };
     await copySkylineAssets(path.join(publicDirectory, "nested/skyline"));
+    // The copy brings no favicons to shadow the host's own at its root.
+    for (const file of await faviconFiles()) expect(await Bun.file(path.join(publicDirectory, "nested/skyline", file)).exists()).toBe(false);
     // The fixture mounts into #host, or into #second for a second instance, and records how
     // each instance's `ready` settles, so the page can be read at any point.
     await writeFile(path.join(consumer, "browser.ts"), `
