@@ -87,6 +87,11 @@
     "release:plan": "agent-tool release plan package.json --github-output",
     "timings": "bun scripts/testing/show-timings.ts"
   },
+  "overrides": {
+    "miniflare@5.20261019.1-beta": {
+      "undici": "7.30.1"
+    }
+  },
   "devDependencies": {
     "@a2f0/agent-tool": "0.1.19",
     "@tsconfig/strictest": "^2.0.8",
