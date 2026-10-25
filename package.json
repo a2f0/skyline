@@ -1,6 +1,6 @@
 {
   "name": "@a2f0/skyline",
-  "version": "0.2.46",
+  "version": "0.2.47",
   "description": "Interactive Chicago skyline viewer and reusable Three.js building models",
   "license": "UNLICENSED",
   "repository": {
@@ -86,6 +86,11 @@
     "lint:branch-name": "agent-tool branch check",
     "release:plan": "agent-tool release plan package.json --github-output",
     "timings": "bun scripts/testing/show-timings.ts"
+  },
+  "overrides": {
+    "miniflare@5.20261019.1-beta": {
+      "undici": "7.30.1"
+    }
   },
   "devDependencies": {
     "@a2f0/agent-tool": "0.1.19",

@@ -485,6 +485,7 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
             // The stars arrive first but wait for the skyline, here on the dark backdrop.
             await page.locator("#host #stars circle").first().waitFor({ state: "attached" });
             expect(await page.locator("#host #stars").isVisible(), `the stars wait while ${stage} loads`).toBe(false);
+            expect(await page.locator("#host #embedded-original").isHidden(), `show original waits while ${stage} loads`).toBe(true);
             // Keep the destroyed instance's root, which the page no longer shows, to see that
             // nothing starts in it once the held load arrives.
             await page.evaluate(() => {
@@ -526,6 +527,7 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
                 await page.locator(".skyline-viewer").waitFor();
                 expect(await page.locator(".skyline-viewer").evaluate((node) => getComputedStyle(node).backgroundColor)).toBe("rgb(245, 245, 245)");
                 expect(await page.locator("#stars").isVisible()).toBe(false);
+                expect(await page.locator("#embedded-original").isHidden(), `show original waits while ${stage} loads`).toBe(true);
               }
               if (stage === "skyline-3d.js") {
                 await page.locator(".skyline-trace").waitFor();
@@ -536,9 +538,19 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
             } finally { release(); await page.unroute(`**/${stage}`); }
             expect(await settled(page)).toBe("ready");
             expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("true");
+            expect(await page.locator("#embedded-original").isHidden(), "the working scene provides its own original control").toBe(true);
           }
 
           for (const theme of ["light", "dark"]) {
+            // The fallback is also available when the scene's markup never arrives.
+            await page.route("**/skyline-3d.html", (route) => route.abort());
+            await page.goto(`${server.origin}/?theme=${theme}`);
+            expect(await settled(page)).toMatch(/^rejected: /);
+            await page.locator("#embedded-original").click();
+            expect(await page.locator("#drawing").isVisible()).toBe(true);
+            await page.locator("#return-skyline-3d").press("Enter");
+            expect(await focused(page)).toBe("embedded-original");
+            await page.unroute("**/skyline-3d.html");
             // The host can still choose the SVG if the 3D scene's module fails, and `ready`
             // says the scene could not start.
             await page.route("**/skyline-3d.js", (route) => route.abort());

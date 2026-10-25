@@ -304,6 +304,13 @@ It creates no remote bindings. Require that regression and `bun audit` to pass
 before changing this group; prefer an owning release that selects the fixed
 dependency naturally over a transitive override.
 
+Miniflare 5.20261019.1-beta pins Undici 7.29.1, so a scoped override selects
+7.30.1 for the EventSource, integrity-token and content-encoding fixes
+([Undici security release](https://github.com/nodejs/undici/releases/tag/v7.30.1)).
+Remove it when Wrangler's Miniflare selects a patched Undici directly, after the
+dependency runtime suite, deployment preview and audit pass. The override affects
+development tooling only; the published viewer does not use Undici.
+
 Infrastructure updates require a real, complete, non-destructive preview with the
 proposed versions. Do not apply or deploy during an upgrade unless separately
 authorized. Terraform needs its R2 state backend and the credentials in `.secrets/prod/`,
