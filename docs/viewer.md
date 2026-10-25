@@ -395,10 +395,10 @@ the scene fails to load or loses its graphics context, so the drawing stays reac
 A host's embedded viewer also hides its bottom-right **show original** during boot. That
 fallback appears only if the scene fails to load or loses its graphics context; once the
 scene renders, its star's controls provide **show original**.
-The self-contained comparison file gives the original vector `Landscape` layer the same viewBox, bottom
-alignment, and artwork offset as the enhanced skyline; the source-photo layer from `skyline.svg`
-has been removed. [Development](development.md#updating-the-drawing) describes how the drawing is
-re-exported from Inkscape.
+The self-contained comparison file gives the original vector `Landscape` layer the same viewBox,
+bottom alignment, and artwork offset as the enhanced skyline; the source-photo layer from
+`skyline.svg` has been removed. [Development](development.md#updating-the-drawing) describes how
+the drawing is re-exported from Inkscape.
 
 ## WebGL prototype
 

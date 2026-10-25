@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 
 // Exercise Miniflare's own Sharp resolution under Wrangler's actual Node runtime.
-// Guard the Wrangler/Miniflare group's patched Sharp/librsvg minimums locally.
+// Guard the Wrangler/Miniflare group's patched Sharp/librsvg and Undici minimums locally.
 test("Wrangler's local Images binding decodes SVG and transforms it through Sharp", () => {
   let nodeVersion: string;
   try {
@@ -26,6 +26,8 @@ test("Wrangler's local Images binding decodes SVG and transforms it through Shar
     const semver = createRequire(miniflare.resolve("sharp"))("semver");
     assert.ok(typeof sharpVersion === "string" && semver.gte(sharpVersion, "0.35.5"), "Miniflare resolves vulnerable Sharp " + sharpVersion);
     assert.ok(semver.gte(sharp.versions.rsvg ?? "0.0.0", "2.63.2"), "Sharp loads vulnerable librsvg " + sharp.versions.rsvg);
+    const undiciVersion = miniflare("undici/package.json").version;
+    assert.ok(semver.gte(undiciVersion, "7.30.1"), "Miniflare resolves vulnerable Undici " + undiciVersion);
     const mf = new Miniflare({
       cf: false,
       telemetry: { enabled: false },
