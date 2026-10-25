@@ -61,11 +61,11 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
   root.append(viewer);
 
   let mode: Mode = "3d";
-  // Keep the drawing reachable until the first 3D frame succeeds, even if the scene's
-  // markup or code never loads, and again if its graphics context is lost.
+  // Keep the drawing reachable if the scene's markup or code fails to load,
+  // or its graphics context is lost.
   let sceneUnavailable = true;
-  // The toolbar's show original waits while the scene boots, until its first frame, a
-  // failure to load, or a lost graphics context.
+  // Both show original buttons wait while the scene boots, until its first frame,
+  // a failure to load, or a lost graphics context.
   let booting = true;
   const frames: Partial<Record<keyof typeof prototypes, HTMLIFrameElement>> = {};
   const toolbar = navigation ? createToolbar() : null;
@@ -78,7 +78,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
     if (mode === "enhanced" || mode === "webgl") frames[mode] ??= createPrototype(mode);
     for (const [name, frame] of Object.entries(frames)) frame.hidden = name !== mode;
     originalReturn.hidden = mode !== "original";
-    embeddedOriginal.hidden = navigation || mode !== "3d" || !sceneUnavailable;
+    embeddedOriginal.hidden = navigation || mode !== "3d" || booting || !sceneUnavailable;
     if (toolbar) {
       for (const [name, toggle] of Object.entries(toggles)) {
         const button = toolbar.querySelector<HTMLButtonElement>(`#${toggle.id}`)!, showing = name === mode;
