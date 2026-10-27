@@ -7,7 +7,7 @@ and can switch to the [enhanced drawing](#the-enhanced-drawing), the
 **3d skyline** and returns to the 3D skyline. Use the viewer's fullscreen control or press `F` to
 enter fullscreen.
 
-Serve the built `dist/` over HTTP (see the [README](../README.md#run-it-locally)): opened through
+Serve the built `dist/` over HTTP (see the [README](../README.md#quick-start)): opened through
 `file://`, or from the sources before a build, `index.html` says how to build and serve the site
 instead.
 

@@ -4,7 +4,7 @@ Two study pages put 3D models beside the drawing they were fitted to. Both use
 `study-viewer.ts` for rendering and interaction, `study.css` for presentation, and
 `study-loader.ts` for loading and fallback messages. Each page supplies its own model list and
 framing, so more studies can reuse the same viewer. Serve the built `dist/` to open them (see the
-[README](../README.md#run-it-locally)).
+[README](../README.md#quick-start)).
 
 Three.js is vendored under its MIT license; see `src/vendor/README.md` for provenance and
 regeneration. The studies load entirely from the local server without API keys, paid services, or
