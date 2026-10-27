@@ -37,5 +37,3 @@
   re-exporting the drawing.
 - [Deploying](deploying.md): publishing to Cloudflare, keeping the site out of search, deploy
   verification, the custom domain, and the local secrets link.
-- [`AGENTS.md`](../AGENTS.md): repository policy for coding agents, including the shipping
-  sequence.

@@ -3,21 +3,21 @@
 A grayscale Chicago skyline traced from a 2013 photograph taken on the lakefront by the Adler
 Planetarium, and a 3D city of 34 mapped buildings seen through that photograph's own camera.
 Hover a building for its name, right-click it for a close look, or switch to the animated drawing
-it was fitted to. It is live at [skyline.devopsrockstars.com](https://skyline.devopsrockstars.com).
+it was fitted to. This repo is available on the web at <https://skyline.devopsrockstars.com>.
 
-## Run it locally
+## Quick start
 
-With [mise](https://mise.jdx.dev/) installed:
+Install [mise](https://mise.jdx.dev/) and Python 3, which serves the built site:
 
 ```sh
 mise install                       # Bun and Node from mise.toml
 bun install --ignore-scripts
+bun run hooks:install              # Git hooks, once per clone
 bun run build:site
-python3 -m http.server -d dist
+python3 -m http.server -d dist     # http://localhost:8000
 ```
 
-Then open `http://localhost:8000`. Serve `dist/` over HTTP rather than opening files directly:
-WebGL and the 3D pages need it.
+Serve `dist/` over HTTP rather than opening files directly: WebGL and the 3D pages need it.
 
 ## Pages
 
@@ -34,14 +34,14 @@ WebGL and the 3D pages need it.
 
 The repository also builds [`@a2f0/skyline`](https://www.npmjs.com/package/@a2f0/skyline), an ESM
 package that mounts the complete viewer into a host page's own document, in a shadow root, with
-reusable Three.js scenes and building models, and TypeScript declarations. Every merge to `main` publishes a new version to npm; run
-`bun run build:package` or `bun pm pack` to build it locally. [The package guide](docs/package.md)
-covers installing, asset copying, mounting, imports, and releases.
+reusable Three.js scenes and building models, and TypeScript declarations. Every merge to `main`
+publishes a new version to npm; run `bun run build:package` or `bun pm pack` to build it locally.
+[The package guide](docs/package.md) covers installing, asset copying, mounting, imports, and
+releases.
 
 ## Development
 
 ```sh
-bun run hooks:install             # once per clone
 bun run check                     # typecheck, unit and browser suites; needs Google Chrome
 bun run deploy                    # publish to Cloudflare; needs Node.js 22+ and wrangler login
 ```
@@ -51,6 +51,5 @@ bun run deploy                    # publish to Cloudflare; needs Node.js 22+ and
 (`ln -s ../matrix-secrets/skyline .secrets`) that Terraform reads its Cloudflare and R2 state
 credentials through. To add a building or improve one, start with
 [Adding a building](docs/adding-a-building.md) or the [fidelity queue](docs/building-fidelity.md).
-Coding agents follow [`AGENTS.md`](AGENTS.md).
 
 All documentation is indexed in [`docs/`](docs/README.md).
