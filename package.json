@@ -94,7 +94,7 @@
     }
   },
   "devDependencies": {
-    "@a2f0/agent-tool": "0.1.21",
+    "@a2f0/agent-tool": "0.1.23",
     "@tsconfig/strictest": "^2.0.8",
     "@types/bun": "^1.4.3",
     "esbuild": "0.28.2",
