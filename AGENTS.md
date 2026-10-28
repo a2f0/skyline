@@ -71,13 +71,30 @@ build to its bounded parallel suites; CI uses one suite at a time. Keep the
 suite inventory completeness guard and all coverage. Publishing CI additionally
 runs `bun run check:package` under Node 22, the package's support floor.
 
-Use `bun run agent-tool` for shared CLI operations. Capture noisy finite checks,
-setup and hook-bearing Git commands with `bun run agent:run --label <label> --
-<command>`. Inspect warnings, failures and required artifacts in the private log;
-a receipt alone does not establish those checks. Keep structured decisions and
-independent review verdicts visible. Record shipping start time and branch;
-print `bun run timings --branch <branch> --since <start-iso>` at completion,
-including failures. Timings persist in the Git common directory after cleanup.
+Use `bun run agent-tool` for shared CLI operations. Record shipping start time
+and branch; print `bun run timings --branch <branch> --since <start-iso>` at
+completion, including failures. Timings persist in the Git common directory
+after cleanup.
+
+## Output capture
+
+Run finite, noisy commands, such as installs, builds, tests, linters, and Git
+commands that run hooks, through
+`bun run agent:run --label <name> -- <command> [args...]`. It keeps complete
+output in a private log, preserves the exit status, and prints a compact
+receipt, with a bounded excerpt of the log on failure. Read more with
+`bun run agent:logs <log-path>`, raising `--tail-lines` or `--max-bytes` as
+needed, or with a targeted search of the log. A zero exit does not rule out
+warnings: inspect required warnings, timings, and artifacts before accepting a
+check. Run reviews, version preparation, audits, infrastructure previews, and
+run-group checks directly so their results stay visible, and run interactive
+tools and servers directly too. Never narrow a suite or silence warnings to
+reduce output.
+
+For example, `bun run agent:run --label build-site -- bun run build:site`.
+`bun run check` is Skyline's own parallel runner, not a run group: capture it as
+the full gate above shows. Keep other structured decision output, such as
+`pr preflight`, visible too.
 
 ## Commits, hooks and shipping
 

@@ -87,7 +87,7 @@ log and show only its status, duration, and log path:
 ```sh
 SKYLINE_BASE_SHA=<fetched-base-commit> bun run agent:run --label skyline-check -- bun run check
 bun run agent:run --label push -- git push -u origin HEAD
-bun run agent-tool logs <log-path>
+bun run agent:logs <log-path>
 ```
 
 The wrapper preserves exit status and shows a bounded failure excerpt. It runs
