@@ -86,14 +86,17 @@ log and show only its status, duration, and log path:
 
 ```sh
 SKYLINE_BASE_SHA=<fetched-base-commit> bun run agent:run --label skyline-check -- bun run check
-bun run agent:run --label push -- git push -u origin HEAD
+bun run agent:run --label push -- bun run agent-tool branch push <reviewed-head> --remote origin
 bun run agent:logs <log-path>
 ```
 
 The wrapper preserves exit status and shows a bounded failure excerpt. It runs
-the same checks and hooks as the original command. Inspect the saved output when
-diagnosing a failure; keep review verdicts and findings visible. Print the
-[session timing table](#timings) separately for the shipping report.
+the same checks and hooks as the original command. `branch push` refuses unless
+the clean feature branch's HEAD is the reviewed commit, pushes it to the
+same-named remote branch through normal hooks, and verifies the local and remote
+heads afterward. Inspect the saved output when diagnosing a failure; keep review
+verdicts and findings visible. Print the [session timing table](#timings)
+separately for the shipping report.
 
 Together they cover:
 
