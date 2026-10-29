@@ -12,7 +12,7 @@ import os from "node:os";
 import path from "node:path";
 import type { Browser, Page } from "playwright";
 import { startServer } from "../lib/static-server.js";
-import { launch, command } from "./lib/study-page.js";
+import { launch, closeChrome, command } from "./lib/study-page.js";
 
 const usage = `Usage: bun scripts/fidelity/measure-group.ts <group-id> [--out dir] [--padding fraction]
   <group-id> is a group id (building-kemper) or a data-building-id (one-prudential-plaza);
@@ -249,7 +249,7 @@ command(usage, { out: { type: "string" }, padding: { type: "string", default: "0
     console.log(`  photo ids matched ${photoBounds.found}/${ids.length}${matched ? `, bounds differ by at most ${report.photo.maxOffsetFromLayerBounds!.toFixed(3)}` : "; photo crop uses the layer rectangle"}`);
     console.log(`  wrote ${name}.json, ${name}-drawing.png, ${name}-photo.png to ${out}`);
   } finally {
-    await browser?.close();
-    await server.close();
+    try { await closeChrome(browser); }
+    finally { await server.close(); }
   }
 });

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { chromium } from "playwright";
+import { closeChrome, launchChrome, SETUP_TIMEOUT, TEARDOWN_TIMEOUT } from "../scripts/lib/chrome.js";
 import type { Browser, Page } from "playwright";
 import * as THREE from "../src/vendor/three-r186.js";
 import type { BuildingModel, Vec2, Vec3 } from "../src/models/building-kit.js";
@@ -3204,14 +3204,14 @@ describe("mapped skyline geography", () => {
 describe("geographic layout in the study", () => {
   let browser!: Browser, page!: Page, originalBounds!: any, originalCamera!: any, errors: string[] = [], externalRequests: string[] = [];
   beforeAll(async () => {
-    browser = await chromium.launch({ channel: "chrome", headless: true });
+    browser = await launchChrome();
     page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("request", (request) => { if (!request.url().startsWith(origin) && !request.url().startsWith("data:")) externalRequests.push(request.url()); });
-  }, { timeout: 180_000 });
+  }, { timeout: SETUP_TIMEOUT });
   afterAll(async () => {
-    await browser.close();
-  }, { timeout: 60_000 });
+    await closeChrome(browser);
+  }, { timeout: TEARDOWN_TIMEOUT });
 
   test("opens on the geographic layout, and on the original with ?layout=original", async () => {
     const opened = await browser.newPage({ viewport: { width: 1440, height: 1000 } });

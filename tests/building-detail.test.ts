@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { chromium } from "playwright";
+import { closeChrome, launchChrome, SETUP_TIMEOUT, TEARDOWN_TIMEOUT } from "../scripts/lib/chrome.js";
 import type { Browser, Page } from "playwright";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 import { footprintMetrics, buildingGroundBounds } from "../src/models/skyline-geography.js";
@@ -24,11 +24,11 @@ describe("building detail", () => {
     page.on("request", (request) => { if (!request.url().startsWith(origin) && !request.url().startsWith("data:")) external.push(request.url()); });
   };
   beforeAll(async () => {
-    browser = await chromium.launch({ channel: "chrome", headless: true });
-  }, { timeout: 180_000 });
+    browser = await launchChrome();
+  }, { timeout: SETUP_TIMEOUT });
   afterAll(async () => {
-    await browser.close();
-  }, { timeout: 60_000 });
+    await closeChrome(browser);
+  }, { timeout: TEARDOWN_TIMEOUT });
 
   test("frames every mapped building and its platform in every view, in the viewer's panel and on a phone", async () => {
     // The panel's inside at 1440x900, and a phone. The page centres each building on its

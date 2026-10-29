@@ -5,10 +5,10 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { Script } from "node:vm";
-import { chromium } from "playwright";
 import type { Browser, Page } from "playwright";
 import { buildPackage } from "../scripts/build/build-package.js";
 import { faviconFiles, publishedFiles, root } from "../scripts/build/build-site.js";
+import { closeChrome, launchChrome } from "../scripts/lib/chrome.js";
 import { startServer } from "../scripts/lib/static-server.js";
 import { isThreeDeprecation } from "./three-warnings.js";
 
@@ -247,7 +247,7 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
       return active?.id;
     });
     try {
-      browser = await chromium.launch({ channel: "chrome", headless: true });
+      browser = await launchChrome();
       for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
         const page = await browser.newPage({ viewport, reducedMotion: viewport.width < 600 ? "reduce" : "no-preference", hasTouch: viewport.width < 600 });
         const errors: string[] = [], external: string[] = [], warnings: string[] = [], requested: string[] = [];
@@ -637,7 +637,10 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
           expect(warnings.filter(isThreeDeprecation), "the assets' engine warns of nothing deprecated or removed").toEqual([]);
         } finally { await page.close(); }
       }
-    } finally { await browser?.close(); await server.close(); }
+    } finally {
+      try { await closeChrome(browser); }
+      finally { await server.close(); }
+    }
   }, { timeout: 600_000 });
 
   test("shares the host page's Three.js, without loading or warning about a second engine", async () => {
@@ -670,7 +673,7 @@ if (mode === 'reject-destroyed') {
     const server = await startServer(publicDirectory);
     let browser: Browser | undefined;
     try {
-      browser = await chromium.launch({ channel: "chrome", headless: true });
+      browser = await launchChrome();
       for (const mode of ["share", "", "reject", "reject-destroyed"]) {
         const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
         const errors: string[] = [], warnings: string[] = [], requested: string[] = [];
@@ -701,6 +704,9 @@ if (mode === 'reject-destroyed') {
           expect(errors, mode).toEqual([]);
         } finally { await page.close(); }
       }
-    } finally { await browser?.close(); await server.close(); }
+    } finally {
+      try { await closeChrome(browser); }
+      finally { await server.close(); }
+    }
   }, { timeout: 180_000 });
 });

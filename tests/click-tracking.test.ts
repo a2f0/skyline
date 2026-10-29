@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { chromium } from "playwright";
+import { closeChrome, launchChrome, SETUP_TIMEOUT, TEARDOWN_TIMEOUT } from "../scripts/lib/chrome.js";
 import type { Browser, BrowserContext, Page } from "playwright";
 import type { ClickEvent } from "@a2f0/ct-client";
 import { dist } from "../scripts/build/build-site.js";
@@ -14,9 +14,8 @@ const types: Record<string, string> = { ".html": "text/html", ".svg": "image/svg
 interface Batch { site: string; events: ClickEvent[] }
 let browser: Browser;
 
-// Chrome can take seconds to start and stop beside the other suites, past Bun's 5 s default.
-beforeAll(async () => { browser = await chromium.launch({ channel: "chrome", headless: true }); }, 60_000);
-afterAll(async () => { await browser?.close(); }, 60_000);
+beforeAll(async () => { browser = await launchChrome(); }, SETUP_TIMEOUT);
+afterAll(async () => { await closeChrome(browser); }, TEARDOWN_TIMEOUT);
 
 // Every request is intercepted before navigation. Production-shaped addresses
 // exercise the real origin guard without sending anything to either live service.

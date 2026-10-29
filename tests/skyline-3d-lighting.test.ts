@@ -1,7 +1,7 @@
 // The full-screen 3D skyline's celebration lighting, time of day, colour and building details.
 // Its loading, placement, camera, toolbar and controls are in skyline-3d.test.ts.
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { chromium } from "playwright";
+import { closeChrome, launchChrome, SETUP_TIMEOUT, TEARDOWN_TIMEOUT } from "../scripts/lib/chrome.js";
 import type { Browser, Frame, Page } from "playwright";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 import { createGeographicBuilding, footprintMetrics } from "../src/models/skyline-geography.js";
@@ -16,11 +16,11 @@ describe("full-screen 3D skyline", () => {
   beforeAll(async () => {
     // Linux Chrome antialiases text with coloured subpixel fringes, a display setting rather
     // than a colour the page draws; greyscale text keeps the chroma checks about the page.
-    browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--disable-lcd-text"] });
-  }, { timeout: 180_000 });
+    browser = await launchChrome({ args: ["--disable-lcd-text"] });
+  }, { timeout: SETUP_TIMEOUT });
   afterAll(async () => {
-    await browser.close();
-  }, { timeout: 60_000 });
+    await closeChrome(browser);
+  }, { timeout: TEARDOWN_TIMEOUT });
 
   test("logo buttons light the actual windows, replace and restore messages, and preserve hover", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
