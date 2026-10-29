@@ -18,6 +18,12 @@
   "pr": {
     "rejectClaudeBranding": true
   },
+  "permissions": {
+    "executables": {
+      "tsc": "local",
+      "wrangler": "release"
+    }
+  },
   "branch": {
     "maxLength": null,
     "exempt": [

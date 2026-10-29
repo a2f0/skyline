@@ -67,8 +67,8 @@
     "agent-tool": "agent-tool",
     "agent:run": "agent-tool run",
     "agent:logs": "agent-tool logs",
-    "agents:sync": "bun run agent-tool skills install --apply",
-    "agents:check": "bun run agent-tool skills check",
+    "agents:sync": "bun run agent-tool skills install --apply && bun run agent-tool permissions install --apply",
+    "agents:check": "bun run agent-tool skills check && bun run agent-tool permissions check",
     "check": "bun scripts/testing/check.ts",
     "test": "bun scripts/testing/check.ts",
     "typecheck": "bunx --bun tsc -p tsconfig.json",
@@ -94,7 +94,7 @@
     }
   },
   "devDependencies": {
-    "@a2f0/agent-tool": "0.1.23",
+    "@a2f0/agent-tool": "0.1.25",
     "@tsconfig/strictest": "^2.0.8",
     "@types/bun": "^1.4.3",
     "esbuild": "0.28.2",

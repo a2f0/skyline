@@ -1,5 +1,6 @@
 #!/bin/sh
-# Checks branch destinations, managed skills, commit signatures, and agent attribution. Adapted from tearleads'
+# Checks branch destinations, managed skills, generated harness permission rules, commit signatures,
+# and agent attribution. Adapted from tearleads'
 # scripts/git/hooks/pre-push, with its timing, lint and test stages dropped:
 # this repository's suite runs from `bun run check`, and gating a push on the
 # browser suites would cost minutes on every push.
@@ -58,6 +59,7 @@ if [ ! -f "$AGENT_TOOL" ]; then
   exit 1
 fi
 "$BUN" "$AGENT_TOOL" skills check </dev/null
+"$BUN" "$AGENT_TOOL" permissions check </dev/null
 
 zero_sha="0000000000000000000000000000000000000000"
 refs_file=$(mktemp)
