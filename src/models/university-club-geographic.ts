@@ -1,7 +1,7 @@
 import * as THREE from "../vendor/three-r186.js";
 import { createBuilder, polygonOf } from "./building-kit.js";
 import type { BuildingModel, Plan, Run, Vec2, Vec3 } from "./building-kit.js";
-import { chainSkin, chainsOf, orient, paintedSlab, planOf, turnsAt } from "./facade-grid.js";
+import { chainSkin, chainsOf, orient, paintedSlab, planOf, turnsAt, lotFrame } from "./facade-grid.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
 
 // The University Club of Chicago, 76 East Monroe Street (Holabird & Roche, 1909): the
@@ -92,18 +92,8 @@ export function createUniversityClubGeographicBuilding(record: GeoBuilding, proj
   const corner = lot.reduce((best, p) => (p[0] + p[1] > best[0] + best[1] ? p : best));
   const northEast = lot.reduce((best, p) => (p[0] - p[1] > best[0] - best[1] ? p : best));
   const neighbours = [lot[(lot.indexOf(corner) + 1) % lot.length]!, lot[(lot.indexOf(corner) + lot.length - 1) % lot.length]!];
-  const unit = (p: Vec2): Vec2 => { const d = Math.hypot(p[0] - corner[0], p[1] - corner[1]); return [(p[0] - corner[0]) / d, (p[1] - corner[1]) / d]; };
-  const west = unit(neighbours[0]![0] < neighbours[1]![0] ? neighbours[0]! : neighbours[1]!), north = unit(northEast);
-  const at = (a: number, b: number): Vec2 => [corner[0] + west[0] * a + north[0] * b, corner[1] + west[1] * a + north[1] * b];
-  // The inverse of `at`: a point's distances along Monroe and Michigan, whose fronts meet a
-  // little off square.
-  const skew = west[0] * north[1] - west[1] * north[0];
-  const inLot = (p: Vec2): Vec2 => {
-    const [x, z] = [p[0] - corner[0], p[1] - corner[1]];
-    return [(x * north[1] - z * north[0]) / skew, (west[0] * z - west[1] * x) / skew];
-  };
+  const { at, inLot, rect } = lotFrame(corner, neighbours[0]![0] < neighbours[1]![0] ? neighbours[0]! : neighbours[1]!, northEast);
   const [length, depth] = [Math.max(...lot.map((p) => inLot(p)[0])), inLot(northEast)[1]];
-  const rect = (a0: number, a1: number, b0: number, b1: number) => orient([at(a0, b0), at(a1, b0), at(a1, b1), at(a0, b1)]);
   const lift = ([x, z]: Vec2, y: number): Vec3 => [x, y, z];
 
   // The main block, to the parapet's top.

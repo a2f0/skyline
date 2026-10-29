@@ -1,7 +1,7 @@
 import * as THREE from "../vendor/three-r186.js";
 import { createBuilder, polygonOf } from "./building-kit.js";
-import type { BuildingModel, Plan, Run, Vec2 } from "./building-kit.js";
-import { chainSkin, chainsOf, orient, paintedSlab, planOf, turnsAt } from "./facade-grid.js";
+import type { BuildingModel, Plan, Run } from "./building-kit.js";
+import { chainSkin, chainsOf, orient, paintedSlab, planOf, turnsAt, lotFrame } from "./facade-grid.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
 
 // The Borg-Warner Building, 200 South Michigan Avenue (A. Epstein & Sons with William
@@ -82,10 +82,7 @@ export function createBorgWarnerGeographicBuilding(record: GeoBuilding, projectP
   const corner = lot.reduce((best, p) => (p[0] + p[1] > best[0] + best[1] ? p : best));
   const northEast = lot.reduce((best, p) => (p[0] - p[1] > best[0] - best[1] ? p : best));
   const southWest = lot.reduce((best, p) => (p[1] - p[0] > best[1] - best[0] ? p : best));
-  const unit = (p: Vec2): Vec2 => { const d = Math.hypot(p[0] - corner[0], p[1] - corner[1]); return [(p[0] - corner[0]) / d, (p[1] - corner[1]) / d]; };
-  const west = unit(southWest), north = unit(northEast);
-  const at = (a: number, b: number): Vec2 => [corner[0] + west[0] * a + north[0] * b, corner[1] + west[1] * a + north[1] * b];
-  const rect = (a0: number, a1: number, b0: number, b1: number) => orient([at(a0, b0), at(a1, b0), at(a1, b1), at(a0, b1)]);
+  const { rect } = lotFrame(corner, southWest, northEast);
 
   planOf(lot).forEach((run) => {
     const a = run.at(0), b = run.at(run.length), n = run.normal(0);

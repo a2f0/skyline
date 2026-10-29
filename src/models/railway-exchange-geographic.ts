@@ -1,7 +1,7 @@
 import * as THREE from "../vendor/three-r186.js";
 import { createBuilder, polygonOf } from "./building-kit.js";
 import type { BuildingModel, Plan, Run, Vec2, Vec3 } from "./building-kit.js";
-import { chainSkin, chainsOf, orient, paintedSlab, planOf, turnsAt } from "./facade-grid.js";
+import { chainSkin, chainsOf, orient, paintedSlab, planOf, turnsAt, lotFrame } from "./facade-grid.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
 
 // The Railway Exchange Building, 224 South Michigan Avenue (Frederick P. Dinkelberg of D. H.
@@ -83,14 +83,7 @@ export function createRailwayExchangeGeographicBuilding(record: GeoBuilding, pro
   const northEast = lot.reduce((best, p) => (p[0] - p[1] > best[0] - best[1] ? p : best));
   const southWest = lot.reduce((best, p) => (p[1] - p[0] > best[1] - best[0] ? p : best));
   const northWest = lot.reduce((best, p) => (-p[0] - p[1] > -best[0] - best[1] ? p : best));
-  const unit = (p: Vec2): Vec2 => { const d = Math.hypot(p[0] - corner[0], p[1] - corner[1]); return [(p[0] - corner[0]) / d, (p[1] - corner[1]) / d]; };
-  const west = unit(southWest), north = unit(northEast);
-  const at = (a: number, b: number): Vec2 => [corner[0] + west[0] * a + north[0] * b, corner[1] + west[1] * a + north[1] * b];
-  const skew = west[0] * north[1] - west[1] * north[0];
-  const inLot = (p: Vec2): Vec2 => {
-    const [x, z] = [p[0] - corner[0], p[1] - corner[1]];
-    return [(x * north[1] - z * north[0]) / skew, (west[0] * z - west[1] * x) / skew];
-  };
+  const { at, inLot } = lotFrame(corner, southWest, northEast);
   const [jackson, michigan] = [inLot(southWest)[0], inLot(northEast)[1]];
   const lift = ([x, z]: Vec2, y: number): Vec3 => [x, y, z];
 

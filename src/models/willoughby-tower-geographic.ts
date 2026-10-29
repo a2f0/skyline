@@ -1,7 +1,7 @@
 import * as THREE from "../vendor/three-r186.js";
 import { createBuilder, inside, polygonOf } from "./building-kit.js";
 import type { BuildingModel, Plan, Run, Vec2 } from "./building-kit.js";
-import { chainSkin, chainsOf, orient, paintedSlab, planOf, turnsAt } from "./facade-grid.js";
+import { chainSkin, chainsOf, orient, paintedSlab, planOf, turnsAt, lotFrame } from "./facade-grid.js";
 import type { GeoBuilding } from "./skyline-geography-data.js";
 
 // Willoughby Tower, 8 South Michigan Avenue (Samuel N. Crowen, 1929): the geographic
@@ -76,10 +76,8 @@ export function createWilloughbyTowerGeographicBuilding(record: GeoBuilding, pro
   // The lot's south-east corner, and its south wall and Michigan front running from it.
   const corner = lot.reduce((best, p) => (p[0] + p[1] > best[0] + best[1] ? p : best));
   const neighbours = [lot[(lot.indexOf(corner) + 1) % lot.length]!, lot[(lot.indexOf(corner) + lot.length - 1) % lot.length]!];
-  const unit = (p: Vec2): Vec2 => { const d = Math.hypot(p[0] - corner[0], p[1] - corner[1]); return [(p[0] - corner[0]) / d, (p[1] - corner[1]) / d]; };
-  const [west, north] = neighbours[0]![0] < neighbours[1]![0] ? [unit(neighbours[0]!), unit(neighbours[1]!)] : [unit(neighbours[1]!), unit(neighbours[0]!)];
-  const at = (a: number, b: number): Vec2 => [corner[0] + west[0] * a + north[0] * b, corner[1] + west[1] * a + north[1] * b];
-  const rect = (a0: number, a1: number, b0: number, b1: number) => orient([at(a0, b0), at(a1, b0), at(a1, b1), at(a0, b1)]);
+  const [westward, northward] = neighbours[0]![0] < neighbours[1]![0] ? [neighbours[0]!, neighbours[1]!] : [neighbours[1]!, neighbours[0]!];
+  const { west, at, inLot, rect } = lotFrame(corner, westward, northward);
   // The south wall's length: the farthest lot corner on its line.
   const southWall = Math.max(...lot.filter((p) => Math.abs((p[0] - corner[0]) * west[1] - (p[1] - corner[1]) * west[0]) < 0.5).map((p) => (p[0] - corner[0]) * west[0] + (p[1] - corner[1]) * west[1]));
   const shaft = rect(0, h.shaftWidth, 0, h.shaftDepth), shoulder = rect(h.shaftWidth, southWall, 0, h.shaftDepth), crown = rect(h.crownEnds, h.shaftWidth - h.crownEnds, h.crownSides, h.shaftDepth - h.crownSides);
@@ -144,13 +142,6 @@ export function createWilloughbyTowerGeographicBuilding(record: GeoBuilding, pro
     const at = (f: number) => length * f;
     const columns = [0, at(0.15), at(0.25), at(0.315), at(0.385), at(0.465), at(0.535), at(0.615), at(0.685), at(0.75), at(0.85), length];
     return [columns, (bay) => (bay === 2 || bay === 10 ? "window" : bay === 4 || bay === 6 || bay === 8 ? "strip" : "stone")];
-  };
-  // The inverse of `at`: a point's distances along the south wall and the Michigan front,
-  // which meet a degree off square.
-  const skew = west[0] * north[1] - west[1] * north[0];
-  const inLot = (p: Vec2): Vec2 => {
-    const [x, z] = [p[0] - corner[0], p[1] - corner[1]];
-    return [(x * north[1] - z * north[0]) / skew, (west[0] * z - west[1] * x) / skew];
   };
   // The crown: three arched windows to a face, 0.9 m wide and 1.7 m apart, their heads
   // narrowing to the middle 0.45 m. A short face's are tall and centred on it; a long
