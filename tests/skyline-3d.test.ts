@@ -5,8 +5,8 @@ import { closeChrome, launchChrome, SETUP_TIMEOUT, TEARDOWN_TIMEOUT } from "../s
 import type { Browser, Frame, Page } from "playwright";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 import { createGeographicSkyline } from "../src/skyline-scene.js";
-import { geographicLandmarks } from "./skyline-landmarks.js";
-import { viewports } from "./study-fidelity.js";
+import { geographicLandmarks } from "../scripts/fidelity/lib/skyline-landmarks.js";
+import { viewports } from "../scripts/fidelity/lib/study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
 import { blueCrossScreen, boxHeight, boxWidth, boxX, boxY, chroma, near, openScene, origin, pageWatch, pixelAt, settle, shiftX, shiftY, expectChangedPicture, expectSamePicture, viewerHooks } from "./skyline-3d-page.js";
 

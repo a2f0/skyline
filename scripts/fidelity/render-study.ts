@@ -10,7 +10,7 @@ import path from "node:path";
 import type { Browser, BrowserContextOptions, Locator, Page } from "playwright";
 import { startServer } from "../lib/static-server.js";
 import { launch, closeChrome, openStudy, settle, command } from "./lib/study-page.js";
-import { models } from "../../tests/skyline-landmarks.js";
+import { models } from "./lib/skyline-landmarks.js";
 
 const usage = `Usage: bun scripts/fidelity/render-study.ts [--out dir] [--building id] [--root dir]
   Writes PNG stills to --out (default: ${path.join(os.tmpdir(), "skyline-renders")}). --building adds

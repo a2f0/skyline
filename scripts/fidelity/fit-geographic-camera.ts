@@ -1,6 +1,6 @@
 // Solves the geographic layout's skyline camera: the study's own orbit camera, looking at
 // the centre of the drawing's frame, whose projection of the mapped points in
-// tests/skyline-landmarks.ts best matches their drawn positions. It prints the eye,
+// scripts/fidelity/lib/skyline-landmarks.ts best matches their drawn positions. It prints the eye,
 // azimuth, polar angle, and the frame's vertical field of view that skyline-comparison.ts
 // records, with each landmark's residual in layer units. The eye's height is held at
 // the photograph's shore level because the drawing barely constrains it: a camera
@@ -9,7 +9,7 @@
 // the same reason: the drawing trades the eye's distance against the lens, so a free eye
 // can drift off the lakefront walk for a fraction of a layer unit.
 import { command } from "../lib/command.js";
-import { geographicLandmarks, reference } from "../../tests/skyline-landmarks.js";
+import { geographicLandmarks, reference } from "./lib/skyline-landmarks.js";
 import type { Vec3 } from "../../src/models/building-kit.js";
 
 const usage = `Usage: bun scripts/fidelity/fit-geographic-camera.ts [--height meters] [--eye east,south]

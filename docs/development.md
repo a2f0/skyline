@@ -16,10 +16,10 @@ explains the tooling behind it.
 | `scripts/checks/` | Skyline-specific asset and attribution checks |
 | `scripts/testing/` | Parallel suite runner and session timing reports |
 | `scripts/deploy/` | Cloudflare publication, live verification, and Terraform command/credential loading |
-| `scripts/fidelity/` | Building measurement, camera fitting, rendering, and colour research; domain helpers in `lib/` |
+| `scripts/fidelity/` | Building measurement, camera fitting, rendering, and colour research; domain helpers, the drawing's landmark data and the shared fidelity maths in `lib/` |
 | `scripts/git/` | Repository hook bodies and landed squash-message adapter |
 | `scripts/lib/` | Command parsing, the temporary static server, and the Chrome launcher shared across script groups |
-| `tests/` | Unit and browser suites and the shared fidelity measurements |
+| `tests/` | Unit and browser suites and their shared page helpers |
 | `assets/brand/` | `logo.svg`, the mark agent-tool renders the site's favicons from |
 | `docs/` | Topic documentation, building reference audits, and fidelity evidence |
 | `terraform/` | The custom-domain binding |

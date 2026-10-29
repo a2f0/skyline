@@ -42,7 +42,7 @@ the camera is fitted.
 
 `scripts/fidelity/fit-geographic-camera.ts` solves the study's orbit camera, aimed at the
 centre of the reference excerpt's frame, against the 26 correspondences in
-`geographicLandmarks` in `tests/skyline-landmarks.ts`. These pair mapped spire
+`geographicLandmarks` in `scripts/fidelity/lib/skyline-landmarks.ts`. These pair mapped spire
 tips, eaves, roof corners, and Crain's peaks, shoulders, foot and step with
 their drawn points. The eye's height is held at 2 m above the street datum. The
 drawing barely constrains it: a camera hovering about 100 m over the harbor on a

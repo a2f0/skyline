@@ -4,9 +4,9 @@ import path from "node:path";
 import { closeChrome, launchChrome, TEARDOWN_TIMEOUT } from "../scripts/lib/chrome.js";
 import type { Browser, Page } from "playwright";
 import type { Vec3 } from "../src/models/building-kit.js";
-import { heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, fitted } from "./skyline-landmarks.js";
-import { viewports, checkSpec, measureStudy, above } from "./study-fidelity.js";
-import type { MeasureResult } from "./study-fidelity.js";
+import { heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, fitted } from "../scripts/fidelity/lib/skyline-landmarks.js";
+import { viewports, checkSpec, measureStudy, above } from "../scripts/fidelity/lib/study-fidelity.js";
+import type { MeasureResult } from "../scripts/fidelity/lib/study-fidelity.js";
 
 
 const origin = process.env["SKYLINE_TEST_URL"] || "http://127.0.0.1:8000";
@@ -31,8 +31,9 @@ const [desktop, laptop, tablet, tall, phone] = viewports;
 const silhouetteSlack = 0.001 / 1.20834767 / 1.19979319;
 
 async function checkReferenceMatch(page: Page) {
-  // Landmarks, columns, and sight lines come from tests/skyline-landmarks.js through the
-  // shared maths in tests/study-fidelity.js, which scripts/fidelity/fidelity-report.js also uses.
+  // Landmarks, columns, and sight lines come from scripts/fidelity/lib/skyline-landmarks.js
+  // through the shared maths in scripts/fidelity/lib/study-fidelity.js, which
+  // scripts/fidelity/fidelity-report.js also uses.
   const { deviations, buildings } = await page.evaluate(
     measureStudy as unknown as (arg: unknown) => Promise<MeasureResult>,
     { landmarks, landmarkTolerance, fitted, models },
