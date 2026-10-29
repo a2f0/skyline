@@ -252,17 +252,19 @@ managed skills. `bun run agent-tool doctor` checks review CLI compatibility;
 `.claude/skills`, with ownership recorded in `.agent-tool-skills.json`, then
 regenerates the harness permission rules: `.claude/settings.json` for Claude Code
 and `.codex/rules/agent-tool.rules` for Codex, with ownership recorded in
-`.agent-tool-permissions.json`. The rules allow routine agent-tool commands and
-ask before merging, publishing, adding dependencies or changing permissions, as
-agent-tool's
-[permissions guide](https://github.com/a2f0/agent-tool/blob/ca698ad954ed489dbeba618e20887448f1e2a5cd/docs/permissions.md)
+`.agent-tool-permissions.json`. Both allow routine agent-tool commands. For
+merging, publishing, adding dependencies or changing permissions, the Codex
+rules prompt, while Claude Code gets no rule and follows each user's chosen
+permission mode, because Claude Code prompts for an explicit `ask` rule even in
+bypass mode, as agent-tool's
+[permissions guide](https://github.com/a2f0/agent-tool/blob/43e8334cc4001442fb1faf6c14099dac8c1739a2/docs/permissions.md)
 describes. `permissions.executables` in `agent-tool.json` classifies the installed
 CLIs that `bun run agent-tool bun x <name> -- <args>` runs: `tsc` is `local`
-(allowed) and `wrangler` is `release` (asks), since it deploys. Never edit managed
-or generated copies. Commit them with the exact dependency and lockfile whenever
-upgrading, and rerun `agents:sync` after changing `permissions`. `agents:check`
-checks drift in the full gate, and the pre-push hook runs the same skill and
-permission checks.
+(allowed) and `wrangler` is `release` (Codex prompts), since it deploys. Never
+edit managed or generated copies. Commit them with the exact dependency and
+lockfile whenever upgrading, and rerun `agents:sync` after changing
+`permissions`. `agents:check` checks drift in the full gate, and the pre-push
+hook runs the same skill and permission checks.
 The separate Skyline-owned `building-fidelity` copies remain identical and are
 covered by their own test.
 
