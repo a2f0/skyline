@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 import * as THREE from "../src/vendor/three-r186.js";
 import * as kit from "../src/models/building-kit.js";
 import type { BatchData, Builder, BuildingModel, Omission, Plan, Vec2, Vec3 } from "../src/models/building-kit.js";
-import { models, fitted, trump, twoPrudential } from "./skyline-landmarks.js";
+import { models, fitted, trump, twoPrudential } from "../scripts/fidelity/lib/skyline-landmarks.js";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 import { createGeographicBuilding } from "../src/models/skyline-geography.js";
 

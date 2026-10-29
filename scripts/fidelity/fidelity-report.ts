@@ -1,16 +1,16 @@
 // Reports how closely the skyline study follows its drawing at every layout the skyline
 // test checks: each landmark's error with per-viewport and per-building maxima, column
 // residuals in layer units, sight-line gaps, each model's projected silhouette in layer
-// space, and triangle counts. It reads tests/skyline-landmarks.js through the same maths
-// as tests/skyline-study.test.js, so its numbers are the ones the test asserts on. --root
-// serves another checkout, such as an archive of main, with this checkout's spec.
+// space, and triangle counts. It reads scripts/fidelity/lib/skyline-landmarks.js through the
+// same maths as tests/skyline-study.test.js, so its numbers are the ones the test asserts on.
+// --root serves another checkout, such as an archive of main, with this checkout's spec.
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import type { Browser } from "playwright";
 import { startServer } from "../lib/static-server.js";
 import { launch, closeChrome, openStudy, command } from "./lib/study-page.js";
-import { fitted, landmarks, landmarkTolerance, models } from "../../tests/skyline-landmarks.js";
-import { viewports, checkSpec, measureStudy } from "../../tests/study-fidelity.js";
+import { fitted, landmarks, landmarkTolerance, models } from "./lib/skyline-landmarks.js";
+import { viewports, checkSpec, measureStudy } from "./lib/study-fidelity.js";
 
 const usage = `Usage: bun scripts/fidelity/fidelity-report.ts [--json file] [--root dir]
   Prints landmark errors, column residuals, sight-line gaps, silhouettes, and triangles

@@ -1,26 +1,17 @@
 // The full-screen 3D skyline's loading, placement, camera, toolbar and controls. Its lighting,
 // time of day, colour and building details are in skyline-3d-lighting.test.ts.
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { closeChrome, launchChrome, SETUP_TIMEOUT, TEARDOWN_TIMEOUT } from "../scripts/lib/chrome.js";
-import type { Browser, Frame, Page } from "playwright";
+import { describe, expect, test } from "bun:test";
+import type { Frame, Page } from "playwright";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 import { createGeographicSkyline } from "../src/skyline-scene.js";
-import { geographicLandmarks } from "./skyline-landmarks.js";
-import { viewports } from "./study-fidelity.js";
+import { geographicLandmarks } from "../scripts/fidelity/lib/skyline-landmarks.js";
+import { viewports } from "../scripts/fidelity/lib/study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
-import { blueCrossScreen, boxHeight, boxWidth, boxX, boxY, chroma, near, openScene, origin, pageWatch, pixelAt, settle, shiftX, shiftY, expectChangedPicture, expectSamePicture, viewerHooks } from "./skyline-3d-page.js";
+import { blueCrossScreen, boxHeight, boxWidth, boxX, boxY, chroma, near, openScene, origin, pageWatch, pixelAt, settle, shiftX, shiftY, expectChangedPicture, expectSamePicture, sceneChrome, viewerHooks } from "./skyline-3d-page.js";
 
 describe("full-screen 3D skyline", () => {
-  let browser!: Browser;
+  const browser = sceneChrome();
   const { watch, expectClean } = pageWatch();
-  beforeAll(async () => {
-    // Linux Chrome antialiases text with coloured subpixel fringes, a display setting rather
-    // than a colour the page draws; greyscale text keeps the chroma checks about the page.
-    browser = await launchChrome({ args: ["--disable-lcd-text"] });
-  }, { timeout: SETUP_TIMEOUT });
-  afterAll(async () => {
-    await closeChrome(browser);
-  }, { timeout: TEARDOWN_TIMEOUT });
 
   test("traces the loading elevation before the 3D code arrives, then removes it at the first frame", async () => {
     for (const [width, height, reduced, light] of [[1440, 900, false, false], [390, 844, false, false], [390, 844, true, false], [844, 390, false, false], [1440, 900, false, true], [390, 844, true, true]] as const) {

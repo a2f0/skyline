@@ -23,8 +23,8 @@ prints its options with `--help`.
    as JSON, with aligned crops of the drawing and the source photo. Layer space is the group
    parent's space, which equals `skyline.svg`'s root; all drawing points use it.
 2. **Extend the reference and framing.** Add the group to `reference.groups` in
-   `tests/skyline-landmarks.ts`, update its `viewBox`, `title`, and `description`, and run
-   `bun scripts/fidelity/reference-svg.ts`; the check runs it with `--check`. If an in-group overlay needs
+   `scripts/fidelity/lib/skyline-landmarks.ts`, update its `viewBox`, `title`, and
+   `description`, and run `bun scripts/fidelity/reference-svg.ts`; the check runs it with `--check`. If an in-group overlay needs
    source gradients or clips, list their ids in `reference.defs`. In `skyline-study.ts`, import and
    place the model and add it to `createBuildingStudy`'s `models`. A building outside the current
    viewBox means reframing, not a local edit: keep the viewBox and `fit` aspects aligned, then
@@ -40,8 +40,8 @@ prints its options with `--help`.
    Node suite checks each cover, except a floor on the ground at y = 0, which the camera never sees
    from below, and fails on any same-facing coplanar faces, in one batch or across batches. Export
    the features the drawing pins down, derived from the constants the geometry uses.
-4. **Add the spec.** In `tests/skyline-landmarks.ts`, add the model to `models` and a `fitted`
-   entry; the comment above `fitted` lists every field: feature landmarks with their drawing
+4. **Add the spec.** In `scripts/fidelity/lib/skyline-landmarks.ts`, add the model to `models`
+   and a `fitted` entry; the comment above `fitted` lists every field: feature landmarks with their drawing
    points, drawn columns with the batch that must stand proud, sight-line gaps, and tolerances.
    Landmark names share one namespace across buildings, so keep them unique. The skyline and
    geometry suites pick the entry up. Building-specific checks, such as ordering or Heritage's left
@@ -303,8 +303,8 @@ split there.
 
 ## 5. Add the spec
 
-In `tests/skyline-landmarks.ts`, add the model to `models` and a `fitted` entry. The comment above
-`fitted` lists the fields; these are the ones that catch people.
+In `scripts/fidelity/lib/skyline-landmarks.ts`, add the model to `models` and a `fitted` entry.
+The comment above `fitted` lists the fields; these are the ones that catch people.
 
 - **Landmark names are one global namespace across all buildings.** A generic name like `roofLeft`
   or `mastTip` is already taken, and a collision throws `Landmark X is defined twice.` from inside

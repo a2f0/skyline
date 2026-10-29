@@ -30,8 +30,8 @@ import { northMichigan180Palette } from "../src/models/north-michigan-180-geogra
 import { universityClubPalette } from "../src/models/university-club-geographic.js";
 import { northWabashFloors } from "../src/models/north-wabash-geographic.js";
 import { createSkylineColour } from "../src/models/colour-materials.js";
-import { crain, geographicLandmarks } from "./skyline-landmarks.js";
-import { viewports } from "./study-fidelity.js";
+import { crain, geographicLandmarks } from "../scripts/fidelity/lib/skyline-landmarks.js";
+import { viewports } from "../scripts/fidelity/lib/study-fidelity.js";
 import { expectPlanHolds } from "./geographic-plan.js";
 // The facade checks cast thousands of rays at whole buildings; this indexes their triangles.
 import "./indexed-raycast.js";
