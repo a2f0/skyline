@@ -64,6 +64,11 @@ beforeAll(() => {
     cpSync(path.join(root, directory), path.join(repo, directory), { recursive: true });
   }
   cpSync(path.join(root, ".agent-tool-skills.json"), path.join(repo, ".agent-tool-skills.json"));
+  // And the generated harness permission rules, which the hook checks beside the skills.
+  for (const file of [".agent-tool-permissions.json", ".claude/settings.json", ".codex/rules/agent-tool.rules"]) {
+    mkdirSync(path.dirname(path.join(repo, file)), { recursive: true });
+    cpSync(path.join(root, file), path.join(repo, file));
+  }
   cpSync(path.join(root, "agent-tool.json"), path.join(repo, "agent-tool.json"));
   mkdirSync(path.join(repo, "node_modules/@a2f0"), { recursive: true });
   symlinkSync(path.join(root, "node_modules/@a2f0/agent-tool"), path.join(repo, "node_modules/@a2f0/agent-tool"));
@@ -205,6 +210,24 @@ describe("the installed pre-push hook", () => {
       expect(push.output).not.toContain("agent attribution");
     } finally {
       writeFileSync(skill, original);
+      rmSync(remote, { recursive: true, force: true });
+    }
+  }, 60_000);
+  test("refuses a push when a generated permission rule has drifted", () => {
+    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
+    const settings = path.join(repo, ".claude/settings.json");
+    const original = readFileSync(settings, "utf8");
+    try {
+      execFileSync("git", ["init", "--bare", "--quiet", remote], { stdio: "ignore" });
+      const rule = original.match(/"Bash\([^"]*\)",\n/)?.[0];
+      expect(rule).toBeDefined();
+      writeFileSync(settings, original.replace(rule ?? "", ""));
+      const push = git(["push", remote, "HEAD:refs/heads/main"]);
+      expect(push.ok).toBe(false);
+      expect(push.output).toMatch(/"path":\s*"\.claude\/settings\.json",\s*"status":\s*"outdated"/);
+      expect(push.output).not.toContain("Locally edited or unmanaged skill");
+    } finally {
+      writeFileSync(settings, original);
       rmSync(remote, { recursive: true, force: true });
     }
   }, 60_000);

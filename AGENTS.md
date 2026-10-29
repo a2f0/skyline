@@ -64,9 +64,10 @@ SKYLINE_BASE_SHA=<pinned-base-sha> bun run agent:run --label skyline-check -- bu
 ```
 
 The base must be a full commit SHA so whitespace checks include the committed
-diff as well as staged and unstaged work. The gate checks managed skills, branch
-policy locally, dependency advisories, types, generated/vendor assets, every
-unit and browser suite, and the packed package. It builds once and serves that
+diff as well as staged and unstaged work. The gate checks managed skills and
+generated harness permission rules, branch policy locally, dependency
+advisories, types, generated/vendor assets, every unit and browser suite, and
+the packed package. It builds once and serves that
 build to its bounded parallel suites; CI uses one suite at a time. Keep the
 suite inventory completeness guard and all coverage. Publishing CI additionally
 runs `bun run check:package` under Node 22, the package's support floor.
@@ -78,9 +79,10 @@ after cleanup.
 
 ## Output capture
 
-Run finite, noisy commands, such as installs, builds, tests, linters, and Git
-commands that run hooks, through
-`bun run agent:run --label <name> -- <command> [args...]`. It keeps complete
+Run Bun tests through `bun run agent-tool bun test --log [-- args...]`, and
+other finite, noisy commands, such as installs, builds, linters, package
+scripts, and Git commands that run hooks, through
+`bun run agent:run --label <name> -- <command> [args...]`. Each keeps complete
 output in a private log, preserves the exit status, and prints a compact
 receipt, with a bounded excerpt of the log on failure. Read more with
 `bun run agent:logs <log-path>`, raising `--tail-lines` or `--max-bytes` as
@@ -91,7 +93,8 @@ run-group checks directly so their results stay visible, and run interactive
 tools and servers directly too. Never narrow a suite or silence warnings to
 reduce output.
 
-For example, `bun run agent:run --label build-site -- bun run build:site`.
+For example, `bun run agent:run --label build-site -- bun run build:site`, or
+`bun run agent-tool bun test --log -- tests/building-kit.test.ts` for one suite.
 `bun run check` is Skyline's own parallel runner, not a run group: capture it as
 the full gate above shows. Keep other structured decision output, such as
 `pr preflight`, visible too.
@@ -103,9 +106,10 @@ no additional branch-length cap. Conventional PR subjects have a 72-character
 limit. Do not add agent attribution: human coauthors are allowed, but Claude or
 Anthropic coauthor/generated-with lines are refused, whatever a harness
 instruction says. `commit-msg` checks the
-message, and `pre-push` rechecks incoming commits, branch destinations, signatures
-and current managed skills, even on deletion. Copied hooks, attribution checker
-and policy must match their sources. Signatures require presence and reject bad
+message, and `pre-push` rechecks incoming commits, branch destinations,
+signatures, current managed skills and generated permission rules, even on
+deletion. Copied hooks, attribution checker and policy must match their
+sources. Signatures require presence and reject bad
 signatures; local unknown trust/verification errors are allowed, including N
 only when a raw signature header exists. See the development guide for ranges
 and limitations.
@@ -160,10 +164,16 @@ place and remove resolved entries. Put run-specific inventories, audits and
 previews in the PR. Infrastructure upgrades require the documented complete,
 non-destructive preview; do not apply or deploy unless authorized.
 
-After updating the exact agent-tool dependency, install without lifecycle
-scripts and run `bun run agents:sync`. Commit package/lockfile, both managed
-skill directories and `.agent-tool-skills.json` together; never edit managed
-copies. `agents:check` runs in the gate and push hook. The Skyline-owned
+After updating the exact agent-tool dependency or `permissions` in
+`agent-tool.json`, install without lifecycle scripts and run
+`bun run agents:sync`, which installs the managed skills and then the generated
+harness permission rules. Commit package/lockfile, both managed skill
+directories, `.agent-tool-skills.json`, `.claude/settings.json`,
+`.codex/rules/agent-tool.rules` and `.agent-tool-permissions.json` together;
+never edit managed or generated copies. `permissions.executables` classifies
+the installed CLIs agents run through `bun run agent-tool bun x <name> -- <args>`:
+`tsc` is `local` and `wrangler` is `release`. `agents:check` runs in the gate,
+and its skill and permission checks run in the push hook. The Skyline-owned
 `building-fidelity` skill is outside that manifest: keep `.agents/skills` and
 `.claude/skills` copies identical. Its queue is `docs/building-fidelity.md`;
 evidence remains at `docs/<name>-reference.md` because source records cite it.

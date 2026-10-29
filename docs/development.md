@@ -61,8 +61,8 @@ bun run hooks:install
 bun run check
 ```
 
-The runner checks managed skill drift, tool configuration and dependency advisories
-(`bun audit`), typechecks the repository
+The runner checks managed skill and harness permission drift, tool configuration and
+dependency advisories (`bun audit`), typechecks the repository
 (`tsc --noEmit`), verifies the vendored engine and license (`vendor:three --check`),
 and checks the reference excerpts and skyline-loading trace, in order.
 It then builds the package, which builds `dist/`, renders the site's favicons into it, starts its
@@ -206,9 +206,10 @@ before a trailer's colon. The pinned shared attribution grammar differs, so its
 attribution options remain disabled here. The local checker accepts
 `--message <file>` or `--range <revisions...>`; its behavioral fixtures remain.
 
-`pre-push` always checks managed skills, including tags and deletions. It checks
-every non-deleted destination branch through shared `branch check --pre-push`,
-then checks attribution and shared signature policy for incoming commits.
+`pre-push` always checks managed skills and the generated harness permission rules,
+including tags and deletions. It checks every non-deleted destination branch through
+shared `branch check --pre-push`, then checks attribution and shared signature policy for
+incoming commits.
 Conventional `<type>/<topic>` names are required except `main` and `master`,
 with no extra length cap. CI passes its actual ref name directly instead of
 changing the checkout to validate it. Detached local checks (such as `git bisect`) skip only the implicit branch-name
@@ -240,9 +241,20 @@ managed skills. `bun run agent-tool doctor` checks review CLI compatibility;
 `config show` reports the effective data-only policy.
 
 `bun run agents:sync` refreshes regular-file skill copies in `.agents/skills` and
-`.claude/skills`, with ownership recorded in `.agent-tool-skills.json`. Never edit
-managed copies. Commit them with the exact dependency and lockfile whenever
-upgrading. `agents:check` checks drift in both the full gate and pre-push hook.
+`.claude/skills`, with ownership recorded in `.agent-tool-skills.json`, then
+regenerates the harness permission rules: `.claude/settings.json` for Claude Code
+and `.codex/rules/agent-tool.rules` for Codex, with ownership recorded in
+`.agent-tool-permissions.json`. The rules allow routine agent-tool commands and
+ask before merging, publishing, adding dependencies or changing permissions, as
+agent-tool's
+[permissions guide](https://github.com/a2f0/agent-tool/blob/ca698ad954ed489dbeba618e20887448f1e2a5cd/docs/permissions.md)
+describes. `permissions.executables` in `agent-tool.json` classifies the installed
+CLIs that `bun run agent-tool bun x <name> -- <args>` runs: `tsc` is `local`
+(allowed) and `wrangler` is `release` (asks), since it deploys. Never edit managed
+or generated copies. Commit them with the exact dependency and lockfile whenever
+upgrading, and rerun `agents:sync` after changing `permissions`. `agents:check`
+checks drift in the full gate, and the pre-push hook runs the same skill and
+permission checks.
 The separate Skyline-owned `building-fidelity` copies remain identical and are
 covered by their own test.
 
