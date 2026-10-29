@@ -40,6 +40,8 @@ export const LAUNCH_TIMEOUT = 30_000;
 const CLOSE_TIMEOUT = 5_000;
 /** How long Chrome may take to exit once killed, which took well under a second. */
 const KILL_TIMEOUT = 5_000;
+/** How often to check whether a killed Chrome's profile and processes are gone. */
+const POLL_INTERVAL = 20;
 /** A hook that launches Chrome: the launch, and a margin for the rest. */
 export const SETUP_TIMEOUT = LAUNCH_TIMEOUT + 5_000;
 /** A hook that closes Chrome: its close, its kill if need be, and a margin for the rest. */
@@ -74,11 +76,12 @@ export function chromeProcess(browser: Browser): { pid: number; profile: string 
 
 /**
  * Closes the contexts, then Chrome, as Playwright advises. If that takes longer than `budget`,
- * kills Chrome's processes, waits for Playwright to see it exit and remove its profile, and
- * warns of the overrun rather than failing: the tests have finished by then. Fails only when
- * Chrome survives the kill.
+ * kills Chrome's processes, waits for Playwright to see it exit and remove its profile and for
+ * the processes to be gone, and warns of the overrun rather than failing: the tests have finished
+ * by then. Fails only when Chrome survives the kill. `alive` is how it checks a process group is
+ * gone, which tests replace to make the exit late.
  */
-export async function closeChrome(browser: Browser | undefined, budget = CLOSE_TIMEOUT): Promise<void> {
+export async function closeChrome(browser: Browser | undefined, budget = CLOSE_TIMEOUT, alive: (pid: number) => boolean = running): Promise<void> {
   if (!browser) return;
   const started = performance.now();
   const closing = (async () => {
@@ -90,13 +93,20 @@ export async function closeChrome(browser: Browser | undefined, budget = CLOSE_T
   if (chrome) kill(chrome.pid);
   // Once Chrome is killed a context's close fails, and `closing` settles when Playwright sees the
   // exit. A browser close that starts after that returns without waiting for Playwright to remove
-  // the profile, so the profile is waited for here.
+  // the profile, so the profile is waited for here. Playwright can also see the exit as soon as the
+  // connection drops, before the process is reaped (a zombie still answers signal 0), so the
+  // processes are waited for too; the timers let the runtime reap its child.
   const deadline = performance.now() + KILL_TIMEOUT, profile = chrome?.profile;
   const exited = (async () => {
     await closing.catch(() => undefined);
-    while (profile && existsSync(profile) && performance.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 20));
+    while (profile && existsSync(profile) && performance.now() < deadline) await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+    while (chrome && alive(chrome.pid)) {
+      if (performance.now() >= deadline) return false;
+      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+    }
+    return true;
   })();
-  if (!(await settles(exited, KILL_TIMEOUT))) {
+  if (!(await settles(exited, KILL_TIMEOUT)) || !(await exited)) {
     throw new Error(chrome ? `Chrome (pid ${chrome.pid}) didn't exit within ${KILL_TIMEOUT} ms of being killed` : `Chrome's process exited, but Playwright didn't finish closing it within ${budget + KILL_TIMEOUT} ms`);
   }
   const left = profile && existsSync(profile) ? `, leaving its profile ${profile}` : "";
@@ -110,6 +120,19 @@ async function settles(promise: Promise<unknown>, ms: number): Promise<boolean> 
   const timeout = new Promise<false>((resolve) => { timer = setTimeout(() => resolve(false), ms); });
   try { return await Promise.race([promise.then(() => true), timeout]); }
   finally { clearTimeout(timer); }
+}
+
+/**
+ * Whether Chrome's process group, or the process itself, still has a process, a zombie included:
+ * one that hasn't been reaped yet still answers signal 0. Only `ESRCH` means there is none.
+ */
+export function running(pid: number): boolean {
+  return exists(-pid) || exists(pid);
+}
+
+function exists(target: number): boolean {
+  try { process.kill(target, 0); return true; }
+  catch (error) { return (error as NodeJS.ErrnoException).code !== "ESRCH"; }
 }
 
 /** Kills Chrome's process group (Playwright starts Chrome as its leader), or else the process. */
