@@ -1,6 +1,7 @@
 // The system Google Chrome that the browser suites and the fidelity scripts drive through
 // Playwright: its switches, a bounded launch, and a close that kills a Chrome that won't exit.
 import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { chromium, type Browser, type LaunchOptions } from "playwright";
 
@@ -26,7 +27,10 @@ export const PLAYWRIGHT_DISABLED_FEATURES = [
  */
 export const DISABLED_FEATURES = [...PLAYWRIGHT_DISABLED_FEATURES, "UnexportableKeyDeletion"];
 
-/** Launching took 0.2-1 s, with the host's load average at 5-80. */
+/**
+ * Launching took 0.2-1 s, and once 7.6 s, with the host's load average at 5-80. Playwright kills a
+ * Chrome that doesn't start in time.
+ */
 export const LAUNCH_TIMEOUT = 30_000;
 /**
  * How long Chrome may take to close its contexts and exit before it is killed. Closing took
@@ -36,55 +40,36 @@ export const LAUNCH_TIMEOUT = 30_000;
 const CLOSE_TIMEOUT = 5_000;
 /** How long Chrome may take to exit once killed, which took well under a second. */
 const KILL_TIMEOUT = 5_000;
-/** A hook that only launches Chrome: the launch, and closing a Chrome it couldn't finish. */
-export const SETUP_TIMEOUT = LAUNCH_TIMEOUT + CLOSE_TIMEOUT;
+/** A hook that launches Chrome: the launch, and a margin for the rest. */
+export const SETUP_TIMEOUT = LAUNCH_TIMEOUT + 5_000;
 /** A hook that closes Chrome: its close, its kill if need be, and a margin for the rest. */
 export const TEARDOWN_TIMEOUT = CLOSE_TIMEOUT + KILL_TIMEOUT + 5_000;
 
-const processes = new WeakMap<Browser, number>();
+/** Each browser's launch tag, a switch only its browser process carries. */
+const tags = new WeakMap<Browser, string>();
 
-/**
- * Launches Chrome headless and finds its process, to kill if it won't close, all within
- * `LAUNCH_TIMEOUT`. If finding the process fails, closes Chrome within its close budget before
- * rethrowing; a Chrome that ignores even that is left to Playwright, which kills the browsers it
- * launched when the process exits.
- */
+/** Launches Chrome headless, tagged so that `closeChrome` can find its process to kill. */
 export async function launchChrome(options: LaunchOptions = {}): Promise<Browser> {
-  const started = performance.now();
+  const tag = `--skyline-chrome=${randomUUID()}`;
   const browser = await chromium.launch({
     channel: "chrome", headless: true, timeout: LAUNCH_TIMEOUT, ...options,
-    args: [...(options.args ?? []), `--disable-features=${DISABLED_FEATURES.join(",")}`],
+    args: [...(options.args ?? []), `--disable-features=${DISABLED_FEATURES.join(",")}`, tag],
   });
-  const finding = browserProcess(browser);
-  try {
-    if (!(await settles(finding, Math.max(0, LAUNCH_TIMEOUT - (performance.now() - started))))) {
-      throw new Error(`Chrome didn't report its process within ${LAUNCH_TIMEOUT} ms of launching`);
-    }
-    processes.set(browser, await finding);
-  } catch (error) {
-    await settles(browser.close(), CLOSE_TIMEOUT).catch(() => false);
-    throw error;
-  }
+  tags.set(browser, tag);
   return browser;
 }
 
-/** The browser process's id, which leads the process group of all Chrome's processes. */
-export async function browserProcess(browser: Browser): Promise<number> {
-  const session = await browser.newBrowserCDPSession();
-  try {
-    const { processInfo } = await session.send("SystemInfo.getProcessInfo");
-    const pid = processInfo.find((info) => info.type === "browser")?.id;
-    if (!pid) throw new Error("Chrome didn't report its browser process");
-    return pid;
-  } finally {
-    await session.detach();
-  }
-}
-
-/** The profile directory Playwright made for Chrome, read from its command line. */
-export function chromeProfile(pid: number): string | undefined {
-  const command = spawnSync("ps", ["-ww", "-o", "command=", "-p", String(pid)], { encoding: "utf8" }).stdout ?? "";
-  return /--user-data-dir=(.+?)(?= --|$)/m.exec(command)?.[1];
+/**
+ * Chrome's browser process, which leads the process group of all its processes, and the profile
+ * Playwright made for it, read from the command line that carries the browser's launch tag; none
+ * once it has exited. Chrome passes its helpers only the switches they need, never the tag.
+ */
+export function chromeProcess(browser: Browser): { pid: number; profile: string | undefined } | undefined {
+  const tag = tags.get(browser);
+  if (!tag) return undefined;
+  const listing = spawnSync("ps", ["-A", "-ww", "-o", "pid=,command="], { encoding: "utf8" }).stdout ?? "";
+  const line = listing.split("\n").find((line) => line.includes(` ${tag}`) && !line.includes(" --type="));
+  return line ? { pid: Number.parseInt(line, 10), profile: /--user-data-dir=(.+?)(?= --|$)/.exec(line)?.[1] } : undefined;
 }
 
 /**
@@ -101,23 +86,22 @@ export async function closeChrome(browser: Browser | undefined, budget = CLOSE_T
     finally { await browser.close(); }
   })();
   if (await settles(closing, budget)) return;
-  const pid = processes.get(browser);
-  if (!pid) throw new Error(`Chrome didn't close in ${budget} ms, and its process is unknown`);
-  const profile = chromeProfile(pid);
-  kill(pid);
+  const chrome = chromeProcess(browser);
+  if (chrome) kill(chrome.pid);
   // Once Chrome is killed a context's close fails, and `closing` settles when Playwright sees the
   // exit. A browser close that starts after that returns without waiting for Playwright to remove
   // the profile, so the profile is waited for here.
-  const deadline = performance.now() + KILL_TIMEOUT;
+  const deadline = performance.now() + KILL_TIMEOUT, profile = chrome?.profile;
   const exited = (async () => {
     await closing.catch(() => undefined);
     while (profile && existsSync(profile) && performance.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 20));
   })();
   if (!(await settles(exited, KILL_TIMEOUT))) {
-    throw new Error(`Chrome (pid ${pid}) didn't exit within ${KILL_TIMEOUT} ms of being killed`);
+    throw new Error(chrome ? `Chrome (pid ${chrome.pid}) didn't exit within ${KILL_TIMEOUT} ms of being killed` : `Chrome's process exited, but Playwright didn't finish closing it within ${budget + KILL_TIMEOUT} ms`);
   }
   const left = profile && existsSync(profile) ? `, leaving its profile ${profile}` : "";
-  console.warn(`Chrome (pid ${pid}) didn't close in ${budget} ms, so it was killed (${Math.round(performance.now() - started)} ms)${left}`);
+  const after = chrome ? `so it was killed` : `though its process had exited`;
+  console.warn(`Chrome${chrome ? ` (pid ${chrome.pid})` : ""} didn't close in ${budget} ms, ${after} (${Math.round(performance.now() - started)} ms)${left}`);
 }
 
 /** Whether `promise` resolves within `ms`; rethrows its rejection. */
