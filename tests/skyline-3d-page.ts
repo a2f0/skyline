@@ -1,10 +1,11 @@
 // What the full-screen 3D skyline suites share: hooks into the viewer's shadow roots, readers
 // for screenshots, the drawing's frame, and the watch each suite keeps on the pages it opens.
 // The suites are split by subject so they can run side by side.
-import { expect } from "bun:test";
+import { afterAll, beforeAll, expect } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import type { Frame, Page } from "playwright";
+import type { Browser, Frame, Page } from "playwright";
+import { closeChrome, launchChrome, SETUP_TIMEOUT, TEARDOWN_TIMEOUT } from "../scripts/lib/chrome.js";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 import { createGeographicBuilding } from "../src/models/skyline-geography.js";
 import { toneOf } from "../src/models/colour-materials.js";
@@ -168,6 +169,26 @@ export async function expectSamePicture(page: Page, actual: Buffer, expected: Bu
 }
 export async function expectChangedPicture(page: Page, actual: Buffer, expected: Buffer, message: string) {
   expect(await pictureDifference(page, actual, expected), message).toBeGreaterThan(1);
+}
+
+// The suite's Chrome, started before its first test and closed after its last; call it in the
+// suite's describe and open pages from what it returns. Linux Chrome antialiases text with
+// coloured subpixel fringes, a display setting rather than a colour the page draws; greyscale
+// text keeps the chroma checks about the page.
+export function sceneChrome(): Pick<Browser, "newPage"> {
+  let browser: Browser | undefined;
+  beforeAll(async () => {
+    browser = await launchChrome({ args: ["--disable-lcd-text"] });
+  }, { timeout: SETUP_TIMEOUT });
+  afterAll(async () => {
+    await closeChrome(browser);
+  }, { timeout: TEARDOWN_TIMEOUT });
+  return {
+    newPage: (...options) => {
+      if (!browser) throw new Error("Chrome has not started: open pages from a test, after the suite's beforeAll.");
+      return browser.newPage(...options);
+    },
+  };
 }
 
 // Every page a suite watches has the viewer's hooks, and reports its page errors, requests
