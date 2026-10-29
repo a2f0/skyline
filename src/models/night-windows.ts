@@ -1,5 +1,5 @@
 import type * as THREE from "../vendor/three-r186.js";
-import type { MaterialName } from "./colour-materials.js";
+import type { MaterialName } from "./material-names.js";
 
 export interface NightLighting {
   /** Sunset/dawn transition, from daylight (0) to full darkness (1). */

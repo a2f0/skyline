@@ -7,6 +7,23 @@ export const orient = (corners: Vec2[]): Vec2[] => {
   const area = corners.reduce((sum, [x, z], i) => { const [x2, z2] = corners[(i + 1) % corners.length]!; return sum + x * z2 - x2 * z; }, 0);
   return area < 0 ? corners : [...corners].reverse();
 };
+// A lot's frame from the corner its fronts run from: `west` and `north` are the unit
+// directions from `corner` toward two other points, `at(a, b)` is the point `a` along `west`
+// and `b` along `north`, `inLot` is its inverse, a point's distances along the two fronts,
+// which can meet a little off square, and `rect` is the oriented outline from a0 to a1 along
+// `west` and b0 to b1 along `north`.
+export function lotFrame(corner: Vec2, toWest: Vec2, toNorth: Vec2) {
+  const unit = (p: Vec2): Vec2 => { const d = Math.hypot(p[0] - corner[0], p[1] - corner[1]); return [(p[0] - corner[0]) / d, (p[1] - corner[1]) / d]; };
+  const west = unit(toWest), north = unit(toNorth);
+  const at = (a: number, b: number): Vec2 => [corner[0] + west[0] * a + north[0] * b, corner[1] + west[1] * a + north[1] * b];
+  const skew = west[0] * north[1] - west[1] * north[0];
+  const inLot = (p: Vec2): Vec2 => {
+    const [x, z] = [p[0] - corner[0], p[1] - corner[1]];
+    return [(x * north[1] - z * north[0]) / skew, (west[0] * z - west[1] * x) / skew];
+  };
+  const rect = (a0: number, a1: number, b0: number, b1: number) => orient([at(a0, b0), at(a1, b0), at(a1, b1), at(a0, b1)]);
+  return { west, north, at, inLot, rect };
+}
 export const planOf = (corners: Vec2[]): Plan => corners.map((corner, i) => line(corner, corners[(i + 1) % corners.length]!));
 // The turn from run a into run b at their shared corner; negative where the outline turns
 // out (a convex corner) and positive where it turns in.
