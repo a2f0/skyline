@@ -8,7 +8,7 @@ import { writeFileSync } from "node:fs";
 import path from "node:path";
 import type { Browser } from "playwright";
 import { startServer } from "../lib/static-server.js";
-import { launch, openStudy, command } from "./lib/study-page.js";
+import { launch, closeChrome, openStudy, command } from "./lib/study-page.js";
 import { fitted, landmarks, landmarkTolerance, models } from "../../tests/skyline-landmarks.js";
 import { viewports, checkSpec, measureStudy } from "../../tests/study-fidelity.js";
 
@@ -91,8 +91,8 @@ command(usage, { json: { type: "string" }, root: { type: "string" } }, async ({ 
       await context.close();
     }
   } finally {
-    await browser?.close();
-    await server.close();
+    try { await closeChrome(browser); }
+    finally { await server.close(); }
   }
   const names = Object.keys(results), first = results[names[0]!]!;
   console.log(`Skyline study fidelity for ${root}`);

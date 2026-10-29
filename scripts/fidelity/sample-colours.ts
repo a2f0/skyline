@@ -22,7 +22,7 @@ import path from "node:path";
 import type { Browser } from "playwright";
 import { channelRatios, hex, scaled } from "./lib/shade.js";
 import { startServer } from "../lib/static-server.js";
-import { launch, command } from "./lib/study-page.js";
+import { launch, closeChrome, command } from "./lib/study-page.js";
 
 interface Sample {
   /** The audit row's name. */
@@ -509,7 +509,7 @@ command(usage, {}, async ({ positionals }) => {
       console.log(`\n${entries.join("\n")}`);
     }
   } finally {
-    await browser?.close();
-    await server.close();
+    try { await closeChrome(browser); }
+    finally { await server.close(); }
   }
 });

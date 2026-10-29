@@ -49,9 +49,9 @@ const suites = [
   "package.test.ts", "skyline-3d.test.ts", "skyline-3d-lighting.test.ts", "building-detail.test.ts",
   "building-kit.test.ts", "skyline-geography.test.ts", "skyline-study.test.ts", "click-tracking.test.ts",
   "git-hooks.test.ts", "building-hover.test.ts", "building-study.test.ts", "colour-materials.test.ts",
-  "indexed-raycast.test.ts", "dependency-runtime.test.ts", "secrets.test.ts", "celebration-lighting.test.ts",
-  "panorama-owners.test.ts", "grayscale.test.ts", "skyline-loading.test.ts", "time-of-day.test.ts",
-  "verify-deploy.test.ts", "colour-shade.test.ts", "merge-pr.test.ts", "npm-publish.test.ts",
+  "chrome.test.ts", "indexed-raycast.test.ts", "dependency-runtime.test.ts", "secrets.test.ts",
+  "celebration-lighting.test.ts", "panorama-owners.test.ts", "grayscale.test.ts", "skyline-loading.test.ts",
+  "time-of-day.test.ts", "verify-deploy.test.ts", "colour-shade.test.ts", "merge-pr.test.ts", "npm-publish.test.ts",
   "timings.test.ts", "check-coauthors.test.ts", "building-fidelity-skill.test.ts", "favicons.test.ts",
   "search-indexing.test.ts",
 ];

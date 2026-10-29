@@ -18,7 +18,7 @@ explains the tooling behind it.
 | `scripts/deploy/` | Cloudflare publication, live verification, and Terraform command/credential loading |
 | `scripts/fidelity/` | Building measurement, camera fitting, rendering, and colour research; domain helpers in `lib/` |
 | `scripts/git/` | Repository hook bodies and landed squash-message adapter |
-| `scripts/lib/` | Command parsing and temporary static server shared across script groups |
+| `scripts/lib/` | Command parsing, the temporary static server, and the Chrome launcher shared across script groups |
 | `tests/` | Unit and browser suites and the shared fidelity measurements |
 | `assets/brand/` | `logo.svg`, the mark agent-tool renders the site's favicons from |
 | `docs/` | Topic documentation, building reference audits, and fidelity evidence |
@@ -68,13 +68,19 @@ and checks the reference excerpts and skyline-loading trace, in order.
 It then builds the package, which builds `dist/`, renders the site's favicons into it, starts its
 own temporary server, and runs every suite in `tests/` under `bun test` — the attribution, hook,
 timings, merge guard, deploy verification, deploy secrets loader, local dependency runtime,
-grayscale, skyline-loading, favicon, search indexing, package, building kit, and indexed raycast
-suites, and the browser suites against the compiled site — closing the server afterward. Suites run
-as many at a time as the machine has pairs of cores, longest first, and one at a time on CI
-(`CI=true`); each one's output prints whole when it ends, and the run reports every failing suite
-before it fails.
+grayscale, skyline-loading, favicon, search indexing, package, building kit, indexed raycast, and
+shared Chrome suites, and the browser suites against the compiled site — closing the server
+afterward. Suites run as many at a time as the machine has pairs of cores, longest first, and one
+at a time on CI (`CI=true`); each one's output prints whole when it ends, and the run reports every
+failing suite before it fails.
 CI's Chrome draws WebGL in software, many times slower than a desktop's, so give a browser test a
 timeout of at least twice its time in the publish run's log.
+Every browser suite and fidelity script starts Google Chrome with `launchChrome` from
+`scripts/lib/chrome.ts` and stops it with `closeChrome`, which closes its contexts and then Chrome,
+and kills Chrome's processes, with a warning, when that takes over five seconds; it fails only when
+Chrome outlives the kill. A hook that only launches Chrome takes `SETUP_TIMEOUT`, and one that closes
+it `TEARDOWN_TIMEOUT`, rather than a timeout of its own; hooks that also load and render a page keep
+that page's budget.
 The package suite reads the package the runner built (`SKYLINE_PACKAGE_BUILT`) rather than
 rebuilding `dist/` under the browser suites. A suite missing from the list in `scripts/testing/check.ts`
 stops the run before it starts.
@@ -101,6 +107,8 @@ separately for the shipping report.
 Together they cover:
 
 - push-hook skill drift detection and the building-fidelity skill copies;
+- the shared Chrome's switches, and its teardown, killing a Chrome that won't close without leaving
+  its process or profile behind;
 - that `src/models/skyline-reference.svg` still regenerates from its source groups;
 - the building kit's closed solids and analytic normals, and each fitted model's covered
   omissions and freedom from same-facing coplanar faces across its meshes;
@@ -306,6 +314,18 @@ floor. Locally, put an installed Node 22 release first on `PATH` and run
 `bun run check:package` for that check. The optional package peer remains the supported r186 series;
 regenerate its standalone browser bundle with `bun run vendor:three` when the
 engine or bundler changes, following [`src/vendor/README.md`](../src/vendor/README.md).
+
+### Playwright and Chrome
+
+Chrome reads only the last `--disable-features` switch, so `scripts/lib/chrome.ts` repeats the list
+Playwright passes (playwright-core's `chromiumSwitches`) in its own, `PLAYWRIGHT_DISABLED_FEATURES`.
+`tests/chrome.test.ts` reads the running Chrome's command line and fails when a Playwright upgrade
+changes that list: copy the new one. The added `UnexportableKeyDeletion` stops Chrome 156 on macOS
+from querying the keychain for about five seconds after every context closes, including each
+`browser.newPage()`'s, which kept each suite's Chrome from exiting for 5-10 s; Linux is unaffected.
+If a Chrome update renames the feature, closing slows down again, the suites' timings grow, and
+`closeChrome` warns whenever it has to kill Chrome: find the new name, or drop the switch once Chrome
+no longer runs the cleanup.
 
 ### Native dependency compatibility
 

@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { buildSite, dist } from "../build/build-site.js";
 import { startServer } from "../lib/static-server.js";
-import { launch, settle, command } from "./lib/study-page.js";
+import { launch, closeChrome, settle, command } from "./lib/study-page.js";
 import { geographicBuildings } from "../../src/models/skyline-geography-data.js";
 
 command("Usage: bun scripts/fidelity/render-colours.ts [--out directory] [building-id ...]", { out: { type: "string" } }, async ({ values, positionals }) => {
@@ -77,7 +77,7 @@ command("Usage: bun scripts/fidelity/render-colours.ts [--out directory] [buildi
     }, null, 2)}\n`);
     console.log(`Colour review renders: ${out}`);
   } finally {
-    try { await browser?.close(); }
+    try { await closeChrome(browser); }
     finally { await server.close(); }
   }
 });

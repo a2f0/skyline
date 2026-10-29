@@ -1,9 +1,10 @@
-// Browser helpers for the dev scripts: system Chrome, a settled study page, and the
-// usual command-line handling.
-import { chromium, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from "playwright";
+// Browser helpers for the dev scripts: the shared system Chrome, a settled study page, and
+// the usual command-line handling.
+import type { Browser, BrowserContext, BrowserContextOptions, Page } from "playwright";
+import { closeChrome, launchChrome } from "../../lib/chrome.js";
 import { command } from "../../lib/command.js";
 
-const launch = (): Promise<Browser> => chromium.launch({ channel: "chrome", headless: true });
+const launch = (): Promise<Browser> => launchChrome();
 const settle = (page: Page): Promise<void> => page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
 
 export async function openStudy(browser: Browser, origin: string, options: BrowserContextOptions): Promise<{ context: BrowserContext; page: Page; errors: string[] }> {
@@ -20,4 +21,4 @@ export async function openStudy(browser: Browser, origin: string, options: Brows
   return { context, page, errors };
 }
 
-export { launch, settle, command };
+export { launch, closeChrome, settle, command };

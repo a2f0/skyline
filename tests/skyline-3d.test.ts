@@ -1,7 +1,7 @@
 // The full-screen 3D skyline's loading, placement, camera, toolbar and controls. Its lighting,
 // time of day, colour and building details are in skyline-3d-lighting.test.ts.
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { chromium } from "playwright";
+import { closeChrome, launchChrome, SETUP_TIMEOUT, TEARDOWN_TIMEOUT } from "../scripts/lib/chrome.js";
 import type { Browser, Frame, Page } from "playwright";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
 import { createGeographicSkyline } from "../src/skyline-scene.js";
@@ -16,11 +16,11 @@ describe("full-screen 3D skyline", () => {
   beforeAll(async () => {
     // Linux Chrome antialiases text with coloured subpixel fringes, a display setting rather
     // than a colour the page draws; greyscale text keeps the chroma checks about the page.
-    browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--disable-lcd-text"] });
-  }, { timeout: 180_000 });
+    browser = await launchChrome({ args: ["--disable-lcd-text"] });
+  }, { timeout: SETUP_TIMEOUT });
   afterAll(async () => {
-    await browser.close();
-  }, { timeout: 60_000 });
+    await closeChrome(browser);
+  }, { timeout: TEARDOWN_TIMEOUT });
 
   test("traces the loading elevation before the 3D code arrives, then removes it at the first frame", async () => {
     for (const [width, height, reduced, light] of [[1440, 900, false, false], [390, 844, false, false], [390, 844, true, false], [844, 390, false, false], [1440, 900, false, true], [390, 844, true, true]] as const) {

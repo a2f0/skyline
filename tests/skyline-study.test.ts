@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
-import { chromium } from "playwright";
+import { closeChrome, launchChrome, TEARDOWN_TIMEOUT } from "../scripts/lib/chrome.js";
 import type { Browser, Page } from "playwright";
 import type { Vec3 } from "../src/models/building-kit.js";
 import { heritage, kemper, crain, michigan, trump, prudential, twoPrudential, aon, reference, models, landmarks, landmarkTolerance, fitted } from "./skyline-landmarks.js";
@@ -161,7 +161,7 @@ describe("eight-building skyline study", () => {
   let browser!: Browser, page!: Page, initial!: [number, number, number], errors: string[] = [], external: string[] = [];
   beforeAll(async () => {
     checkSpec({ fitted, models });
-    browser = await chromium.launch({ channel: "chrome", headless: true });
+    browser = await launchChrome();
     page = await browser.newPage(desktop.options);
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("request", (request) => { if (!request.url().startsWith(origin) && !request.url().startsWith("data:")) external.push(request.url()); });
@@ -171,8 +171,8 @@ describe("eight-building skyline study", () => {
     await settle(page);
   }, { timeout: 180_000 });
   afterAll(async () => {
-    await browser.close();
-  }, { timeout: 60_000 });
+    await closeChrome(browser);
+  }, { timeout: TEARDOWN_TIMEOUT });
 
   test("pans at first load and guards the camera floor around a below-grade target", async () => {
     // Pan must work on first load, before a view button initializes controls.

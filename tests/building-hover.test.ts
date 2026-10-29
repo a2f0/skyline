@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { chromium } from "playwright";
+import { closeChrome, launchChrome, SETUP_TIMEOUT, TEARDOWN_TIMEOUT } from "../scripts/lib/chrome.js";
 import type { Browser, Page } from "playwright";
 import targets from "./fixtures/building-hover.json" with { type: "json" };
 
@@ -31,13 +31,13 @@ const core = {
 describe("skyline hover", () => {
   let browser!: Browser, page!: Page, mobile!: Page, errors: string[] = [];
   beforeAll(async () => {
-    browser = await chromium.launch({ channel: "chrome", headless: true });
+    browser = await launchChrome();
     page = await browser.newPage({ viewport: { width: 2000, height: 900 }, reducedMotion: "reduce" });
     page.on("pageerror", (error) => errors.push(error.message));
-  }, { timeout: 180_000 });
+  }, { timeout: SETUP_TIMEOUT });
   afterAll(async () => {
-    await browser.close();
-  }, { timeout: 60_000 });
+    await closeChrome(browser);
+  }, { timeout: TEARDOWN_TIMEOUT });
 
   test("the SVG keeps building ownership and highlights only the hovered building", async () => {
     await page.goto(`${origin}/skyline-animated.svg`);

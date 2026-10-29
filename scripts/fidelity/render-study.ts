@@ -9,7 +9,7 @@ import os from "node:os";
 import path from "node:path";
 import type { Browser, BrowserContextOptions, Locator, Page } from "playwright";
 import { startServer } from "../lib/static-server.js";
-import { launch, openStudy, settle, command } from "./lib/study-page.js";
+import { launch, closeChrome, openStudy, settle, command } from "./lib/study-page.js";
 import { models } from "../../tests/skyline-landmarks.js";
 
 const usage = `Usage: bun scripts/fidelity/render-study.ts [--out dir] [--building id] [--root dir]
@@ -140,8 +140,8 @@ command(usage, { out: { type: "string" }, building: { type: "string" }, root: { 
     await shot(mobile, "mobile-full", { fullPage: true });
     errors.push(...mobileErrors);
   } finally {
-    await browser?.close();
-    await server.close();
+    try { await closeChrome(browser); }
+    finally { await server.close(); }
   }
   console.log(`Wrote ${written.length} stills to ${out}:\n  ${written.map((file) => path.basename(file)).join("\n  ")}`);
   if (errors.length) throw new Error(`Page errors while rendering:\n  ${errors.join("\n  ")}`);

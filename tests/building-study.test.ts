@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
-import { chromium } from "playwright";
+import { closeChrome, launchChrome, TEARDOWN_TIMEOUT } from "../scripts/lib/chrome.js";
 import type { Browser, Page } from "playwright";
 
 
@@ -14,7 +14,7 @@ const settle = (page: Page) => page.evaluate(() => new Promise((resolve) => requ
 describe("single-building study", () => {
   let browser!: Browser, page!: Page, initial!: any, bounds!: { x: number; y: number; width: number; height: number }, errors: string[] = [], externalRequests: string[] = [];
   beforeAll(async () => {
-    browser = await chromium.launch({ channel: "chrome", headless: true });
+    browser = await launchChrome();
     page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: "no-preference" });
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
@@ -26,8 +26,8 @@ describe("single-building study", () => {
     bounds = (await page.locator("canvas").boundingBox())!;
   }, { timeout: 180_000 });
   afterAll(async () => {
-    await browser.close();
-  }, { timeout: 60_000 });
+    await closeChrome(browser);
+  }, { timeout: TEARDOWN_TIMEOUT });
 
   test("loads with matching panes, a modest budget, and no idle rendering", async () => {
     expect(await page.locator("#loading").isHidden()).toBe(true);
