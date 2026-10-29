@@ -1,4 +1,4 @@
-import type { MaterialName } from "./colour-materials.js";
+import type { MaterialName } from "./material-names.js";
 
 // The colour trial (https://github.com/a2f0/skyline/issues/115), tier B: the colours of the
 // buildings sourced so far on a sunny day, measured from Chicago.jpg on Wikimedia Commons, Daniel

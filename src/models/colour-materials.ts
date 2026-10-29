@@ -4,6 +4,7 @@ import { daylightColours, measuredColours } from "./colour-palette.js";
 import type { Daylight } from "../study-types.js";
 import { glassReflection, daylightReflections, type ReflectionColours, type GlassReflection } from "./colour-reflections.js";
 import { nightWindowMask, type NightLighting } from "./night-windows.js";
+import type { MaterialName } from "./material-names.js";
 
 // The colour trial (https://github.com/a2f0/skyline/issues/115): which named material each
 // surface of each building is, and a layer that shows the colours measured for those materials
@@ -12,17 +13,7 @@ import { nightWindowMask, type NightLighting } from "./night-windows.js";
 // and each mesh's batch, the part of its name after the last " · ", or that without a trailing
 // number, so "glazing 3" reads as "glazing". A surface is its batch's material unless its grey
 // names another.
-export const materialNames = [
-  "neutral", "glass", "green glass", "blue-green glass", "bronze glass", "lit window", "dim window", "lamp",
-  "limestone", "marble", "white granite", "granite", "dark granite", "slate",
-  "white terracotta", "pink terracotta", "green tile", "brick", "common brick", "orange brick", "brown brick", "buff brick", "glazed brick",
-  "concrete", "precast", "copper", "maroon", "blue enamel", "bronze", "dark metal", "aluminium", "stainless", "opaque spandrel",
-  // Parts the photographs show on their own, named as the night first showed them: crown glass
-  // and crown lights, an emblem screen and the lights in its bands, a sign's board and letters,
-  // and a lit cap.
-  "crown glass", "crown lights", "screen", "band lights", "sign board", "sign letters", "cap lights",
-] as const;
-export type MaterialName = (typeof materialNames)[number];
+export { materialNames, type MaterialName } from "./material-names.js";
 export type Tones = Readonly<Record<number, MaterialName>>;
 export type Batch = readonly [material: MaterialName, tones?: Tones];
 export type BuildingMaterials = Readonly<Record<string, Batch>>;
