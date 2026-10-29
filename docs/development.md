@@ -34,10 +34,11 @@ repository-owned skill copies whenever moving a script.
 Modules import downward only: `src/vendor/` at the bottom; `src/models/`, which imports only
 other models, the vendored engine and the shared `src/study-types.ts`; then the site's and
 package's modules in `src/`, which never import `scripts/` or `tests/`; and the scripts and
-tests above them. No module imports itself around a chain of others, type-only imports
-included: put a name two modules share in a lower module both import, as
-`src/models/material-names.ts` holds the colour trial's material names for its table, palette and
-night windows. `tests/module-graph.test.ts` enforces both rules. The geographic models frame their
+tests above them; nothing outside `tests/` imports a test file. No module imports itself around a
+chain of others, type-only and dynamic imports included: put a name two modules share in a lower
+module both import, as `src/models/material-names.ts` holds the colour trial's material names for
+its table, palette and night windows. `agent-tool graph check` enforces these rules from the
+`graph` layers in `agent-tool.json`, in the gate's `graph` step. The geographic models frame their
 lots with `lotFrame` from `src/models/facade-grid.ts` rather than repeating its axes.
 
 `src/` also keeps the drawing's sources, `skyline.svg` and the photograph `skyline.jpg` it links,
@@ -72,13 +73,13 @@ bun run check
 
 The runner checks managed skill and harness permission drift, tool configuration and
 dependency advisories (`bun audit`), typechecks the repository
-(`tsc --noEmit`), verifies the vendored engine and license (`vendor:three --check`),
-and checks the reference excerpts and skyline-loading trace, in order.
+(`tsc --noEmit`), checks the module graph (`agent-tool graph check`), verifies the vendored
+engine and license (`vendor:three --check`), and checks the reference excerpts and skyline-loading trace, in order.
 It then builds the package, which builds `dist/`, renders the site's favicons into it, starts its
 own temporary server, and runs every suite in `tests/` under `bun test` — the attribution, hook,
 timings, merge guard, deploy verification, deploy secrets loader, local dependency runtime,
-grayscale, skyline-loading, favicon, search indexing, module graph, package, building kit, indexed raycast, and
-shared Chrome suites, and the browser suites against the compiled site — closing the server
+grayscale, skyline-loading, favicon, search indexing, package, building kit, indexed raycast, and shared
+Chrome suites, and the browser suites against the compiled site — closing the server
 afterward. Suites run as many at a time as the machine has pairs of cores, longest first, and one
 at a time on CI (`CI=true`); each one's output prints whole when it ends, and the run reports every
 failing suite before it fails.

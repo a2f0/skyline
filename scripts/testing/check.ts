@@ -53,7 +53,7 @@ const suites = [
   "celebration-lighting.test.ts", "panorama-owners.test.ts", "grayscale.test.ts", "skyline-loading.test.ts",
   "time-of-day.test.ts", "verify-deploy.test.ts", "colour-shade.test.ts", "merge-pr.test.ts", "npm-publish.test.ts",
   "timings.test.ts", "check-coauthors.test.ts", "building-fidelity-skill.test.ts", "favicons.test.ts",
-  "search-indexing.test.ts", "module-graph.test.ts",
+  "search-indexing.test.ts",
 ];
 const slots = process.env["CI"] === "true" ? 1 : Math.max(2, Math.floor(os.availableParallelism() / 2));
 
@@ -79,6 +79,9 @@ async function main() {
   await step("audit", ["audit"]);
   // The strictest-config typecheck over the whole repository.
   await step("typecheck", [path.join(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"]);
+  // No import cycles and no import from a higher layer or a test file: the `graph` section of
+  // agent-tool.json holds the layers docs/development.md describes.
+  await step("graph", [agentTool, "graph", "check"]);
   await step("vendor:three", ["scripts/build/vendor-three.ts", "--check"]);
   await step("reference-svg", ["scripts/fidelity/reference-svg.ts", "--check"]);
   await step("skyline-loading", ["scripts/checks/skyline-loading.ts", "--check"]);

@@ -62,6 +62,16 @@
       }
     ]
   },
+  "graph": {
+    "include": ["src/**", "scripts/**", "tests/**"],
+    "exclude": ["**/vendor/**", "**/fixtures/**"],
+    "tests": ["tests/**"],
+    "layers": [
+      { "name": "models", "include": ["src/models/**", "src/study-types.ts"] },
+      { "name": "site", "include": ["src/**"] },
+      { "name": "scripts", "include": ["scripts/**"] }
+    ]
+  },
   "images": {
     "targets": {
       "favicons": {
