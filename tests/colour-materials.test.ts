@@ -424,7 +424,8 @@ describe("colour trial", () => {
     }));
     const eager = createSkylineColour(eagerModels), deferred = deferSkylineColour(deferredModels);
     const night = { darkness: 0.8, activity: 0.5, outlineStrength: 0.4 };
-    const evening = { sky: 0x203040, horizon: 0x405060, ground: 0x101010 };
+    // Greys unlike the defaults, as the repository holds no other colours (grayscale.test.ts).
+    const evening = { sky: 0x303030, horizon: 0x505050, ground: 0x101010 };
     const steps: [string, (layer: typeof deferred | typeof eager, chosen: readonly Model[]) => void][] = [
       // The scene starts in grey, as setColour(false) leaves it.
       ["grey start", (layer) => { layer.set(false); layer.setSky(null); layer.setNight(null); }],
@@ -451,7 +452,8 @@ describe("colour trial", () => {
       expect(snapshotOf(deferredModels), name).toEqual(snapshotOf(eagerModels));
       expect(state(deferredModels), name).toEqual(state(eagerModels));
     }
-  });
+    // It builds the whole skyline twice.
+  }, { timeout: 60_000 });
 
   test("a deferred layer is made by a celebration before its lights rewrite the greys", () => {
     const eagerModel = createGeographicBuilding(geographicBuildings.find((record) => record.id === "building-blue-cross-blue-shield")!);
