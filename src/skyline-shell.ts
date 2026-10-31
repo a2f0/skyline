@@ -82,6 +82,12 @@ export interface ViewerOptions extends Omit<ViewerContext, "assets" | "signal" |
 // The viewer's code and styles, relative to the assets.
 const VIEWER = "skyline-viewer.js";
 const STYLESHEETS = ["study.css", "viewer.css"];
+// The modules the viewer's first frame needs, which the build lists (scripts/build/viewer-modules.ts).
+const MODULES = "viewer-modules.json";
+// The asset directories whose viewers were offered the host's engine: each directory's first
+// scene keeps the engine it took (three-engine.ts), so its later viewers never fetch the
+// vendored one either.
+const sharedEngines = new Set<string>();
 
 /** The validated, slash-terminated directory the assets are served from. */
 export function assetsBase(document: Document, assetsUrl: string | URL): URL {
@@ -99,6 +105,21 @@ export function assetsBase(document: Document, assetsUrl: string | URL): URL {
  */
 function importViewer(url: string): Promise<ViewerModule> {
   return import(/* webpackIgnore: true */ /* @vite-ignore */ /* turbopackIgnore: true */ url);
+}
+
+/**
+ * Asks the browser to fetch every module the viewer's first frame needs at once, rather than
+ * each only once the module importing it has arrived, a chain several round trips deep. The
+ * links go in the document's head, where modulepreload applies, and leave it once the viewer
+ * settles or is destroyed. The vendored engine is fetched only when no viewer from the same
+ * assets offered the host's Three.js. Preloading only saves time, so a list that fails to load changes nothing else.
+ */
+function preloadModules(document: Document, assets: URL, hostEngine: boolean, signal: AbortSignal): Promise<HTMLLinkElement[]> {
+  return fetch(new URL(MODULES, assets), { signal })
+    .then((response) => response.json() as Promise<{ modules: string[]; engine: string | null }>)
+    .then(({ modules, engine }) => signal.aborted ? [] : [...(hostEngine || !engine ? [] : [engine]), ...modules].map((file) =>
+      document.head.appendChild(Object.assign(document.createElement("link"), { rel: "modulepreload", href: new URL(file, assets).href }))))
+    .catch(() => []);
 }
 
 /** Resolves once `link` has loaded its stylesheet. */
@@ -163,6 +184,10 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, ...optio
   const controller = new AbortController();
   let destroyed = false, mounted = false;
   const context: ViewerContext = { ...options, theme, assets, signal: controller.signal };
+  if (options.three) sharedEngines.add(assets.href);
+  const preloads = preloadModules(document, assets, sharedEngines.has(assets.href), controller.signal);
+  const dropPreloads = () => void preloads.then((links) => links.forEach((link) => link.remove()));
+  controller.signal.addEventListener("abort", dropPreloads, { once: true });
   const ready = new Promise<void>((resolve, reject) => {
     Promise.all([importViewer(new URL(VIEWER, assets).href), ...stylesheets.map(loaded)])
       .then(async ([viewer]) => {
@@ -192,7 +217,7 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, ...optio
   });
   // The element and the console report a failure, so a host that ignores `ready` sees no
   // unhandled rejection.
-  ready.catch(() => {});
+  ready.then(dropPreloads, dropPreloads);
 
   return {
     element,

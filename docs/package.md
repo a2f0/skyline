@@ -255,7 +255,7 @@ the option out.
 
 ### How the viewer's code loads
 
-The package's module (`lib/`) is a small loader that a host bundles (under 4 KB). When
+The package's module (`lib/`) is a small loader that a host bundles (under 4.5 KB). When
 it mounts, it imports the viewer's code from the assets (`skyline-viewer.js`) with a
 dynamic `import()` that carries `webpackIgnore`, `turbopackIgnore` and `@vite-ignore`
 comments, so webpack (including Next.js with `--webpack`), Turbopack and Vite leave it
@@ -263,13 +263,17 @@ to the browser; Rollup, esbuild and Bun leave an import of a variable alone anyw
 bundler that tried to resolve it would fail to build: tell it to ignore that import.
 The viewer then loads its stylesheets, the scene's markup from `skyline-3d.html`, its
 stars from `stars.svg`, and the scene's modules and models from the same directory.
-Each module loads once per page, however many viewers mount.
+Each module loads once per page, however many viewers mount. So that those modules
+arrive together rather than one import at a time, the loader also reads
+`viewer-modules.json`, which the build writes, and adds a `modulepreload` link for each
+to the document's head, leaving out the vendored engine when the host shares its own;
+the links leave the head once the viewer is ready, fails, or is destroyed.
 
 ### Content security policy and other origins
 
 The viewer runs in the host's page, under the host's content security policy. A host
 with one must allow the assets' origin (usually `'self'`) in `script-src`,
-`style-src` and `connect-src` (the viewer fetches its markup and stars), and inline
+`style-src` and `connect-src` (the viewer fetches its markup, stars and module list), and inline
 styles in `style-src`, which the viewer sets on its elements. Serve the assets from
 the host's origin when you can; on another origin, every file must allow the page's
 origin through CORS. The viewer's code runs with the host page's privileges wherever

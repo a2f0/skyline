@@ -8,6 +8,7 @@ import { cp, mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { buildSite, dist, root, src } from "./build-site.js";
+import { writeViewerModules } from "./viewer-modules.js";
 
 export async function buildPackage() {
   const lib = path.join(root, "lib"), site = path.join(root, "site");
@@ -25,6 +26,8 @@ export async function buildPackage() {
   await writeFile(path.join(lib, "vendor/three-r186.d.ts"), forwarding);
   await cp(dist, site, { recursive: true });
   await shareHostEngine(site);
+  // Here the engine is a separate module, which the shell fetches only when the host offers none.
+  await writeViewerModules(site);
   console.log("Built package ESM and declarations in lib/, with viewer assets in site/.");
 }
 

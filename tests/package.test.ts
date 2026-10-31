@@ -8,6 +8,7 @@ import { Script } from "node:vm";
 import type { Browser, Page } from "playwright";
 import { buildPackage } from "../scripts/build/build-package.js";
 import { faviconFiles, publishedFiles, root } from "../scripts/build/build-site.js";
+import { staticImports } from "../scripts/build/viewer-modules.js";
 import { closeChrome, launchChrome } from "../scripts/lib/chrome.js";
 import { startServer } from "../scripts/lib/static-server.js";
 import { isThreeDeprecation } from "./three-warnings.js";
@@ -16,6 +17,22 @@ interface PackResult {
   filename: string;
   files: { path: string; size: number }[];
 }
+
+describe("the viewer's module list", () => {
+  test("follows static imports and exports over several lines, and no dynamic import", () => {
+    const source = [
+      'import { a } from "./a.js";',
+      "import {",
+      "  b,",
+      '} from "../b.js";',
+      'export { c } from "./c.js"; import "./d.js";',
+      'import * as THREE from "three";',
+      'const later = import("./e.js");',
+      'export const text = "from ./f.js";',
+    ].join("\n");
+    expect(staticImports(source)).toEqual(["./a.js", "../b.js", "./c.js", "./d.js"]);
+  });
+});
 
 describe("published Skyline package", () => {
   let temporary: string, consumer: string, installed: string, packed: PackResult;
@@ -219,7 +236,8 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
     const bundle = await Bun.build({ entrypoints: [path.join(consumer, "browser.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true });
     expect(bundle.success).toBe(true);
     expect(bundle.outputs).toHaveLength(1);
-    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(4096);
+    // The loader holds the shell and the module preloading; the scene's code stays in the assets.
+    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(4608);
     // A host page whose styles would reach a viewer they could: rules for every element and
     // its buttons, a right-to-left direction, inherited type and colour, and a custom
     // property the viewer uses. The viewer's own class names appear in the host too, where
@@ -703,6 +721,76 @@ if (mode === 'reject-destroyed') {
           expect(warnings.filter(isThreeDeprecation), mode).toEqual([]);
           expect(errors, mode).toEqual([]);
         } finally { await page.close(); }
+      }
+    } finally {
+      try { await closeChrome(browser); }
+      finally { await server.close(); }
+    }
+  }, { timeout: 180_000 });
+
+  test("preloads the first frame's modules before the scene's code arrives, and cleans up its links", async () => {
+    const publicDirectory = path.join(consumer, "public-preload");
+    await mkdir(publicDirectory, { recursive: true });
+    const { copySkylineAssets } = await import(pathToFileURL(path.join(installed, "lib/package-assets.js")).href) as { copySkylineAssets(destination: string): Promise<void> };
+    await copySkylineAssets(path.join(publicDirectory, "skyline"));
+    const list = JSON.parse(await readFile(path.join(publicDirectory, "skyline/viewer-modules.json"), "utf8")) as { modules: string[]; engine: string };
+    expect(list.engine).toBe("vendor/three-r186.bundle.js");
+    expect(list.modules).toContain("skyline-3d.js");
+    await writeFile(path.join(consumer, "preload-host.ts"), `
+import { mountSkyline } from '@a2f0/skyline';
+const mode = location.search.slice(1);
+const mount = (options = {}) => mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', ...options });
+const settle = (ready) => ready.then(() => { window.settled = 'ready'; }, (error) => { window.settled = 'rejected: ' + error.message; });
+if (mode === 'mixed') {
+  // A viewer that shares the page's engine, then one without the option: the page's first
+  // engine stays in use, so neither fetches the assets' copy.
+  const first = mount({ three: import('@a2f0/skyline/three') });
+  first.ready.then(() => { first.destroy(); settle(mount().ready); });
+} else if (mode === 'destroyed') {
+  const viewer = mount();
+  const destroyOncePreloading = () => document.querySelector('link[rel="modulepreload"]') ? (viewer.destroy(), window.settled = 'destroyed') : setTimeout(destroyOncePreloading, 10);
+  destroyOncePreloading();
+} else settle(mount(mode === 'share' ? { three: import('@a2f0/skyline/three') } : {}).ready);
+`);
+    const bundle = await Bun.build({ entrypoints: [path.join(consumer, "preload-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true, splitting: true });
+    expect(bundle.success).toBe(true);
+    await writeFile(path.join(publicDirectory, "index.html"), '<!doctype html><html><head><style>body{margin:0}#host{height:100vh}</style></head><body><div id="host"></div><script type="module" src="preload-host.js"></script></body></html>');
+    const server = await startServer(publicDirectory);
+    const links = (page: Page) => page.evaluate(() => [...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')].map((link) => new URL(link.href).pathname));
+    let browser: Browser | undefined;
+    try {
+      browser = await launchChrome();
+      for (const mode of ["", "share", "mixed", "broken", "destroyed"]) {
+        const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+        const errors: string[] = [], requested: string[] = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        page.on("request", (request) => requested.push(new URL(request.url()).pathname));
+        // The scene's code is held back until the test lets it go: whatever else arrives
+        // meanwhile was preloaded, since only that module imports the scene's dependencies.
+        let release!: () => void;
+        const held = new Promise<void>((resolve) => { release = resolve; });
+        await page.route("**/skyline/skyline-3d.js", async (route) => { await held; await route.continue(); });
+        if (mode === "broken") await page.route("**/skyline/skyline-3d.html", (route) => route.fulfill({ status: 404, body: "" }));
+        try {
+          await page.goto(`${server.origin}/${mode ? `?${mode}` : ""}`);
+          const expected = [...list.modules, ...(mode === "" || mode === "broken" || mode === "destroyed" ? [list.engine] : [])].map((file) => `/skyline/${file}`);
+          // A broken scene can reject, and drop its links, before they could be counted.
+          if (mode !== "destroyed" && mode !== "broken") {
+            await page.waitForFunction((count) => document.querySelectorAll('link[rel="modulepreload"]').length === count, expected.length, { timeout: 30_000 });
+            expect(new Set(await links(page))).toEqual(new Set(expected));
+            await page.waitForFunction((paths) => paths.every((file) => performance.getEntriesByName(new URL(file, location.href).href).length > 0), expected.filter((file) => file !== "/skyline/skyline-3d.js"), { timeout: 30_000 });
+          }
+          release();
+          await page.waitForFunction(() => (window as unknown as { settled?: string }).settled, null, { timeout: 60_000 });
+          const settled = await page.evaluate(() => (window as unknown as { settled: string }).settled);
+          expect(settled, mode).toMatch(mode === "broken" ? /^rejected: / : mode === "destroyed" ? /^destroyed$/ : /^ready$/);
+          await page.waitForFunction(() => !document.querySelector('link[rel="modulepreload"]'), null, { timeout: 10_000 });
+          if (mode === "share" || mode === "mixed") expect(requested, mode).not.toContain(`/skyline/${list.engine}`);
+          expect(errors, mode).toEqual([]);
+        } finally {
+          release();
+          await page.close();
+        }
       }
     } finally {
       try { await closeChrome(browser); }

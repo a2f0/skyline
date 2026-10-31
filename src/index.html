@@ -10,8 +10,11 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Chicago Skyline — Living Night</title>
     <!-- viewer-page.js mounts the viewer from skyline-viewer.js, its styles and skyline-3d.html,
-         and starts the scene's code; fetch them alongside it. -->
+         and starts the scene's code; fetch them alongside it, with the list of the scene's
+         modules that the viewer's shell preloads. -->
+    <link rel="modulepreload" href="skyline-shell.js" />
     <link rel="modulepreload" href="skyline-viewer.js" />
+    <link rel="preload" href="viewer-modules.json" as="fetch" crossorigin="anonymous" />
     <link rel="preload" href="viewer.css" as="style" />
     <link rel="preload" href="study.css" as="style" />
     <style>
