@@ -12,6 +12,7 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { VIEWER_MODULES, writeViewerModules } from "./viewer-modules.js";
 
 export const root = path.resolve(import.meta.dirname, "../..");
 // Entries below are paths within src/, and each keeps that path in dist/.
@@ -134,7 +135,7 @@ export async function renderFavicons(destination: string = dist): Promise<void> 
 // deployed site against the set with them. `_headers` is configuration, never served.
 export async function publishedFiles({ deployed = false }: SiteOptions = {}): Promise<string[]> {
   const { static: staticSet, compiled } = await sourceEntries();
-  return [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to), ...(deployed ? await faviconFiles() : [])].sort();
+  return [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to), VIEWER_MODULES, ...(deployed ? await faviconFiles() : [])].sort();
 }
 
 // Compiles the browser module graph into dist/, keeping each module's path
@@ -161,11 +162,13 @@ export async function buildSite({ deployed = false }: SiteOptions = {}) {
     await mkdir(path.dirname(target), { recursive: true });
     await cp(from, target);
   }
+  // The modules the viewer's first frame needs, for the shell to fetch at once.
+  await writeViewerModules(dist);
   if (deployed) {
     await renderFavicons();
     await writeSiteHeaders();
   }
-  const entries = [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to), ...(deployed ? await faviconFiles() : [])];
+  const entries = [...compiled.map((entry) => entry.replace(/\.ts$/, ".js")), ...staticSet, ...dependencyFiles.map(({ to }) => to), VIEWER_MODULES, ...(deployed ? await faviconFiles() : [])];
   const sizes = await Promise.all(entries.map(async (entry) => {
     try {
       return (await stat(path.join(dist, entry))).size;

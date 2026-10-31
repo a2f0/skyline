@@ -8,6 +8,7 @@ import { Script } from "node:vm";
 import type { Browser, Page } from "playwright";
 import { buildPackage } from "../scripts/build/build-package.js";
 import { faviconFiles, publishedFiles, root } from "../scripts/build/build-site.js";
+import { staticImports } from "../scripts/build/viewer-modules.js";
 import { closeChrome, launchChrome } from "../scripts/lib/chrome.js";
 import { startServer } from "../scripts/lib/static-server.js";
 import { isThreeDeprecation } from "./three-warnings.js";
@@ -16,6 +17,22 @@ interface PackResult {
   filename: string;
   files: { path: string; size: number }[];
 }
+
+describe("the viewer's module list", () => {
+  test("follows static imports and exports over several lines, and no dynamic import", () => {
+    const source = [
+      'import { a } from "./a.js";',
+      "import {",
+      "  b,",
+      '} from "../b.js";',
+      'export { c } from "./c.js"; import "./d.js";',
+      'import * as THREE from "three";',
+      'const later = import("./e.js");',
+      'export const text = "from ./f.js";',
+    ].join("\n");
+    expect(staticImports(source)).toEqual(["./a.js", "../b.js", "./c.js", "./d.js"]);
+  });
+});
 
 describe("published Skyline package", () => {
   let temporary: string, consumer: string, installed: string, packed: PackResult;
@@ -219,7 +236,8 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
     const bundle = await Bun.build({ entrypoints: [path.join(consumer, "browser.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true });
     expect(bundle.success).toBe(true);
     expect(bundle.outputs).toHaveLength(1);
-    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(4096);
+    // The loader holds the shell and the module preloading; the scene's code stays in the assets.
+    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(4608);
     // A host page whose styles would reach a viewer they could: rules for every element and
     // its buttons, a right-to-left direction, inherited type and colour, and a custom
     // property the viewer uses. The viewer's own class names appear in the host too, where
@@ -697,6 +715,14 @@ if (mode === 'reject-destroyed') {
             expect(requested).toContain("/skyline/vendor/three-r186.bundle.js");
             expect(multiple).toHaveLength(1);
             expect(fallback).toHaveLength(mode === "reject" ? 1 : 0);
+          }
+          if (mode === "share" || mode === "") {
+            // The loader preloads exactly the modules the first frame needs, the engine only
+            // when the host shares none, and takes its links out of the page's head again.
+            const list = JSON.parse(await readFile(path.join(publicDirectory, "skyline/viewer-modules.json"), "utf8")) as { modules: string[]; engine: string };
+            const scripts = requested.filter((file) => file.startsWith("/skyline/") && file.endsWith(".js")).map((file) => file.slice("/skyline/".length));
+            expect(new Set(scripts)).toEqual(new Set(["skyline-viewer.js", ...list.modules, ...(mode === "" ? [list.engine] : [])]));
+            expect(await page.evaluate(() => document.querySelectorAll('link[rel="modulepreload"]').length)).toBe(0);
           }
           // Whichever engine renders, the host's or the assets', it warns of nothing deprecated
           // or removed.
