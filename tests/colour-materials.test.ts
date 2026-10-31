@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import * as THREE from "../src/vendor/three-r186.js";
-import { batchOf, colourMaterials, createDaylight, createSkylineColour, daylightGround, daylightIntensities, exposure, materialNames, paint, swatchesOf, toneOf } from "../src/models/colour-materials.js";
+import { batchOf, colourMaterials, createDaylight, createSkylineColour, daylightGround, deferSkylineColour, daylightIntensities, exposure, materialNames, paint, swatchesOf, toneOf } from "../src/models/colour-materials.js";
 import type { Batch, MaterialName } from "../src/models/colour-materials.js";
 import { daylightColours, measuredColours } from "../src/models/colour-palette.js";
 import { geographicBuildings } from "../src/models/skyline-geography-data.js";
@@ -403,6 +403,67 @@ describe("colour trial", () => {
     colour.set(false);
     expect(Array.from(colours.array), "the celebration's greys return with colour off").toEqual(lit);
     model.illumination!.set(null);
+  });
+
+  test("a layer made on first use leaves the first frame alone, then matches one made at once", () => {
+    // Two copies of the skyline: one with a layer made at once, one with a deferred layer, each
+    // given what the 3D skyline gives its layer. Every step must leave them identical: vertex
+    // colours, material colours, which shaders are patched, the patches' uniforms, and outlines.
+    const eagerModels = geographicBuildings.map((record) => createGeographicBuilding(record));
+    const deferredModels = geographicBuildings.map((record) => createGeographicBuilding(record));
+    const untouched = snapshotOf(deferredModels);
+    const state = (chosen: readonly Model[]): unknown[] => chosen.flatMap(meshesOf).map((mesh): unknown => {
+      const material = toonOf(mesh), shader = { uniforms: {} as Record<string, { value: unknown }>, vertexShader: "", fragmentShader: "" };
+      material.onBeforeCompile(shader as never, undefined as never);
+      const uniforms = Object.entries(shader.uniforms).map(([name, { value }]) => [name, value instanceof THREE.Color ? value.getHex() : value]);
+      return [material.customProgramCacheKey(), Boolean(mesh.geometry.getAttribute("skylineGlass")), uniforms];
+    }).concat(chosen.flatMap((model): unknown[] => {
+      const opacities: number[] = [];
+      model.building.traverse((object) => { if ((object as THREE.LineSegments).isLineSegments) opacities.push(((object as THREE.LineSegments).material as THREE.LineBasicMaterial).opacity); });
+      return [opacities];
+    }));
+    const eager = createSkylineColour(eagerModels), deferred = deferSkylineColour(deferredModels);
+    const night = { darkness: 0.8, activity: 0.5, outlineStrength: 0.4 };
+    // Greys unlike the defaults, as the repository holds no other colours (grayscale.test.ts).
+    const evening = { sky: 0x303030, horizon: 0x505050, ground: 0x101010 };
+    const steps: [string, (layer: typeof deferred | typeof eager, chosen: readonly Model[]) => void][] = [
+      // The scene starts in grey, as setColour(false) leaves it.
+      ["grey start", (layer) => { layer.set(false); layer.setSky(null); layer.setNight(null); }],
+      ["colour on", (layer) => { layer.set(true); layer.setSky(null); layer.setNight(null); }],
+      ["colour off", (layer) => { layer.set(false); layer.setSky(null); layer.setNight(null); }],
+      ["previewed evening", (layer) => { layer.set(false); layer.setSky(evening); layer.setNight(night); }],
+      ["coloured evening", (layer) => { layer.set(true); layer.setSky(evening); layer.setNight(night); }],
+      ["celebration", (layer, chosen) => {
+        if ("prepare" in layer) layer.prepare();
+        for (const model of chosen) model.illumination?.set(model.illumination.presets[0]?.id ?? null);
+        layer.refresh();
+      }],
+      ["reset", (layer, chosen) => {
+        for (const model of chosen) model.illumination?.set(null);
+        layer.refresh();
+        layer.set(false); layer.setSky(null); layer.setNight(null);
+      }],
+    ];
+    for (const [name, step] of steps) {
+      step(eager, eagerModels);
+      step(deferred, deferredModels);
+      if (name === "grey start") expect(snapshotOf(deferredModels), "nothing changes before first use").toEqual(untouched);
+      expect(deferred.enabled, name).toBe(eager.enabled);
+      expect(snapshotOf(deferredModels), name).toEqual(snapshotOf(eagerModels));
+      expect(state(deferredModels), name).toEqual(state(eagerModels));
+    }
+    // It builds the whole skyline twice.
+  }, { timeout: 60_000 });
+
+  test("a deferred layer is made by a celebration before its lights rewrite the greys", () => {
+    const eagerModel = createGeographicBuilding(geographicBuildings.find((record) => record.id === "building-blue-cross-blue-shield")!);
+    const deferredModel = createGeographicBuilding(geographicBuildings.find((record) => record.id === "building-blue-cross-blue-shield")!);
+    const eager = createSkylineColour([eagerModel]), deferred = deferSkylineColour([deferredModel]);
+    deferred.prepare();
+    for (const model of [eagerModel, deferredModel]) model.illumination!.set("cubs");
+    eager.refresh(); deferred.refresh();
+    eager.set(true); deferred.set(true);
+    expect(snapshotOf([deferredModel])).toEqual(snapshotOf([eagerModel]));
   });
 
   test("makes the sunny day's sky from the haze at the horizon to the blue overhead", () => {
