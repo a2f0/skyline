@@ -6,7 +6,7 @@ import { createTimeLighting } from "./time-of-day.js";
 import { createGeographicRoads, geographicOrigin } from "./models/skyline-geography.js";
 import type { BuildingModel } from "./models/building-kit.js";
 import { celebrations, type CelebrationId } from "./models/celebrations.js";
-import { createDaylight, createSkylineColour, daylightGround } from "./models/colour-materials.js";
+import { createDaylight, daylightGround, deferSkylineColour } from "./models/colour-materials.js";
 import { loadMarkup, loadStylesheet } from "./markup.js";
 import type { BuildingDetail } from "./building-detail.js";
 
@@ -86,8 +86,9 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
     enablePan: true,
     minimumCameraHeight: 1,
   });
-  // The colour trial's layer (models/colour-materials.ts), which the colour toggle turns on.
-  const colour = createSkylineColour(models);
+  // The colour trial's layer (models/colour-materials.ts), which the colour toggle turns on. It
+  // is made on first use rather than before the first frame, which it does not change.
+  const colour = deferSkylineColour(models);
   // A toolbar badge applies one celebration across the skyline, using each
   // building's own supported wording. Context menus change only their building.
   const illuminated = models.filter((model) => model.illumination);
@@ -95,6 +96,8 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
   const celebrationAnnouncement = root.querySelector<HTMLElement>("#celebration-announcement")!;
   const celebrationButtons = [...root.querySelectorAll<HTMLButtonElement>("[data-celebration]")];
   function setCelebration(targets: readonly BuildingModel[], next: CelebrationId | null) {
+    // The colour layer reads the buildings' greys before the lights rewrite them.
+    colour.prepare();
     targets.forEach((model) => model.illumination!.set(model.illumination!.presets.some(({ id }) => id === next) ? next : null));
     colour.refresh();
     for (const button of celebrationButtons) {

@@ -540,3 +540,48 @@ export function createSkylineColour(models: readonly BuildingModel[]): SkylineCo
     },
   };
 }
+
+/** A colour layer that is made on first use; see `deferSkylineColour`. */
+export interface DeferredSkylineColour extends SkylineColour {
+  /**
+   * Makes the layer now, if it isn't made yet. Call it before anything rewrites the buildings'
+   * colours, such as a celebration's window illumination: the layer reads their greys once,
+   * when it is made.
+   */
+  prepare(): void;
+}
+
+// Making the layer reads every vertex of every building, a large share of the scene's start-up
+// time, and changes nothing on screen until colour, a previewed time or a celebration needs it:
+// its facade shaders install only then (colour-reflections.ts). So this one is made on first
+// use, or by `prepare`, from the same buildings and with the sky and night it was given
+// meanwhile, and acts from then on exactly as one made at once.
+export function deferSkylineColour(models: readonly BuildingModel[]): DeferredSkylineColour {
+  let layer: SkylineColour | undefined;
+  let sky: ReflectionColours | null | undefined, night: NightLighting | null = null;
+  const made = () => {
+    if (layer) return layer;
+    layer = createSkylineColour(models);
+    if (sky !== undefined) layer.setSky(sky);
+    if (night) layer.setNight(night);
+    return layer;
+  };
+  return {
+    get enabled() { return layer?.enabled ?? false; },
+    prepare() { made(); },
+    set(enabled) {
+      if (layer || enabled) made().set(enabled);
+    },
+    setSky(colours) {
+      sky = colours;
+      layer?.setSky(colours);
+    },
+    setNight(lighting) {
+      night = lighting;
+      if (layer) layer.setNight(lighting);
+      else if (lighting) made();
+    },
+    // Until it is made, nothing shows colour or a previewed night for it to refresh.
+    refresh() { layer?.refresh(); },
+  };
+}
