@@ -326,6 +326,24 @@ floor. Locally, put an installed Node 22 release first on `PATH` and run
 `bun run check:package` for that check. The optional package peer remains the supported r186 series;
 regenerate its standalone browser bundle with `bun run vendor:three` when the
 engine or bundler changes, following [`src/vendor/README.md`](../src/vendor/README.md).
+Treat the engine, types, optional peer, vendor import path and upload allowlist
+as one group. The [r187 migration](https://github.com/mrdoob/three.js/wiki/Migration-Guide#186--187)
+changes PMREM appearance and render-target viewport/scissor behavior, removes
+`CubeUVReflectionMapping`, and introduces renderer use of `WeakRef` and
+`FinalizationRegistry`. Keep r186 until the full baseline/candidate visual and
+packed host-consumer checks establish the new public compatibility contract.
+
+Run manager updates in a child environment with lifecycle scripts disabled;
+`NPM_CONFIG_IGNORE_SCRIPTS=true npm_config_ignore_scripts=true` is effective
+with Bun 1.4.4, but not Bun 1.4.3. Use explicit `--ignore-scripts` on installs.
+For Skyline's version 3 text lock, use agent-tool 0.1.40 or newer and the owning
+Bun 1.4.4 or newer for `agent-tool bun update --resolved <name>`
+([lock-format support](https://github.com/a2f0/agent-tool/pull/48)). The helper
+preserves manifests, owner ranges, release-age policy and non-target resolutions.
+Inspect every `resolvedChanges` entry and re-audit after a refresh. If the guard
+refuses a target-only result, retain the resolution or update its owner through
+the normal workflow; never downgrade the lock format, promote a transitive to
+a direct dependency or add an override to bypass the guard.
 
 ### Playwright and Chrome
 
