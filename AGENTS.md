@@ -3,8 +3,8 @@
 Skyline is a TypeScript static site and the `@a2f0/skyline` package. Read
 [development](docs/development.md) for setup, layout, checks and maintenance;
 [package](docs/package.md) for publishing; and [deploying](docs/deploying.md)
-for Cloudflare and Terraform operations. Claude Code, Codex, OpenCode and Hermes read
-this file directly. Keep README a short overview; topic documentation belongs
+for Cloudflare and Terraform operations. Claude Code, Codex, OpenCode and Hermes
+read this file directly. Keep README a short overview; topic documentation belongs
 in `docs/`, indexed by `docs/README.md`.
 
 ## Sources and tooling
@@ -159,8 +159,8 @@ preserve the branch. Generic `repo cleanup` uses non-atomic REST deletion and
 cannot replace this requirement. Do not invoke `repo cleanup --apply` without
 `--keep-branch`; perform the leased deletion and remaining cleanup explicitly.
 Verify the local feature SHA equals the reviewed HEAD and its tree equals the
-confirmed squash tree before local deletion; return to the default branch with fast-forward only,
-then reinstall dependencies/hooks. Honor keep-branch.
+confirmed squash tree before local deletion; return to the default branch with
+fast-forward only, then reinstall dependencies/hooks. Honor keep-branch.
 
 Verify the merge's `Publish npm package` workflow and exact tarball with
 `bun run agent-tool release verify @a2f0/skyline <version> <merge-sha> --workflow

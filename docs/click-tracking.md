@@ -7,8 +7,10 @@ The standalone site at `https://skyline.devopsrockstars.com` uses
 Accounts are provisioned through CT's CLI; there is no public registration.
 
 Each client event contains a random event ID for retry deduplication, time, a fixed
-page name, the element tag, and an optional developer-supplied `data-ct` label. The client
-does not read text, DOM IDs, classes, link addresses, query strings or form values,
+page name, the element tag, an optional developer-supplied `data-ct` label, and
+a nullable `app` field. Skyline configures neither a tracker app nor `data-ct-app`
+attributes, so `app` is `null`. The client does not read text, DOM IDs, classes,
+link addresses, query strings or form values,
 and creates no separate visitor or session identifier. Form fields, editable
 content and `data-ct-ignore` subtrees are excluded. Main view and navigation buttons
 have fixed labels. Other clicks, including the drawing and canvas, are counted by
