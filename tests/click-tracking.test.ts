@@ -109,8 +109,9 @@ describe("standalone site click tracking", () => {
         const event = batches[0]!.events[0]!;
         expect(event.page).toBe(normalized);
         expect(event.label).toBeNull();
+        expect(event.app).toBeNull();
         expect(event.target).toBe(pathname.endsWith(".svg") ? "rect" : "div");
-        expect(Object.keys(event).sort()).toEqual(["id", "label", "page", "target", "timestamp"]);
+        expect(Object.keys(event).sort()).toEqual(["app", "id", "label", "page", "target", "timestamp"]);
         expect(JSON.stringify(batches)).not.toMatch(/secret|personal|private/);
       } finally { await close(context); }
     }

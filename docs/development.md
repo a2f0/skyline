@@ -1,9 +1,9 @@
 # Development
 
 Sources are TypeScript under `@tsconfig/strictest`. The browser modules compile to `dist/` with
-tsc, the only build step; there is no bundler. `AGENTS.md`, which Claude Code, Codex, and OpenCode
-read directly, is the repository's policy for agents and holds the shipping rules; this page
-explains the tooling behind it.
+tsc, the only build step; there is no bundler. `AGENTS.md`, which Claude Code,
+Codex, OpenCode and Hermes read directly, is the repository's policy for agents
+and holds the shipping rules; this page explains the tooling behind it.
 
 ## Layout
 
@@ -112,7 +112,11 @@ the clean feature branch's HEAD is the reviewed commit, pushes it to the
 same-named remote branch through normal hooks, and verifies the local and remote
 heads afterward. Inspect the saved output when diagnosing a failure; keep review
 verdicts and findings visible. Print the [session timing table](#timings)
-separately for the shipping report.
+separately for the shipping report. Output capture does not own background
+processes: follow `AGENTS.md` for notification-backed harness execution or the
+installed `proc start` fallback, retaining handles, logs and actual exit codes.
+Interactive tools run directly. Stop only owned processes; include the final
+checkout-scoped `bun run agent-tool teardown` result and any leftovers in the report.
 
 Together they cover:
 
@@ -293,10 +297,17 @@ and the stored squash commit must contain exactly the title with its PR-number
 suffix. Local tests cover this adapter; shared checkout/CI/version guard tests
 live in agent-tool.
 
-Skyline's cleanup requires an expected-SHA lease when deleting a remote feature
-branch. Use the sequence in `AGENTS.md`; generic REST cleanup cannot atomically
-bind deletion to that SHA. Preserve moved refs, keep normal hooks, and verify the
-squash tree before deleting the local branch. Reinstall dependencies/hooks after
+**Repository override:** `AGENTS.md`'s cleanup sequence replaces managed `ship-pr`
+step 5 and the `squash-merge`/`reset` cleanup steps for every harness and standalone
+checkout. Require an expected-SHA leased remote deletion through normal hooks,
+or freshly verified remote absence; preserve the branch on lease refusal. Generic
+REST cleanup cannot atomically bind deletion to that SHA, so `repo cleanup --apply`
+is allowed only with `--keep-branch`. Before explicit local deletion, verify the
+feature SHA equals the reviewed HEAD and its tree equals the confirmed squash tree.
+Honor keep-branch and actual approval denials. Generated `repo cleanup` allowance
+is not authorization to bypass these rules. Agent-tool 0.1.40 supports only
+`permissions.executables`, not command reclassification; do not invent a command
+override or edit generated rules. Reinstall dependencies/hooks after
 returning to the updated default branch. Verify npm workflow and tarball with
 shared `release verify`; Cloudflare deployment remains manual.
 
@@ -326,6 +337,29 @@ floor. Locally, put an installed Node 22 release first on `PATH` and run
 `bun run check:package` for that check. The optional package peer remains the supported r186 series;
 regenerate its standalone browser bundle with `bun run vendor:three` when the
 engine or bundler changes, following [`src/vendor/README.md`](../src/vendor/README.md).
+Treat the engine, types, optional peer, vendor import path and upload allowlist
+as one group. The [r187 migration](https://github.com/mrdoob/three.js/wiki/Migration-Guide#186--187)
+changes PMREM appearance and render-target viewport/scissor behavior, removes
+`CubeUVReflectionMapping`, and introduces renderer use of `WeakRef` and
+`FinalizationRegistry`. Keep r186 until the full baseline/candidate visual and
+packed host-consumer checks establish the new public compatibility contract.
+Revisit r187 as one group only when its regenerated vendor passes the unchanged
+full gate, baseline/candidate drawing and opt-in colour comparisons across the
+supported viewports, and packed consumers with both bundled and host-shared r187.
+Verify the optional peer, model imports, asset paths and runtime support together;
+a successful build alone does not release this hold.
+
+Run manager updates in a child environment with lifecycle scripts disabled;
+`NPM_CONFIG_IGNORE_SCRIPTS=true npm_config_ignore_scripts=true` is effective
+with the pinned Bun 1.4.4. Use explicit `--ignore-scripts` on installs.
+For Skyline's version 3 text lock, use agent-tool 0.1.40 or newer and the owning
+Bun 1.4.4 or newer for `agent-tool bun update --resolved <name>`
+([lock-format support](https://github.com/a2f0/agent-tool/pull/48)). The helper
+preserves manifests, owner ranges, release-age policy and non-target resolutions.
+Inspect every `resolvedChanges` entry and re-audit after a refresh. If the guard
+refuses a target-only result, retain the resolution or update its owner through
+the normal workflow; never downgrade the lock format, promote a transitive to
+a direct dependency or add an override to bypass the guard.
 
 ### Playwright and Chrome
 
