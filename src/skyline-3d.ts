@@ -32,6 +32,65 @@ export interface SkylineSceneOptions {
   readonly onUnavailable?: (() => void) | undefined;
 }
 
+/** A building's context menu, at the pointer that asked for it. */
+export interface PendingMenu {
+  readonly building: BuildingModel;
+  readonly x: number;
+  readonly y: number;
+}
+
+/**
+ * The latest press on the scene's canvas, as its context menu reads it: none yet, down (where
+ * it started, whether a mouse made it, whether it has moved more than 4 pixels, and a menu a
+ * mouse press asked for, which opens on release), or released (how it went, for a menu event
+ * that comes after the release).
+ */
+export type CanvasPress =
+  | { readonly status: "idle" }
+  | { readonly status: "down"; readonly x: number; readonly y: number; readonly mouse: boolean; readonly moved: boolean; readonly pending: PendingMenu | null }
+  | { readonly status: "released"; readonly mouse: boolean; readonly moved: boolean };
+
+export type CanvasPressEvent =
+  | { readonly type: "down"; readonly x: number; readonly y: number; readonly mouse: boolean }
+  | { readonly type: "move"; readonly x: number; readonly y: number }
+  | { readonly type: "up" }
+  | { readonly type: "cancel" }
+  | { readonly type: "menu"; readonly menu: PendingMenu }
+  | { readonly type: "dismiss" };
+
+/**
+ * The press's next state, and the menu to open now, if any. A mouse press holds the menu its
+ * event asks for until it is released without moving, so a right-drag still pans; a touch's
+ * long press, or an event after a release, opens at once, unless a mouse dragged first.
+ */
+export function pressTransition(press: CanvasPress, event: CanvasPressEvent): { press: CanvasPress; open: PendingMenu | null } {
+  const stay = { press, open: null };
+  switch (event.type) {
+    case "down":
+      return { press: { status: "down", x: event.x, y: event.y, mouse: event.mouse, moved: false, pending: null }, open: null };
+    case "move":
+      if (press.status !== "down" || press.moved || Math.hypot(event.x - press.x, event.y - press.y) <= 4) return stay;
+      return { press: { ...press, moved: true }, open: null };
+    case "up":
+      if (press.status !== "down") return stay;
+      return { press: { status: "released", mouse: press.mouse, moved: press.moved }, open: press.moved ? null : press.pending };
+    case "cancel":
+      if (press.status !== "down") return stay;
+      return { press: { status: "released", mouse: press.mouse, moved: press.moved }, open: null };
+    case "menu":
+      if (press.status === "down" && press.mouse) return { press: { ...press, pending: event.menu }, open: null };
+      return { press, open: press.status !== "idle" && press.mouse && press.moved ? null : event.menu };
+    case "dismiss":
+      return press.status === "down" && press.pending ? { press: { ...press, pending: null }, open: null } : stay;
+    default:
+      return assertNever(event);
+  }
+}
+
+function assertNever(value: never): never {
+  throw new Error(`Unhandled press event: ${JSON.stringify(value)}`);
+}
+
 // The skyline viewer's full-screen 3D mode: every mapped building, seen through the
 // drawing's own camera and framed as the viewer frames the drawing, so each tower stands
 // where its drawn one does until the camera moves. It renders into skyline-3d.html's own
@@ -283,8 +342,12 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
   const detailLink = root.querySelector<HTMLAnchorElement>("#building-detail-link")!;
   const lightingMenu = root.querySelector<HTMLElement>("#building-lighting-menu")!;
   let menuBuilding = "";
-  let press: { x: number; y: number; mouse: boolean; down: boolean; moved: boolean } | null = null;
-  let pendingMenu: { building: BuildingModel; x: number; y: number } | null = null;
+  let press: CanvasPress = { status: "idle" };
+  function sendPress(event: CanvasPressEvent) {
+    const next = pressTransition(press, event);
+    press = next.press;
+    if (next.open) openMenu(next.open.building, next.open.x, next.open.y);
+  }
   function openMenu(building: BuildingModel, x: number, y: number) {
     menuBuilding = building.building.userData["buildingId"];
     menuTitle.textContent = building.building.userData["geography"]?.name ?? building.building.name;
@@ -327,7 +390,7 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
     detailLink.focus({ preventScroll: true });
   }
   function closeMenu() {
-    pendingMenu = null;
+    sendPress({ type: "dismiss" });
     if (menu.hidden) return;
     if (menu.contains(root.activeElement)) canvas.focus({ preventScroll: true });
     menu.hidden = true;
@@ -342,28 +405,16 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
     menuPress = null;
   }, listening);
   canvas.addEventListener("pointerdown", (event) => {
-    press = { x: event.clientX, y: event.clientY, mouse: event.pointerType === "mouse", down: true, moved: false };
+    sendPress({ type: "down", x: event.clientX, y: event.clientY, mouse: event.pointerType === "mouse" });
   }, listening);
-  window.addEventListener("pointermove", (event) => {
-    if (press?.down && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 4) press.moved = true;
-  }, listening);
-  window.addEventListener("pointerup", () => {
-    if (!press?.down) return;
-    press.down = false;
-    const pending = pendingMenu;
-    pendingMenu = null;
-    if (pending && !press.moved) openMenu(pending.building, pending.x, pending.y);
-  }, listening);
-  window.addEventListener("pointercancel", () => {
-    if (press) press.down = false;
-    pendingMenu = null;
-  }, listening);
+  window.addEventListener("pointermove", (event) => sendPress({ type: "move", x: event.clientX, y: event.clientY }), listening);
+  window.addEventListener("pointerup", () => sendPress({ type: "up" }), listening);
+  window.addEventListener("pointercancel", () => sendPress({ type: "cancel" }), listening);
   canvas.addEventListener("contextmenu", (event) => {
     const building = viewer.buildingAt(event.clientX, event.clientY);
     if (!building) return closeMenu();
     event.preventDefault();
-    if (press?.down && press.mouse) pendingMenu = { building, x: event.clientX, y: event.clientY };
-    else if (!(press?.mouse && press.moved)) openMenu(building, event.clientX, event.clientY);
+    sendPress({ type: "menu", menu: { building, x: event.clientX, y: event.clientY } });
   }, listening);
   canvas.addEventListener("wheel", closeMenu, { passive: true, signal });
   window.addEventListener("blur", closeMenu, listening);
