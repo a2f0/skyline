@@ -41,6 +41,12 @@ its table, palette and night windows. `agent-tool graph check` enforces these ru
 `graph` layers in `agent-tool.json`, in the gate's `graph` step. The geographic models frame their
 lots with `lotFrame` from `src/models/facade-grid.ts` rather than repeating its axes.
 
+State that moves through modes is an explicit machine: a closed union, typed events and one pure
+transition, such as the viewer's scene lifecycle (`sceneTransition` in `src/skyline-viewer.ts`) and
+the canvas press behind a building's menu (`pressTransition` in `src/skyline-3d.ts`). Each lives in
+the module that runs it, exported for its table in `tests/state-machines.test.ts`, rather than in a
+module of its own that the first frame would also have to fetch; derive old flags from the state.
+
 `src/` also keeps the drawing's sources, `skyline.svg` and the photograph `skyline.jpg` it links,
 which the site never requests. The root holds only repository configuration and
 `assets/brand/logo.svg`, the source of the site's favicons. Builds write `dist/` (the site), `lib/`
@@ -131,6 +137,7 @@ Together they cover:
   deployed site's `_headers` sends `X-Robots-Tag: noindex, nofollow` while the package carries none;
 - both 3D studies, every mapped building's detail framed in each view, and the 3D skyline's
   context menu and detail panel;
+- the viewer's explicit state machines' transition tables (`tests/state-machines.test.ts`);
 - the package's tarball and the viewer it mounts in a host's page: styles kept apart both
   ways, presses and keys, remounts, two instances, destroying while it loads, failures, and
   sharing the host's Three.js;

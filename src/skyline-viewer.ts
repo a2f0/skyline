@@ -27,6 +27,31 @@ const prototypes = {
   webgl: { src: "skyline-webgl.html", title: "WebGL Chicago skyline prototype" },
 } as const;
 
+/**
+ * The 3D scene as the viewer sees it: booting until its first frame, then ready, or unavailable
+ * once it failed to start or lost its graphics context. Only a booting scene becomes ready or
+ * fails; a lost context makes either unavailable; every other event leaves the state as it is.
+ */
+export type SceneStatus = "booting" | "ready" | "unavailable";
+export type SceneEvent = "ready" | "failed" | "lost";
+
+export function sceneTransition(status: SceneStatus, event: SceneEvent): SceneStatus {
+  switch (event) {
+    case "ready":
+      return status === "booting" ? "ready" : status;
+    case "failed":
+      return status === "booting" ? "unavailable" : status;
+    case "lost":
+      return "unavailable";
+    default:
+      return assertNever(event);
+  }
+}
+
+function assertNever(value: never): never {
+  throw new Error(`Unhandled scene event: ${String(value)}`);
+}
+
 const SCENE_FAILURE = "The 3D preview could not load. Check that WebGL 2 is enabled, then reload. You can still compare the SVG or return to the skyline.";
 
 function element<K extends keyof HTMLElementTagNameMap>(document: Document, tag: K, properties: Partial<HTMLElementTagNameMap[K]> = {}, attributes: Record<string, string> = {}): HTMLElementTagNameMap[K] {
@@ -61,24 +86,21 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
   root.append(viewer);
 
   let mode: Mode = "3d";
-  // Keep the drawing reachable if the scene's markup or code fails to load,
-  // or its graphics context is lost.
-  let sceneUnavailable = true;
-  // Both show original buttons wait while the scene boots, until its first frame,
-  // a failure to load, or a lost graphics context.
-  let booting = true;
+  // Both show original buttons wait while the scene boots, until its first frame, a failure
+  // to load, or a lost graphics context; the drawing stays reachable while it is unavailable.
+  let sceneStatus: SceneStatus = "booting";
   const frames: Partial<Record<keyof typeof prototypes, HTMLIFrameElement>> = {};
   const toolbar = navigation ? createToolbar() : null;
 
   function updateView() {
-    viewer.toggleAttribute("data-booting", sceneUnavailable && mode === "3d");
+    viewer.toggleAttribute("data-booting", sceneStatus !== "ready" && mode === "3d");
     scene.hidden = mode !== "3d";
     if (mode === "original" && !drawing.getAttribute("src")) drawing.src = new URL("skyline-original-fit.svg", assets).href;
     drawing.hidden = mode !== "original";
     if (mode === "enhanced" || mode === "webgl") frames[mode] ??= createPrototype(mode);
     for (const [name, frame] of Object.entries(frames)) frame.hidden = name !== mode;
     originalReturn.hidden = mode !== "original";
-    embeddedOriginal.hidden = navigation || mode !== "3d" || booting || !sceneUnavailable;
+    embeddedOriginal.hidden = navigation || mode !== "3d" || sceneStatus !== "unavailable";
     if (toolbar) {
       for (const [name, toggle] of Object.entries(toggles)) {
         const button = toolbar.querySelector<HTMLButtonElement>(`#${toggle.id}`)!, showing = name === mode;
@@ -86,8 +108,12 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
         button.setAttribute("aria-pressed", String(showing));
         button.title = showing ? home.title : toggle.title;
       }
-      toolbar.querySelector<HTMLButtonElement>(`#${toggles.original.id}`)!.hidden = booting;
+      toolbar.querySelector<HTMLButtonElement>(`#${toggles.original.id}`)!.hidden = sceneStatus === "booting";
     }
+  }
+  function sendScene(event: SceneEvent) {
+    sceneStatus = sceneTransition(sceneStatus, event);
+    updateView();
   }
   function showMode(next: Mode) {
     mode = next;
@@ -109,7 +135,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
     showMode("3d");
     const star = root.querySelector<HTMLButtonElement>("#menu-toggle");
     const focus = star?.getAttribute("aria-expanded") === "true" ? root.querySelector<HTMLButtonElement>("#show-original") : star;
-    const target = !sceneUnavailable && focus?.matches(":enabled") ? focus : null;
+    const target = sceneStatus === "ready" && focus?.matches(":enabled") ? focus : null;
     target?.focus({ preventScroll: true });
     if (!target || root.activeElement !== target) {
       (embeddedOriginal.hidden ? toolbar?.querySelector<HTMLButtonElement>(`#${toggles.original.id}`) : embeddedOriginal)?.focus({ preventScroll: true });
@@ -163,8 +189,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
       if (signal.aborted) return new Promise(() => {});
       const message = element(document, "p", { className: "loading", textContent: SCENE_FAILURE }, { role: "status" });
       scene.append(message);
-      booting = false;
-      updateView();
+      sendScene("failed");
       throw error;
     }
     if (signal.aborted) return new Promise(() => {});
@@ -194,15 +219,11 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
           colour,
           onShowOriginal: showOriginal,
           onReady() {
-            sceneUnavailable = false;
-            booting = false;
-            updateView();
+            sendScene("ready");
             resolve();
           },
           onUnavailable() {
-            sceneUnavailable = true;
-            booting = false;
-            updateView();
+            sendScene("lost");
           },
         });
       });
@@ -213,8 +234,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
       // press away.
       scene.querySelector<HTMLElement>("#loading")!.textContent = SCENE_FAILURE;
       scene.querySelectorAll<HTMLButtonElement | HTMLInputElement>("button, input").forEach((control) => { control.disabled = true; });
-      booting = false;
-      updateView();
+      sendScene("failed");
       throw error;
     }
   }
