@@ -26,12 +26,13 @@ const prototypes = [
 ] as const;
 
 /**
- * The 3D scene as the viewer sees it: booting until its first frame, then ready, or unavailable
- * once it failed to start or lost its graphics context. Only a booting scene becomes ready or
- * fails; a lost context makes either unavailable; every other event leaves the state as it is.
+ * The 3D scene as the viewer sees it: booting until its first frame, then ready; unavailable once
+ * it failed to start, for good; or lost while its graphics context is, until the browser restores
+ * it and the scene draws again. Only a booting scene becomes ready or fails; a lost context takes
+ * a booting or ready scene; every other event leaves the state as it is.
  */
-export type SceneStatus = "booting" | "ready" | "unavailable";
-export type SceneEvent = "ready" | "failed" | "lost";
+export type SceneStatus = "booting" | "ready" | "lost" | "unavailable";
+export type SceneEvent = "ready" | "failed" | "lost" | "restored";
 
 export function sceneTransition(status: SceneStatus, event: SceneEvent): SceneStatus {
   switch (event) {
@@ -40,7 +41,9 @@ export function sceneTransition(status: SceneStatus, event: SceneEvent): SceneSt
     case "failed":
       return status === "booting" ? "unavailable" : status;
     case "lost":
-      return "unavailable";
+      return status === "booting" || status === "ready" ? "lost" : status;
+    case "restored":
+      return status === "lost" ? "ready" : status;
     default:
       return assertNever(event);
   }
@@ -85,7 +88,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
 
   let mode: Mode = "3d";
   // Both show original buttons wait while the scene boots, until its first frame, a failure
-  // to load, or a lost graphics context; the drawing stays reachable while it is unavailable.
+  // to load, or a lost graphics context; the drawing stays reachable while the scene can't show.
   let sceneStatus: SceneStatus = "booting";
   const toolbar = navigation ? createToolbar() : null;
 
@@ -95,7 +98,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
     if (mode === "original" && !drawing.getAttribute("src")) drawing.src = new URL("skyline-original-fit.svg", assets).href;
     drawing.hidden = mode !== "original";
     originalReturn.hidden = mode !== "original";
-    embeddedOriginal.hidden = navigation || mode !== "3d" || sceneStatus !== "unavailable";
+    embeddedOriginal.hidden = navigation || mode !== "3d" || sceneStatus === "booting" || sceneStatus === "ready";
     if (toolbar) {
       for (const [name, toggle] of Object.entries(toggles)) {
         const button = toolbar.querySelector<HTMLButtonElement>(`#${toggle.id}`)!, showing = name === mode;
@@ -219,6 +222,9 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
           },
           onUnavailable() {
             sendScene("lost");
+          },
+          onRestored() {
+            sendScene("restored");
           },
         });
       });

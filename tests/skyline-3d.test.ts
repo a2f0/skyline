@@ -129,6 +129,48 @@ describe("full-screen 3D skyline", () => {
     } finally { await page.close(); }
   }, { timeout: 120_000 });
 
+  test("draws the same picture again and drops the interruption once a lost graphics context is restored", async () => {
+    type Lost = { __loseContext: WEBGL_lose_context };
+    // The scene's own page: the restored context draws what the lost one did, unprompted.
+    const page = await browser.newPage({ viewport: { width: 900, height: 600 } });
+    await watch(page);
+    try {
+      await page.goto(`${origin}/skyline-3d.html`);
+      await page.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
+      await settle(page);
+      const canvas = page.locator("#building");
+      const before = await canvas.screenshot();
+      await page.evaluate(() => {
+        const extension = document.querySelector("canvas")!.getContext("webgl2")!.getExtension("WEBGL_lose_context")!;
+        (window as unknown as Lost).__loseContext = extension;
+        extension.loseContext();
+      });
+      await page.waitForFunction(() => document.querySelector("#loading")!.textContent!.includes("graphics context was interrupted"));
+      await page.evaluate(() => (window as unknown as Lost).__loseContext.restoreContext());
+      await page.waitForFunction(() => document.querySelector<HTMLElement>("#loading")!.hidden, null, { timeout: 10_000 });
+      await settle(page);
+      await expectSamePicture(page, await canvas.screenshot(), before, "the restored context draws the scene as before");
+    } finally { await page.close(); }
+
+    // A host's viewer: its fallback show original leaves again, and the scene is ready.
+    const viewer = await browser.newPage();
+    await watch(viewer);
+    try {
+      await viewer.goto(`${origin}/index.html?embed=1`);
+      await openScene(viewer);
+      await viewer.evaluate(() => {
+        const extension = window.__viewerRoot!.querySelector<HTMLCanvasElement>(".skyline-3d > #viewport > #building")!.getContext("webgl2")!.getExtension("WEBGL_lose_context")!;
+        (window as unknown as Lost).__loseContext = extension;
+        extension.loseContext();
+      });
+      await viewer.locator("#embedded-original").waitFor({ state: "visible" });
+      await viewer.evaluate(() => (window as unknown as Lost).__loseContext.restoreContext());
+      await viewer.locator("#embedded-original").waitFor({ state: "hidden", timeout: 10_000 });
+      expect(await viewer.locator("#skyline-3d-scene #loading").isHidden()).toBe(true);
+      expect(await viewer.evaluate(() => window.__viewerRoot!.querySelector(".skyline-viewer")!.hasAttribute("data-booting"))).toBe(false);
+    } finally { await viewer.close(); }
+  }, { timeout: 120_000 });
+
   test("stands the mapped buildings where the skyline viewer draws them, at every layout", async () => {
     // The page frames the drawing's viewBox through the geographic skyline camera, centred
     // and bottom-aligned as the viewer's SVG is, so each landmark lands on its drawn point
