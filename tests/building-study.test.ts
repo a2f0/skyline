@@ -148,12 +148,16 @@ describe("single-building study", () => {
     await mobile.waitForURL(`${origin}/skyline-webgl.html`);
     await mobile.locator("#badge").waitFor({ state: "visible", timeout: 30000 });
     expect(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await mobile.locator("#back-link").tap();
+    await mobile.getByRole("link", { name: "← back to skyline" }).tap();
     await mobile.locator("#link-enhanced").tap();
     await mobile.waitForURL(`${origin}/skyline-animated.svg`);
     await mobile.locator(".interactive-building").first().waitFor({ state: "attached" });
-    expect(await mobile.locator("#back-link").isVisible()).toBe(true);
-    await mobile.locator("#back-link").tap();
+    // The drawing's way back is a link, not part of the image: an image role's descendants are
+    // presentational, so no ancestor of the link may carry it.
+    expect(await mobile.locator("#back-link").evaluate((link) => link.parentElement?.closest('[role="img"]') ?? null), "the link back stays outside the image").toBeNull();
+    const back = mobile.getByRole("link", { name: "← back to skyline" });
+    expect(await back.isVisible()).toBe(true);
+    await back.tap();
     await mobile.waitForURL(`${origin}/index.html`);
     await mobile.locator("#skyline-3d-scene").waitFor({ state: "visible" });
     expect(await mobile.locator("iframe").count()).toBe(0);

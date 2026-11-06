@@ -5,9 +5,6 @@
    preserveAspectRatio="xMidYMax meet"
    version="1.1"
    id="svg6766"
-   role="img"
-   aria-label="Chicago skyline at night"
-   aria-describedby="skyline-description"
    style="color-scheme:dark"
    sodipodi:docname="skyline-animated.svg"
    inkscape:version="1.1 (c4e8f9e, 2021-05-24)"
@@ -158,7 +155,8 @@
       }
     ]]></style>
   </defs>
-  <g id="skyline-position" transform="translate(1105.5923,-87.26366)">
+  <!-- The drawing is one image; the root stays a plain document so the link back reaches assistive technology. -->
+  <g id="skyline-position" transform="translate(1105.5923,-87.26366)" role="img" aria-label="Chicago skyline at night" aria-describedby="skyline-description">
   <g
      inkscape:groupmode="layer"
      id="layer4"
