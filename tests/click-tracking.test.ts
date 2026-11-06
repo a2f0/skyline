@@ -117,22 +117,24 @@ describe("standalone site click tracking", () => {
     }
   }, 90_000);
 
-  test("captures labeled shadow-root controls and the enhanced drawing iframe once", async () => {
+  test("captures a labeled shadow-root link, then the enhanced drawing on its own page, once each", async () => {
     const { context, page, batches } = await session();
     try {
       await loaded(page);
-      await page.locator('[data-ct="viewer.mode.enhanced"]').click();
+      expect(await page.locator("iframe").count(), "the site's viewer has no frames").toBe(0);
+      // The toolbar's link to the drawing is labeled; the page stays, so its flush is the
+      // viewer's own.
+      await page.evaluate(() => document.addEventListener("click", (event) => event.preventDefault(), { once: true }));
+      await page.locator('[data-ct="viewer.enhanced"]').click();
       await flush(page, true);
-      expect(batches[0]!.events.map(({ label }) => label)).toEqual(["viewer.mode.enhanced"]);
-      // The click queues the event before the lazy drawing frame finishes navigating.
-      await page.frameLocator('iframe[src$="skyline-animated.svg"]').locator("svg").waitFor({ state: "visible" });
-      const frame = page.frames().find((frame) => frame.url().endsWith("/skyline-animated.svg"));
-      expect(frame).toBeDefined();
-      await frame!.waitForFunction(() => performance.getEntriesByType("resource").some((entry) => entry.name.endsWith("/vendor/ct-client.js")));
-      await page.frameLocator('iframe[src$="skyline-animated.svg"]').locator("svg").click({ position: { x: 100, y: 100 } });
-      const sent = page.waitForResponse(endpoint);
-      await frame!.evaluate(() => window.dispatchEvent(new Event("pagehide")));
-      await sent;
+      expect(batches).toHaveLength(1);
+      expect(batches[0]!.events.map(({ label, page }) => [label, page])).toEqual([["viewer.enhanced", "/"]]);
+      // The drawing, opened on its own, captures its own clicks.
+      const href = await page.locator('[data-ct="viewer.enhanced"]').getAttribute("href");
+      expect(href).toBe(`${production}/skyline-animated.svg`);
+      await loaded(page, "/skyline-animated.svg");
+      await page.locator("svg").first().click({ position: { x: 100, y: 300 } });
+      await flush(page, true);
       expect(batches).toHaveLength(2);
       expect(batches[1]!.events).toHaveLength(1);
       expect(batches[1]!.events[0]!.page).toBe("/skyline-animated.svg");

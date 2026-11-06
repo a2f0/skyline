@@ -144,6 +144,15 @@
       .building-tooltip {
         pointer-events: none;
       }
+      .back-link text {
+        fill: #a8a8a8;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+        text-decoration: underline;
+      }
+      .back-link:hover text,
+      .back-link:focus-visible text {
+        fill: #ffffff;
+      }
       @media (prefers-reduced-motion: reduce) {
         .interactive-building.is-active { transition: none; }
       }
@@ -18670,6 +18679,17 @@
        style="display:inline;stroke-width:1.33526" />
   </g>
   </g>
+  <!-- Opened on its own, the drawing links back to the viewer; the script keeps it in the top-left corner. -->
+  <a
+     id="back-link"
+     class="back-link"
+     href="index.html">
+    <text
+       id="back-link-text"
+       font-size="70"
+       x="40"
+       y="110">← back to skyline</text>
+  </a>
   <g
      id="building-tooltip"
      class="building-tooltip"
@@ -18787,6 +18807,21 @@
           deactivate();
         }
       }
+
+      // The way back to the viewer: 12px text, 12px in from the window's top left, at every
+      // window size.
+      const backLink = document.querySelector("#back-link-text");
+      function placeBackLink() {
+        const matrix = svg.getScreenCTM();
+        if (!matrix) return;
+        const scale = Math.hypot(matrix.a, matrix.b) || 1;
+        const start = svgPoint(0, 0, matrix.inverse());
+        backLink.setAttribute("font-size", 12 / scale);
+        backLink.setAttribute("x", start.x + 12 / scale);
+        backLink.setAttribute("y", start.y + 24 / scale);
+      }
+      placeBackLink();
+      window.addEventListener("resize", placeBackLink, { passive: true });
 
       svg.addEventListener("pointerover", updateHover, { passive: true });
       svg.addEventListener("pointermove", updateHover, { passive: true });

@@ -23,7 +23,7 @@ Serve `dist/` over HTTP rather than opening files directly: WebGL and the 3D pag
 
 | Page | Shows | Docs |
 | --- | --- | --- |
-| `index.html` | The viewer, mounted as the package mounts it: opens on the 3D skyline, with the enhanced drawing, the original drawing, and a WebGL prototype one button away | [The viewer](docs/viewer.md) |
+| `index.html` | The viewer, mounted as the package mounts it: opens on the 3D skyline, with the original drawing one button away and links to the enhanced drawing and the WebGL prototype | [The viewer](docs/viewer.md) |
 | `skyline-3d.html` | The full-screen 3D skyline on its own: camera views, streets, footprints, celebratory lights, and a building menu | [Full-screen 3D skyline](docs/viewer.md#full-screen-3d-skyline) |
 | `building-detail.html?building=<id>` | One mapped building alone on its platform | [Building menu and detail](docs/viewer.md#building-menu-and-detail) |
 | `skyline-study.html` | The 3D scene over the drawing, in the geographic layout or the original drawing's fit | [3D studies](docs/studies.md#skyline-study) |

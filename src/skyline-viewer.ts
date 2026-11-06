@@ -3,29 +3,27 @@
 // `mountSkyline` and for the site's own index.html alike. It composes, in that one root, what
 // used to be a page of frames: the stars, the 3D skyline (skyline-3d.ts, from
 // skyline-3d.html's markup), the original drawing, and, on the site's own page, its toolbar.
-// They call each other directly; nothing is posted between documents.
+// They call each other directly; nothing is posted between documents, and no frame is made.
 import type { ViewerContext } from "./skyline-shell.js";
 import { loadMarkup } from "./markup.js";
 import { provideThree } from "./three-engine.js";
 
-type Mode = "3d" | "original" | "enhanced" | "webgl";
+type Mode = "3d" | "original";
 
-// What each of the site toolbar's mode buttons shows, says and announces. The viewer opens
-// on the 3D skyline; each toggle shows its mode and, pressed again, returns to it.
+// What the site toolbar's mode button shows, says and announces. The viewer opens on the 3D
+// skyline; the toggle shows the original drawing and, pressed again, returns to it.
 const home = { label: "3d skyline", title: "Return to the 3D skyline", status: "3D skyline displayed" };
 const toggles = {
   original: { id: "toggle-skyline", label: "show original", title: "Compare with the original skyline SVG", status: "Original skyline displayed" },
-  webgl: { id: "toggle-webgl", label: "show webgl", title: "Preview the WebGL skyline prototype", status: "WebGL skyline prototype displayed" },
-  enhanced: { id: "toggle-enhanced", label: "show enhanced", title: "Show the enhanced interactive skyline drawing", status: "Enhanced interactive skyline displayed" },
 } as const;
 
-// The two prototypes the site's toolbar shows in place are pages of their own, as the
-// studies are: the hover-scripted drawing and the WebGL prototype. Only the site's own
-// index.html shows them, in frames; a host's viewer never does.
-const prototypes = {
-  enhanced: { src: "skyline-animated.svg", title: "Animated Chicago skyline at night" },
-  webgl: { src: "skyline-webgl.html", title: "WebGL Chicago skyline prototype" },
-} as const;
+// The two prototypes are pages of their own, as the studies are: the hover-scripted drawing
+// and the WebGL prototype. The site's toolbar links to them, and each page keeps its own
+// scripts and a way back; a host's viewer never shows them.
+const prototypes = [
+  { id: "link-webgl", href: "skyline-webgl.html", label: "webgl prototype", title: "Open the WebGL skyline prototype", ct: "viewer.webgl" },
+  { id: "link-enhanced", href: "skyline-animated.svg", label: "enhanced drawing", title: "Open the enhanced interactive skyline drawing", ct: "viewer.enhanced" },
+] as const;
 
 /**
  * The 3D scene as the viewer sees it: booting until its first frame, then ready, or unavailable
@@ -89,7 +87,6 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
   // Both show original buttons wait while the scene boots, until its first frame, a failure
   // to load, or a lost graphics context; the drawing stays reachable while it is unavailable.
   let sceneStatus: SceneStatus = "booting";
-  const frames: Partial<Record<keyof typeof prototypes, HTMLIFrameElement>> = {};
   const toolbar = navigation ? createToolbar() : null;
 
   function updateView() {
@@ -97,8 +94,6 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
     scene.hidden = mode !== "3d";
     if (mode === "original" && !drawing.getAttribute("src")) drawing.src = new URL("skyline-original-fit.svg", assets).href;
     drawing.hidden = mode !== "original";
-    if (mode === "enhanced" || mode === "webgl") frames[mode] ??= createPrototype(mode);
-    for (const [name, frame] of Object.entries(frames)) frame.hidden = name !== mode;
     originalReturn.hidden = mode !== "original";
     embeddedOriginal.hidden = navigation || mode !== "3d" || sceneStatus !== "unavailable";
     if (toolbar) {
@@ -303,6 +298,9 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
       toggleButton.addEventListener("click", () => showMode(mode === name ? "3d" : name), listening);
       nav.append(toggleButton);
     }
+    for (const prototype of prototypes) {
+      nav.append(element(document, "a", { id: prototype.id, href: new URL(prototype.href, assets).href, title: prototype.title, textContent: prototype.label }, { "data-ct": prototype.ct }));
+    }
     nav.append(
       element(document, "a", { href: new URL("building-study.html", assets).href, textContent: "3d building" }, { "data-ct": "viewer.building-study" }),
       element(document, "a", { href: new URL("skyline-study.html", assets).href, textContent: "skyline study" }, { "data-ct": "viewer.skyline-study" }),
@@ -340,18 +338,5 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
     resizing.observe(nav);
     resizing.observe(scene);
     signal.addEventListener("abort", () => resizing.disconnect(), { once: true });
-  }
-
-  // A prototype's page, in a frame of its own, shown in place the first time it is chosen.
-  // Keys pressed inside it go to its own window, so F listens there too.
-  function createPrototype(name: keyof typeof prototypes): HTMLIFrameElement {
-    const frame = element(document, "iframe", { className: "scene", id: `${name}-scene`, title: prototypes[name].title, src: new URL(prototypes[name].src, assets).href });
-    frame.addEventListener("load", () => {
-      try {
-        frame.contentWindow?.addEventListener("keydown", fullscreenShortcut, listening);
-      } catch { /* A frame from another origin keeps its keys. */ }
-    }, listening);
-    viewer.insertBefore(frame, originalReturn);
-    return frame;
   }
 }
