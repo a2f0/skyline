@@ -312,8 +312,8 @@ Before 0.2, the viewer ran in an iframe. Hosts upgrading:
 - If the viewer's or scene's code fails to load, as on a dropped connection, the
   browser keeps that failure for the page: later mounts on the same page fail the same
   way until it reloads. A frame used to retry with a new document.
-- The site's own `index.html` shows two prototypes from its toolbar, the hover-scripted
-  enhanced drawing and the WebGL prototype, as pages of their own in frames; a host's
+- The site's own `index.html` links two prototypes from its toolbar, the hover-scripted
+  enhanced drawing and the WebGL prototype, which open as pages of their own; a host's
   viewer never shows them.
 
 ## Import a scene or a building

@@ -111,7 +111,7 @@ describe("single-building study", () => {
     expect(externalRequests).toEqual([]);
   }, { timeout: 180_000 });
 
-  test("mobile layout fits, orbits by touch, and keeps existing viewer modes", async () => {
+  test("mobile layout fits, orbits by touch, and keeps the viewer's modes and prototype links", async () => {
     const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
     mobile.on("pageerror", (error) => errors.push(error.message));
     await mobile.goto(`${origin}/building-study.html`);
@@ -140,15 +140,27 @@ describe("single-building study", () => {
     await mobile.locator("#toggle-skyline").tap();
     expect(await mobile.locator("#drawing").getAttribute("src")).toBe(`${origin}/skyline-original-fit.svg`);
     expect(await mobile.locator("#drawing").isVisible()).toBe(true);
-    await mobile.locator("#toggle-enhanced").tap();
-    expect(await mobile.locator("#enhanced-scene").getAttribute("src")).toBe(`${origin}/skyline-animated.svg`);
-    expect(await mobile.locator("#drawing").isHidden()).toBe(true);
-    await mobile.locator("#toggle-webgl").tap();
-    await mobile.frameLocator("#webgl-scene").locator("#badge").waitFor({ state: "visible", timeout: 30000 });
-    expect(await mobile.locator("#enhanced-scene").isHidden()).toBe(true);
-    await mobile.locator("#toggle-webgl").tap();
+    await mobile.locator("#toggle-skyline").tap();
     expect(await mobile.locator("#skyline-3d-scene").isVisible()).toBe(true);
-    expect(await mobile.locator("#webgl-scene").isHidden()).toBe(true);
+    expect(await mobile.locator("#drawing").isHidden()).toBe(true);
+    // The prototypes open as pages of their own, each with its way back to the viewer.
+    await mobile.locator("#link-webgl").tap();
+    await mobile.waitForURL(`${origin}/skyline-webgl.html`);
+    await mobile.locator("#badge").waitFor({ state: "visible", timeout: 30000 });
+    expect(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await mobile.getByRole("link", { name: "← back to skyline" }).tap();
+    await mobile.locator("#link-enhanced").tap();
+    await mobile.waitForURL(`${origin}/skyline-animated.svg`);
+    await mobile.locator(".interactive-building").first().waitFor({ state: "attached" });
+    // The drawing's way back is a link, not part of the image: an image role's descendants are
+    // presentational, so no ancestor of the link may carry it.
+    expect(await mobile.locator("#back-link").evaluate((link) => link.parentElement?.closest('[role="img"]') ?? null), "the link back stays outside the image").toBeNull();
+    const back = mobile.getByRole("link", { name: "← back to skyline" });
+    expect(await back.isVisible()).toBe(true);
+    await back.tap();
+    await mobile.waitForURL(`${origin}/index.html`);
+    await mobile.locator("#skyline-3d-scene").waitFor({ state: "visible" });
+    expect(await mobile.locator("iframe").count()).toBe(0);
     expect(errors).toEqual([]);
     await mobile.close();
   }, { timeout: 180_000 });

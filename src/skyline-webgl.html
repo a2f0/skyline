@@ -73,6 +73,26 @@
         white-space: nowrap;
       }
 
+      .back {
+        position: fixed;
+        z-index: 3;
+        top: max(12px, env(safe-area-inset-top));
+        left: max(12px, env(safe-area-inset-left));
+        color: #a8a8a8;
+        font-size: 12px;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+      }
+      .back:hover,
+      .back:focus-visible {
+        color: #fff;
+        text-decoration-thickness: 2px;
+      }
+      .back:focus-visible {
+        outline: 1px solid #fff;
+        outline-offset: 4px;
+      }
       [hidden] {
         display: none !important;
       }
@@ -80,6 +100,7 @@
     <script type="module" src="click-tracking-page.js"></script>
   </head>
   <body>
+    <a class="back" id="back-link" href="index.html">← back to skyline</a>
     <canvas id="skyline" role="img" aria-label="Interactive WebGL rendering of the Chicago skyline"></canvas>
     <p class="loading" id="loading" role="status">preparing WebGL building layers…</p>
     <div class="tooltip" id="tooltip" aria-hidden="true" hidden></div>
@@ -435,7 +456,7 @@
           }
 
           const sourceRoot = sourceDocument.documentElement;
-          sourceRoot.querySelectorAll("script, #building-tooltip").forEach((element) => element.remove());
+          sourceRoot.querySelectorAll("script, #building-tooltip, #back-link").forEach((element) => element.remove());
           sourceRoot.setAttribute("width", "850");
           sourceRoot.setAttribute("height", "278");
           const sourceHost = document.createElement("div");

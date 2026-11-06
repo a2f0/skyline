@@ -1,11 +1,12 @@
 # The viewer
 
 `index.html` is the full-screen viewer. It opens on the [3D skyline](#full-screen-3d-skyline)
-and can switch to the [enhanced drawing](#the-enhanced-drawing), the
-[original drawing](#the-original-drawing), or the [WebGL prototype](#webgl-prototype). Select
-**show enhanced**, **show original**, or **show webgl**; while that mode shows, its button reads
-**3d skyline** and returns to the 3D skyline. Use the viewer's fullscreen control or press `F` to
-enter fullscreen.
+and can switch to the [original drawing](#the-original-drawing): select **show original**; while
+the drawing shows, the button reads **3d skyline** and returns to the 3D skyline. The toolbar's
+**enhanced drawing** and **webgl prototype** links open the [enhanced drawing](#the-enhanced-drawing)
+and the [WebGL prototype](#webgl-prototype) as pages of their own, in the same tab, and each page's
+**← back to skyline** link returns to the viewer. Use the viewer's fullscreen control or press `F`
+to enter fullscreen.
 
 Serve the built `dist/` over HTTP (see the [README](../README.md#quick-start)): opened through
 `file://`, or from the sources before a build, `index.html` says how to build and serve the site
@@ -17,8 +18,8 @@ shadow root in its own page, with the stars, the 3D skyline, the original drawin
 between them composed in that one root, calling each other directly. The site's toolbar along the
 top, the fullscreen, mode and study controls, is the one thing only the site's own page shows;
 `?embed=1` leaves it out, to see the viewer as a host does. The enhanced drawing and the WebGL
-prototype it can switch to are pages of their own, `skyline-animated.svg` and
-`skyline-webgl.html`, which the toolbar shows in place in frames the first time each is chosen.
+prototype are pages of their own, `skyline-animated.svg` and `skyline-webgl.html`, which the
+toolbar links to; the viewer has no frames.
 
 ## Full-screen 3D skyline
 
@@ -342,7 +343,9 @@ copies assets.
 
 ## The enhanced drawing
 
-**show enhanced** shows the animated, entirely vector-based and grayscale drawing. The
+**enhanced drawing** opens `skyline-animated.svg`, the animated, entirely vector-based and
+grayscale drawing, on its own; its **← back to skyline** link, kept at 12 px in the window's top-left
+corner at every size, returns to the viewer. The
 transparent `skyline-animated.svg` layer keeps the buildings aligned along the bottom and scaled
 proportionally to fit the viewport. Hover over any building to illuminate it; its name appears
 immediately in a compact black monospace label offset from the pointer. The buildings have no
@@ -407,5 +410,6 @@ SVG paint layers representing 31 building identities into cropped GPU textures, 
 subtly depth-shifted quads, applies façade shading and hover illumination in a fragment shader,
 and resolves overlapping buildings with an offscreen color-picking pass. Separate portions of one
 building share a hover identity and parallax depth while keeping their original draw order. The
-foreground remains a separate top layer, and the existing star field stays visible beneath the
-transparent WebGL canvas.
+foreground remains a separate top layer over the transparent WebGL canvas. The toolbar's
+**webgl prototype** link opens the page on its own, and its **← back to skyline** link returns to
+the viewer.

@@ -33,8 +33,9 @@ This standalone bootstrap explicitly sets `overrideGpc: true`, so clicks are
 collected when Global Privacy Control (GPC) is enabled. The client's default is
 `false`; the override applies only to Skyline's tracker and only to GPC.
 The page's query and fragment never enter the event. Open shadow-root controls
-are captured by their document; the enhanced drawing and WebGL prototype each
-capture clicks inside their own iframe. Importing or mounting the reusable
+are captured by their document. The site has no frames: the viewer's toolbar links
+to the enhanced drawing and the WebGL prototype, which open as pages of their own
+and capture their clicks there. Importing or mounting the reusable
 Skyline package does not initialize tracking.
 
 ## Disable tracking

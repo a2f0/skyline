@@ -36,9 +36,9 @@ describe("full-screen 3D skyline", () => {
         expect(await scene.locator(".control-bar").evaluate((bar) => getComputedStyle(bar).backgroundColor)).toBe(light ? "rgb(245, 245, 245)" : "rgb(8, 8, 8)");
         expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
         expect(await scene.evaluate(() => window.__buildingStudy?.ready)).toBeUndefined();
-        // The toolbar's show original waits for the scene; its other modes stay.
+        // The toolbar's show original waits for the scene; its links stay.
         expect(await page.locator("#toggle-skyline").isHidden()).toBe(true);
-        expect(await page.locator("#toggle-webgl").isVisible()).toBe(true);
+        expect(await page.locator("#link-webgl").isVisible()).toBe(true);
         const bounds = (await trace.boundingBox())!;
         expect(bounds.width).toBeCloseTo(Math.min(720, width - 48) / 3, 1);
         expect(bounds.x).toBeGreaterThanOrEqual(0);
@@ -279,17 +279,27 @@ describe("full-screen 3D skyline", () => {
     expect(await twinkle()).toBe("star-twinkle");
     expect(requested, "the drawings wait until they are chosen").not.toContain("/skyline-animated.svg");
     expect(requested).not.toContain("/skyline-original-fit.svg");
-    expect(requested, "the WebGL prototype waits until it is chosen").not.toContain("/skyline-webgl.html");
+    expect(requested, "the WebGL prototype is a page of its own").not.toContain("/skyline-webgl.html");
     expect(await page.locator("iframe").count(), "the viewer renders in the page, not in frames").toBe(0);
     expect(await scene.evaluate(() => [".skyline-3d", "#viewport"].map((selector) => getComputedStyle(window.__viewerRoot!.querySelector(selector)!).backgroundColor)))
       .toEqual(["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)"]);
-    const toggle = page.locator("#toggle-enhanced");
+    // The prototypes are links to pages of their own, beside the studies' links, opened in
+    // the same tab; no mode shows them in place.
+    expect(await page.locator(".controls a").evaluateAll((links: HTMLAnchorElement[]) => links.map((link) => [link.id, link.textContent, link.getAttribute("href"), link.title, link.target, link.dataset["ct"]])))
+      .toEqual([
+        ["link-webgl", "webgl prototype", `${origin}/skyline-webgl.html`, "Open the WebGL skyline prototype", "", "viewer.webgl"],
+        ["link-enhanced", "enhanced drawing", `${origin}/skyline-animated.svg`, "Open the enhanced interactive skyline drawing", "", "viewer.enhanced"],
+        ["", "3d building", `${origin}/building-study.html`, "", "", "viewer.building-study"],
+        ["", "skyline study", `${origin}/skyline-study.html`, "", "", "viewer.skyline-study"],
+      ]);
+    expect(await page.locator("#toggle-enhanced, #toggle-webgl, #enhanced-scene, #webgl-scene").count()).toBe(0);
+    const toggle = page.locator("#toggle-skyline");
     const state = async (button = toggle) => [await button.textContent(), await button.getAttribute("aria-pressed"), await button.getAttribute("title")];
     const announced = () => page.locator("#status").textContent();
-    expect(await state()).toEqual(["show enhanced", "false", "Show the enhanced interactive skyline drawing"]);
+    expect(await state()).toEqual(["show original", "false", "Compare with the original skyline SVG"]);
     await page.screenshot({ path: "/tmp/skyline-3d-viewer.png" });
 
-    // Orbit, switch to the enhanced skyline, and come back: the hidden frame has no size, and
+    // Orbit, switch to the original drawing, and come back: the hidden scene has no size, and
     // the eye must not be refitted to it.
     await scene.locator("#building").focus();
     await page.keyboard.press("ArrowLeft");
@@ -305,53 +315,25 @@ describe("full-screen 3D skyline", () => {
     expect(await page.evaluate(() => (window as unknown as { fullscreenRequests: number }).fullscreenRequests)).toBe(1);
     await toggle.click();
     expect(await state()).toEqual(["3d skyline", "true", "Return to the 3D skyline"]);
-    expect(await announced()).toBe("Enhanced interactive skyline displayed");
+    expect(await announced()).toBe("Original skyline displayed");
     expect(await page.locator("#skyline-3d-scene").isHidden()).toBe(true);
-    expect(await page.locator("#enhanced-scene").getAttribute("src")).toBe(`${origin}/skyline-animated.svg`);
-    expect(await page.locator("#enhanced-scene").isVisible()).toBe(true);
+    expect(await page.locator("#drawing").getAttribute("src")).toBe(`${origin}/skyline-original-fit.svg`);
+    expect(await page.locator("#drawing").isVisible()).toBe(true);
     await page.setViewportSize({ width: 1280, height: 800 });
     await settle(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await toggle.click();
     await settle(scene);
-    expect(await state()).toEqual(["show enhanced", "false", "Show the enhanced interactive skyline drawing"]);
+    expect(await state()).toEqual(["show original", "false", "Compare with the original skyline SVG"]);
     expect(await announced()).toBe("3D skyline displayed");
     expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
-    expect(await page.locator("#enhanced-scene").isHidden()).toBe(true);
+    expect(await page.locator("#drawing").isHidden()).toBe(true);
     expect(await scene.evaluate(() => window.__buildingStudy!.activeView)).toBeNull();
     (await scene.evaluate(() => window.__buildingStudy!.cameraPosition)).forEach((value, axis) => near(value, orbit[axis]!, 1e-6));
     await scene.locator("#menu-toggle").click();
     await scene.locator("#reset").click();
     expect(await scene.evaluate(() => window.__buildingStudy!.activeView)).toBe("skyline");
-
-    // The other modes replace it and each other, and each returns to the 3D skyline.
-    const original = page.locator("#toggle-skyline");
-    const webgl = page.locator("#toggle-webgl");
-    await original.click();
-    expect(await page.locator("#skyline-3d-scene").isHidden()).toBe(true);
-    expect(await page.locator("#drawing").getAttribute("src")).toBe(`${origin}/skyline-original-fit.svg`);
-    expect(await page.locator("#drawing").isVisible()).toBe(true);
-    expect([await state(original), await state(webgl), await state()]).toEqual([
-      ["3d skyline", "true", "Return to the 3D skyline"],
-      ["show webgl", "false", "Preview the WebGL skyline prototype"],
-      ["show enhanced", "false", "Show the enhanced interactive skyline drawing"],
-    ]);
-    expect(await announced()).toBe("Original skyline displayed");
-    await webgl.click();
-    expect(await page.locator("#webgl-scene").getAttribute("src")).toBe(`${origin}/skyline-webgl.html`);
-    expect(await page.locator("#webgl-scene").isVisible()).toBe(true);
-    expect(await page.locator("#drawing").isHidden()).toBe(true);
-    expect([await state(original), await state(webgl)]).toEqual([
-      ["show original", "false", "Compare with the original skyline SVG"],
-      ["3d skyline", "true", "Return to the 3D skyline"],
-    ]);
-    expect(await announced()).toBe("WebGL skyline prototype displayed");
-    await webgl.click();
-    expect(await page.locator("#skyline-3d-scene").isVisible()).toBe(true);
-    expect(await page.locator("#webgl-scene").isHidden()).toBe(true);
-    expect(await page.locator("#drawing").isHidden()).toBe(true);
-    expect(await state(webgl)).toEqual(["show webgl", "false", "Preview the WebGL skyline prototype"]);
-    expect(await announced()).toBe("3D skyline displayed");
+    expect(await page.locator("iframe").count(), "no mode adds a frame").toBe(0);
     await page.close();
   }, { timeout: 180_000 });
 
