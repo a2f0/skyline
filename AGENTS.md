@@ -172,6 +172,23 @@ stop only leftovers this work started, and report its result and any remaining
 processes/ownership. Never stop sibling or foreign work to make teardown green.
 Cloudflare deploys are manual; run them only when requested.
 
+## State machines
+
+Make implicit state machines explicit when you write or change code: one closed
+state type (a discriminated union, enum, or sealed type) carrying each state's
+data, typed events, and one pure transition function, with effects run on
+entering a state and async work tagged so only the current request can finish.
+Follow the `explicit-state-machines` skill for what to convert, what to leave
+alone, and how to prove behavior did not change; `agent-tool state-machines`
+lists leads. Reviews flag new implicit machines.
+
+Here, states are tagged by `status`. Each transition function lives in the
+browser module that runs it, exported for `tests/state-machines.test.ts`
+(`sceneTransition` in `src/skyline-viewer.ts`, `pressTransition` in
+`src/skyline-3d.ts`); do not add a module for one, since each new browser
+module costs a fetch, a `build-site.ts` allowlist entry and a preload. Machines
+cluster in the viewer shell, the 3D canvas and `src/study-viewer.ts`.
+
 ## Maintenance and domain work
 
 Use `update-dependencies` and the existing development guide's maintenance
