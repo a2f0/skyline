@@ -105,6 +105,19 @@ describe("building detail", () => {
     const circling = await page.evaluate(() => ({ renders: window.__buildingStudy!.renderCount, eye: window.__buildingStudy!.cameraPosition }));
     await page.waitForFunction(({ renders, eye }) => window.__buildingStudy!.renderCount > renders + 5
       && window.__buildingStudy!.cameraPosition.some((value, axis) => Math.abs(value - eye[axis]!) > 1e-6), circling, { timeout: 10_000 });
+    // Hidden, as the viewer hides its scene while the drawing shows, or a host its container,
+    // the turntable stays on but holds the camera and stops drawing; shown again, it circles on.
+    const viewport = page.locator("#viewport");
+    await viewport.evaluate((element) => { element.style.display = "none"; });
+    await settle(page);
+    await settle(page);
+    const hidden = await page.evaluate(() => ({ renders: window.__buildingStudy!.renderCount, eye: window.__buildingStudy!.cameraPosition }));
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => [window.__buildingStudy!.turning, window.__buildingStudy!.renderCount]), "hidden, the turntable draws nothing").toEqual([true, hidden.renders]);
+    expect(await page.evaluate(() => window.__buildingStudy!.cameraPosition), "hidden, the camera holds still").toEqual(hidden.eye);
+    await viewport.evaluate((element) => { element.style.display = ""; });
+    await page.waitForFunction(({ renders, eye }) => window.__buildingStudy!.renderCount > renders + 5
+      && window.__buildingStudy!.cameraPosition.some((value, axis) => Math.abs(value - eye[axis]!) > 1e-6), hidden, { timeout: 10_000 });
     await turntable.click();
     expect([await page.evaluate(() => window.__buildingStudy!.turning), await turntable.getAttribute("aria-pressed"), await turntable.textContent()]).toEqual([false, "false", "turntable"]);
     expect(await status.textContent()).toBe("Camera moves only when you interact or start the turntable.");
