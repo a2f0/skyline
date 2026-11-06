@@ -301,6 +301,10 @@ export function createBuildingStudy({
   let interacting = false;
   let frameId = 0;
   let lastTime = 0;
+  // Whether the canvas has a size to draw at. A study with none, such as the viewer's scene
+  // while the drawing shows, keeps its turntable on, but holds the camera and stops drawing
+  // frame after frame until its viewport shows again and resizes it.
+  let shown = true;
   let fittedDistance = 400;
   let activeView: string | null = defaultView;
   let frameFit = fit;
@@ -335,14 +339,14 @@ export function createBuildingStudy({
 
   function render(time: number) {
     frameId = 0;
-    if (turning && !document.hidden) {
+    if (turning && shown && !document.hidden) {
       const delta = lastTime ? Math.min((time - lastTime) / 1000, 0.1) : 0;
       const offset = camera.position.clone().sub(controls.target);
       offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), delta * 0.16);
       camera.position.copy(controls.target).add(offset);
       controls.update();
     }
-    lastTime = time;
+    lastTime = shown ? time : 0;
     renderer.render(scene, camera);
     labelLayer.hidden = !camera.isOrthographicCamera;
     const layerWidth = labelLayer.clientWidth, layerHeight = labelLayer.clientHeight;
@@ -361,7 +365,7 @@ export function createBuildingStudy({
         : placement === "below" ? [-12, layerHeight - height - 12] : [height + 10, layerHeight + 10];
       element.style.top = `${height && layerHeight ? Math.min(Math.max(y, top), Math.max(top, bottom)) : y}px`;
     }
-    if (turning) requestRender();
+    if (turning && shown) requestRender();
   }
 
   function clearHighlight() {
@@ -457,7 +461,8 @@ export function createBuildingStudy({
     const { width, height } = canvas.getBoundingClientRect();
     // A frame with no size, such as the skyline viewer's 3D scene while another mode shows,
     // has nothing to fit, and fitting to it would move an orbited eye.
-    if (!width || !height) return;
+    shown = Boolean(width && height);
+    if (!shown) return;
     const previousFit = fittedDistance;
     const aspect = width / Math.max(height, 1);
     camera.aspect = aspect;
