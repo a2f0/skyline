@@ -9,7 +9,7 @@
         "@types/three": "0.186.0",
       },
       "devDependencies": {
-        "@a2f0/agent-tool": "0.1.40",
+        "@a2f0/agent-tool": "0.1.46",
         "@tsconfig/strictest": "^2.0.8",
         "@types/bun": "^1.4.4",
         "esbuild": "0.28.2",
@@ -32,7 +32,7 @@
     },
   },
   "packages": {
-    "@a2f0/agent-tool": ["@a2f0/agent-tool@0.1.40", "", { "dependencies": { "@resvg/resvg-wasm": "2.6.2" }, "bin": { "agent-tool": "src/index.ts" } }, "sha512-hZG3DUfp5SPx325SnYV8p6zfNIAGeer29qyHjeaTOjx72AXjYNRJ17ajkjr/Vm4ntZ9UFUqLhiwEBv7o4Q3nWw=="],
+    "@a2f0/agent-tool": ["@a2f0/agent-tool@0.1.46", "", { "dependencies": { "@resvg/resvg-wasm": "2.6.2" }, "bin": { "agent-tool": "src/index.ts" } }, "sha512-/v13zbhlVAbVgh0vP7ke51FLdujRf0y7nxemFFb+e/YkZXVGz1a9O7LjofbY4X/7jnEMIhL0l7nhY2I3Ip5u6g=="],
 
     "@a2f0/ct-client": ["@a2f0/ct-client@0.1.7", "", {}, "sha512-43oR0r9whel+A+zfKDMb+8zHZRfl+XR4OjN9wCGDXoiRFkkui/XsMHc34lHck+mwX3IEekgHO5cw4lw7okLa1g=="],
 
