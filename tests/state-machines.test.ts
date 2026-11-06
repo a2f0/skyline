@@ -9,15 +9,23 @@ describe("the viewer's scene lifecycle", () => {
   const table: [SceneStatus, SceneEvent, SceneStatus][] = [
     ["booting", "ready", "ready"],
     ["booting", "failed", "unavailable"],
-    ["booting", "lost", "unavailable"],
-    ["ready", "lost", "unavailable"],
+    ["booting", "lost", "lost"],
+    ["booting", "restored", "booting"],
+    ["ready", "lost", "lost"],
     // A scene that has drawn its first frame no longer fails to start.
     ["ready", "ready", "ready"],
     ["ready", "failed", "ready"],
-    // Unavailable is final: a late first frame or failure changes nothing.
+    ["ready", "restored", "ready"],
+    // A lost context comes back when the browser restores it, and the scene draws again.
+    ["lost", "restored", "ready"],
+    ["lost", "lost", "lost"],
+    ["lost", "ready", "lost"],
+    ["lost", "failed", "lost"],
+    // A scene that failed to start is final: a late first frame, failure or context changes nothing.
     ["unavailable", "ready", "unavailable"],
     ["unavailable", "failed", "unavailable"],
     ["unavailable", "lost", "unavailable"],
+    ["unavailable", "restored", "unavailable"],
   ];
   test.each(table)("%s + %s -> %s", (status, event, next) => {
     expect(sceneTransition(status, event)).toBe(next);
@@ -27,9 +35,9 @@ describe("the viewer's scene lifecycle", () => {
     // The flags this replaced (booting, sceneUnavailable) could also hold booting && !unavailable.
     const reachable = new Set<SceneStatus>(["booting"]);
     for (let round = 0; round < 3; round += 1) {
-      for (const status of [...reachable]) for (const event of ["ready", "failed", "lost"] as const) reachable.add(sceneTransition(status, event));
+      for (const status of [...reachable]) for (const event of ["ready", "failed", "lost", "restored"] as const) reachable.add(sceneTransition(status, event));
     }
-    expect([...reachable].sort()).toEqual(["booting", "ready", "unavailable"]);
+    expect([...reachable].sort()).toEqual(["booting", "lost", "ready", "unavailable"]);
   });
 });
 

@@ -129,9 +129,10 @@ interface BuildingStudyOptions {
   // Aborts when the study's host leaves: the study then releases its renderer, WebGL
   // context, animation frame, observers and listeners.
   signal?: AbortSignal;
-  // The first frame has rendered; the graphics context was lost.
+  // The first frame has rendered; the graphics context was lost; the browser restored it.
   onReady?: (() => void) | undefined;
   onUnavailable?: (() => void) | undefined;
+  onRestored?: (() => void) | undefined;
 }
 
 // The box a pointer-placed overlay is positioned in: where it is on screen, its size in CSS
@@ -195,6 +196,7 @@ export function createBuildingStudy({
   signal = new AbortController().signal,
   onReady = () => {},
   onUnavailable = () => {},
+  onRestored = () => {},
 }: BuildingStudyOptions) {
   const original = { models, extras, fit, target, platform, lightPosition, shadowCamera, clippingMargin };
   let layout = "original";
@@ -717,6 +719,14 @@ export function createBuildingStudy({
     loading.textContent = "The graphics context was interrupted. Reload to restore the 3D preview.";
     loading.hidden = false;
     onUnavailable();
+  }, listening);
+  // Preventing the loss's default asks the browser to restore the context, and Three.js rebuilds
+  // its state from the scene when it does: the study then draws its picture again and drops the
+  // interruption, rather than leaving it over a context that works.
+  canvas.addEventListener("webglcontextrestored", () => {
+    root.querySelector<HTMLElement>("#loading")!.hidden = true;
+    onRestored();
+    requestRender();
   }, listening);
 
   resizing.observe(viewport);

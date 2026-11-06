@@ -30,6 +30,8 @@ export interface SkylineSceneOptions {
   readonly onReady?: (() => void) | undefined;
   /** The graphics context was lost. */
   readonly onUnavailable?: (() => void) | undefined;
+  /** The browser restored the lost graphics context, and the scene draws again. */
+  readonly onRestored?: (() => void) | undefined;
 }
 
 /** A building's context menu, at the pointer that asked for it. */
@@ -95,7 +97,7 @@ function assertNever(value: never): never {
 // drawing's own camera and framed as the viewer frames the drawing, so each tower stands
 // where its drawn one does until the camera moves. It renders into skyline-3d.html's own
 // document, or into the viewer's shadow root, from the same markup.
-export function startSkyline3d({ root, frame, assets, signal, colour: initiallyColoured = false, onShowOriginal, onReady, onUnavailable }: SkylineSceneOptions): void {
+export function startSkyline3d({ root, frame, assets, signal, colour: initiallyColoured = false, onShowOriginal, onReady, onUnavailable, onRestored }: SkylineSceneOptions): void {
   const document = root instanceof Document ? root : root.ownerDocument;
   const listening = { signal };
   const { models, ground, settings, drawingView, comparisonViews, labels } = createGeographicSkyline();
@@ -118,6 +120,7 @@ export function startSkyline3d({ root, frame, assets, signal, colour: initiallyC
     frame,
     signal,
     onUnavailable,
+    onRestored,
     models,
     extras: [ground.group, roads],
     defaultView: "skyline",

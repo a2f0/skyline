@@ -367,7 +367,7 @@ stay fixed during animation, resizing, and debug toggles. Star positions use per
 radii stay fixed so resizing does not stretch the stars.
 
 The stars come out after the skyline. They stay hidden while the scene boots, in either theme, and
-again if its graphics context is lost. Once the first frame renders, they fade in over about two
+again while its graphics context is lost, until the browser restores it. Once the first frame renders, they fade in over about two
 seconds, starting just after the towers appear. With reduced motion they appear without fading.
 Opening the original drawing shows them at once.
 
@@ -397,7 +397,9 @@ original** stays hidden while the 3D skyline boots and appears with its first fr
 the scene fails to load or loses its graphics context, so the drawing stays reachable then.
 A host's embedded viewer also hides its bottom-right **show original** during boot. That
 fallback appears only if the scene fails to load or loses its graphics context; once the
-scene renders, its star's controls provide **show original**.
+scene renders, its star's controls provide **show original**. A lost context's notice and
+fallback leave again when the browser restores the context, and the scene draws the same
+picture as before; a scene that failed to load stays as it is.
 The self-contained comparison file gives the original vector `Landscape` layer the same viewBox,
 bottom alignment, and artwork offset as the enhanced skyline; the source-photo layer from
 `skyline.svg` has been removed. [Development](development.md#updating-the-drawing) describes how
