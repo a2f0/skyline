@@ -41,7 +41,7 @@ jobs:
       # Install the same tool versions as local development from mise.toml.
       - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
         with:
-          version: 2026.11.0
+          version: 2026.11.8
           install_args: bun node
       - run: bun install --frozen-lockfile --ignore-scripts
       # Everything a merge must pass locally, including the package suite and
@@ -71,7 +71,7 @@ jobs:
           persist-credentials: false
       - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
         with:
-          version: 2026.11.0
+          version: 2026.11.8
           install_args: bun node
           cache: false
       # Publish only a version newer than npm's latest, so re-runs and

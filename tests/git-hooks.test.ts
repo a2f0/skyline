@@ -57,7 +57,7 @@ beforeAll(() => {
   cpSync(path.join(root, "scripts/checks/check-coauthors.ts"), path.join(repo, "scripts/checks/check-coauthors.ts"));
   cpSync(path.join(root, "scripts/lib"), path.join(repo, "scripts/lib"), { recursive: true });
   cpSync(path.join(root, "scripts/git/hooks"), path.join(repo, "scripts/git/hooks"), { recursive: true });
-  cpSync(path.join(root, "mise.toml"), path.join(repo, "mise.toml"));
+  for (const file of ["mise.toml", "mise.lock"]) cpSync(path.join(root, file), path.join(repo, file));
   // Exercise the installed shared tool against real managed copies, including
   // on the isolated PATH used to prove mise's runtime fallback.
   for (const directory of [".agents/skills", ".claude/skills"]) {
