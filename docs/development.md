@@ -338,7 +338,11 @@ The managed skill inventories package and toolchain dependencies, CI pins and
 infrastructure providers, follows upstream migrations and validates compatible
 groups before shipping. The test and pack jobs install Bun and Node from
 `mise.toml`; keep `packageManager` and the isolated npm publisher's Node pin
-aligned with it. The pack job disables the tool cache because its output goes
+aligned with it. The committed `mise.lock` pins their URLs and checksums, and
+mise-action installs in locked mode when it is present: regenerate it with
+`mise lock` whenever `mise.toml` changes. Every mise-action `version` must read
+the lockfile's format (format 4 needs mise 2026.11.1 or later), so move those
+pins before the lock's format. The pack job disables the tool cache because its output goes
 to the trusted publisher. CI additionally tests the packed package on its Node 22 support
 floor. Locally, put an installed Node 22 release first on `PATH` and run
 `bun run check:package` for that check. The optional package peer remains the supported r186 series;
