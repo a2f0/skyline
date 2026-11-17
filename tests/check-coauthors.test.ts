@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { attributionIn, checkCoauthors, offendersIn, report } from "../scripts/checks/check-coauthors.js";
+import { attributionIn, checkCoauthors, offendersIn, PUSH_GATE_ENV, report } from "../scripts/checks/check-coauthors.js";
 import type { Runner } from "../scripts/checks/check-coauthors.js";
 
 const trailer = "Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>";
@@ -84,10 +84,10 @@ describe("agent attribution in a range", () => {
     expect(offendersIn(["main..HEAD"], log([`${"a".repeat(40)}\nfeat: quoting\n\n${body}\n`]))).toEqual([]);
   });
   test("passes every revision argument through to git log", () => {
-    // The pre-push hook asks for "<sha> --not --remotes" on a branch the remote
-    // does not have yet, which is not a two-dot range.
-    offendersIn(["abc123", "--not", "--remotes"], log([]));
-    expect(revisions).toEqual(["abc123", "--not", "--remotes"]);
+    // The push gate selects a pushed ref's commits as "<tip> --not <boundary...>",
+    // which is not a two-dot range.
+    offendersIn(["abc123", "--not", "def456", "fed789"], log([]));
+    expect(revisions).toEqual(["abc123", "--not", "def456", "fed789"]);
   });
   test("passes an empty range", () => {
     expect(offendersIn(["main..HEAD"], log([]))).toEqual([]);
@@ -103,13 +103,42 @@ describe("agent attribution in a range", () => {
 });
 
 describe("the command line", () => {
-  test("fails a range that carries attribution and passes one that does not", () => {
-    const dirty = log([`${"b".repeat(40)}\nfix: dirty\n\n${trailer}\n`]);
-    expect(checkCoauthors(["--range", "main..HEAD"], dirty)).toContain("agent attribution");
-    expect(checkCoauthors(["--range", "abc", "--not", "--remotes"], dirty)).toContain("agent attribution");
-    expect(checkCoauthors(["--range", "main..HEAD"], log([`${"a".repeat(40)}\nfeat: clean\n`]))).toBeNull();
-  });
   const log = (entries: string[]): Runner => () => entries.join("\0");
+  // The push agent-tool's push gate hands its steps, in the file its
+  // environment variable names.
+  const pushData = (refs: unknown[], schemaVersion = 1) => {
+    const file = path.join(mkdtempSync(path.join(os.tmpdir(), "skyline-push-gate-")), "push.json");
+    writeFileSync(file, JSON.stringify({ schemaVersion, remote: { name: "origin" }, refs }));
+    return { [PUSH_GATE_ENV]: file };
+  };
+  const pushed = (remoteRef: string, revisions: string[]) => ({ remoteRef, deleted: false, revisions });
+  const deleted = { remoteRef: "refs/heads/feat/gone", deleted: true, revisions: [] };
+  test("checks the commits each pushed ref adds, from the push gate's data", () => {
+    const seen: string[][] = [];
+    const dirty: Runner = (_file, args) => {
+      seen.push(args.slice(4));
+      return `${"b".repeat(40)}\nfix: dirty\n\n${trailer}\n`;
+    };
+    const env = pushData([pushed("refs/heads/main", ["abc", "--not", "def"]), deleted]);
+    expect(checkCoauthors(["--push-gate"], dirty, env)).toContain("agent attribution");
+    // A deletion pushes no commits, so only the other ref is read.
+    expect(seen).toEqual([["abc", "--not", "def"]]);
+    expect(checkCoauthors(["--push-gate"], log([`${"a".repeat(40)}\nfeat: clean\n`]), env)).toBeNull();
+  });
+  test("names a commit two pushed refs carry once", () => {
+    const env = pushData([pushed("refs/heads/main", ["abc"]), pushed("refs/heads/feat/copy", ["abc"])]);
+    const failure = checkCoauthors(["--push-gate"], log([`${"b".repeat(40)}\nfix: dirty\n\n${trailer}\n`]), env)!;
+    expect(failure).toContain("a commit carries agent attribution");
+    expect(failure.match(/bbbbbbbbbbbb/g)).toHaveLength(1);
+  });
+  test("refuses push data it cannot read rather than passing", () => {
+    // A check that found nothing to read must not look like a clean push.
+    expect(() => checkCoauthors(["--push-gate"], log([]), {})).toThrow(PUSH_GATE_ENV);
+    expect(() => checkCoauthors(["--push-gate"], log([]), pushData([], 2))).toThrow("schemaVersion 1");
+    for (const ref of [{ remoteRef: "refs/heads/main", deleted: false }, { remoteRef: "refs/heads/main", revisions: [] }, pushed("refs/heads/main", ["abc", ""])]) {
+      expect(() => checkCoauthors(["--push-gate"], log([]), pushData([ref])), JSON.stringify(ref)).toThrow("no revisions to check");
+    }
+  });
   test("reads a message file for the commit-msg hook", () => {
     const directory = mkdtempSync(path.join(os.tmpdir(), "skyline-coauthors-"));
     const file = path.join(directory, "COMMIT_EDITMSG");
@@ -127,8 +156,8 @@ describe("the command line", () => {
   });
   test("rejects arguments it cannot act on rather than passing", () => {
     // A usage slip must not read as a clean check.
-    for (const args of [[], ["--range"], ["main..HEAD"], ["--branch", "main"], ["--range", ""], ["--message", "a", "b"]]) {
-      expect(() => checkCoauthors(args, log([]))).toThrow(/Usage/);
+    for (const args of [[], ["--range", "main..HEAD"], ["main..HEAD"], ["--branch", "main"], ["--message"], ["--message", ""], ["--message", "a", "b"], ["--push-gate", "main..HEAD"]]) {
+      expect(() => checkCoauthors(args, log([]), {})).toThrow(/Usage/);
     }
   });
 });

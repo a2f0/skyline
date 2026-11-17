@@ -49,18 +49,14 @@
         "source": "scripts/git/hooks/pre-push",
         "target": "pre-push",
         "executable": true
-      },
-      {
-        "source": "scripts/checks/check-coauthors.ts",
-        "target": "check-coauthors.ts",
-        "executable": false
-      },
-      {
-        "source": "agent-tool.json",
-        "target": "agent-tool.json",
-        "executable": false
       }
     ]
+  },
+  "pushGate": {
+    "steps": [
+      { "label": "attribution", "command": ["bun", "scripts/checks/check-coauthors.ts", "--push-gate"] }
+    ],
+    "budgetSeconds": 60
   },
   "graph": {
     "include": ["src/**", "scripts/**", "tests/**"],

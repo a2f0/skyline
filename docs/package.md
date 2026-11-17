@@ -383,10 +383,12 @@ only `main` can deploy to, and npm's trusted publisher names that environment an
 overlap, and when merges land together only the newest pending run starts, so intermediate
 versions can be skipped on npm.
 
-The workflow first runs the full `bun run check`, browser suites included, in the runner's
-Google Chrome with the pinned Node.js LTS. The dependency audit is part of that
-check: it needs the registry network, and any advisory in the locked dependency
-graph fails the check and blocks publishing until addressed.
+The workflow runs on every push to `main`, not only those that change `package.json`:
+merges do not wait for an up-to-date branch, so a break two of them cause together has to
+show up on `main` before anything publishes. It first runs the full `bun run check`, browser
+suites included, in the runner's Google Chrome with the pinned Node.js LTS. The dependency
+audit is part of that check: it needs the registry network, and any advisory in the locked
+dependency graph fails the check and blocks publishing until addressed.
 If that changes after merge, report the failed release, fix the dependency or
 registry failure, then re-dispatch the workflow to release the merged version.
 It also runs the

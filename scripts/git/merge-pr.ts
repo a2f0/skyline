@@ -28,7 +28,6 @@ interface PullRequest {
   headRefName: string;
   headRefOid: string;
   baseRefName: string;
-  baseRefOid: string;
   mergeable: string;
   mergeStateStatus: string;
   mergeCommit: { oid: string } | null;
@@ -45,16 +44,18 @@ export function mergePr(args: string[], run: Runner = command): string {
   const branch = run("git", ["branch", "--show-current"]);
   if (!branch) throw new Error("Merge from an attached feature branch.");
   const readPr = (number?: number) => JSON.parse(run("gh", ["pr", "view", number ? String(number) : branch, "-R", repo, "--json",
-    "number,title,state,isDraft,headRefName,headRefOid,baseRefName,baseRefOid,mergeable,mergeStateStatus,mergeCommit",
+    "number,title,state,isDraft,headRefName,headRefOid,baseRefName,mergeable,mergeStateStatus,mergeCommit",
   ])) as PullRequest;
   const pr = readPr();
-  if (pr.state !== "OPEN" || pr.isDraft || pr.headRefName !== branch || pr.headRefOid !== head
-    || pr.baseRefName !== base || pr.baseRefOid !== baseSha) {
-    throw new Error("The selected PR does not match the reviewed open head and base.");
+  if (pr.state !== "OPEN" || pr.isDraft || pr.headRefName !== branch || pr.headRefOid !== head || pr.baseRefName !== base) {
+    throw new Error("The selected PR does not match the reviewed open head and base branch.");
   }
-  // Shared preflight owns clean checkout, exact local/PR HEAD, live reviewed
-  // base, ancestry, CI/readiness and package-version policy. Keep this directly
-  // beside the mutation; Skyline additionally verifies the stored squash text.
+  // Shared preflight owns clean checkout, exact local/PR HEAD, that the head
+  // contains the reviewed base, CI/readiness and package-version policy against
+  // the live base. A base that moved since review merges when GitHub reports no
+  // conflict and the version is still free (merge.requireStrictBaseFreshness is
+  // off). Keep this directly beside the mutation; Skyline additionally verifies
+  // the stored squash text.
   run(process.execPath, [agentTool, "pr", "preflight", head, base, baseSha]);
   run(process.execPath, [agentTool, "pr", "merge", pr.title, head, base]);
   const merged = readPr(pr.number);

@@ -126,7 +126,8 @@ checkout-scoped `bun run agent-tool teardown` result and any leftovers in the re
 
 Together they cover:
 
-- push-hook skill drift detection and the building-fidelity skill copies;
+- the push gate's guards and attribution step, run through real pushes, and the
+  building-fidelity skill copies;
 - the shared Chrome's switches, and its teardown, killing a Chrome that won't close without leaving
   its process or profile behind;
 - that `src/models/skyline-reference.svg` still regenerates from its source groups;
@@ -217,11 +218,12 @@ run `bun run hooks:install --adopt` once. The installer backs them up. Old
 `.skyline-installed` and unused `check-signed-commits.ts` files are inert legacy
 sidecars; archive them after inspection, never remove unrelated hooks.
 
-The hooks and attribution checker compare their installed copies with their
-tracked sources. An installed copy of `agent-tool.json` also must match before
-any check runs. This stops worktree policy changes silently weakening installed
-gates; reinstall explicitly after edits. Shared checks run the exact package in
-`node_modules`, refreshed by `bun install --ignore-scripts`.
+Only the two hooks are installed; the attribution checker and `agent-tool.json` run from
+the checkout, and reinstalling removes the copies of both that earlier versions installed.
+`commit-msg` refuses to run when its installed copy differs from its source, and the push
+gate's `hooks` guard refuses a push while either installed hook does, so reinstall
+explicitly after editing one. Shared checks run the exact package in `node_modules`,
+refreshed by `bun install --ignore-scripts`.
 Hooks resolve Bun from PATH, then `mise which bun`, and fail with setup instructions
 when neither works. Integration tests invoke real commits/pushes under isolated
 PATHs, including GUI-style runtime resolution, rather than treating any rejection
@@ -233,12 +235,20 @@ whole-word, line-anchored grammar permits names such as Claudette and
 `notanthropic.com`, permits prose discussing the policy, and catches whitespace
 before a trailer's colon. The pinned shared attribution grammar differs, so its
 attribution options remain disabled here. The local checker accepts
-`--message <file>` or `--range <revisions...>`; its behavioral fixtures remain.
+`--message <file>`, or `--push-gate`, which reads the push gate's data; its behavioral
+fixtures remain.
 
-`pre-push` always checks managed skills and the generated harness permission rules,
-including tags and deletions. It checks every non-deleted destination branch through
-shared `branch check --pre-push`, then checks attribution and shared signature policy for
-incoming commits.
+`pre-push` is the hook `agent-tool push-gate hook` prints, committed unchanged; it runs
+`agent-tool push-gate run`. Its built-in guards check the installed hooks, managed skills
+and the generated harness permission rules on every push, tags and deletions included, then
+every non-deleted destination branch's name, and the signatures and binary files of the
+commits each pushed ref adds. Then it runs the steps the `pushGate` section of
+`agent-tool.json` declares, here only `attribution`: `check-coauthors.ts --push-gate` over
+the same commits, from the `revisions` agent-tool writes to the file `AGENT_TOOL_PUSH_GATE`
+names. Each push records its steps' timings, listed by `bun run agent-tool runs list`, and
+warns past `budgetSeconds`. Tests, builds and installs stay out of the gate: `bun run check`
+runs them before shipping and CI on every push to `main`. `bun run agent-tool push-gate check`
+confirms the hook is canonical and no step reaches a test runner or install.
 Conventional `<type>/<topic>` names are required except `main` and `master`,
 with no extra length cap. CI passes its actual ref name directly instead of
 changing the checkout to validate it. Detached local checks (such as `git bisect`) skip only the implicit branch-name
@@ -251,11 +261,11 @@ N passes only with a nonempty raw `gpgsig` or `gpgsig-sha256` header. It does no
 establish signer identity/trust. Sign an unsigned HEAD with
 `git commit --amend -S --no-edit`, or rewrite older commits using `--gpg-sign`.
 
-Existing branches scan `<remote-sha>..<local-sha>`. New branches on a configured
-remote scan commits not reachable from that remote's tracking refs. URL pushes
-or an advertised destination tip missing locally conservatively scan all history.
-Fetch the destination first: tracking refs are a snapshot, and unrelated remote
-refs must not hide incoming commits. A distinct remote push URL is not detected.
+A pushed ref's commits are those its new tip reaches and no commit the destination
+advertises does: agent-tool lists the push URL's refs with `git ls-remote` rather than
+trusting tracking refs, and also excludes the remote's old tip when this clone has it. A
+destination that advertises nothing this clone has, such as a new repository, gets the
+whole branch scanned, as does one whose refs cannot be listed and whose old tip is unknown.
 Whole-history scans reject Skyline's old unsigned commits (`13115751adbf` and
 `6344d9481d01`); they are not exempt when included in a scan. These local gates
 catch mistakes; deliberate `--no-verify` bypass is outside their trust boundary.
@@ -284,8 +294,8 @@ CLIs that `bun run agent-tool bun x <name> -- <args>` runs: `tsc` is `local`
 (allowed) and `wrangler` is `release` (Codex prompts), since it deploys. Never
 edit managed or generated copies. Commit them with the exact dependency and
 lockfile whenever upgrading, and rerun `agents:sync` after changing
-`permissions`. `agents:check` checks drift in the full gate, and the pre-push
-hook runs the same skill and permission checks.
+`permissions`. `agents:check` checks drift in the full gate, and the push gate's
+built-in guards run the same skill and permission checks.
 The separate Skyline-owned `building-fidelity` copies remain identical and are
 covered by their own test.
 
@@ -294,8 +304,12 @@ publishes it. Run `versions prepare <base-sha>` after integration/repair and bef
 each independent review. The shared tool owns branch creation/pushing, live
 repository/PR context, CI waiting, exact-head/base preflight and merge mutation.
 Skyline has no PR CI; an explicitly empty rollup is expected, while any reported
-checks must still pass. Base movement requires fresh integration, validation,
-version preparation and review.
+checks must still pass. `merge.requireStrictBaseFreshness` is off, so a base that moved
+since review needs integration, validation, version preparation and review again only when
+GitHub reports a conflict or preflight finds the package version already taken on the live
+base. Two merges that pass apart can break `main` together; the publish workflow runs the
+full suite on every push to `main` and packs only after it passes, and managed `ship-pr`
+starts from `bun run agent-tool repo base-health`, which reports that run.
 
 Merge via `bun scripts/git/merge-pr.ts <reviewed-head> <base-branch> <reviewed-base-sha>`.
 This adapter invokes shared preflight immediately before merge and adds Skyline's
@@ -305,7 +319,7 @@ suffix. Local tests cover this adapter; shared checkout/CI/version guard tests
 live in agent-tool.
 
 **Repository override:** `AGENTS.md`'s cleanup sequence replaces managed `ship-pr`
-step 5 and the `squash-merge`/`reset` cleanup steps for every harness and standalone
+step 6 (cleanup) and the `squash-merge`/`reset` cleanup steps for every harness and standalone
 checkout. Require an expected-SHA leased remote deletion through normal hooks,
 or freshly verified remote absence; preserve the branch on lease refusal. Generic
 REST cleanup cannot atomically bind deletion to that SHA, so `repo cleanup --apply`

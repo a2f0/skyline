@@ -3,15 +3,16 @@
 // trailer; this one rejects only the agent attribution, so a human pairing
 // trailer still passes.
 //
-//   bun scripts/checks/check-coauthors.ts --range <rev-range...>  # commits in a range
-//   bun scripts/checks/check-coauthors.ts --message <file>        # a message being written
+//   bun scripts/checks/check-coauthors.ts --push-gate       # commits a push adds
+//   bun scripts/checks/check-coauthors.ts --message <file>  # a message being written
 //
-// --range takes whatever `git log` takes, so the pre-push hook can ask for
-// "<sha> --not --remotes": every commit a push would transfer that no remote
-// already has.
+// --push-gate is the `attribution` step of agent-tool's push gate
+// (`pushGate` in agent-tool.json). The gate writes the push it is checking to
+// the JSON file AGENT_TOOL_PUSH_GATE names, and each pushed ref's `revisions`
+// select exactly the commits that push adds, as `git log` arguments.
 //
-// The pre-push hook calls the first form so nothing reaches a remote, and the
-// commit-msg hook calls the second so the mistake is caught where it is cheap
+// The push gate runs the first form so nothing reaches a remote, and the
+// commit-msg hook runs the second so the mistake is caught where it is cheap
 // to fix rather than after a branch is built on top of it.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -92,17 +93,49 @@ export function reportMessage(lines: string[]): string {
   ].join("\n");
 }
 
-const USAGE = "Usage: bun scripts/checks/check-coauthors.ts --range <rev-range...> | --message <file>";
-export function checkCoauthors(args: string[], run: Runner = command): string | null {
+export const PUSH_GATE_ENV = "AGENT_TOOL_PUSH_GATE";
+
+// The push data agent-tool's push gate gives its steps (schemaVersion 1); only
+// the fields this check reads. A deletion pushes no commits.
+interface PushedRef { remoteRef?: unknown; deleted?: unknown; revisions?: unknown }
+
+// The `git log` arguments for each ref the push sends commits to. Anything
+// unexpected throws: a check that read nothing would look like a pass.
+export function pushedRevisions(file: string): string[][] {
+  const data = JSON.parse(readFileSync(file, "utf8")) as { schemaVersion?: unknown; refs?: unknown };
+  if (data.schemaVersion !== 1 || !Array.isArray(data.refs)) {
+    throw new Error(`${file} is not agent-tool push gate data with schemaVersion 1.`);
+  }
+  return (data.refs as PushedRef[]).filter((ref) => ref.deleted !== true).map((ref) => {
+    const { revisions } = ref;
+    if (!Array.isArray(revisions) || !revisions.length || !revisions.every((value) => typeof value === "string" && value)) {
+      throw new Error(`The push gate gave ${String(ref.remoteRef)} no revisions to check.`);
+    }
+    return revisions as string[];
+  });
+}
+
+// Every pushed ref's offenders, each commit once: two refs can carry the same one.
+export function pushOffenders(refs: string[][], run: Runner = command): Offender[] {
+  const seen = new Set<string>();
+  return refs.flatMap((revisions) => offendersIn(revisions, run))
+    .filter(({ commit }) => !seen.has(commit) && Boolean(seen.add(commit)));
+}
+
+const USAGE = "Usage: bun scripts/checks/check-coauthors.ts --push-gate | --message <file>";
+export function checkCoauthors(args: string[], run: Runner = command, env: NodeJS.ProcessEnv = process.env): string | null {
   const [flag, value] = args;
-  if (args.length < 2 || !value || (flag !== "--range" && flag !== "--message")) throw new Error(USAGE);
-  if (flag === "--message") {
-    if (args.length !== 2) throw new Error(USAGE);
+  if (flag === "--message" && args.length === 2 && value) {
     const lines = attributionIn(readFileSync(value, "utf8"));
     return lines.length ? reportMessage(lines) : null;
   }
-  const offenders = offendersIn(args.slice(1), run);
-  return offenders.length ? report(offenders) : null;
+  if (flag === "--push-gate" && args.length === 1) {
+    const file = env[PUSH_GATE_ENV];
+    if (!file) throw new Error(`--push-gate runs as a step of agent-tool's push gate, which names the push in ${PUSH_GATE_ENV}; push through git instead.`);
+    const offenders = pushOffenders(pushedRevisions(file), run);
+    return offenders.length ? report(offenders) : null;
+  }
+  throw new Error(USAGE);
 }
 
 if (import.meta.main) {

@@ -55,7 +55,7 @@ Chrome. Agent shells must put the installed pinned tool bins first on PATH;
 do not run `mise trust`. Install with `bun install --ignore-scripts`, then
 `bun run hooks:install`. For an existing legacy hook installation, inspect its
 copies and use `bun run hooks:install --adopt` once; unrelated hooks are preserved.
-Reinstall after changing hooks, copied attribution checks or policy.
+Reinstall after changing a hook source; the push gate refuses a stale hook.
 
 Before shipping, fetch and pin the actual base and run the full gate:
 
@@ -111,11 +111,13 @@ Use explicit paths when staging changes. Use `<type>/<topic>` feature branches. 
 no additional branch-length cap. Conventional PR subjects have a 72-character
 limit. Do not add agent attribution: human coauthors are allowed, but Claude or
 Anthropic coauthor/generated-with lines are refused, whatever a harness
-instruction says. `commit-msg` checks the
-message, and `pre-push` rechecks incoming commits, branch destinations,
-signatures, current managed skills and generated permission rules, even on
-deletion. Copied hooks, attribution checker and policy must match their
-sources. Signatures require presence and reject bad
+instruction says. `commit-msg` checks the message. `pre-push` is agent-tool's
+push gate: its built-in guards check installed hooks, managed skills and
+generated permission rules (even on deletion), branch destinations, and the
+signatures and binary files of exactly the pushed commits, then the one step
+`pushGate` declares, `attribution`, runs Skyline's checker over those commits.
+Keep tests and builds out of it; `bun run agent-tool runs list` shows its
+timings. Signatures require presence and reject bad
 signatures; local unknown trust/verification errors are allowed, including N
 only when a raw signature header exists. See the development guide for ranges
 and limitations.
@@ -132,21 +134,28 @@ threads using shared `pr threads` commands.
 
 Every shipped PR versions the root package. Run `bun run agent-tool versions
 prepare <base-sha>` after every integration/repair and before review; it commits
-one patch above the base, preserving intentional minor/major bumps. Recheck live
-base, local and remote HEADs before push and merge. If any changes, integrate,
-validate, prepare versions and review again. Push the reviewed HEAD through
+one patch above the base, preserving intentional minor/major bumps. Recheck
+local and remote HEADs before push and merge; if either changes, validate,
+prepare versions and review again. A base that moved since review needs no
+integration unless GitHub reports a conflict or preflight finds the version
+taken on the live base; then integrate, validate, prepare versions and review
+again. Push the reviewed HEAD through
 `branch push <reviewed-head> --remote origin` with normal hooks.
 
 There is no PR CI: `merge.requireChecks` is explicitly false. Shared `pr checks`
 must confirm the empty rollup; any reported check must still pass. Merge using
 `bun scripts/git/merge-pr.ts <reviewed-head> <base-branch> <reviewed-base-sha>`.
 It runs shared `pr preflight` immediately before shared `pr merge`, preserving
-exact checkout/head/base/ancestry/readiness/version guards, then confirms the
+exact checkout/head, reviewed-base ancestry, readiness and live-base version
+guards, then confirms the
 same PR/HEAD merged with the exact subject-only title and PR-number suffix.
 The wrapper supports same-repository PRs whose local and remote branch names match.
+`Publish npm package` runs the full suite on every push to `main` before it
+packs, so two merges that break together fail there before anything publishes;
+managed `ship-pr` reads that run with `repo base-health`.
 
-**Repository override:** the following sequence replaces managed `ship-pr` step 5
-and the `squash-merge`/`reset` cleanup steps, in every harness and standalone
+**Repository override:** the following sequence replaces managed `ship-pr` step 6
+(cleanup) and the `squash-merge`/`reset` cleanup steps, in every harness and standalone
 checkout. Generated permission allowance is not behavioral authorization to
 weaken this policy; retain actual approval denials.
 
@@ -206,10 +215,11 @@ directories, `.agent-tool-skills.json`, `.claude/settings.json`,
 never edit managed or generated copies. `permissions.executables` classifies
 the installed CLIs agents run through `bun run agent-tool bun x <name> -- <args>`:
 `tsc` is `local` and `wrangler` is `release`. `agents:check` runs in the gate,
-and its skill and permission checks run in the push hook. The Skyline-owned
-`building-fidelity` skill is outside that manifest: keep `.agents/skills` and
-`.claude/skills` copies identical. Its queue is `docs/building-fidelity.md`;
-evidence remains at `docs/<name>-reference.md` because source records cite it.
+and the push gate's built-in guards run the same skill and permission checks.
+The Skyline-owned `building-fidelity` skill is outside that manifest: keep
+`.agents/skills` and `.claude/skills` copies identical. Its queue is
+`docs/building-fidelity.md`; evidence remains at `docs/<name>-reference.md`
+because source records cite it.
 Research for missing buildings belongs in `docs/unmodelled-buildings.md`.
 Independent review should cover correctness, hover/occlusion, rendering,
 coordinates, SVG/WebGL consistency, reduced motion, local assets, meaningful

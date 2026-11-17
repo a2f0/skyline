@@ -5,11 +5,18 @@ import path from "node:path";
 const root = path.resolve(import.meta.dirname, "..");
 interface Step { uses?: string; run?: string; with?: Record<string, unknown> }
 interface Job { permissions?: Record<string, string>; environment?: string; needs?: string; if?: string; steps: Step[] }
-interface Workflow { permissions: Record<string, string>; concurrency: { group: string; "cancel-in-progress": boolean }; jobs: Record<string, Job> }
+interface Workflow { on: Record<string, unknown>; permissions: Record<string, string>; concurrency: { group: string; "cancel-in-progress": boolean }; jobs: Record<string, Job> }
 
 describe("the publish workflow", () => {
   const workflow = Bun.YAML.parse(readFileSync(path.join(root, ".github/workflows/npm-publish.yml"), "utf8")) as Workflow;
   const { test: tests, pack, publish } = workflow.jobs as { test: Job; pack: Job; publish: Job };
+
+  test("runs on every push to main, with no paths filter", () => {
+    // It is the only CI, and a merge no longer waits for an up-to-date branch:
+    // a paths filter would let two merges that break each other go unseen
+    // until a later one touched a listed file.
+    expect(workflow.on).toEqual({ push: { branches: ["main"] }, workflow_dispatch: null });
+  });
 
   test("gives only the publish job, in the npm environment, the token npm accepts", () => {
     expect(workflow.permissions).toEqual({});
