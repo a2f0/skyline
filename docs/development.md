@@ -284,15 +284,17 @@ managed skills. `bun run agent-tool doctor` checks review CLI compatibility;
 `.claude/skills`, with ownership recorded in `.agent-tool-skills.json`, then
 regenerates the harness permission rules: `.claude/settings.json` for Claude Code
 and `.codex/rules/agent-tool.rules` for Codex, with ownership recorded in
-`.agent-tool-permissions.json`. Both allow routine agent-tool commands. For
-merging, publishing, adding dependencies or changing permissions, the Codex
-rules prompt, while Claude Code gets no rule and follows each user's chosen
-permission mode, because Claude Code prompts for an explicit `ask` rule even in
-bypass mode, as agent-tool's
-[permissions guide](https://github.com/a2f0/agent-tool/blob/43e8334cc4001442fb1faf6c14099dac8c1739a2/docs/permissions.md)
+`.agent-tool-permissions.json`. Both only allow routine agent-tool commands.
+Merging, publishing, adding dependencies and changing permissions get no rule in
+either harness and follow each user's chosen approval and sandbox policies:
+Claude Code prompts for an explicit `ask` rule even in bypass mode, and a Codex
+`prompt` rule overrides a broader user allow and is rejected under
+`approval_policy = "never"`, as agent-tool's
+[permissions guide](https://github.com/a2f0/agent-tool/blob/7467d144214f8ebe2e72c1041a41a64a6705dc37/docs/permissions.md)
 describes. `permissions.executables` in `agent-tool.json` classifies the installed
 CLIs that `bun run agent-tool bun x <name> -- <args>` runs: `tsc` is `local`
-(allowed) and `wrangler` is `release` (Codex prompts), since it deploys. Never
+(allowed) and `wrangler` is `release` (no rule, so the user's policy applies),
+since it deploys. Never
 edit managed or generated copies. Commit them with the exact dependency and
 lockfile whenever upgrading, and rerun `agents:sync` after changing
 `permissions`. `agents:check` checks drift in the full gate, and the push gate's
