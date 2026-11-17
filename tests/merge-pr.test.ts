@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { mergeErrorMessage, mergePr, type Runner } from "../scripts/git/merge-pr.js";
 
 const head = "a".repeat(40), base = "b".repeat(40), merged = "c".repeat(40);
-function fixture(options: { prHead?: string; prBase?: string; draft?: boolean; state?: string; preflightFailure?: boolean; confirmed?: boolean; message?: string; mergedNumber?: number; title?: string; mergeFailure?: boolean } = {}) {
+function fixture(options: { prHead?: string; prBase?: string; prBaseOid?: string; draft?: boolean; state?: string; preflightFailure?: boolean; confirmed?: boolean; message?: string; mergedNumber?: number; title?: string; mergeFailure?: boolean } = {}) {
   let called = false, preflightChecked = false;
   const run: Runner = (file, args) => {
     if (file === process.execPath) {
@@ -31,7 +31,7 @@ function fixture(options: { prHead?: string; prBase?: string; draft?: boolean; s
         number: called ? options.mergedNumber ?? 123 : 123, title: options.title ?? "chore: change",
         state: called && options.confirmed !== false ? "MERGED" : options.state ?? "OPEN",
         isDraft: options.draft ?? false, headRefName: "chore/normalize-tooling",
-        headRefOid: options.prHead ?? head, baseRefName: options.prBase ?? "main", baseRefOid: base, mergeCommit: called ? { oid: merged } : null,
+        headRefOid: options.prHead ?? head, baseRefName: options.prBase ?? "main", baseRefOid: options.prBaseOid ?? base, mergeCommit: called ? { oid: merged } : null,
       });
     }
     if (args[1]?.includes("/commits/")) return options.message ?? "chore: change (#123)";
@@ -43,6 +43,14 @@ function fixture(options: { prHead?: string; prBase?: string; draft?: boolean; s
 describe("Skyline merge guards around the shared tool", () => {
   test("delegates the reviewed head and verifies the landed subject", () => {
     const f = fixture();
+    expect(mergePr([head, "main", base], f.run)).toBe(merged);
+    expect(f.preflightChecked()).toBe(true);
+    expect(f.called()).toBe(true);
+  });
+  test("leaves a base that moved since review to the shared preflight", () => {
+    // Merges no longer wait for an up-to-date branch: preflight still checks the
+    // head contains the reviewed base, conflicts, and the version on the live base.
+    const f = fixture({ prBaseOid: "d".repeat(40) });
     expect(mergePr([head, "main", base], f.run)).toBe(merged);
     expect(f.preflightChecked()).toBe(true);
     expect(f.called()).toBe(true);

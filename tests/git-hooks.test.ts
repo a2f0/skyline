@@ -145,8 +145,13 @@ describe("the installed commit-msg hook", () => {
   });
 });
 
+// The checker and agent-tool.json are installed beside the hooks as snapshots,
+// so editing either in the worktree cannot change what the gates enforce until
+// an explicit reinstall: commit-msg compares the copies itself, and the push
+// gate's built-in hooks guard refuses a push while any installed copy differs.
+const snapshots = ["scripts/git/hooks/commit-msg", "scripts/checks/check-coauthors.ts", "agent-tool.json"];
 describe("the installed hook trust boundary", () => {
-  for (const source of ["scripts/git/hooks/commit-msg", "scripts/checks/check-coauthors.ts", "agent-tool.json"]) {
+  for (const source of snapshots) {
     test(`refuses worktree drift in ${source} before committing`, () => {
       const filename = path.join(repo, source), original = readFileSync(filename, "utf8");
       try {
@@ -157,10 +162,26 @@ describe("the installed hook trust boundary", () => {
       } finally { writeFileSync(filename, original); }
     });
   }
+  for (const source of [...snapshots, "scripts/git/hooks/pre-push"]) {
+    test(`refuses worktree drift in ${source} before pushing`, () => {
+      const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
+      const filename = path.join(repo, source), original = readFileSync(filename, "utf8");
+      try {
+        execFileSync("git", ["init", "--bare", "--quiet", "--initial-branch=unused", remote]);
+        writeFileSync(filename, `${original}\n`);
+        const push = git(["push", remote, "HEAD:refs/heads/main"]);
+        expect(push.ok).toBe(false);
+        expect(push.output).toMatch(new RegExp(`"target":\\s*"${path.basename(source).replaceAll(".", "\\.")}",\\s*"status":\\s*"update"`));
+      } finally {
+        writeFileSync(filename, original);
+        rmSync(remote, { recursive: true, force: true });
+      }
+    }, 60_000);
+  }
 });
 
 describe("the installed pre-push hook", () => {
-  test("checks skills using mise's bun when no bun is on PATH", () => {
+  test("runs the push gate, attribution step included, using mise's bun when no bun is on PATH", () => {
     const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
     const directory = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-path-"));
     try {
@@ -172,6 +193,8 @@ describe("the installed pre-push hook", () => {
       const push = git(["push", remote, "HEAD:refs/heads/main"], { ...process.env, PATH: directory });
       expect(push.ok, push.output).toBe(true);
       expect(push.output).toMatch(/"ok"\s*:\s*true/);
+      // The declared step ran bun by name, on the PATH the hook gave it.
+      expect(push.output).toMatch(/"label":\s*"attribution",\s*"status":\s*"passed"/);
     } finally {
       rmSync(directory, { recursive: true, force: true });
       rmSync(remote, { recursive: true, force: true });
@@ -260,7 +283,7 @@ describe("the installed pre-push hook", () => {
       rmSync(installed);
       const push = git(["push", remote, "HEAD:refs/heads/main"]);
       expect(push.ok).toBe(false);
-      expect(push.output).toContain("Run bun install --ignore-scripts");
+      expect(push.output).toContain("install this repository's dependencies first");
       expect(push.output).not.toContain("agent attribution");
     } finally {
       symlinkSync(path.join(root, "node_modules/@a2f0/agent-tool"), installed);
@@ -340,22 +363,6 @@ describe("push signature enforcement", () => {
       expect(push.output).toContain("Signature does not meet");
     } finally {
       git(["reset", "--hard", previousHead]);
-      rmSync(remote, { recursive: true, force: true });
-    }
-  }, 60_000);
-
-  test("refuses a stale installed policy snapshot before pushing", () => {
-    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-signatures-remote-"));
-    const source = path.join(repo, "agent-tool.json");
-    const original = readFileSync(source, "utf8");
-    try {
-      execFileSync("git", ["init", "--bare", "--quiet", "--initial-branch=unused", remote]);
-      writeFileSync(source, `${original}\n`);
-      const push = git(["push", remote, "HEAD:refs/heads/main"]);
-      expect(push.ok).toBe(false);
-      expect(push.output).toContain("installed policy is stale");
-    } finally {
-      writeFileSync(source, original);
       rmSync(remote, { recursive: true, force: true });
     }
   }, 60_000);

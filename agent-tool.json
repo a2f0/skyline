@@ -62,6 +62,12 @@
       }
     ]
   },
+  "pushGate": {
+    "steps": [
+      { "label": "attribution", "command": ["bun", "scripts/checks/check-coauthors.ts", "--push-gate"] }
+    ],
+    "budgetSeconds": 60
+  },
   "graph": {
     "include": ["src/**", "scripts/**", "tests/**"],
     "exclude": ["**/vendor/**", "**/fixtures/**"],
