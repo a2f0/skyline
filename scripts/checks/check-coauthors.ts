@@ -13,7 +13,9 @@
 //
 // The push gate runs the first form so nothing reaches a remote, and the
 // commit-msg hook runs the second so the mistake is caught where it is cheap
-// to fix rather than after a branch is built on top of it.
+// to fix rather than after a branch is built on top of it. Both enforce the
+// installed snapshot: commit-msg runs its own copy, and the gate's hooks guard
+// refuses the push before this step whenever this file differs from it.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 

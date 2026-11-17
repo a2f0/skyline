@@ -11,6 +11,23 @@ if ! cmp -s "$0" "$REPO_ROOT/scripts/git/hooks/commit-msg"; then
   exit 1
 fi
 
+# The gate runs its own installed copy of the check, so editing the worktree
+# cannot change what it enforces; this refuses to run when the two have
+# diverged, the same contract the hook body has.
+# Parameter expansion, not dirname: one less command a hook's
+# environment has to carry.
+CHECK="${0%/*}/check-coauthors.ts"
+if ! cmp -s "$CHECK" "$REPO_ROOT/scripts/checks/check-coauthors.ts"; then
+  echo "Error: the installed attribution check is stale. Run bun run hooks:install." >&2
+  exit 1
+fi
+
+POLICY="${0%/*}/agent-tool.json"
+if ! cmp -s "$POLICY" "$REPO_ROOT/agent-tool.json"; then
+  echo "Error: installed policy is stale. Run bun run hooks:install." >&2
+  exit 1
+fi
+
 cd "$REPO_ROOT"
 
 # Hooks run with the invoking process's PATH, which for a GUI client or a shell
@@ -27,5 +44,4 @@ else
   exit 1
 fi
 
-# The tracked checker, the same one the push gate's attribution step runs.
-"$BUN" "$REPO_ROOT/scripts/checks/check-coauthors.ts" --message "$1"
+"$BUN" "$CHECK" --message "$1"

@@ -6,7 +6,7 @@
 // like a check that is working, unless the test reads why.
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -145,23 +145,39 @@ describe("the installed commit-msg hook", () => {
   });
 });
 
+// The checker and agent-tool.json are installed beside the hooks as snapshots,
+// so editing either in the worktree cannot change what the gates enforce until
+// an explicit reinstall: commit-msg compares the copies itself, and the push
+// gate's built-in hooks guard refuses a push while any installed copy differs.
+const snapshots = ["scripts/git/hooks/commit-msg", "scripts/checks/check-coauthors.ts", "agent-tool.json"];
 describe("the installed hook trust boundary", () => {
-  test("refuses worktree drift in the commit-msg hook before committing", () => {
-    const filename = path.join(repo, "scripts/git/hooks/commit-msg"), original = readFileSync(filename, "utf8");
-    try {
-      writeFileSync(filename, `${original}\n`);
-      const attempt = commit("fix: a clean message");
-      expect(attempt.ok).toBe(false);
-      expect(attempt.output).toContain("bun run hooks:install");
-    } finally { writeFileSync(filename, original); }
-  });
-  test("installs only the hooks, with no copied checker or policy beside them", () => {
-    // The attribution checker and agent-tool.json run from the checkout, so a
-    // copy left in the hooks directory would be one more thing to go stale.
-    const hooks = path.join(repo, ".git/hooks");
-    for (const copy of ["check-coauthors.ts", "agent-tool.json"]) expect(existsSync(path.join(hooks, copy)), copy).toBe(false);
-    expect(readFileSync(path.join(hooks, "pre-push"), "utf8")).toBe(readFileSync(path.join(root, "scripts/git/hooks/pre-push"), "utf8"));
-  });
+  for (const source of snapshots) {
+    test(`refuses worktree drift in ${source} before committing`, () => {
+      const filename = path.join(repo, source), original = readFileSync(filename, "utf8");
+      try {
+        writeFileSync(filename, `${original}\n`);
+        const attempt = commit("fix: a clean message");
+        expect(attempt.ok).toBe(false);
+        expect(attempt.output).toContain("bun run hooks:install");
+      } finally { writeFileSync(filename, original); }
+    });
+  }
+  for (const source of [...snapshots, "scripts/git/hooks/pre-push"]) {
+    test(`refuses worktree drift in ${source} before pushing`, () => {
+      const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
+      const filename = path.join(repo, source), original = readFileSync(filename, "utf8");
+      try {
+        execFileSync("git", ["init", "--bare", "--quiet", "--initial-branch=unused", remote]);
+        writeFileSync(filename, `${original}\n`);
+        const push = git(["push", remote, "HEAD:refs/heads/main"]);
+        expect(push.ok).toBe(false);
+        expect(push.output).toMatch(new RegExp(`"target":\\s*"${path.basename(source).replaceAll(".", "\\.")}",\\s*"status":\\s*"update"`));
+      } finally {
+        writeFileSync(filename, original);
+        rmSync(remote, { recursive: true, force: true });
+      }
+    }, 60_000);
+  }
 });
 
 describe("the installed pre-push hook", () => {
@@ -181,21 +197,6 @@ describe("the installed pre-push hook", () => {
       expect(push.output).toMatch(/"label":\s*"attribution",\s*"status":\s*"passed"/);
     } finally {
       rmSync(directory, { recursive: true, force: true });
-      rmSync(remote, { recursive: true, force: true });
-    }
-  }, 60_000);
-  test("refuses a push when the installed pre-push no longer matches its source", () => {
-    const remote = mkdtempSync(path.join(os.tmpdir(), "skyline-hooks-remote-"));
-    const source = path.join(repo, "scripts/git/hooks/pre-push");
-    const original = readFileSync(source, "utf8");
-    try {
-      execFileSync("git", ["init", "--bare", "--quiet", "--initial-branch=unused", remote]);
-      writeFileSync(source, `${original}\n`);
-      const push = git(["push", remote, "HEAD:refs/heads/main"]);
-      expect(push.ok).toBe(false);
-      expect(push.output).toMatch(/"target":\s*"pre-push",\s*"status":\s*"update"/);
-    } finally {
-      writeFileSync(source, original);
       rmSync(remote, { recursive: true, force: true });
     }
   }, 60_000);

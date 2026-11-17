@@ -55,7 +55,7 @@ Chrome. Agent shells must put the installed pinned tool bins first on PATH;
 do not run `mise trust`. Install with `bun install --ignore-scripts`, then
 `bun run hooks:install`. For an existing legacy hook installation, inspect its
 copies and use `bun run hooks:install --adopt` once; unrelated hooks are preserved.
-Reinstall after changing a hook source; the push gate refuses a stale hook.
+Reinstall after changing hooks, copied attribution checks or policy.
 
 Before shipping, fetch and pin the actual base and run the full gate:
 
@@ -117,8 +117,11 @@ generated permission rules (even on deletion), branch destinations, and the
 signatures and binary files of exactly the pushed commits, then the one step
 `pushGate` declares, `attribution`, runs Skyline's checker over those commits.
 Keep tests and builds out of it; `bun run agent-tool runs list` shows its
-timings. Signatures require presence and reject bad
-signatures; local unknown trust/verification errors are allowed, including N
+timings. The attribution checker and `agent-tool.json` are installed beside the
+hooks as snapshots: `commit-msg` and the gate's `hooks` guard refuse while a
+hook, the checker or the policy differs from its installed copy, so a worktree
+edit cannot weaken them without a reinstall. Signatures require presence and
+reject bad signatures; local unknown trust/verification errors are allowed, including N
 only when a raw signature header exists. See the development guide for ranges
 and limitations.
 

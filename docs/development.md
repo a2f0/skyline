@@ -218,12 +218,13 @@ run `bun run hooks:install --adopt` once. The installer backs them up. Old
 `.skyline-installed` and unused `check-signed-commits.ts` files are inert legacy
 sidecars; archive them after inspection, never remove unrelated hooks.
 
-Only the two hooks are installed; the attribution checker and `agent-tool.json` run from
-the checkout, and reinstalling removes the copies of both that earlier versions installed.
-`commit-msg` refuses to run when its installed copy differs from its source, and the push
-gate's `hooks` guard refuses a push while either installed hook does, so reinstall
-explicitly after editing one. Shared checks run the exact package in `node_modules`,
-refreshed by `bun install --ignore-scripts`.
+The hooks install with snapshots of the attribution checker and `agent-tool.json` beside
+them. `commit-msg` runs its installed checker and refuses to run when it, the checker or the
+policy differs from its tracked source; the push gate's built-in `hooks` guard refuses a push
+while any installed copy differs, and the gate's steps run only after it passes. This stops
+worktree policy or checker changes silently weakening installed gates; reinstall explicitly
+after edits. Shared checks run the exact package in `node_modules`, refreshed by
+`bun install --ignore-scripts`.
 Hooks resolve Bun from PATH, then `mise which bun`, and fail with setup instructions
 when neither works. Integration tests invoke real commits/pushes under isolated
 PATHs, including GUI-style runtime resolution, rather than treating any rejection

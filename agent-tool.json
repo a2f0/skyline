@@ -49,6 +49,16 @@
         "source": "scripts/git/hooks/pre-push",
         "target": "pre-push",
         "executable": true
+      },
+      {
+        "source": "scripts/checks/check-coauthors.ts",
+        "target": "check-coauthors.ts",
+        "executable": false
+      },
+      {
+        "source": "agent-tool.json",
+        "target": "agent-tool.json",
+        "executable": false
       }
     ]
   },
