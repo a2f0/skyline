@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { appendRun, createTimings, logPath, readRuns, runTable, stepTable } from "../scripts/testing/timings.js";
 import type { Run } from "../scripts/testing/timings.js";
+import { checkoutGitEnv } from "../scripts/lib/git.js";
 import { summarise } from "../scripts/testing/show-timings.js";
 
 // Clocks the test drives, so a timing test does not itself depend on timing.
@@ -173,18 +174,22 @@ test("the CLI defaults to the script checkout's branch and timing log", () => {
   const outer = mkdtempSync(path.join(os.tmpdir(), "skyline timings "));
   try {
     const checkout = path.join(outer, "skyline");
+    const env = checkoutGitEnv();
     for (const [repo, branch] of [[outer, "outer"], [checkout, "inner"]] as const) {
-      execFileSync("git", ["init", "-q", "-b", branch, repo]);
+      execFileSync("git", ["init", "-q", "-b", branch, repo], { env });
       execFileSync("git", ["-C", repo, "-c", "user.name=Fixture", "-c", "user.email=fixture@localhost",
-        "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", "commit", "-q", "--allow-empty", "-m", "fixture"]);
+        "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", "commit", "-q", "--allow-empty", "-m", "fixture"], { env });
       appendRun(logPath(path.join(repo, ".git")), sample({ branch, steps: [{ label: branch, seconds: 1, status: "passed" }] }));
     }
     const scripts = path.join(checkout, "scripts/testing");
     mkdirSync(scripts, { recursive: true });
+    mkdirSync(path.join(checkout, "scripts/lib"), { recursive: true });
+    copyFileSync(path.join(import.meta.dirname, "../scripts/lib/git.ts"), path.join(checkout, "scripts/lib/git.ts"));
     for (const file of ["timings.ts", "show-timings.ts"]) {
       copyFileSync(path.join(import.meta.dirname, "../scripts/testing", file), path.join(scripts, file));
     }
-    const result = execFileSync(process.execPath, ["skyline/scripts/testing/show-timings.ts"], { cwd: outer, encoding: "utf8" });
+    const result = execFileSync(process.execPath, ["skyline/scripts/testing/show-timings.ts"], { cwd: outer, encoding: "utf8",
+      env: { ...env, GIT_DIR: path.join(outer, ".git"), GIT_INDEX_FILE: path.join(outer, ".git/index") } });
     expect(result).toContain("inner");
   } finally {
     rmSync(outer, { recursive: true, force: true });

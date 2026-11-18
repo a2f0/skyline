@@ -7,7 +7,8 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { copyFileSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { verifyDeploy, forbiddenPaths, parseTracked, urlFor, walk } from "../scripts/deploy/verify-deploy.js";
+import { checkoutGitEnv } from "../scripts/lib/git.js";
+import { verifyDeploy, trackedPaths, forbiddenPaths, parseTracked, urlFor, walk } from "../scripts/deploy/verify-deploy.js";
 import type { RequestAnswer, VerifyOptions } from "../scripts/deploy/verify-deploy.js";
 
 const ORIGIN = "http://origin";
@@ -196,13 +197,13 @@ describe("deploy verification", () => {
   });
 });
 
-test("the deploy wrapper builds its checkout and refuses an enclosing repository's index", () => {
+test("the deploy wrapper builds its checkout and refuses an enclosing repository's index", async () => {
   const outer = mkdtempSync(path.join(tmpdir(), "skyline deploy "));
   try {
     const checkout = path.join(outer, "skyline"), deploy = "skyline/scripts/deploy/deploy.sh";
     mkdirSync(path.join(checkout, "scripts/deploy"), { recursive: true });
     copyFileSync(path.join(import.meta.dirname, "../scripts/deploy/deploy.sh"), path.join(outer, deploy));
-    execFileSync("git", ["init", "-q", outer]);
+    execFileSync("git", ["init", "-q", outer], { env: checkoutGitEnv() });
     for (const name of ["bun", "bunx"]) {
       writeFileSync(path.join(outer, name), `#!/bin/sh\nprintf '%s\\n' "$@"\n`, { mode: 0o755 });
     }
@@ -212,7 +213,8 @@ test("the deploy wrapper builds its checkout and refuses an enclosing repository
     expect(unowned.status).toBe(1);
     expect(unowned.stderr).toContain("must be the root");
     expect(unowned.stdout).toBe("");
-    execFileSync("git", ["init", "-q", checkout]);
+    await expect(trackedPaths(checkout)).rejects.toThrow("must be the root");
+    execFileSync("git", ["init", "-q", checkout], { env: checkoutGitEnv() });
     const owned = run();
     expect(owned.status).toBe(0);
     expect(owned.stdout).toContain(path.join(realpathSync(checkout), "scripts/build/build-site.ts"));
