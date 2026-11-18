@@ -206,7 +206,8 @@ test("the check runner reads staged whitespace from its checkout despite a forei
     symlinkSync(path.join(root, "node_modules"), path.join(checkout, "node_modules"), "dir");
     mkdirSync(path.join(checkout, "tests"));
     writeFileSync(path.join(checkout, "bad.txt"), "trailing space \n");
-    execFileSync("git", ["-C", checkout, "-c", "core.whitespace=trailing-space", "add", "bad.txt"], { env });
+    execFileSync("git", ["-C", checkout, "config", "--local", "core.whitespace", "trailing-space"], { env });
+    execFileSync("git", ["-C", checkout, "add", "bad.txt"], { env });
     const result = spawnSync(process.execPath, ["skyline/scripts/testing/check.ts"], { cwd: outer,
       env: { ...env, GIT_INDEX_FILE: path.join(outer, "alternate-index") }, encoding: "utf8" });
     expect(result.status).toBe(1);

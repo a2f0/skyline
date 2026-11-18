@@ -205,7 +205,7 @@ test("the deploy wrapper builds its checkout and refuses an enclosing repository
     copyFileSync(path.join(import.meta.dirname, "../scripts/deploy/deploy.sh"), path.join(outer, deploy));
     execFileSync("git", ["init", "-q", outer], { env: checkoutGitEnv() });
     for (const name of ["bun", "bunx"]) {
-      writeFileSync(path.join(outer, name), `#!/bin/sh\nprintf '%s\\n' "$@"\n`, { mode: 0o755 });
+      writeFileSync(path.join(outer, name), `#!/bin/sh\nprintf 'cwd=%s\\n' "$(pwd -P)"\nprintf '%s\\n' "$@"\n`, { mode: 0o755 });
     }
     const run = () => spawnSync("bash", [deploy, "--dry-run"], { cwd: outer, encoding: "utf8",
       env: { PATH: outer + ":/usr/bin:/bin", HOME: outer, GIT_DIR: path.join(outer, ".git"), GIT_INDEX_FILE: path.join(outer, ".git/index") } });
@@ -222,6 +222,7 @@ test("the deploy wrapper builds its checkout and refuses an enclosing repository
     execFileSync("git", ["-C", checkout, "add", "scripts/deploy/deploy.sh"], { env: checkoutGitEnv() });
     const owned = run();
     expect(owned.status).toBe(0);
+    expect(owned.stdout.match(/^cwd=.*$/gm)).toEqual([0, 1].map(() => `cwd=${realpathSync(checkout)}`));
     expect(owned.stdout).toContain(path.join(realpathSync(checkout), "scripts/build/build-site.ts"));
     expect(owned.stdout).toContain(path.join(realpathSync(checkout), "wrangler.jsonc"));
     expect(owned.stdout).toContain("--dry-run");

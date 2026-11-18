@@ -21,12 +21,13 @@ fi
 # git ls-files exits successfully even when Git has lost its index.
 git -C "$REPO_ROOT" ls-files --error-unmatch -- scripts/deploy/deploy.sh >/dev/null
 
+cd "$REPO_ROOT"
 bun "$REPO_ROOT/scripts/build/build-site.ts"
 # Wrangler runs on its node shebang: its deployment step silently stops after
 # the asset upload under Bun's runtime, so deploys need Node.js 22+ alongside
 # Bun. Wrangler authenticates with its own stored credentials (`wrangler
 # login`); no .secrets/ file is read here.
-(cd "$REPO_ROOT" && bunx wrangler deploy --config "$REPO_ROOT/wrangler.jsonc" "$@")
+bunx wrangler deploy --config "$REPO_ROOT/wrangler.jsonc" "$@"
 
 # wrangler reporting success is not the same as the edge serving the files, so check. A run that
 # uploaded nothing has nothing to verify, and verifying anyway would report the previous deploy as
