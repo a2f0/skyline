@@ -12,7 +12,7 @@
 // run against one made elsewhere.
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import { checkoutGitEnv } from "../lib/git.js";
+import { checkoutGitOptions } from "../lib/git.js";
 import { logPath, readRuns, runTable, stepTable } from "./timings.js";
 import type { Run } from "./timings.js";
 
@@ -34,7 +34,7 @@ if (import.meta.main) {
     const sinceFlag = args.indexOf("--since");
     const since = sinceFlag >= 0 ? args[sinceFlag + 1] : undefined;
     if (sinceFlag >= 0 && (!since || Number.isNaN(Date.parse(since)))) throw new Error("--since takes an ISO timestamp.");
-    const options = { cwd: path.resolve(import.meta.dirname, "../.."), env: checkoutGitEnv(), encoding: "utf8" } as const;
+    const options = checkoutGitOptions(path.resolve(import.meta.dirname, "../.."));
     const gitDir = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], options).trim();
     const branch = flagged >= 0 ? args[flagged + 1] : execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], options).trim();
     if (flagged >= 0 && !branch) throw new Error("Usage: bun scripts/testing/show-timings.ts [--branch <name>] [--all]");

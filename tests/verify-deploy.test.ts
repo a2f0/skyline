@@ -215,6 +215,11 @@ test("the deploy wrapper builds its checkout and refuses an enclosing repository
     expect(unowned.stdout).toBe("");
     await expect(trackedPaths(checkout)).rejects.toThrow("must be the root");
     execFileSync("git", ["init", "-q", checkout], { env: checkoutGitEnv() });
+    const empty = run();
+    expect(empty.status).not.toBe(0);
+    expect(empty.stdout).toBe("");
+    await expect(trackedPaths(checkout)).rejects.toThrow("no tracked files");
+    execFileSync("git", ["-C", checkout, "add", "scripts/deploy/deploy.sh"], { env: checkoutGitEnv() });
     const owned = run();
     expect(owned.status).toBe(0);
     expect(owned.stdout).toContain(path.join(realpathSync(checkout), "scripts/build/build-site.ts"));

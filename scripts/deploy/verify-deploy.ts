@@ -23,7 +23,7 @@ import { readFile, readdir, realpath, stat } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { buildSite, dist, publishedFiles, robotsTag, root } from "../build/build-site.js";
-import { checkoutGitEnv } from "../lib/git.js";
+import { checkoutGitOptions } from "../lib/git.js";
 import { command } from "../lib/command.js";
 
 const usage = `Usage: bun scripts/deploy/verify-deploy.ts [--url origin] [--attempts n] [--delay ms] [--timeout ms] [--deadline ms]
@@ -79,11 +79,11 @@ export const parseTracked = (stdout: string) => stdout.split("\0").map((entry) =
 
 export async function trackedPaths(checkout: string): Promise<string[]> {
   const git = promisify(execFile);
-  const options = { cwd: checkout, env: checkoutGitEnv() };
-  const { stdout: gitRoot } = await git("git", ["rev-parse", "--show-toplevel"], options);
-  if (gitRoot.replace(/\n$/, "") !== await realpath(checkout)) throw new Error(`${checkout} must be the root of the Skyline checkout.`);
+  const options = checkoutGitOptions(checkout);
   const { stdout } = await git("git", ["ls-files", "-z"], { ...options, maxBuffer: 1 << 24 });
-  return parseTracked(stdout);
+  const paths = parseTracked(stdout);
+  if (!paths.length) throw new Error("The Skyline checkout has no tracked files to verify.");
+  return paths;
 }
 
 export async function forbiddenPaths(published: string[], deps: { tracked?: string[]; secrets?: string[] } = {}) {

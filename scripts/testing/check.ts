@@ -2,13 +2,14 @@ import { readdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync, spawn } from "node:child_process";
-import { checkoutGitEnv } from "../lib/git.js";
+import { checkoutGitOptions } from "../lib/git.js";
 import { startServer } from "../lib/static-server.js";
 import { dist } from "../build/build-site.js";
 import { appendRun, createTimings, logPath, stepTable } from "./timings.js";
 
 const root = path.resolve(import.meta.dirname, "../..");
-const checkoutEnv = checkoutGitEnv();
+const gitOptions = checkoutGitOptions(root);
+const checkoutEnv = gitOptions.env;
 const agentTool = path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts");
 // Steps run side by side, so each command's output is held back and printed whole, under its
 // step's label, when the command ends; streamed, their logs would interleave line by line.
@@ -75,7 +76,7 @@ async function main() {
   await step("agents:check", ["run", "agents:check"]);
   await step("agent-tool:config", [agentTool, "config", "show"]);
   if (process.env["CI"] !== "true") {
-    const branch = execFileSync("git", ["branch", "--show-current"], { cwd: root, env: checkoutEnv, encoding: "utf8" }).trim();
+    const branch = execFileSync("git", ["branch", "--show-current"], gitOptions).trim();
     if (branch) await step("lint:branch-name", ["run", "lint:branch-name", branch]);
   }
   await step("audit", ["audit"]);
@@ -108,8 +109,8 @@ async function main() {
 function report(failed: boolean) {
   let branch = "unknown", gitDir: string | null = null;
   try {
-    branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: root, env: checkoutEnv, encoding: "utf8" }).trim();
-    gitDir = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { cwd: root, env: checkoutEnv, encoding: "utf8" }).trim();
+    branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], gitOptions).trim();
+    gitDir = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], gitOptions).trim();
   } catch {
     // A checkout without git still runs its checks; it just cannot label or
     // persist them. Losing the log must not turn a passing run into a failure,

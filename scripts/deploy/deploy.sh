@@ -18,6 +18,8 @@ if [[ "$git_root" != "$REPO_ROOT" ]]; then
   echo "ERROR: $REPO_ROOT must be the root of the Skyline checkout." >&2
   exit 1
 fi
+# git ls-files exits successfully even when Git has lost its index.
+git -C "$REPO_ROOT" ls-files --error-unmatch -- scripts/deploy/deploy.sh >/dev/null
 
 bun "$REPO_ROOT/scripts/build/build-site.ts"
 # Wrangler runs on its node shebang: its deployment step silently stops after
