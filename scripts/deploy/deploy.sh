@@ -7,7 +7,7 @@
 # the Worker. After that this script is the whole content deploy.
 set -euo pipefail
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
+REPO_ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 
 bun "$REPO_ROOT/scripts/build/build-site.ts"
 # Wrangler runs on its node shebang: its deployment step silently stops after

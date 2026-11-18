@@ -15,7 +15,7 @@
 load_deploy_secrets() {
   local repo_root tier_dir env_file
   local loaded=()
-  repo_root="$(git rev-parse --show-toplevel)" || return 1
+  repo_root="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)" || return 1
   tier_dir="$repo_root/.secrets/prod"
 
   # The state key must come from this tier, never from the caller's shell, where

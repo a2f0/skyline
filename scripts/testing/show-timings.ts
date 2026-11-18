@@ -32,8 +32,8 @@ if (import.meta.main) {
     const sinceFlag = args.indexOf("--since");
     const since = sinceFlag >= 0 ? args[sinceFlag + 1] : undefined;
     if (sinceFlag >= 0 && (!since || Number.isNaN(Date.parse(since)))) throw new Error("--since takes an ISO timestamp.");
-    const gitDir = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8" }).trim();
-    const branch = flagged >= 0 ? args[flagged + 1] : execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim();
+    const gitDir = execFileSync("git", ["-C", import.meta.dirname, "rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8" }).trim();
+    const branch = flagged >= 0 ? args[flagged + 1] : execFileSync("git", ["-C", import.meta.dirname, "rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim();
     if (flagged >= 0 && !branch) throw new Error("Usage: bun scripts/testing/show-timings.ts [--branch <name>] [--all]");
     const runs = readRuns(logPath(gitDir));
     const scoped = runs

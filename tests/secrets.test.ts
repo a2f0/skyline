@@ -1,11 +1,11 @@
 // scripts/deploy/secrets.sh loads Terraform's credentials from the .secrets link into matrix-secrets, and
 // hands the R2 state key to the S3 backend under the AWS names it reads.
-// Each case runs the real loader in a throwaway Git repository whose .secrets links to a fixture
+// Each case runs the real loader in a throwaway checkout whose .secrets links to a fixture
 // folder laid out like matrix-secrets, under a clean environment so the caller's own credentials
 // cannot satisfy it. The values are fixtures; no real secret is read.
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -25,9 +25,8 @@ function checkout(files: Record<string, string>) {
   const project = path.join(scratch, "matrix-secrets", "skyline"), repository = path.join(scratch, "skyline");
   for (const folder of ["prod", "staging", "ci"]) mkdirSync(path.join(project, folder), { recursive: true });
   for (const [name, contents] of Object.entries(files)) writeFileSync(path.join(project, name), contents);
-  mkdirSync(repository);
-  const init = spawnSync("git", ["init", "--quiet", repository], { encoding: "utf8" });
-  if (init.status !== 0) throw new Error(`git init failed: ${init.stderr}`);
+  mkdirSync(path.join(repository, "scripts/deploy"), { recursive: true });
+  copyFileSync(loader, path.join(repository, "scripts/deploy/secrets.sh"));
   symlinkSync(path.join("..", "matrix-secrets", "skyline"), path.join(repository, ".secrets"));
   return repository;
 }
@@ -35,8 +34,8 @@ function checkout(files: Record<string, string>) {
 // Sources the loader under the callers' strict mode and prints what it exported.
 function load(repository: string, call = "load_deploy_secrets", env: Record<string, string> = {}, names = reported) {
   const script = `set -euo pipefail; source "$1"; ${call}; for name in ${names.join(" ")}; do printf '%s=%s\\n' "$name" "\${!name-<unset>}"; done`;
-  const result = spawnSync("bash", ["-c", script, "load", loader], {
-    cwd: repository, encoding: "utf8",
+  const result = spawnSync("bash", ["-c", script, "load", "skyline/scripts/deploy/secrets.sh"], {
+    cwd: path.dirname(repository), encoding: "utf8",
     env: { PATH: process.env["PATH"] ?? "/usr/bin:/bin", HOME: repository, GIT_CONFIG_NOSYSTEM: "1", ...env },
   });
   const exported = Object.fromEntries(result.stdout.split("\n").filter(Boolean).map((line) => line.split(/=(.*)/s).slice(0, 2)));
