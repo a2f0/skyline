@@ -207,7 +207,7 @@ test("the deploy wrapper builds its checkout and refuses an enclosing repository
     for (const name of ["bun", "bunx"]) {
       writeFileSync(path.join(outer, name), `#!/bin/sh\nprintf 'cwd=%s\\n' "$(pwd -P)"\nprintf '%s\\n' "$@"\n`, { mode: 0o755 });
     }
-    const run = () => spawnSync("bash", [deploy, "--dry-run"], { cwd: outer, encoding: "utf8",
+    const run = (...args: string[]) => spawnSync("bash", [deploy, ...args], { cwd: outer, encoding: "utf8",
       env: { PATH: outer + ":/usr/bin:/bin", HOME: outer, GIT_DIR: path.join(outer, ".git"), GIT_INDEX_FILE: path.join(outer, ".git/index") } });
     const unowned = run();
     expect(unowned.status).toBe(1);
@@ -219,8 +219,9 @@ test("the deploy wrapper builds its checkout and refuses an enclosing repository
     expect(empty.status).not.toBe(0);
     expect(empty.stdout).toBe("");
     await expect(trackedPaths(checkout)).rejects.toThrow("no tracked files");
+    expect(run("--dry-run").status).toBe(0);
     execFileSync("git", ["-C", checkout, "add", "scripts/deploy/deploy.sh"], { env: checkoutGitEnv() });
-    const owned = run();
+    const owned = run("--dry-run");
     expect(owned.status).toBe(0);
     const cwdLine = `cwd=${realpathSync(checkout)}`;
     expect(owned.stdout.split("\n").filter(line => line.startsWith("cwd="))).toEqual([cwdLine, cwdLine]);
