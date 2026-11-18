@@ -8,12 +8,11 @@ import { dist } from "../build/build-site.js";
 import { appendRun, createTimings, logPath, stepTable } from "./timings.js";
 
 const root = path.resolve(import.meta.dirname, "../..");
-const gitOptions = checkoutGitOptions(root);
-const checkoutEnv = gitOptions.env;
+
 const agentTool = path.join(root, "node_modules/@a2f0/agent-tool/src/index.ts");
 // Steps run side by side, so each command's output is held back and printed whole, under its
 // step's label, when the command ends; streamed, their logs would interleave line by line.
-function run(label: string, command: string, args: string[], env: NodeJS.ProcessEnv = checkoutEnv) {
+function run(label: string, command: string, args: string[], env: NodeJS.ProcessEnv) {
   return new Promise<void>((resolve, reject) => {
     const child = spawn(command, args, { cwd: root, env, stdio: ["ignore", "pipe", "pipe"] });
     const output: Buffer[] = [];
@@ -39,7 +38,6 @@ async function pool(slots: number, work: (() => Promise<unknown>)[]) {
 }
 
 const timings = createTimings();
-const step = (label: string, args: string[], env?: NodeJS.ProcessEnv) => timings.run(label, () => run(label, process.execPath, args, env));
 
 // Every suite, longest first, so the slowest is not left to start last. Each is its own
 // `bun test` process, so a failure names its file. A browser suite keeps about two cores busy
@@ -68,11 +66,14 @@ async function main() {
   if (unlisted.length) throw new Error(`scripts/testing/check.ts does not run ${unlisted.join(", ")}; add it to the suites.`);
   // The repository checks come first and in order: each takes about a second at most, and a
   // run whose types or tools are wrong has no suite result worth waiting for.
-  await timings.run("whitespace", async () => {
-    await run("whitespace", "git", ["diff", "--check"]);
-    await run("whitespace", "git", ["diff", "--cached", "--check"]);
-    if (baseSha) await run("whitespace", "git", ["diff", "--check", `${baseSha}...HEAD`]);
+  const gitOptions = await timings.run("whitespace", async () => {
+    const options = checkoutGitOptions(root);
+    await run("whitespace", "git", ["diff", "--check"], options.env);
+    await run("whitespace", "git", ["diff", "--cached", "--check"], options.env);
+    if (baseSha) await run("whitespace", "git", ["diff", "--check", `${baseSha}...HEAD`], options.env);
+    return options;
   });
+  const step = (label: string, args: string[], env: NodeJS.ProcessEnv = gitOptions.env) => timings.run(label, () => run(label, process.execPath, args, env));
   await step("agents:check", ["run", "agents:check"]);
   await step("agent-tool:config", [agentTool, "config", "show"]);
   if (process.env["CI"] !== "true") {
@@ -97,7 +98,7 @@ async function main() {
   await step("favicons", [agentTool, "images", "build", "favicons", "--out", dist]);
   const server = await timings.run("serve:dist", () => startServer(dist));
   try {
-    const env = { ...checkoutEnv, SKYLINE_TEST_URL: server.origin, SKYLINE_PACKAGE_BUILT: "1" };
+    const env = { ...gitOptions.env, SKYLINE_TEST_URL: server.origin, SKYLINE_PACKAGE_BUILT: "1" };
     await pool(slots, suites.map((file) => () => step(`test:${path.basename(file, ".test.ts")}`, ["test", `tests/${file}`], env)));
   } finally {
     await timings.run("serve:stop", () => server.close());
@@ -109,6 +110,7 @@ async function main() {
 function report(failed: boolean) {
   let branch = "unknown", gitDir: string | null = null;
   try {
+    const gitOptions = checkoutGitOptions(root);
     branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], gitOptions).trim();
     gitDir = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], gitOptions).trim();
   } catch {

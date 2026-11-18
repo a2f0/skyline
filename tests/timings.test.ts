@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { copyFileSync, cpSync, symlinkSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { appendRun, createTimings, logPath, readRuns, runTable, stepTable } from "../scripts/testing/timings.js";
@@ -191,6 +191,27 @@ test("the CLI defaults to the script checkout's branch and timing log", () => {
     const result = execFileSync(process.execPath, ["skyline/scripts/testing/show-timings.ts"], { cwd: outer, encoding: "utf8",
       env: { ...env, GIT_DIR: path.join(outer, ".git"), GIT_INDEX_FILE: path.join(outer, ".git/index") } });
     expect(result).toContain("inner");
+  } finally {
+    rmSync(outer, { recursive: true, force: true });
+  }
+});
+
+test("the check runner reads staged whitespace from its checkout despite a foreign index", () => {
+  const outer = mkdtempSync(path.join(os.tmpdir(), "skyline gate "));
+  try {
+    const root = path.resolve(import.meta.dirname, ".."), checkout = path.join(outer, "skyline");
+    const env = checkoutGitEnv();
+    execFileSync("git", ["init", "-q", checkout], { env });
+    cpSync(path.join(root, "scripts"), path.join(checkout, "scripts"), { recursive: true });
+    symlinkSync(path.join(root, "node_modules"), path.join(checkout, "node_modules"), "dir");
+    mkdirSync(path.join(checkout, "tests"));
+    writeFileSync(path.join(checkout, "bad.txt"), "trailing space \n");
+    execFileSync("git", ["-C", checkout, "-c", "core.whitespace=trailing-space", "add", "bad.txt"], { env });
+    const result = spawnSync(process.execPath, ["skyline/scripts/testing/check.ts"], { cwd: outer,
+      env: { ...env, GIT_INDEX_FILE: path.join(outer, "alternate-index") }, encoding: "utf8" });
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain("bad.txt:1: trailing whitespace");
+    expect(result.stdout).toContain("whitespace FAILED");
   } finally {
     rmSync(outer, { recursive: true, force: true });
   }
