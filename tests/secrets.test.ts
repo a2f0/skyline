@@ -5,7 +5,7 @@
 // cannot satisfy it. The values are fixtures; no real secret is read.
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -142,4 +142,23 @@ describe("deploy secrets loader", () => {
     expect(tier.exported["AWS_ACCESS_KEY_ID"]).toBe("r2-key");
     expect(tier.exported["AWS_SECRET_ACCESS_KEY"]).toBe("r2-secret");
   });
+});
+
+test("Terraform uses the nested checkout's stack and tier credentials", () => {
+  const repository = checkout({ "prod/app.env": pair("fixture-token", "fixture-account") + stateKey("fixture-id", "fixture-key") });
+  const outer = path.dirname(repository);
+  copyFileSync(path.join(path.dirname(loader), "terraform.sh"), path.join(repository, "scripts/deploy/terraform.sh"));
+  writeFileSync(path.join(outer, "terraform"), `#!/bin/sh
+set -eu
+test "$AWS_ACCESS_KEY_ID" = fixture-id
+test "$CLOUDFLARE_API_TOKEN" = fixture-token
+printf '%s\n' "$1" "$2"
+`, { mode: 0o755 });
+  const result = spawnSync("bash", ["skyline/scripts/deploy/terraform.sh", "plan"], {
+    cwd: outer, encoding: "utf8", env: { PATH: outer + ":/usr/bin:/bin", HOME: outer },
+  });
+  expect(result.status).toBe(0);
+  const stack = `-chdir=${realpathSync(repository)}/terraform`;
+  expect(result.stderr.trim()).toBe(`${stack}\ninit`);
+  expect(result.stdout.trim()).toBe(`${stack}\nplan`);
 });

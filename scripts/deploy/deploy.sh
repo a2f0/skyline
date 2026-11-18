@@ -9,6 +9,13 @@ set -euo pipefail
 
 REPO_ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 
+# Verification enumerates the site's own index after publication. Check it before the upload.
+git_root="$(git -C "$REPO_ROOT" rev-parse --show-toplevel)"
+if [[ "$git_root" != "$REPO_ROOT" ]]; then
+  echo "ERROR: $REPO_ROOT must be the root of the Skyline checkout." >&2
+  exit 1
+fi
+
 bun "$REPO_ROOT/scripts/build/build-site.ts"
 # Wrangler runs on its node shebang: its deployment step silently stops after
 # the asset upload under Bun's runtime, so deploys need Node.js 22+ alongside

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { appendRun, createTimings, logPath, readRuns, runTable, stepTable } from "../scripts/testing/timings.js";
@@ -166,4 +167,26 @@ describe("the log", () => {
   test("reads no runs from a file that does not exist", () => {
     expect(readRuns(path.join(os.tmpdir(), "skyline-timings-absent", "nothing.log"))).toEqual([]);
   });
+});
+
+test("the CLI defaults to the script checkout's branch and timing log", () => {
+  const outer = mkdtempSync(path.join(os.tmpdir(), "skyline timings "));
+  try {
+    const checkout = path.join(outer, "skyline");
+    for (const [repo, branch] of [[outer, "outer"], [checkout, "inner"]] as const) {
+      execFileSync("git", ["init", "-q", "-b", branch, repo]);
+      execFileSync("git", ["-C", repo, "-c", "user.name=Fixture", "-c", "user.email=fixture@localhost",
+        "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", "commit", "-q", "--allow-empty", "-m", "fixture"]);
+      appendRun(logPath(path.join(repo, ".git")), sample({ branch, steps: [{ label: branch, seconds: 1, status: "passed" }] }));
+    }
+    const scripts = path.join(checkout, "scripts/testing");
+    mkdirSync(scripts, { recursive: true });
+    for (const file of ["timings.ts", "show-timings.ts"]) {
+      copyFileSync(path.join(import.meta.dirname, "../scripts/testing", file), path.join(scripts, file));
+    }
+    const result = execFileSync(process.execPath, ["skyline/scripts/testing/show-timings.ts"], { cwd: outer, encoding: "utf8" });
+    expect(result).toContain("inner");
+  } finally {
+    rmSync(outer, { recursive: true, force: true });
+  }
 });

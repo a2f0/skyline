@@ -3,7 +3,8 @@
 // only defect class that makes a checker worse than nothing. No network: the script takes its
 // request function as a dependency, so each origin below is a plain object.
 import { describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { copyFileSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { verifyDeploy, forbiddenPaths, parseTracked, urlFor, walk } from "../scripts/deploy/verify-deploy.js";
@@ -193,4 +194,31 @@ describe("deploy verification", () => {
       expect(result.failures).toEqual([`${leaked} answered 200 rather than proving it is not served`]);
     }
   });
+});
+
+test("the deploy wrapper builds its checkout and refuses an enclosing repository's index", () => {
+  const outer = mkdtempSync(path.join(tmpdir(), "skyline deploy "));
+  try {
+    const checkout = path.join(outer, "skyline"), deploy = "skyline/scripts/deploy/deploy.sh";
+    mkdirSync(path.join(checkout, "scripts/deploy"), { recursive: true });
+    copyFileSync(path.join(import.meta.dirname, "../scripts/deploy/deploy.sh"), path.join(outer, deploy));
+    execFileSync("git", ["init", "-q", outer]);
+    for (const name of ["bun", "bunx"]) {
+      writeFileSync(path.join(outer, name), `#!/bin/sh\nprintf '%s\\n' "$@"\n`, { mode: 0o755 });
+    }
+    const run = () => spawnSync("bash", [deploy, "--dry-run"], { cwd: outer, encoding: "utf8",
+      env: { PATH: outer + ":/usr/bin:/bin", HOME: outer } });
+    const unowned = run();
+    expect(unowned.status).toBe(1);
+    expect(unowned.stderr).toContain("must be the root");
+    expect(unowned.stdout).toBe("");
+    execFileSync("git", ["init", "-q", checkout]);
+    const owned = run();
+    expect(owned.status).toBe(0);
+    expect(owned.stdout).toContain(path.join(realpathSync(checkout), "scripts/build/build-site.ts"));
+    expect(owned.stdout).toContain(path.join(realpathSync(checkout), "wrangler.jsonc"));
+    expect(owned.stdout).toContain("--dry-run");
+  } finally {
+    rmSync(outer, { recursive: true, force: true });
+  }
 });
