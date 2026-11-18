@@ -7,14 +7,20 @@
 # the Worker. After that this script is the whole content deploy.
 set -euo pipefail
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
+SCRIPT_PATH="$(realpath -- "${BASH_SOURCE[0]}")"
+REPO_ROOT="$(cd -- "$(dirname -- "$SCRIPT_PATH")/../.." && pwd -P)"
 
-bun "$REPO_ROOT/scripts/build/build-site.ts"
-# Wrangler runs on its node shebang: its deployment step silently stops after
-# the asset upload under Bun's runtime, so deploys need Node.js 22+ alongside
-# Bun. Wrangler authenticates with its own stored credentials (`wrangler
-# login`); no .secrets/ file is read here.
-(cd "$REPO_ROOT" && bunx wrangler deploy --config "$REPO_ROOT/wrangler.jsonc" "$@")
+# Verification enumerates the site's own index after publication. Check it before the upload.
+# A Git hook can export its own index or worktree into this process.
+repo_vars="$(git rev-parse --local-env-vars)"
+while IFS= read -r name; do unset "$name"; done <<< "$repo_vars"
+git_root="$(git -C "$REPO_ROOT" rev-parse --show-toplevel)"
+if [[ "$git_root" != "$REPO_ROOT" ]]; then
+  echo "ERROR: $REPO_ROOT must be the root of the Skyline checkout." >&2
+  exit 1
+fi
+
+cd "$REPO_ROOT"
 
 # wrangler reporting success is not the same as the edge serving the files, so check. A run that
 # uploaded nothing has nothing to verify, and verifying anyway would report the previous deploy as
@@ -55,6 +61,18 @@ if [[ "$other_env" == true ]]; then
 elif [[ "$named_given" == true && ( -z "$configured_name" || "$named" != "$configured_name" ) ]]; then
   target_is_production=false
 fi
+
+# A verified upload needs the index that enumerates unpublished files.
+if [[ "${SKYLINE_SKIP_VERIFY:-}" != "1" && "$published" == true && "$target_is_production" == true ]]; then
+  git ls-files --error-unmatch -- scripts/deploy/deploy.sh >/dev/null
+fi
+
+bun "$REPO_ROOT/scripts/build/build-site.ts"
+# Wrangler runs on its node shebang: its deployment step silently stops after
+# the asset upload under Bun's runtime, so deploys need Node.js 22+ alongside
+# Bun. Wrangler authenticates with its own stored credentials (`wrangler
+# login`); no .secrets/ file is read here.
+bunx wrangler deploy --config "$REPO_ROOT/wrangler.jsonc" "$@"
 
 if [[ "${SKYLINE_SKIP_VERIFY:-}" == "1" ]]; then
   echo "Skipping deploy verification (SKYLINE_SKIP_VERIFY=1)."

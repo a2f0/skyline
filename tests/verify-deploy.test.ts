@@ -3,10 +3,12 @@
 // only defect class that makes a checker worse than nothing. No network: the script takes its
 // request function as a dependency, so each origin below is a plain object.
 import { describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { copyFileSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { verifyDeploy, forbiddenPaths, parseTracked, urlFor, walk } from "../scripts/deploy/verify-deploy.js";
+import { checkoutGitEnv } from "../scripts/lib/git.js";
+import { verifyDeploy, trackedPaths, forbiddenPaths, parseTracked, urlFor, walk } from "../scripts/deploy/verify-deploy.js";
 import type { RequestAnswer, VerifyOptions } from "../scripts/deploy/verify-deploy.js";
 
 const ORIGIN = "http://origin";
@@ -193,4 +195,55 @@ describe("deploy verification", () => {
       expect(result.failures).toEqual([`${leaked} answered 200 rather than proving it is not served`]);
     }
   });
+});
+
+test("the deploy wrapper builds its checkout and refuses an enclosing repository's index", async () => {
+  const outer = mkdtempSync(path.join(tmpdir(), "skyline deploy "));
+  try {
+    const checkout = path.join(outer, "skyline"), deploy = "skyline/scripts/deploy/deploy.sh";
+    mkdirSync(path.join(checkout, "scripts/deploy"), { recursive: true });
+    copyFileSync(path.join(import.meta.dirname, "../scripts/deploy/deploy.sh"), path.join(outer, deploy));
+    execFileSync("git", ["init", "-q", outer], { env: checkoutGitEnv() });
+    for (const name of ["bun", "bunx"]) {
+      writeFileSync(path.join(outer, name), `#!/bin/sh\nprintf 'cwd=%s\\n' "$(pwd -P)"\nprintf '%s\\n' "$@"\n`, { mode: 0o755 });
+    }
+    symlinkSync(deploy, path.join(outer, "deploy shortcut"));
+    const run = (...args: string[]) => spawnSync("bash", ["deploy shortcut", ...args], { cwd: outer, encoding: "utf8",
+      env: { PATH: outer + ":/usr/bin:/bin", HOME: outer, GIT_DIR: path.join(outer, ".git"), GIT_INDEX_FILE: path.join(outer, ".git/index") } });
+    const unowned = run();
+    expect(unowned.status).toBe(1);
+    expect(unowned.stderr).toContain("must be the root");
+    expect(unowned.stdout).toBe("");
+    await expect(trackedPaths(checkout)).rejects.toThrow("must be the root");
+    execFileSync("git", ["init", "-q", checkout], { env: checkoutGitEnv() });
+    const empty = run();
+    expect(empty.status).not.toBe(0);
+    expect(empty.stdout).toBe("");
+    await expect(trackedPaths(checkout)).rejects.toThrow("no tracked files");
+    expect(run("--dry-run").status).toBe(0);
+    execFileSync("git", ["-C", checkout, "add", "scripts/deploy/deploy.sh"], { env: checkoutGitEnv() });
+    const owned = run();
+    expect(owned.status).toBe(0);
+    const physical = realpathSync(checkout), cwdLine = `cwd=${physical}`;
+    expect(owned.stdout.trimEnd().split("\n")).toEqual([
+      cwdLine, path.join(physical, "scripts/build/build-site.ts"),
+      cwdLine, "wrangler", "deploy", "--config", path.join(physical, "wrangler.jsonc"),
+      cwdLine, path.join(physical, "scripts/deploy/verify-deploy.ts"),
+    ]);
+  } finally {
+    rmSync(outer, { recursive: true, force: true });
+  }
+});
+
+test("standalone verification checks Skyline's own index when the caller specifies another", () => {
+  const outer = mkdtempSync(path.join(tmpdir(), "skyline foreign index "));
+  try {
+    const verifier = path.resolve(import.meta.dirname, "../scripts/deploy/verify-deploy.ts");
+    const script = `const { forbiddenPaths } = await import(process.argv[1]); console.log((await forbiddenPaths([], { secrets: [] })).includes("README.md"));`;
+    const result = execFileSync(process.execPath, ["-e", script, verifier], { cwd: outer, encoding: "utf8",
+      env: { ...process.env, GIT_INDEX_FILE: path.join(outer, "empty-index") } });
+    expect(result.trim()).toBe("true");
+  } finally {
+    rmSync(outer, { recursive: true, force: true });
+  }
 });

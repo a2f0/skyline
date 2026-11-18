@@ -19,7 +19,8 @@ case "$ACTION" in
   *) echo "ERROR: Unsupported action: $ACTION" >&2; exit 1 ;;
 esac
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
+SCRIPT_PATH="$(realpath -- "${BASH_SOURCE[0]}")"
+REPO_ROOT="$(cd -- "$(dirname -- "$SCRIPT_PATH")/../.." && pwd -P)"
 # shellcheck source=./secrets.sh
 source "$REPO_ROOT/scripts/deploy/secrets.sh"
 load_deploy_secrets

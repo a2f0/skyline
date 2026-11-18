@@ -23,6 +23,7 @@ import { readFile, readdir, realpath, stat } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { buildSite, dist, publishedFiles, robotsTag, root } from "../build/build-site.js";
+import { checkoutGitOptions } from "../lib/git.js";
 import { command } from "../lib/command.js";
 
 const usage = `Usage: bun scripts/deploy/verify-deploy.ts [--url origin] [--attempts n] [--delay ms] [--timeout ms] [--deadline ms]
@@ -76,9 +77,17 @@ export async function walk(directory: string, prefix: string, ancestors: Readonl
 // URL that is not the file, which then reads as proven absent. -z emits raw bytes instead.
 export const parseTracked = (stdout: string) => stdout.split("\0").map((entry) => entry.trim()).filter(Boolean);
 
+export async function trackedPaths(checkout: string): Promise<string[]> {
+  const git = promisify(execFile);
+  const options = checkoutGitOptions(checkout);
+  const { stdout } = await git("git", ["ls-files", "-z"], { ...options, maxBuffer: 1 << 24 });
+  const paths = parseTracked(stdout);
+  if (!paths.length) throw new Error("The Skyline checkout has no tracked files to verify.");
+  return paths;
+}
+
 export async function forbiddenPaths(published: string[], deps: { tracked?: string[]; secrets?: string[] } = {}) {
-  const listed = deps.tracked
-    || parseTracked((await promisify(execFile)("git", ["ls-files", "-z"], { cwd: root, maxBuffer: 1 << 24 })).stdout);
+  const listed = deps.tracked || await trackedPaths(root);
   const secrets = deps.secrets || await walk(path.join(root, ".secrets"), ".secrets");
   const publishedSet = new Set(published);
   const candidates = [...listed, ...secrets].map((entry) => entry.trim()).filter(Boolean)

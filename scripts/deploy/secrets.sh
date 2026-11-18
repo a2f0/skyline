@@ -13,9 +13,10 @@
 # failure path here returns non-zero rather than leaving a half-set environment.
 
 load_deploy_secrets() {
-  local repo_root tier_dir env_file
+  local script_path repo_root tier_dir env_file
   local loaded=()
-  repo_root="$(git rev-parse --show-toplevel)" || return 1
+  script_path="$(realpath -- "${BASH_SOURCE[0]}")" || return 1
+  repo_root="$(cd -- "$(dirname -- "$script_path")/../.." && pwd -P)" || return 1
   tier_dir="$repo_root/.secrets/prod"
 
   # The state key must come from this tier, never from the caller's shell, where

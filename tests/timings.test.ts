@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { copyFileSync, cpSync, symlinkSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { appendRun, createTimings, logPath, readRuns, runTable, stepTable } from "../scripts/testing/timings.js";
 import type { Run } from "../scripts/testing/timings.js";
+import { checkoutGitEnv } from "../scripts/lib/git.js";
 import { summarise } from "../scripts/testing/show-timings.js";
 
 // Clocks the test drives, so a timing test does not itself depend on timing.
@@ -166,4 +168,52 @@ describe("the log", () => {
   test("reads no runs from a file that does not exist", () => {
     expect(readRuns(path.join(os.tmpdir(), "skyline-timings-absent", "nothing.log"))).toEqual([]);
   });
+});
+
+test("the CLI defaults to the script checkout's branch and timing log", () => {
+  const outer = mkdtempSync(path.join(os.tmpdir(), "skyline timings "));
+  try {
+    const checkout = path.join(outer, "skyline");
+    const env = checkoutGitEnv();
+    for (const [repo, branch] of [[outer, "outer"], [checkout, "inner"]] as const) {
+      execFileSync("git", ["init", "-q", "-b", branch, repo], { env });
+      execFileSync("git", ["-C", repo, "-c", "user.name=Fixture", "-c", "user.email=fixture@localhost",
+        "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", "commit", "-q", "--allow-empty", "-m", "fixture"], { env });
+      appendRun(logPath(path.join(repo, ".git")), sample({ branch, steps: [{ label: branch, seconds: 1, status: "passed" }] }));
+    }
+    const scripts = path.join(checkout, "scripts/testing");
+    mkdirSync(scripts, { recursive: true });
+    mkdirSync(path.join(checkout, "scripts/lib"), { recursive: true });
+    copyFileSync(path.join(import.meta.dirname, "../scripts/lib/git.ts"), path.join(checkout, "scripts/lib/git.ts"));
+    for (const file of ["timings.ts", "show-timings.ts"]) {
+      copyFileSync(path.join(import.meta.dirname, "../scripts/testing", file), path.join(scripts, file));
+    }
+    const result = execFileSync(process.execPath, ["skyline/scripts/testing/show-timings.ts"], { cwd: outer, encoding: "utf8",
+      env: { ...env, GIT_DIR: path.join(outer, ".git"), GIT_INDEX_FILE: path.join(outer, ".git/index") } });
+    expect(result).toContain("inner");
+  } finally {
+    rmSync(outer, { recursive: true, force: true });
+  }
+});
+
+test("the check runner reads staged whitespace from its checkout despite a foreign index", () => {
+  const outer = mkdtempSync(path.join(os.tmpdir(), "skyline gate "));
+  try {
+    const root = path.resolve(import.meta.dirname, ".."), checkout = path.join(outer, "skyline");
+    const env = checkoutGitEnv();
+    execFileSync("git", ["init", "-q", checkout], { env });
+    cpSync(path.join(root, "scripts"), path.join(checkout, "scripts"), { recursive: true });
+    symlinkSync(path.join(root, "node_modules"), path.join(checkout, "node_modules"), "dir");
+    mkdirSync(path.join(checkout, "tests"));
+    writeFileSync(path.join(checkout, "bad.txt"), "trailing space \n");
+    execFileSync("git", ["-C", checkout, "config", "--local", "core.whitespace", "trailing-space"], { env });
+    execFileSync("git", ["-C", checkout, "add", "bad.txt"], { env });
+    const result = spawnSync(process.execPath, ["skyline/scripts/testing/check.ts"], { cwd: outer,
+      env: { ...env, GIT_INDEX_FILE: path.join(outer, "alternate-index") }, encoding: "utf8" });
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain("bad.txt:1: trailing whitespace");
+    expect(result.stdout).toContain("whitespace FAILED");
+  } finally {
+    rmSync(outer, { recursive: true, force: true });
+  }
 });
