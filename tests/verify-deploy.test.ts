@@ -222,7 +222,8 @@ test("the deploy wrapper builds its checkout and refuses an enclosing repository
     execFileSync("git", ["-C", checkout, "add", "scripts/deploy/deploy.sh"], { env: checkoutGitEnv() });
     const owned = run();
     expect(owned.status).toBe(0);
-    expect(owned.stdout.match(/^cwd=.*$/gm)).toEqual([0, 1].map(() => `cwd=${realpathSync(checkout)}`));
+    const cwdLine = `cwd=${realpathSync(checkout)}`;
+    expect(owned.stdout.split("\n").filter(line => line.startsWith("cwd="))).toEqual([cwdLine, cwdLine]);
     expect(owned.stdout).toContain(path.join(realpathSync(checkout), "scripts/build/build-site.ts"));
     expect(owned.stdout).toContain(path.join(realpathSync(checkout), "wrangler.jsonc"));
     expect(owned.stdout).toContain("--dry-run");
