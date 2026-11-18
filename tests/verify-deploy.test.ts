@@ -207,7 +207,8 @@ test("the deploy wrapper builds its checkout and refuses an enclosing repository
     for (const name of ["bun", "bunx"]) {
       writeFileSync(path.join(outer, name), `#!/bin/sh\nprintf 'cwd=%s\\n' "$(pwd -P)"\nprintf '%s\\n' "$@"\n`, { mode: 0o755 });
     }
-    const run = (...args: string[]) => spawnSync("bash", [deploy, ...args], { cwd: outer, encoding: "utf8",
+    symlinkSync(deploy, path.join(outer, "deploy shortcut"));
+    const run = (...args: string[]) => spawnSync("bash", ["deploy shortcut", ...args], { cwd: outer, encoding: "utf8",
       env: { PATH: outer + ":/usr/bin:/bin", HOME: outer, GIT_DIR: path.join(outer, ".git"), GIT_INDEX_FILE: path.join(outer, ".git/index") } });
     const unowned = run();
     expect(unowned.status).toBe(1);
@@ -221,13 +222,14 @@ test("the deploy wrapper builds its checkout and refuses an enclosing repository
     await expect(trackedPaths(checkout)).rejects.toThrow("no tracked files");
     expect(run("--dry-run").status).toBe(0);
     execFileSync("git", ["-C", checkout, "add", "scripts/deploy/deploy.sh"], { env: checkoutGitEnv() });
-    const owned = run("--dry-run");
+    const owned = run();
     expect(owned.status).toBe(0);
-    const cwdLine = `cwd=${realpathSync(checkout)}`;
-    expect(owned.stdout.split("\n").filter(line => line.startsWith("cwd="))).toEqual([cwdLine, cwdLine]);
-    expect(owned.stdout).toContain(path.join(realpathSync(checkout), "scripts/build/build-site.ts"));
-    expect(owned.stdout).toContain(path.join(realpathSync(checkout), "wrangler.jsonc"));
-    expect(owned.stdout).toContain("--dry-run");
+    const physical = realpathSync(checkout), cwdLine = `cwd=${physical}`;
+    expect(owned.stdout.trimEnd().split("\n")).toEqual([
+      cwdLine, path.join(physical, "scripts/build/build-site.ts"),
+      cwdLine, "wrangler", "deploy", "--config", path.join(physical, "wrangler.jsonc"),
+      cwdLine, path.join(physical, "scripts/deploy/verify-deploy.ts"),
+    ]);
   } finally {
     rmSync(outer, { recursive: true, force: true });
   }

@@ -7,7 +7,8 @@
 # the Worker. After that this script is the whole content deploy.
 set -euo pipefail
 
-REPO_ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+SCRIPT_PATH="$(realpath -- "${BASH_SOURCE[0]}")"
+REPO_ROOT="$(cd -- "$(dirname -- "$SCRIPT_PATH")/../.." && pwd -P)"
 
 # Verification enumerates the site's own index after publication. Check it before the upload.
 # A Git hook can export its own index or worktree into this process.
