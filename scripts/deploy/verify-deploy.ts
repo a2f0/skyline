@@ -81,7 +81,7 @@ export async function trackedPaths(checkout: string): Promise<string[]> {
   const git = promisify(execFile);
   const options = { cwd: checkout, env: checkoutGitEnv() };
   const { stdout: gitRoot } = await git("git", ["rev-parse", "--show-toplevel"], options);
-  if (gitRoot.trimEnd() !== await realpath(checkout)) throw new Error(`${checkout} must be the root of the Skyline checkout.`);
+  if (gitRoot.replace(/\n$/, "") !== await realpath(checkout)) throw new Error(`${checkout} must be the root of the Skyline checkout.`);
   const { stdout } = await git("git", ["ls-files", "-z"], { ...options, maxBuffer: 1 << 24 });
   return parseTracked(stdout);
 }
