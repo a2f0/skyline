@@ -10,6 +10,9 @@ set -euo pipefail
 REPO_ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 
 # Verification enumerates the site's own index after publication. Check it before the upload.
+# A Git hook can export its own index or worktree into this process.
+repo_vars="$(git rev-parse --local-env-vars)"
+while IFS= read -r name; do unset "$name"; done <<< "$repo_vars"
 git_root="$(git -C "$REPO_ROOT" rev-parse --show-toplevel)"
 if [[ "$git_root" != "$REPO_ROOT" ]]; then
   echo "ERROR: $REPO_ROOT must be the root of the Skyline checkout." >&2

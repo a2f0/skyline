@@ -76,9 +76,17 @@ export async function walk(directory: string, prefix: string, ancestors: Readonl
 // URL that is not the file, which then reads as proven absent. -z emits raw bytes instead.
 export const parseTracked = (stdout: string) => stdout.split("\0").map((entry) => entry.trim()).filter(Boolean);
 
+async function trackedPaths(): Promise<string[]> {
+  const git = promisify(execFile);
+  const env = { ...process.env };
+  const { stdout: localVars } = await git("git", ["rev-parse", "--local-env-vars"], { cwd: root });
+  for (const name of localVars.trim().split("\n")) delete env[name];
+  const { stdout } = await git("git", ["ls-files", "-z"], { cwd: root, env, maxBuffer: 1 << 24 });
+  return parseTracked(stdout);
+}
+
 export async function forbiddenPaths(published: string[], deps: { tracked?: string[]; secrets?: string[] } = {}) {
-  const listed = deps.tracked
-    || parseTracked((await promisify(execFile)("git", ["ls-files", "-z"], { cwd: root, maxBuffer: 1 << 24 })).stdout);
+  const listed = deps.tracked || await trackedPaths();
   const secrets = deps.secrets || await walk(path.join(root, ".secrets"), ".secrets");
   const publishedSet = new Set(published);
   const candidates = [...listed, ...secrets].map((entry) => entry.trim()).filter(Boolean)

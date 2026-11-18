@@ -10,6 +10,7 @@
 // reporting one of those as the latest would show an old success for an attempt
 // that failed before it ever checked. --all ignores the branch, for comparing a
 // run against one made elsewhere.
+import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { logPath, readRuns, runTable, stepTable } from "./timings.js";
 import type { Run } from "./timings.js";
@@ -32,8 +33,9 @@ if (import.meta.main) {
     const sinceFlag = args.indexOf("--since");
     const since = sinceFlag >= 0 ? args[sinceFlag + 1] : undefined;
     if (sinceFlag >= 0 && (!since || Number.isNaN(Date.parse(since)))) throw new Error("--since takes an ISO timestamp.");
-    const gitDir = execFileSync("git", ["-C", import.meta.dirname, "rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8" }).trim();
-    const branch = flagged >= 0 ? args[flagged + 1] : execFileSync("git", ["-C", import.meta.dirname, "rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim();
+    const root = path.resolve(import.meta.dirname, "../..");
+    const gitDir = execFileSync("git", ["-C", root, "rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8" }).trim();
+    const branch = flagged >= 0 ? args[flagged + 1] : execFileSync("git", ["-C", root, "rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim();
     if (flagged >= 0 && !branch) throw new Error("Usage: bun scripts/testing/show-timings.ts [--branch <name>] [--all]");
     const runs = readRuns(logPath(gitDir));
     const scoped = runs

@@ -207,7 +207,7 @@ test("the deploy wrapper builds its checkout and refuses an enclosing repository
       writeFileSync(path.join(outer, name), `#!/bin/sh\nprintf '%s\\n' "$@"\n`, { mode: 0o755 });
     }
     const run = () => spawnSync("bash", [deploy, "--dry-run"], { cwd: outer, encoding: "utf8",
-      env: { PATH: outer + ":/usr/bin:/bin", HOME: outer } });
+      env: { PATH: outer + ":/usr/bin:/bin", HOME: outer, GIT_DIR: path.join(outer, ".git"), GIT_INDEX_FILE: path.join(outer, ".git/index") } });
     const unowned = run();
     expect(unowned.status).toBe(1);
     expect(unowned.stderr).toContain("must be the root");
@@ -218,6 +218,19 @@ test("the deploy wrapper builds its checkout and refuses an enclosing repository
     expect(owned.stdout).toContain(path.join(realpathSync(checkout), "scripts/build/build-site.ts"));
     expect(owned.stdout).toContain(path.join(realpathSync(checkout), "wrangler.jsonc"));
     expect(owned.stdout).toContain("--dry-run");
+  } finally {
+    rmSync(outer, { recursive: true, force: true });
+  }
+});
+
+test("standalone verification checks Skyline's own index when the caller specifies another", () => {
+  const outer = mkdtempSync(path.join(tmpdir(), "skyline foreign index "));
+  try {
+    const verifier = path.resolve(import.meta.dirname, "../scripts/deploy/verify-deploy.ts");
+    const script = `const { forbiddenPaths } = await import(process.argv[1]); console.log((await forbiddenPaths([], { secrets: [] })).includes("README.md"));`;
+    const result = execFileSync(process.execPath, ["-e", script, verifier], { cwd: outer, encoding: "utf8",
+      env: { ...process.env, GIT_INDEX_FILE: path.join(outer, "empty-index") } });
+    expect(result.trim()).toBe("true");
   } finally {
     rmSync(outer, { recursive: true, force: true });
   }
