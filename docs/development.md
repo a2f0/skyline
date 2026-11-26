@@ -47,6 +47,13 @@ the canvas press behind a building's menu (`pressTransition` in `src/skyline-3d.
 the module that runs it, exported for its table in `tests/state-machines.test.ts`, rather than in a
 module of its own that the first frame would also have to fetch; derive old flags from the state.
 
+The scene's first frame waits on `createGeographicSkyline`, which builds about a million
+triangles in one task. Outline with the kit's `silhouetteEdges`, not three's `EdgesGeometry`:
+it gives the same segments, bit for bit, without a string per vertex and edge
+(`tests/building-kit.test.ts` compares the two against the vendored engine). Keep `BatchData`'s
+arrays plain number arrays, which models edit in place, and prove any change to how geometry is
+built byte-identical across every batch, not by eye.
+
 `src/` also keeps the drawing's sources, `skyline.svg` and the photograph `skyline.jpg` it links,
 which the site never requests. The root holds only repository configuration and
 `assets/brand/logo.svg`, the source of the site's favicons. Builds write `dist/` (the site), `lib/`

@@ -156,6 +156,77 @@ export interface Builder {
   finish(options: FinishOptions): BuildingModel;
 }
 
+type Edge = { readonly start: number; readonly end: number; readonly x: number; readonly y: number; readonly z: number };
+
+/**
+ * Appends to `out` the line segments three's EdgesGeometry (r186) makes from non-indexed
+ * triangle `positions` at `thresholdAngle` degrees: the same segments, in the same order, with
+ * the same values. It finds shared vertices and edges by number where three builds a string
+ * for every vertex and edge, which cost most of a model's finishing time.
+ */
+export function silhouetteEdges(positions: ArrayLike<number>, thresholdAngle: number, out: number[]): void {
+  // As three: vertices meet when their coordinates round to the same ten-thousandth.
+  const precision = Math.pow(10, 4);
+  const thresholdDot = Math.cos(deg * thresholdAngle);
+  const count = positions.length / 3;
+  // Rounded x, then y, then z, to the vertex's number; an edge's key is its two numbers, which
+  // stays exact while count squared is below 2^53.
+  const vertices = new Map<number, Map<number, Map<number, number>>>();
+  let next = 0;
+  const vertex = (index: number) => {
+    const x = Math.round(positions[index * 3]! * precision), y = Math.round(positions[index * 3 + 1]! * precision), z = Math.round(positions[index * 3 + 2]! * precision);
+    let ys = vertices.get(x);
+    if (!ys) vertices.set(x, ys = new Map());
+    let zs = ys.get(y);
+    if (!zs) ys.set(y, zs = new Map());
+    let id = zs.get(z);
+    if (id === undefined) zs.set(z, id = next++);
+    return id;
+  };
+  // Insertion order is three's: a key's first sighting, and a matched edge stays as null.
+  const edges = new Map<number, Edge | null>();
+  const corners = [0, 0, 0], ids = [0, 0, 0];
+  const push = (index: number) => out.push(positions[index * 3]!, positions[index * 3 + 1]!, positions[index * 3 + 2]!);
+  for (let i = 0; i < count; i += 3) {
+    corners[0] = i; corners[1] = i + 1; corners[2] = i + 2;
+    // Triangle.getNormal: (c - b) x (a - b), normalized, or zero.
+    const ax = positions[i * 3]!, ay = positions[i * 3 + 1]!, az = positions[i * 3 + 2]!;
+    const bx = positions[i * 3 + 3]!, by = positions[i * 3 + 4]!, bz = positions[i * 3 + 5]!;
+    const cx = positions[i * 3 + 6]!, cy = positions[i * 3 + 7]!, cz = positions[i * 3 + 8]!;
+    const tx = cx - bx, ty = cy - by, tz = cz - bz, ux = ax - bx, uy = ay - by, uz = az - bz;
+    let nx = ty * uz - tz * uy, ny = tz * ux - tx * uz, nz = tx * uy - ty * ux;
+    const lengthSq = nx * nx + ny * ny + nz * nz;
+    if (lengthSq > 0) {
+      const scale = 1 / Math.sqrt(lengthSq);
+      nx *= scale; ny *= scale; nz *= scale;
+    } else nx = ny = nz = 0;
+    ids[0] = vertex(i); ids[1] = vertex(i + 1); ids[2] = vertex(i + 2);
+    // Degenerate triangles add no edges.
+    if (ids[0] === ids[1] || ids[1] === ids[2] || ids[2] === ids[0]) continue;
+    for (let j = 0; j < 3; j += 1) {
+      const k = (j + 1) % 3;
+      const key = ids[j]! * count + ids[k]!, reverse = ids[k]! * count + ids[j]!;
+      const sibling = edges.get(reverse);
+      if (sibling) {
+        // A shared edge shows where its two faces turn by more than the threshold.
+        if (nx * sibling.x + ny * sibling.y + nz * sibling.z <= thresholdDot) {
+          push(corners[j]!);
+          push(corners[k]!);
+        }
+        edges.set(reverse, null);
+      } else if (!edges.has(key)) {
+        edges.set(key, { start: corners[j]!, end: corners[k]!, x: nx, y: ny, z: nz });
+      }
+    }
+  }
+  // Edges with no partner are the open boundary, and always show.
+  for (const edge of edges.values()) {
+    if (!edge) continue;
+    push(edge.start);
+    push(edge.end);
+  }
+}
+
 // A model under construction: toon materials, batched geometry, and the standard model
 // API once finished. Solids are closed by default. A caller may omit only faces another
 // surface covers, by name, and each omission is kept in building.userData.omitted so a
@@ -385,7 +456,8 @@ export function createBuilder(name: string, buildingId: string, { gradient = [70
       building.add(mesh);
       return [data, mesh] as const;
     }));
-    const lines = outlines.flatMap((data) => [...new THREE.EdgesGeometry(meshes.get(data)!.geometry, threshold).getAttribute("position").array]);
+    const lines: number[] = [];
+    for (const data of outlines) silhouetteEdges(meshes.get(data)!.geometry.getAttribute("position").array, threshold, lines);
     const edgeGeometry = new THREE.BufferGeometry();
     edgeGeometry.setAttribute("position", new THREE.Float32BufferAttribute(lines, 3));
     const edges = new THREE.LineSegments(edgeGeometry, new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity }));

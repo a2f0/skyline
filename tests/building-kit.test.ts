@@ -731,3 +731,62 @@ describe("One Prudential", () => {
     }
   });
 });
+
+// finish draws silhouettes with its own edge finder, which must give three's EdgesGeometry's
+// segments exactly: the same values, bit for bit, in the same order.
+describe("silhouette edges", () => {
+  const ours = (positions: Float32Array, threshold: number) => {
+    const out: number[] = [];
+    kit.silhouetteEdges(positions, threshold, out);
+    return new Float32Array(out);
+  };
+  const threes = (positions: Float32Array, threshold: number) => {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    return new THREE.EdgesGeometry(geometry, threshold).getAttribute("position").array as Float32Array;
+  };
+  const expectSame = (positions: Float32Array, threshold: number, label: string) => {
+    const [actual, expected] = [ours(positions, threshold), threes(positions, threshold)];
+    expect(actual.length, label).toBe(expected.length);
+    expect(Buffer.compare(Buffer.from(actual.buffer), Buffer.from(expected.buffer)), label).toBe(0);
+  };
+
+  // At the threshold the models outline with; the lattice below covers others.
+  test("matches three on every mesh of every geographic model", () => {
+    let segments = 0;
+    for (const record of geographicBuildings) {
+      createGeographicBuilding(record).building.traverse((object) => {
+        if (!(object instanceof THREE.Mesh)) return;
+        const positions = object.geometry.getAttribute("position").array as Float32Array;
+        const [actual, expected] = [ours(positions, 20), threes(positions, 20)];
+        expect(Buffer.compare(Buffer.from(actual.buffer), Buffer.from(expected.buffer)), `${record.shortName} ${object.name}`).toBe(0);
+        segments += actual.length / 6;
+      });
+    }
+    expect(segments).toBeGreaterThan(10_000);
+  }, { timeout: 120_000 });
+
+  test("matches three on shared, open, repeated, degenerate and nearly coincident edges", () => {
+    // Triangles on a small lattice share many vertices and edges, in both windings and more
+    // than twice; some are degenerate, and some corners sit within or just beyond the
+    // ten-thousandth three rounds to, or at -0.
+    let seed = 7;
+    const random = () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
+    const jitter = [0, 0, -0, 0.00004, -0.00004, 0.00006, 0.5];
+    const values: number[] = [];
+    for (let i = 0; i < 3000; i += 1) {
+      for (let corner = 0; corner < 3; corner += 1) {
+        for (let axis = 0; axis < 3; axis += 1) values.push(Math.floor(random() * 4) + jitter[Math.floor(random() * jitter.length)]!);
+      }
+      if (i % 50 === 0) values.splice(values.length - 3, 3, ...values.slice(-9, -6));
+    }
+    const positions = new Float32Array(values);
+    for (const threshold of [0, 1, 20, 45, 90, 180]) expectSame(positions, threshold, `lattice at ${threshold}°`);
+    // A flat quad's diagonal, two faces at exactly the threshold, and a lone triangle.
+    const flat = new Float32Array([0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 5, 5, 5, 6, 5, 5, 5, 6, 5]);
+    for (const threshold of [0, 1e-9, 90]) expectSame(flat, threshold, `flat quad at ${threshold}°`);
+    const fold = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1]);
+    for (const threshold of [89.999, 90, 90.001]) expectSame(fold, threshold, `right-angle fold at ${threshold}°`);
+    expectSame(new Float32Array(0), 20, "no triangles");
+  });
+});
