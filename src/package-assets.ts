@@ -1,5 +1,6 @@
 import { cp, mkdir, readFile } from "node:fs/promises";
 import { bootHostStyle, bootHtml, bootTree, escapeHtml, PLACEHOLDER_ATTRIBUTE } from "./skyline-boot.js";
+import { assetsBase } from "./skyline-shell.js";
 
 /**
  * Copies the viewer's complete asset directory into a host application's static
@@ -47,10 +48,8 @@ interface ViewerModules { modules: string[]; engine: string | null }
  * mount a viewer within a few seconds of loading: the browser warns about preloads it never used.
  */
 export async function skylinePreloads(assetsUrl: string, { three = false }: SkylinePreloadOptions = {}): Promise<SkylinePreload[]> {
-  // The same URLs `mountSkyline` accepts: a path, or an HTTP(S) address, without a query or fragment.
-  const scheme = /^([a-z][a-z\d+.-]*):/i.exec(assetsUrl)?.[1]?.toLowerCase();
-  if (scheme !== undefined && scheme !== "http" && scheme !== "https") throw new TypeError("Skyline assets must be served over HTTP or HTTPS.");
-  if (/[?#]/.test(assetsUrl)) throw new TypeError("Skyline assetsUrl must be a directory URL without a query or fragment.");
+  // Checked by the shell's own rule, which `mountSkyline` applies, against a stand-in page address.
+  assetsBase({ baseURI: "https://host.invalid/" } as Document, assetsUrl);
   const base = assetsUrl.endsWith("/") ? assetsUrl : `${assetsUrl}/`;
   const { modules, engine } = JSON.parse(await readFile(new URL("../site/viewer-modules.json", import.meta.url), "utf8")) as ViewerModules;
   const module = (file: string): SkylinePreload => ({ rel: "modulepreload", href: base + file });

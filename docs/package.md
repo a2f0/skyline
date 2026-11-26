@@ -309,9 +309,10 @@ mountSkyline(container, {
 });
 ```
 
-`placeholder` takes the element `skylineBootMarkup` returned, or one holding it. The viewer
-paints its own silhouette in the same place, starts its animation where the placeholder's had
-reached, and removes the placeholder, all in the same task, so nothing visibly changes. With
+`placeholder` takes the element `skylineBootMarkup` returned, or one holding it; one that holds
+the container is refused with a `TypeError`. The viewer paints its own silhouette in the same
+place, starts its animation where the placeholder's had reached, and removes the placeholder,
+all in the same task, so nothing visibly changes. With
 `controls: "open"` it just removes the placeholder: an open bar's height depends on the
 viewer's layout, so the scene's own outline shows once its markup arrives. A browser without
 declarative shadow roots shows the placeholder's backdrop alone until the viewer mounts.

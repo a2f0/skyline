@@ -767,6 +767,7 @@ if (mode === 'reject-destroyed') {
       .toEqual(preloads.filter(({ href }) => href !== `/skyline/${list.engine}`).map(({ href }) => href.replace("/skyline/", "https://example.com/skyline/")));
     await expect(assets.skylinePreloads("/skyline/?v=2")).rejects.toThrow("without a query or fragment");
     await expect(assets.skylinePreloads("file:///srv/skyline/")).rejects.toThrow("over HTTP or HTTPS");
+    await expect(assets.skylinePreloads("/skyline/#top")).rejects.toThrow("without a query or fragment");
     const links = await assets.skylinePreloadLinks("/skyline/");
     expect(links.split("\n")).toHaveLength(preloads.length);
     expect(links.split("\n")[3]).toBe('<link rel="preload" href="/skyline/skyline-3d.html" as="fetch" crossorigin="anonymous">');
@@ -785,13 +786,16 @@ const frame = (root) => {
   return { box: [box.x, box.y, box.width, box.height], started: Object.fromEntries(root.querySelector('.skyline-boot').getAnimations({ subtree: true }).map((animation) => [animation.animationName, animation.startTime])) };
 };
 window.mountNow = () => {
+  // A placeholder that holds the container is refused before anything mounts.
+  let holding = false;
+  try { mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', placeholder: document.body }); } catch (error) { holding = error instanceof TypeError && /must not hold the container/.test(error.message) && !document.querySelector('#host').childElementCount; }
   const painted = document.querySelector('#placeholder [data-skyline-boot]');
   const placeholder = frame(painted.shadowRoot);
   // The wrapper the host placed, the element skylineBootMarkup made, or an unrelated element.
   const handed = query.get('pass') === 'element' ? painted : query.get('pass') === 'other' ? document.querySelector('#other') : document.querySelector('#placeholder');
   const skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', theme, controls: query.get('controls') === 'open' ? 'open' : 'closed', placeholder: handed });
   skyline.ready.then(() => { window.settled = 'ready'; }, (error) => { window.settled = 'rejected: ' + error.message; });
-  return { placeholder, shell: frame(skyline.element.shadowRoot), handedRemoved: !handed.isConnected, paintedRemoved: !painted.isConnected };
+  return { placeholder, shell: frame(skyline.element.shadowRoot), holdingRejected: holding, handedRemoved: !handed.isConnected, paintedRemoved: !painted.isConnected };
 };
 `);
     const bundle = await Bun.build({ entrypoints: [path.join(consumer, "boot-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true });
@@ -824,7 +828,8 @@ window.mountNow = () => {
           // Mounting puts the shell's silhouette in the same place, at the same point of its
           // animation, and removes the placeholder, all in one task.
           type Frame = { box: number[]; started: Record<string, number> };
-          const swap = await page.evaluate(() => (window as unknown as { mountNow(): { placeholder: Frame; shell: Frame | null; handedRemoved: boolean; paintedRemoved: boolean } }).mountNow());
+          const swap = await page.evaluate(() => (window as unknown as { mountNow(): { placeholder: Frame; shell: Frame | null; holdingRejected: boolean; handedRemoved: boolean; paintedRemoved: boolean } }).mountNow());
+          expect(swap.holdingRejected, label).toBe(true);
           expect(swap.handedRemoved, label).toBe(true);
           // An element holding no silhouette is removed all the same, and the shell's starts afresh.
           expect(swap.paintedRemoved, label).toBe(pass !== "other");
