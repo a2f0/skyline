@@ -236,8 +236,9 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
     const bundle = await Bun.build({ entrypoints: [path.join(consumer, "browser.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true });
     expect(bundle.success).toBe(true);
     expect(bundle.outputs).toHaveLength(1);
-    // The loader holds the shell and the module preloading; the scene's code stays in the assets.
-    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(4608);
+    // The loader holds the shell, the module preloading and the loading silhouette, which it
+    // paints before any asset arrives; the scene's code stays in the assets.
+    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(9216);
     // A host page whose styles would reach a viewer they could: rules for every element and
     // its buttons, a right-to-left direction, inherited type and colour, and a custom
     // property the viewer uses. The viewer's own class names appear in the host too, where
@@ -496,7 +497,8 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
             await page.route(`**/${stage}`, async (route) => { await held; await route.continue().catch(() => {}); });
             if (stage.endsWith(".js")) {
               await page.reload();
-              await page.locator(".skyline-trace").waitFor();
+              // The scene's markup has arrived; its own outline stays hidden behind the shell's.
+              await page.locator(".skyline-trace").waitFor({ state: "attached" });
             } else {
               await mount(page);
             }
@@ -529,7 +531,9 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
           }
 
           // A cold light boot stays light at every asynchronous boundary, including
-          // before styles arrive and while only the loading outline is visible.
+          // before styles arrive and while only the loading outline is visible. The shell's
+          // silhouette shows from the mount, before any asset, in one place throughout.
+          let silhouette: { x: number; y: number; width: number; height: number } | undefined;
           for (const stage of ["viewer.css", "skyline-viewer.js", "skyline-3d.html", "skyline-3d.js"]) {
             let release!: () => void;
             const held = new Promise<void>((resolve) => { release = resolve; });
@@ -541,6 +545,14 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
               expect(await host.evaluate((node) => [getComputedStyle(node).backgroundColor, getComputedStyle(node).colorScheme]))
                 .toEqual(["rgb(245, 245, 245)", "light"]);
               expect(await host.getAttribute("aria-busy")).toBe("true");
+              const boot = page.locator(".skyline-boot-line");
+              expect(await boot.isVisible(), `the silhouette shows while ${stage} loads`).toBe(true);
+              expect(await boot.evaluate((node) => getComputedStyle(node).stroke)).toBe("rgb(85, 85, 85)");
+              expect(await page.locator(".skyline-boot-curtain").evaluate((node) => getComputedStyle(node).animationName))
+                .toBe(viewport.width < 600 ? "none" : "skyline-boot-sweep");
+              const box = (await boot.boundingBox())!;
+              silhouette ??= box;
+              expect(box, `the silhouette stays put while ${stage} loads`).toEqual(silhouette);
               if (stage.startsWith("skyline-3d")) {
                 await page.locator(".skyline-viewer").waitFor();
                 expect(await page.locator(".skyline-viewer").evaluate((node) => getComputedStyle(node).backgroundColor)).toBe("rgb(245, 245, 245)");
@@ -548,13 +560,15 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
                 expect(await page.locator("#embedded-original").isHidden(), `show original waits while ${stage} loads`).toBe(true);
               }
               if (stage === "skyline-3d.js") {
-                await page.locator(".skyline-trace").waitFor();
-                expect(await page.locator(".skyline-trace").evaluate((node) => getComputedStyle(node).stroke)).toBe("rgb(85, 85, 85)");
-                expect(await page.locator(".skyline-trace-line").evaluate((node) => getComputedStyle(node).animationName))
-                  .toBe(viewport.width < 600 ? "none" : "skyline-trace");
+                // The markup's own outline arrives hidden: one silhouette shows.
+                await page.locator(".skyline-trace").waitFor({ state: "attached" });
+                expect(await page.locator(".skyline-trace").evaluate((node) => getComputedStyle(node).visibility)).toBe("hidden");
+                expect(await page.locator(".skyline-boot").count()).toBe(1);
+                expect((await boot.boundingBox())!, "the silhouette stays put as the scene's markup arrives").toEqual(silhouette);
               }
             } finally { release(); await page.unroute(`**/${stage}`); }
             expect(await settled(page)).toBe("ready");
+            expect(await page.locator(".skyline-boot").count(), "the silhouette leaves at the first frame").toBe(0);
             expect(await page.locator("#colour").getAttribute("aria-pressed")).toBe("true");
             expect(await page.locator("#embedded-original").isHidden(), "the working scene provides its own original control").toBe(true);
           }
@@ -721,6 +735,96 @@ if (mode === 'reject-destroyed') {
           expect(warnings.filter(isThreeDeprecation), mode).toEqual([]);
           expect(errors, mode).toEqual([]);
         } finally { await page.close(); }
+      }
+    } finally {
+      try { await closeChrome(browser); }
+      finally { await server.close(); }
+    }
+  }, { timeout: 180_000 });
+
+  test("gives a host's page preloads the viewer reuses, and a silhouette it continues in step", async () => {
+    const publicDirectory = path.join(consumer, "public-boot");
+    await mkdir(publicDirectory, { recursive: true });
+    const assets = await import(pathToFileURL(path.join(installed, "lib/package-assets.js")).href) as typeof import("../src/package-assets.js");
+    await assets.copySkylineAssets(path.join(publicDirectory, "skyline"));
+    const list = JSON.parse(await readFile(path.join(publicDirectory, "skyline/viewer-modules.json"), "utf8")) as { modules: string[]; engine: string };
+    // The shell's chain first, each link in the mode its request takes, then the modules the
+    // list names, the engine unless the page shares its own, and the stars, which can wait.
+    const preloads = await assets.skylinePreloads("/skyline");
+    expect(preloads.slice(0, 5)).toEqual([
+      { rel: "modulepreload" as const, href: "/skyline/skyline-viewer.js" },
+      { rel: "preload", href: "/skyline/study.css", as: "style" },
+      { rel: "preload", href: "/skyline/viewer.css", as: "style" },
+      { rel: "preload", href: "/skyline/skyline-3d.html", as: "fetch", crossorigin: "anonymous" },
+      { rel: "preload", href: "/skyline/viewer-modules.json", as: "fetch", crossorigin: "anonymous" },
+    ]);
+    expect(preloads.slice(5)).toEqual([
+      ...[...list.modules, list.engine].map((file) => ({ rel: "modulepreload" as const, href: `/skyline/${file}` })),
+      { rel: "preload", href: "/skyline/stars.svg", as: "fetch", crossorigin: "anonymous", fetchpriority: "low" },
+    ]);
+    expect((await assets.skylinePreloads("https://example.com/skyline/", { three: true })).map(({ href }) => href))
+      .toEqual(preloads.filter(({ href }) => href !== `/skyline/${list.engine}`).map(({ href }) => href.replace("/skyline/", "https://example.com/skyline/")));
+    await expect(assets.skylinePreloads("/skyline/?v=2")).rejects.toThrow("without a query or fragment");
+    const links = await assets.skylinePreloadLinks("/skyline/");
+    expect(links.split("\n")).toHaveLength(preloads.length);
+    expect(links.split("\n")[3]).toBe('<link rel="preload" href="/skyline/skyline-3d.html" as="fetch" crossorigin="anonymous">');
+    expect(assets.skylineBootMarkup()).toStartWith('<div data-skyline-boot aria-hidden="true" style="all:initial;');
+    expect(assets.skylineBootMarkup({ theme: "light" })).toContain('<template shadowrootmode="open"><div class="skyline-boot" data-theme="light"');
+    expect(() => assets.skylineBootMarkup({ theme: "auto" as "light" })).toThrow('Skyline theme must be "light" or "dark".');
+
+    await writeFile(path.join(consumer, "boot-host.ts"), `
+import { mountSkyline } from '@a2f0/skyline';
+const theme = new URLSearchParams(location.search).get('theme') === 'light' ? 'light' : 'dark';
+const frame = (root) => {
+  const node = root.querySelector('.skyline-boot-frame'), box = node.getBoundingClientRect();
+  return { box: [box.x, box.y, box.width, box.height], started: Object.fromEntries(root.querySelector('.skyline-boot').getAnimations({ subtree: true }).map((animation) => [animation.animationName, animation.startTime])) };
+};
+window.mountNow = () => {
+  const placeholder = frame(document.querySelector('#placeholder [data-skyline-boot]').shadowRoot);
+  const skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', theme, placeholder: document.querySelector('#placeholder') });
+  skyline.ready.then(() => { window.settled = 'ready'; }, (error) => { window.settled = 'rejected: ' + error.message; });
+  return { placeholder, shell: frame(skyline.element.shadowRoot), removed: !document.querySelector('#placeholder') };
+};
+`);
+    const bundle = await Bun.build({ entrypoints: [path.join(consumer, "boot-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true });
+    expect(bundle.success).toBe(true);
+    const server = await startServer(publicDirectory);
+    let browser: Browser | undefined;
+    try {
+      browser = await launchChrome();
+      for (const theme of ["dark", "light"] as const) {
+        await writeFile(path.join(publicDirectory, `${theme}.html`), `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0}#placeholder,#host{position:fixed;inset:0}</style>${links}</head><body><div id="placeholder">${assets.skylineBootMarkup({ theme })}</div><div id="host"></div><script type="module" src="boot-host.js"></script></body></html>`);
+        const page = await browser.newPage({ viewport: theme === "dark" ? { width: 390, height: 844 } : { width: 1440, height: 900 } });
+        const errors: string[] = [], warnings: string[] = [], requested: string[] = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        page.on("console", (message) => { if (message.type() === "warning" || message.type() === "error") warnings.push(message.text()); });
+        page.on("request", (request) => requested.push(new URL(request.url()).pathname));
+        try {
+          await page.goto(`${server.origin}/${theme}.html?theme=${theme}`);
+          // The page paints the silhouette before its code runs, styled and animated without it.
+          const painted = page.locator("#placeholder .skyline-boot-line");
+          expect(await painted.isVisible()).toBe(true);
+          expect(await painted.evaluate((node) => getComputedStyle(node).stroke)).toBe(theme === "light" ? "rgb(85, 85, 85)" : "rgb(221, 221, 221)");
+          expect(await page.locator("#placeholder > [data-skyline-boot]").evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(theme === "light" ? "rgb(245, 245, 245)" : "rgb(0, 0, 0)");
+          await page.waitForTimeout(700);
+          // Mounting puts the shell's silhouette in the same place, at the same point of its
+          // animation, and removes the placeholder, all in one task.
+          const swap = await page.evaluate(() => (window as unknown as { mountNow(): { placeholder: { box: number[]; started: Record<string, number> }; shell: { box: number[]; started: Record<string, number> }; removed: boolean } }).mountNow());
+          expect(swap.removed).toBe(true);
+          expect(swap.shell.box).toEqual(swap.placeholder.box);
+          expect(Object.keys(swap.placeholder.started).sort()).toEqual(["skyline-boot-fade", "skyline-boot-sweep"]);
+          expect(swap.shell.started).toEqual(swap.placeholder.started);
+          await page.waitForFunction(() => (window as unknown as { settled?: string }).settled, null, { timeout: 60_000 });
+          expect(await page.evaluate(() => (window as unknown as { settled: string }).settled)).toBe("ready");
+          // Every preloaded file was used, by the request the viewer made for it, not fetched
+          // again: the browser warns of a preload unused a few seconds after the page's load.
+          await page.waitForTimeout(4000);
+          for (const { href } of preloads) expect(requested.filter((file) => file === href), href).toHaveLength(1);
+          expect(warnings.filter((text) => /preload/i.test(text))).toEqual([]);
+          expect(errors).toEqual([]);
+        } finally {
+          await page.close();
+        }
       }
     } finally {
       try { await closeChrome(browser); }

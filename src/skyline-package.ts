@@ -38,6 +38,15 @@ export interface SkylineOptions {
    * assets' copy, which needs no `three` dependency.
    */
   readonly three?: SkylineThree | PromiseLike<SkylineThree>;
+  /**
+   * The loading silhouette the host painted in its HTML before its code ran, from
+   * `skylineBootMarkup` in `@a2f0/skyline/build`, or an element holding it, placed and sized
+   * like `container`. The viewer paints its own silhouette over the same place, continues the
+   * animation where the placeholder reached, and removes the placeholder, all before the
+   * browser next paints. For the default folded control bar: with `controls: "open"`, it is
+   * removed and the scene's own outline shows once its markup arrives.
+   */
+  readonly placeholder?: Element | null;
 }
 
 /**
@@ -46,8 +55,8 @@ export interface SkylineOptions {
  * size and placement: give it an explicit height. Call `destroy` when the hosting component
  * leaves.
  */
-export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", controls = "closed", colour = false, theme, attribution = true, three }: SkylineOptions): SkylineInstance {
+export function mountSkyline(container: HTMLElement, { assetsUrl, title = "Interactive Chicago skyline", controls = "closed", colour = false, theme, attribution = true, three, placeholder }: SkylineOptions): SkylineInstance {
   if (controls !== "open" && controls !== "closed") throw new TypeError('Skyline controls must be "open" or "closed".');
   if (typeof colour !== "boolean") throw new TypeError("Skyline colour must be a boolean.");
-  return mountViewer(container, { assetsUrl, title, controls, colour, theme, attribution, navigation: false, page: false, three });
+  return mountViewer(container, { assetsUrl, title, controls, colour, theme, attribution, navigation: false, page: false, three, placeholder });
 }
