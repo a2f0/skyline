@@ -14,7 +14,10 @@ describe("full-screen 3D skyline", () => {
   const { watch, expectClean } = pageWatch();
 
   test("traces the loading elevation before the 3D code arrives, then removes it at the first frame", async () => {
-    for (const [width, height, reduced, light] of [[1440, 900, false, false], [390, 844, false, false], [390, 844, true, false], [844, 390, false, false], [1440, 900, false, true], [390, 844, true, true]] as const) {
+    // With the bar folded, as in a host's page, the shell's silhouette (skyline-boot.ts) shows
+    // from the mount and the scene markup's own outline stays hidden. With the bar open, whose
+    // height only the markup knows, the markup's outline shows instead, as on skyline-3d.html.
+    for (const [width, height, reduced, light, open] of [[1440, 900, false, false, false], [390, 844, false, false, false], [390, 844, true, false, false], [844, 390, false, false, false], [1440, 900, false, true, false], [390, 844, true, true, false], [1440, 900, false, false, true], [390, 844, true, true, true]] as const) {
       const page = await browser.newPage({
         viewport: { width, height },
         reducedMotion: reduced ? "reduce" : "no-preference",
@@ -24,15 +27,19 @@ describe("full-screen 3D skyline", () => {
       const held = new Promise<void>((resolve) => { release = resolve; });
       await page.route("**/skyline-3d.js", async (route) => { await held; await route.continue(); });
       try {
-        await page.goto(`${origin}/?controls=closed${light ? "&colour=1" : ""}`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${origin}/?controls=${open ? "open" : "closed"}${light ? "&colour=1" : ""}`, { waitUntil: "domcontentloaded" });
         const scene = page;
-        const trace = scene.locator(".skyline-trace");
+        // The scene's markup has arrived when its loading status has.
+        await scene.locator("#loading").waitFor({ state: "attached" });
+        const trace = scene.locator(open ? ".skyline-trace" : ".skyline-boot-line");
         await trace.waitFor({ state: "visible" });
         expect(await page.locator("html").evaluate((node) => getComputedStyle(node).backgroundColor))
           .toBe(light ? "rgb(245, 245, 245)" : "rgb(0, 0, 0)");
         expect(await page.locator('meta[name="theme-color"]').getAttribute("content")).toBe(light ? "#f5f5f5" : "#000000");
         expect(await trace.evaluate((node) => getComputedStyle(node).stroke)).toBe(light ? "rgb(85, 85, 85)" : "rgb(221, 221, 221)");
         expect(await scene.locator("#loading").textContent()).toContain("Preparing the skyline");
+        // One outline at a time.
+        expect(await scene.locator(open ? ".skyline-boot" : ".skyline-trace").evaluateAll((nodes) => nodes.filter((node) => node.checkVisibility({ visibilityProperty: true })).length)).toBe(0);
         expect(await scene.locator(".control-bar").evaluate((bar) => getComputedStyle(bar).backgroundColor)).toBe(light ? "rgb(245, 245, 245)" : "rgb(8, 8, 8)");
         expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
         expect(await scene.evaluate(() => window.__buildingStudy?.ready)).toBeUndefined();
@@ -40,52 +47,80 @@ describe("full-screen 3D skyline", () => {
         expect(await page.locator("#toggle-skyline").isHidden()).toBe(true);
         expect(await page.locator("#link-webgl").isVisible()).toBe(true);
         const bounds = (await trace.boundingBox())!;
-        expect(bounds.width).toBeCloseTo(Math.min(720, width - 48) / 3, 1);
+        // The silhouette is sized to be seen on a phone, without crowding a landscape one.
+        expect(bounds.width).toBeCloseTo(open ? Math.min(720, width - 48) / 3 : Math.min(480, 0.8 * width, 0.3 * height * 1000 / 379.13), 0);
         expect(bounds.x).toBeGreaterThanOrEqual(0);
         expect(bounds.x + bounds.width).toBeLessThanOrEqual(page.viewportSize()!.width);
-        const ground = await scene.evaluate(() => {
+        const ground = await scene.evaluate((open) => {
           const root = window.__viewerRoot!;
-          const svg = root.querySelector<SVGSVGElement>(".skyline-trace")!;
-          const outline = root.querySelector<SVGPathElement>("#skyline-loading-outline")!;
+          const svg = root.querySelector<SVGSVGElement>(open ? ".skyline-trace" : ".skyline-boot-line")!;
+          const outline = svg.querySelector<SVGPathElement>("path") ?? root.querySelector<SVGPathElement>("#skyline-loading-outline")!;
           const baseline = outline.getPointAtLength(outline.getTotalLength()).matrixTransform(svg.getScreenCTM()!).y;
           return { baseline, toolbar: root.querySelector(".control-bar")!.getBoundingClientRect().top };
-        });
+        }, open);
         expect(ground.baseline, "the traced ground line touches the toolbar").toBeCloseTo(ground.toolbar, 1);
-        const line = scene.locator(".skyline-trace-line");
-        if (reduced) {
-          expect(await line.evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
-          expect(await line.evaluate((element) => getComputedStyle(element).strokeDasharray)).toBe("none");
-          expect(await scene.locator(".skyline-trace-tip").isHidden()).toBe(true);
+        if (open) {
+          const line = scene.locator(".skyline-trace-line");
+          if (reduced) {
+            expect(await line.evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
+            expect(await line.evaluate((element) => getComputedStyle(element).strokeDasharray)).toBe("none");
+            expect(await scene.locator(".skyline-trace-tip").isHidden()).toBe(true);
+          } else {
+            const offsets = await line.evaluate((element) => {
+              const animation = element.getAnimations()[0]!;
+              animation.pause();
+              animation.currentTime = 0;
+              const start = parseFloat(getComputedStyle(element).strokeDashoffset);
+              animation.currentTime = 2000;
+              const middle = parseFloat(getComputedStyle(element).strokeDashoffset);
+              animation.currentTime = 3200;
+              return [start, middle, parseFloat(getComputedStyle(element).strokeDashoffset)];
+            });
+            expect(offsets[0]).toBe(1);
+            expect(offsets[1]).toBeGreaterThan(0);
+            expect(offsets[1]).toBeLessThan(1);
+            expect(offsets[2]).toBe(0);
+          }
         } else {
-          const offsets = await line.evaluate((element) => {
-            const animation = element.getAnimations()[0]!;
-            animation.pause();
-            animation.currentTime = 0;
-            const start = parseFloat(getComputedStyle(element).strokeDashoffset);
-            animation.currentTime = 2000;
-            const middle = parseFloat(getComputedStyle(element).strokeDashoffset);
-            animation.currentTime = 3200;
-            return [start, middle, parseFloat(getComputedStyle(element).strokeDashoffset)];
-          });
-          expect(offsets[0]).toBe(1);
-          expect(offsets[1]).toBeGreaterThan(0);
-          expect(offsets[1]).toBeLessThan(1);
-          expect(offsets[2]).toBe(0);
+          const curtain = scene.locator(".skyline-boot-curtain");
+          if (reduced) {
+            expect(await curtain.isHidden()).toBe(true);
+            expect(await scene.locator(".skyline-boot-frame").evaluate((frame) => [getComputedStyle(frame).animationName, getComputedStyle(frame).opacity])).toEqual(["none", "0.65"]);
+          } else {
+            // The curtain slides off the outline, left to right, then holds while it fades.
+            const offsets = await curtain.evaluate((element) => {
+              const animation = element.getAnimations()[0]!;
+              animation.pause();
+              const at = (time: number) => {
+                animation.currentTime = time;
+                return new DOMMatrix(getComputedStyle(element).transform).m41;
+              };
+              return [at(0), at(2000), at(3120), at(3900), element.getBoundingClientRect().width];
+            });
+            expect(offsets[0]).toBe(-24);
+            expect(offsets[1]).toBeGreaterThan(0);
+            expect(offsets[1]).toBeLessThan(offsets[4]!);
+            expect(offsets[2]).toBeCloseTo(offsets[4]!, 0);
+            expect(offsets[3]).toBeCloseTo(offsets[4]!, 0);
+          }
         }
         release();
         await scene.waitForFunction(() => window.__buildingStudy?.ready, null, { timeout: 60_000 });
         expect(await scene.locator("#loading").isHidden()).toBe(true);
+        expect(await scene.locator(".skyline-boot").isHidden()).toBe(true);
         expect(await page.locator("#toggle-skyline").isVisible()).toBe(true);
         expect(await scene.locator(".control-bar").evaluate((bar) => getComputedStyle(bar).backgroundColor)).toBe(light ? "rgb(245, 245, 245)" : "rgb(8, 8, 8)");
-        expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
-        await scene.locator("#menu-toggle").click();
+        if (!open) {
+          expect(await scene.locator(".scene-notes").isHidden()).toBe(true);
+          await scene.locator("#menu-toggle").click();
+        }
         expect(await scene.locator(".scene-notes").isVisible()).toBe(true);
       } finally {
         release();
         await page.close();
       }
     }
-  }, { timeout: 120_000 });
+  }, { timeout: 180_000 });
 
   test("replaces the trace with a readable error when the scene cannot load", async () => {
     const page = await browser.newPage();

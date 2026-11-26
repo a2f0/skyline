@@ -55,13 +55,34 @@ function assertNever(value: never): never {
 
 const SCENE_FAILURE = "The 3D preview could not load. Check that WebGL 2 is enabled, then reload. You can still compare the SVG or return to the skyline.";
 
+/**
+ * Resolves once the browser has painted, or after a moment in a hidden page, which paints
+ * nothing, or at once when `signal` aborts, releasing its timers and frame callback.
+ */
+function afterPaint(signal: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    let timer = setTimeout(done, 100);
+    const frame = requestAnimationFrame(() => {
+      clearTimeout(timer);
+      timer = setTimeout(done, 0);
+    });
+    signal.addEventListener("abort", done, { once: true });
+    function done() {
+      clearTimeout(timer);
+      cancelAnimationFrame(frame);
+      signal.removeEventListener("abort", done);
+      resolve();
+    }
+  });
+}
+
 function element<K extends keyof HTMLElementTagNameMap>(document: Document, tag: K, properties: Partial<HTMLElementTagNameMap[K]> = {}, attributes: Record<string, string> = {}): HTMLElementTagNameMap[K] {
   const created = Object.assign(document.createElement(tag), properties);
   for (const [name, value] of Object.entries(attributes)) created.setAttribute(name, value);
   return created;
 }
 
-export function mount(root: ShadowRoot, { assets, signal, controls, colour, theme, attribution, navigation, page, three }: ViewerContext): Promise<void> {
+export function mount(root: ShadowRoot, { assets, signal, controls, colour, theme, attribution, navigation, page, three, boot }: ViewerContext): Promise<void> {
   const document = root.ownerDocument;
   const host = root.host as HTMLElement;
   const listening = { signal };
@@ -94,6 +115,10 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
 
   function updateView() {
     viewer.toggleAttribute("data-booting", sceneStatus !== "ready" && mode === "3d");
+    // The shell's silhouette shows while the scene boots in view, and leaves at its first
+    // frame, or once it fails or loses its graphics context: a function of the scene's state
+    // and the mode alone. The shell removes it once `ready` settles.
+    if (boot) boot.hidden = sceneStatus !== "booting" || mode !== "3d";
     scene.hidden = mode !== "3d";
     if (mode === "original" && !drawing.getAttribute("src")) drawing.src = new URL("skyline-original-fit.svg", assets).href;
     drawing.hidden = mode !== "original";
@@ -194,6 +219,9 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
     // The scene's markup, set as its options ask before its first frame: the bar open, with
     // no fold, and the credit left out, as skyline-3d.html's own script does for its address.
     for (const child of markup.body.children) scene.append(document.importNode(child, true));
+    // The shell's silhouette is already in place; the markup's own outline stays, invisible,
+    // for the rules that keep the scene's notes clear of it.
+    if (boot) scene.querySelector<SVGElement>("#loading .skyline-trace")?.style.setProperty("visibility", "hidden");
     if (controls === "open") {
       const toggle = scene.querySelector<HTMLButtonElement>("#menu-toggle")!;
       toggle.setAttribute("aria-expanded", "true");
@@ -207,6 +235,9 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
     signal.addEventListener("abort", () => sceneLife.abort(signal.reason), { once: true });
     try {
       const { startSkyline3d } = await sceneCode;
+      // The scene builds its first frame in one long task. Without the shell's silhouette,
+      // whose animation runs off the main thread, let the markup's outline paint first.
+      if (!boot) await afterPaint(signal);
       if (signal.aborted) return new Promise(() => {});
       await new Promise<void>((resolve) => {
         startSkyline3d({

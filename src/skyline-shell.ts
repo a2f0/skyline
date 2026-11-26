@@ -7,6 +7,7 @@
 // The viewer module (skyline-viewer.ts, served as skyline-viewer.js) renders only inside the
 // root it is given, resolves every URL from `ViewerContext.assets`, and releases what it holds
 // when `ViewerContext.signal` aborts.
+import { bootHostStyle, createBoot, PLACEHOLDER_ATTRIBUTE } from "./skyline-boot.js";
 import type { SkylineThree } from "./three-engine.js";
 
 /** What the viewer module is told when it mounts. */
@@ -36,6 +37,13 @@ export interface ViewerContext {
   readonly page: boolean;
   /** The host's Three.js, for the scene to share (three-engine.ts). */
   readonly three?: SkylineThree | PromiseLike<SkylineThree> | undefined;
+  /**
+   * The loading silhouette the shell painted at mount (skyline-boot.ts), with a folded bar: the
+   * viewer hides it whenever the scene isn't booting in view, and hides the scene markup's own
+   * outline, so one silhouette shows throughout. Absent with an open bar, whose height only the
+   * scene's markup knows: the markup's outline then shows, as on skyline-3d.html.
+   */
+  readonly boot?: HTMLElement | undefined;
 }
 
 /** What the viewer module exports. */
@@ -71,8 +79,13 @@ export interface SkylineInstance {
   destroy(): void;
 }
 
-export interface ViewerOptions extends Omit<ViewerContext, "assets" | "signal" | "theme"> {
+export interface ViewerOptions extends Omit<ViewerContext, "assets" | "signal" | "theme" | "boot"> {
   readonly theme?: "light" | "dark" | undefined;
+  /**
+   * The host's own loading silhouette, painted from `skylineBootMarkup` before its code ran, or
+   * an element holding it: the viewer continues its animation in step and removes it.
+   */
+  readonly placeholder?: Element | null | undefined;
   /** The assets' directory; relative URLs resolve against the container's document. */
   readonly assetsUrl: string | URL;
   /** The viewer's accessible name: `element` is a region with this label. */
@@ -130,12 +143,6 @@ function loaded(link: HTMLLinkElement): Promise<void> {
   });
 }
 
-// Set on the element itself, where it outranks the host page's rules: `all: initial` keeps
-// the host's rules for its elements (a `div` or `*` rule) off it, so nothing they set is
-// inherited into the viewer, `direction` (which `all` leaves) keeps a right-to-left page from
-// mirroring the viewer's layout, and the rest sizes it to fill the container.
-const HOST_STYLE = "all:initial;direction:ltr;display:block;position:relative;isolation:isolate;width:100%;height:100%;overflow:hidden";
-
 // The failure message's own look, since the viewer's stylesheets may be what failed.
 const FAILURE_STYLE = "box-sizing:border-box;height:100%;margin:0;padding:24px;background:inherit;color:inherit;font:12px/1.5 ui-monospace,monospace";
 
@@ -149,21 +156,36 @@ function showFailure(root: ShadowRoot, error: unknown): void {
 }
 
 /**
+ * Starts the silhouette's animations where the host's placeholder has reached, so swapping one
+ * for the other shows no jump. Animations pair by name; any the placeholder lacks, as with
+ * reduced motion, start afresh.
+ */
+function continuePlaceholder(boot: HTMLElement, placeholder: Element): void {
+  const painted = placeholder.matches(`[${PLACEHOLDER_ATTRIBUTE}]`) ? placeholder : placeholder.querySelector(`[${PLACEHOLDER_ATTRIBUTE}]`);
+  const theirs = painted?.shadowRoot?.querySelector(".skyline-boot")?.getAnimations?.({ subtree: true }) ?? [];
+  // Only CSS animations have names; anything else a page animates is left alone.
+  const name = (animation: Animation) => (animation as Partial<CSSAnimation>).animationName || undefined;
+  for (const ours of boot.getAnimations?.({ subtree: true }) ?? []) {
+    const match = name(ours) && theirs.find((animation) => name(animation) === name(ours));
+    if (match && match.startTime != null) ours.startTime = match.startTime;
+  }
+}
+
+/**
  * Mounts the viewer in a new element appended to `container`, and returns at once: the
  * element is in place, and `ready` settles once the 3D skyline shows or can't start.
  */
-export function mountViewer(container: HTMLElement, { assetsUrl, title, ...options }: ViewerOptions): SkylineInstance {
+export function mountViewer(container: HTMLElement, { assetsUrl, title, placeholder, ...options }: ViewerOptions): SkylineInstance {
   const document = container.ownerDocument;
   const assets = assetsBase(document, assetsUrl);
   const theme = options.theme === undefined ? (options.colour ? "light" : "dark") : options.theme;
   if (theme !== "light" && theme !== "dark") throw new TypeError('Skyline theme must be "light" or "dark".');
+  // The placeholder is removed once the viewer is in place, which must not take the viewer with it.
+  if (placeholder != null && (placeholder as Partial<Node>).nodeType !== 1) throw new TypeError("Skyline placeholder must be an element.");
+  if (placeholder?.contains(container)) throw new TypeError("Skyline placeholder must not hold the container.");
   const element = document.createElement("div");
-  element.style.cssText = HOST_STYLE;
   // Paint before any assets arrive, including when a stylesheet fails to load.
-  // Keep the boot palette in sync with viewer.css and index.html.
-  element.style.colorScheme = theme;
-  element.style.backgroundColor = theme === "light" ? "#f5f5f5" : "#000";
-  element.style.color = theme === "light" ? "#444" : "#aaa";
+  element.style.cssText = bootHostStyle(theme);
   element.setAttribute("role", "region");
   element.setAttribute("aria-label", title);
   element.setAttribute("aria-busy", "true");
@@ -175,7 +197,16 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, ...optio
     return link;
   });
   root.append(...stylesheets);
+  // The loading silhouette, at once, with no network: it stands on the folded bar, which a bar
+  // that starts open would cover.
+  const silhouette = options.controls === "closed" ? createBoot(root, theme) : undefined;
+  const boot = silhouette?.element;
+  if (boot) root.append(boot);
   container.append(element);
+  if (placeholder) {
+    if (boot) continuePlaceholder(boot, placeholder);
+    placeholder.remove();
+  }
 
   // A host's engine that fails to load is the viewer's to report, once its scene asks for it
   // (three-engine.ts); until then, or if the instance never gets that far, its rejection is
@@ -183,7 +214,7 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, ...optio
   if (options.three) Promise.resolve(options.three).catch(() => {});
   const controller = new AbortController();
   let destroyed = false, mounted = false;
-  const context: ViewerContext = { ...options, theme, assets, signal: controller.signal };
+  const context: ViewerContext = { ...options, theme, assets, signal: controller.signal, boot };
   if (options.three) sharedEngines.add(assets.href);
   const preloads = preloadModules(document, assets, sharedEngines.has(assets.href), controller.signal);
   const dropPreloads = () => void preloads.then((links) => links.forEach((link) => link.remove()));
@@ -216,8 +247,10 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, ...optio
       );
   });
   // The element and the console report a failure, so a host that ignores `ready` sees no
-  // unhandled rejection.
-  ready.then(dropPreloads, dropPreloads);
+  // unhandled rejection. The viewer owns the silhouette's visibility while it boots; the
+  // shell owns its removal, which also covers a viewer from older assets that doesn't know it.
+  const settle = () => { dropPreloads(); silhouette?.remove(); };
+  ready.then(settle, settle);
 
   return {
     element,

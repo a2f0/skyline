@@ -48,6 +48,8 @@ const compiledEntries = [
   "click-tracking-page.ts",
   "viewer-page.ts",
   "skyline-shell.ts",
+  "skyline-boot.ts",
+  "skyline-boot-outline.ts",
   "skyline-viewer.ts",
   "markup.ts",
   "three-engine.ts",

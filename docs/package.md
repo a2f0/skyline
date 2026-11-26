@@ -122,7 +122,8 @@ files already there. Use a dedicated directory for these assets, and clear it be
 copying an upgrade, so files a new version dropped do not linger. All the viewer's
 code, CSS, markup, SVGs and models, and its vendored Three.js, travel together. Copy
 them again whenever you upgrade the package, so the loader you bundle and the viewer
-you serve match.
+you serve match: a loader newer than its viewer, for one, shows two loading silhouettes until
+the first frame.
 
 In `~/github/devopsrockstars`, `packages/frontend/tooling/build.ts` calls the helper
 when the `skyline3d` flag is on and serves the copy at `/static/skyline/`, the browser
@@ -255,8 +256,9 @@ the option out.
 
 ### How the viewer's code loads
 
-The package's module (`lib/`) is a small loader that a host bundles (under 4.5 KB). When
-it mounts, it imports the viewer's code from the assets (`skyline-viewer.js`) with a
+The package's module (`lib/`) is a small loader that a host bundles (about 8 KB, 3.5 KB
+compressed), most of it the loading silhouette, which it paints the moment it mounts, before
+any asset arrives. When it mounts, it imports the viewer's code from the assets (`skyline-viewer.js`) with a
 dynamic `import()` that carries `webpackIgnore`, `turbopackIgnore` and `@vite-ignore`
 comments, so webpack (including Next.js with `--webpack`), Turbopack and Vite leave it
 to the browser; Rollup, esbuild and Bun leave an import of a variable alone anyway. A
@@ -269,12 +271,65 @@ arrive together rather than one import at a time, the loader also reads
 to the document's head, leaving out the vendored engine when the host shares its own;
 the links leave the head once the viewer is ready, fails, or is destroyed.
 
+### Start loading with the page
+
+A host that mounts the viewer from its own code can start the viewer's downloads, and show its
+loading silhouette, before that code runs. Both helpers come from the Node/Bun build entrypoint,
+for a build step that writes the host's HTML:
+
+```ts
+import { skylineBootMarkup, skylinePreloadLinks } from '@a2f0/skyline/build';
+
+// In the <head> of each page that mounts the viewer as it loads:
+const head = await skylinePreloadLinks('/static/skyline/', { three: true });
+// In the <body>, in an element placed and sized exactly like the viewer's container:
+const placeholder = `<div id="skyline-placeholder" style="position:fixed;inset:0">${skylineBootMarkup({ theme: 'dark' })}</div>`;
+```
+
+- `skylinePreloads(assetsUrl, { three })` lists every file the viewer loads to draw its first
+  frame, and its stars, as `{ rel, href, as?, crossorigin?, fetchpriority? }` link attributes;
+  `skylinePreloadLinks` renders them as `<link>` elements. Pass the URL the viewer mounts with,
+  and `three: true` when the page passes `mountSkyline` its own Three.js, which leaves out the
+  engine copy in the assets. Each link matches how the viewer requests its file (module
+  preloads for its modules, a `style` preload for its stylesheets, anonymous-CORS `fetch`
+  preloads for the markup, module list and stars), so the browser hands the viewer the
+  preloaded response instead of fetching it again. Put them only on pages that mount a viewer
+  within a few seconds of loading: the browser warns about preloads it never used.
+- `skylineBootMarkup({ theme })` returns the loading silhouette as static HTML: an element that
+  fills its parent, with the silhouette, its styles and its animation in a declarative shadow
+  root, so it paints and moves before any script runs. Pass the same `theme` as to
+  `mountSkyline`. It matches the default folded control bar.
+
+Then mount over it, passing the placeholder:
+
+```ts
+mountSkyline(container, {
+  assetsUrl: '/static/skyline/',
+  three: import('@a2f0/skyline/three'),
+  placeholder: document.querySelector('#skyline-placeholder'),
+});
+```
+
+`placeholder` takes the element `skylineBootMarkup` returned, or one holding it; one that holds
+the container is refused with a `TypeError`. The viewer paints its own silhouette in the same
+place, starts its animation where the placeholder's had reached, and removes the placeholder,
+all in the same task, so nothing visibly changes. With
+`controls: "open"` it just removes the placeholder: an open bar's height depends on the
+viewer's layout, so the scene's own outline shows once its markup arrives. A browser without
+declarative shadow roots shows the placeholder's backdrop alone until the viewer mounts.
+
+The silhouette's animations change only transform and opacity, which browsers run off the main
+thread, so it keeps moving while the scene builds its first frame in one long task.
+
 ### Content security policy and other origins
 
 The viewer runs in the host's page, under the host's content security policy. A host
 with one must allow the assets' origin (usually `'self'`) in `script-src`,
 `style-src` and `connect-src` (the viewer fetches its markup, stars and module list), and inline
-styles in `style-src`, which the viewer sets on its elements. Serve the assets from
+styles in `style-src` (`'unsafe-inline'`): the viewer sets them on its elements, and its loading
+silhouette brings its own `<style>` element. The markup from `skylineBootMarkup` needs the same
+in the host's HTML, for its `style` attribute and the `<style>` in its template; under a policy
+that allows only nonced styles, the silhouette shows unstyled. Serve the assets from
 the host's origin when you can; on another origin, every file must allow the page's
 origin through CORS. The viewer's code runs with the host page's privileges wherever
 it is served from: serve it only from an origin you trust.
@@ -282,7 +337,9 @@ it is served from: serve it only from an origin you trust.
 ### For tests
 
 `element.shadowRoot` holds the viewer: its 3D canvas is `#building` and the scene's
-loading indicator `#loading`, hidden at the first frame. The region drops `aria-busy`
+loading indicator `#loading`, hidden at the first frame. With the bar folded, the visible
+silhouette is the shell's `.skyline-boot`, there from the mount until the first frame; the
+markup's own `.skyline-trace` inside `#loading` stays hidden. The region drops `aria-busy`
 when `ready` settles. WebDriver and Playwright reach into open shadow roots; code run
 in the page reads `element.shadowRoot.querySelector(...)`.
 

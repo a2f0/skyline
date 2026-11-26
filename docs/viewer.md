@@ -336,8 +336,19 @@ limits of each reconstruction.
 The 3D skyline's loading indicator is an inline SVG roofline traced left to right with CSS, then
 faded and repeated until the first 3D frame appears. It is a level orthographic elevation of the
 mapped buildings, viewed from the skyline camera's horizontal direction, with no perspective or
-facade edges. Reduced motion shows the complete outline. After adding or changing buildings, run
-`bun scripts/checks/skyline-loading.ts` to refresh the inline path in `skyline-3d.html`;
+facade edges. Reduced motion shows the complete outline.
+
+It comes in two forms. `skyline-3d.html` carries it inline, so it shows before the page's
+scripts, and on that page, and in the viewer with an open bar, it stands on the bar. With a
+folded bar, as in a host's page and under `?embed=1` or `?controls=closed`, the shell paints its
+own silhouette (`skyline-boot.ts`) the moment the viewer mounts, before any asset arrives, sized
+to stay legible on a phone; the markup's copy then stays hidden. The shell's draws itself as a
+curtain of the backdrop's colour slides off it, animating only transform and opacity, so it keeps
+moving while the scene builds its first frame. A host can paint the same silhouette in its HTML
+with `skylineBootMarkup` ([package](package.md#start-loading-with-the-page)).
+
+After adding or changing buildings, run `bun scripts/checks/skyline-loading.ts` to refresh the
+inline path in `skyline-3d.html` and the shell's compact copy in `skyline-boot-outline.ts`;
 `bun run check` catches a stale outline. The normal site build still only compiles TypeScript and
 copies assets.
 

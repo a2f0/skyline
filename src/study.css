@@ -125,7 +125,9 @@ body.skyline-3d { height: 100vh; height: 100dvh; }
 .skyline-3d .study-annotations { inset: 0; }
 /* A level skyline elevation traces itself while the scene boots. It is inline so it
    appears before the model graph loads; errors replace it with the normal loading text.
-   Its baseline stands on the toolbar. Scaled strokes and glow keep the outline legible. */
+   Its baseline stands on the toolbar. Scaled strokes and glow keep the outline legible.
+   In the viewer with a folded bar, the shell's own silhouette (skyline-boot.ts) shows from
+   the mount instead, and this one stays hidden. */
 .skyline-3d .loading:has(.skyline-trace) { inset: 0; margin: 0; display: grid; place-items: end center; padding: 32px 24px 0; pointer-events: none; }
 .skyline-trace { display: block; width: min(240px, calc(100% / 3)); max-height: 14cqh; overflow: visible; fill: none; stroke: #ddd; stroke-width: 4.2; stroke-linejoin: round; stroke-linecap: round; }
 .skyline-trace-rail { opacity: 0.08; }

@@ -12,6 +12,8 @@
   "include": [
     "skyline-package.ts",
     "skyline-shell.ts",
+    "skyline-boot.ts",
+    "skyline-boot-outline.ts",
     "three-engine.ts",
     "skyline-three.ts",
     "skyline-scene.ts",
