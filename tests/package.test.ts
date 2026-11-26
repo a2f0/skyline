@@ -237,9 +237,9 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
     expect(bundle.success).toBe(true);
     expect(bundle.outputs).toHaveLength(1);
     // The loader holds the shell, the module preloading and the loading silhouette, which it
-    // paints before any asset arrives (about 7 KB, docs/package.md); this fixture adds about
+    // paints before any asset arrives (about 8 KB, docs/package.md); this fixture adds about
     // 1.2 KB. The scene's code stays in the assets.
-    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(8704);
+    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(9216);
     // A host page whose styles would reach a viewer they could: rules for every element and
     // its buttons, a right-to-left direction, inherited type and colour, and a custom
     // property the viewer uses. The viewer's own class names appear in the host too, where
@@ -785,6 +785,7 @@ const frame = (root) => {
   const box = node.getBoundingClientRect();
   return { box: [box.x, box.y, box.width, box.height], started: Object.fromEntries(root.querySelector('.skyline-boot').getAnimations({ subtree: true }).map((animation) => [animation.animationName, animation.startTime])) };
 };
+window.mountStrict = () => mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', theme });
 window.mountNow = () => {
   // A placeholder that holds the container is refused before anything mounts.
   let holding = false;
@@ -858,6 +859,24 @@ window.mountNow = () => {
         } finally {
           await page.close();
         }
+      }
+      // Under a policy without inline styles, the shell's silhouette still has its styles, which
+      // it adopts as a constructed sheet, so it stands on the bar rather than in the layout.
+      await writeFile(path.join(publicDirectory, "strict.html"), `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="style-src 'self'"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="host"></div><script type="module">import('./boot-host.js').then(() => { const host = document.querySelector('#host'); host.style.cssText = 'position:fixed;inset:0'; window.mountStrict(); });</script></body></html>`);
+      const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+      try {
+        await page.goto(`${server.origin}/strict.html`);
+        const frame = await page.waitForFunction(() => {
+          const node = document.querySelector("#host [role=region]")?.shadowRoot?.querySelector(".skyline-boot-frame");
+          if (!node) return null;
+          const box = node.getBoundingClientRect();
+          return { box: [box.x, box.width], position: getComputedStyle(node.parentElement!).position, sheets: node.getRootNode() instanceof ShadowRoot ? (node.getRootNode() as ShadowRoot).querySelectorAll("style").length : -1 };
+        }, null, { timeout: 30_000 }).then((handle) => handle.jsonValue());
+        expect(frame!.position).toBe("absolute");
+        expect(frame!.sheets).toBe(0);
+        expect(frame!.box).toEqual([39, 312]);
+      } finally {
+        await page.close();
       }
     } finally {
       try { await closeChrome(browser); }

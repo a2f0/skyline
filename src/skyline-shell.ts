@@ -199,7 +199,8 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, placehol
   root.append(...stylesheets);
   // The loading silhouette, at once, with no network: it stands on the folded bar, which a bar
   // that starts open would cover.
-  const boot = options.controls === "closed" ? createBoot(document, theme) : undefined;
+  const silhouette = options.controls === "closed" ? createBoot(root, theme) : undefined;
+  const boot = silhouette?.element;
   if (boot) root.append(boot);
   container.append(element);
   if (placeholder) {
@@ -248,7 +249,7 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, placehol
   // The element and the console report a failure, so a host that ignores `ready` sees no
   // unhandled rejection. The viewer owns the silhouette's visibility while it boots; the
   // shell owns its removal, which also covers a viewer from older assets that doesn't know it.
-  const settle = () => { dropPreloads(); boot?.remove(); };
+  const settle = () => { dropPreloads(); silhouette?.remove(); };
   ready.then(settle, settle);
 
   return {

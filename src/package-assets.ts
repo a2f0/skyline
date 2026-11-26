@@ -47,10 +47,11 @@ interface ViewerModules { modules: string[]; engine: string | null }
  * reuses the preloaded response rather than fetching it again. Put the links only on pages that
  * mount a viewer within a few seconds of loading: the browser warns about preloads it never used.
  */
-export async function skylinePreloads(assetsUrl: string, { three = false }: SkylinePreloadOptions = {}): Promise<SkylinePreload[]> {
+export async function skylinePreloads(assetsUrl: string | URL, { three = false }: SkylinePreloadOptions = {}): Promise<SkylinePreload[]> {
   // Checked by the shell's own rule, which `mountSkyline` applies, against a stand-in page address.
   assetsBase({ baseURI: "https://host.invalid/" } as Document, assetsUrl);
-  const base = assetsUrl.endsWith("/") ? assetsUrl : `${assetsUrl}/`;
+  const text = String(assetsUrl);
+  const base = text.endsWith("/") ? text : `${text}/`;
   const { modules, engine } = JSON.parse(await readFile(new URL("../site/viewer-modules.json", import.meta.url), "utf8")) as ViewerModules;
   const module = (file: string): SkylinePreload => ({ rel: "modulepreload", href: base + file });
   const fetched = (file: string): SkylinePreload => ({ rel: "preload", href: base + file, as: "fetch", crossorigin: "anonymous" });
@@ -69,7 +70,7 @@ export async function skylinePreloads(assetsUrl: string, { three = false }: Skyl
 }
 
 /** `skylinePreloads` as `<link>` elements, one per line, for a page's head. */
-export async function skylinePreloadLinks(assetsUrl: string, options: SkylinePreloadOptions = {}): Promise<string> {
+export async function skylinePreloadLinks(assetsUrl: string | URL, options: SkylinePreloadOptions = {}): Promise<string> {
   return (await skylinePreloads(assetsUrl, options))
     .map((link) => `<link${Object.entries(link).map(([name, value]) => ` ${name}="${escapeHtml(String(value))}"`).join("")}>`)
     .join("\n");

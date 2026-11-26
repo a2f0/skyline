@@ -55,14 +55,24 @@ function assertNever(value: never): never {
 
 const SCENE_FAILURE = "The 3D preview could not load. Check that WebGL 2 is enabled, then reload. You can still compare the SVG or return to the skyline.";
 
-/** Resolves once the browser has painted, or after a moment in a hidden page, which paints nothing. */
-function afterPaint(): Promise<void> {
+/**
+ * Resolves once the browser has painted, or after a moment in a hidden page, which paints
+ * nothing, or at once when `signal` aborts, releasing its timers and frame callback.
+ */
+function afterPaint(signal: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
-    const fallback = setTimeout(resolve, 100);
-    requestAnimationFrame(() => {
-      clearTimeout(fallback);
-      setTimeout(resolve, 0);
+    let timer = setTimeout(done, 100);
+    const frame = requestAnimationFrame(() => {
+      clearTimeout(timer);
+      timer = setTimeout(done, 0);
     });
+    signal.addEventListener("abort", done, { once: true });
+    function done() {
+      clearTimeout(timer);
+      cancelAnimationFrame(frame);
+      signal.removeEventListener("abort", done);
+      resolve();
+    }
   });
 }
 
@@ -227,7 +237,7 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
       const { startSkyline3d } = await sceneCode;
       // The scene builds its first frame in one long task. Without the shell's silhouette,
       // whose animation runs off the main thread, let the markup's outline paint first.
-      if (!boot) await afterPaint();
+      if (!boot) await afterPaint(signal);
       if (signal.aborted) return new Promise(() => {});
       await new Promise<void>((resolve) => {
         startSkyline3d({

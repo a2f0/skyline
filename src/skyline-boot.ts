@@ -72,17 +72,38 @@ export function bootTree(theme: BootTheme): BootNode {
 
 const SVG = "http://www.w3.org/2000/svg";
 
-/** Builds the silhouette in `document`, without parsing markup, so a page's Trusted Types policy allows it. */
-export function createBoot(document: Document, theme: BootTheme): HTMLElement {
+/**
+ * Builds the silhouette for `root`, without parsing markup, so a page's Trusted Types policy
+ * allows it. Its styles go to `root` as a constructed stylesheet, which a content security
+ * policy without inline styles still allows, so the silhouette never lands unstyled in the
+ * viewer's layout; a browser without them gets the `<style>` element. Returns the element to
+ * append, and a function that removes it and its styles.
+ */
+export function createBoot(root: ShadowRoot, theme: BootTheme): { element: HTMLElement; remove(): void } {
+  const document = root.ownerDocument;
+  const Sheet = document.defaultView?.CSSStyleSheet;
+  let sheet: CSSStyleSheet | undefined;
+  if (Sheet && "adoptedStyleSheets" in root && "replaceSync" in Sheet.prototype) {
+    sheet = new Sheet();
+    sheet.replaceSync(BOOT_CSS);
+    root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
+  }
   const build = ([tag, attributes, children]: BootNode, svg: boolean): Element => {
     const inSvg = svg || tag === "svg";
     const node = inSvg ? document.createElementNS(SVG, tag) : document.createElement(tag);
     for (const [name, value] of Object.entries(attributes)) node.setAttribute(name, value);
     if (typeof children === "string") node.textContent = children;
-    else for (const child of children ?? []) node.append(build(child, inSvg));
+    else for (const child of children ?? []) if (!(sheet && child[0] === "style")) node.append(build(child, inSvg));
     return node;
   };
-  return build(bootTree(theme), false) as HTMLElement;
+  const element = build(bootTree(theme), false) as HTMLElement;
+  return {
+    element,
+    remove() {
+      element.remove();
+      if (sheet) root.adoptedStyleSheets = root.adoptedStyleSheets.filter((adopted) => adopted !== sheet);
+    },
+  };
 }
 
 /** Escapes text for an HTML attribute value or text. */
@@ -92,8 +113,8 @@ export const escapeHtml = (text: string): string => text.replace(/&/g, "&amp;").
 export function bootHtml(node: BootNode): string {
   const [tag, attributes, children] = node;
   const attributeText = Object.entries(attributes).map(([name, value]) => ` ${name}="${escapeHtml(value)}"`).join("");
-  // Style text is CSS, not HTML: it holds no markup to escape.
-  const content = typeof children === "string" ? children : (children ?? []).map(bootHtml).join("");
+  // Style text is CSS, not HTML, and comes only from BOOT_CSS; any other text is escaped.
+  const content = typeof children === "string" ? (tag === "style" ? children : escapeHtml(children)) : (children ?? []).map(bootHtml).join("");
   return `<${tag}${attributeText}>${content}</${tag}>`;
 }
 

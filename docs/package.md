@@ -122,7 +122,8 @@ files already there. Use a dedicated directory for these assets, and clear it be
 copying an upgrade, so files a new version dropped do not linger. All the viewer's
 code, CSS, markup, SVGs and models, and its vendored Three.js, travel together. Copy
 them again whenever you upgrade the package, so the loader you bundle and the viewer
-you serve match.
+you serve match: a loader newer than its viewer, for one, shows two loading silhouettes until
+the first frame.
 
 In `~/github/devopsrockstars`, `packages/frontend/tooling/build.ts` calls the helper
 when the `skyline3d` flag is on and serves the copy at `/static/skyline/`, the browser
@@ -255,7 +256,7 @@ the option out.
 
 ### How the viewer's code loads
 
-The package's module (`lib/`) is a small loader that a host bundles (about 7 KB, 3.3 KB
+The package's module (`lib/`) is a small loader that a host bundles (about 8 KB, 3.5 KB
 compressed), most of it the loading silhouette, which it paints the moment it mounts, before
 any asset arrives. When it mounts, it imports the viewer's code from the assets (`skyline-viewer.js`) with a
 dynamic `import()` that carries `webpackIgnore`, `turbopackIgnore` and `@vite-ignore`
