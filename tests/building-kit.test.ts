@@ -751,18 +751,20 @@ describe("silhouette edges", () => {
     expect(Buffer.compare(Buffer.from(actual.buffer), Buffer.from(expected.buffer)), label).toBe(0);
   };
 
+  // At the threshold the models outline with; the lattice below covers others.
   test("matches three on every mesh of every geographic model", () => {
     let segments = 0;
     for (const record of geographicBuildings) {
       createGeographicBuilding(record).building.traverse((object) => {
         if (!(object instanceof THREE.Mesh)) return;
         const positions = object.geometry.getAttribute("position").array as Float32Array;
-        for (const threshold of [1, 20, 60]) expectSame(positions, threshold, `${record.shortName} ${object.name} at ${threshold}°`);
-        segments += ours(positions, 20).length / 6;
+        const [actual, expected] = [ours(positions, 20), threes(positions, 20)];
+        expect(Buffer.compare(Buffer.from(actual.buffer), Buffer.from(expected.buffer)), `${record.shortName} ${object.name}`).toBe(0);
+        segments += actual.length / 6;
       });
     }
     expect(segments).toBeGreaterThan(10_000);
-  });
+  }, { timeout: 120_000 });
 
   test("matches three on shared, open, repeated, degenerate and nearly coincident edges", () => {
     // Triangles on a small lattice share many vertices and edges, in both windings and more

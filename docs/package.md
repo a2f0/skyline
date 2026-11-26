@@ -417,7 +417,8 @@ viewer's colour toggle, published only because every model module is; they are n
 API and may change or disappear in any release.
 
 `@a2f0/skyline/models/building-kit` exposes the same plan runs and mesh builder
-used by this repository, for adding buildings. Coordinate and model assumptions
+used by this repository, for adding buildings. Its `silhouetteEdges`, which `finish` outlines
+with, matches the vendored engine's `EdgesGeometry` and follows it; it is not a stable API. Coordinate and model assumptions
 are in [the geography notes](skyline-geography.md). Asset paths are also available
 through `@a2f0/skyline/assets/<path>` for build tooling that resolves package
 files directly; bundlers do not automatically copy that directory.
