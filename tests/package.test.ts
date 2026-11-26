@@ -237,8 +237,9 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
     expect(bundle.success).toBe(true);
     expect(bundle.outputs).toHaveLength(1);
     // The loader holds the shell, the module preloading and the loading silhouette, which it
-    // paints before any asset arrives; the scene's code stays in the assets.
-    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(9216);
+    // paints before any asset arrives (about 7 KB, docs/package.md); this fixture adds about
+    // 1.2 KB. The scene's code stays in the assets.
+    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(8960);
     // A host page whose styles would reach a viewer they could: rules for every element and
     // its buttons, a right-to-left direction, inherited type and colour, and a custom
     // property the viewer uses. The viewer's own class names appear in the host too, where
@@ -765,6 +766,7 @@ if (mode === 'reject-destroyed') {
     expect((await assets.skylinePreloads("https://example.com/skyline/", { three: true })).map(({ href }) => href))
       .toEqual(preloads.filter(({ href }) => href !== `/skyline/${list.engine}`).map(({ href }) => href.replace("/skyline/", "https://example.com/skyline/")));
     await expect(assets.skylinePreloads("/skyline/?v=2")).rejects.toThrow("without a query or fragment");
+    await expect(assets.skylinePreloads("file:///srv/skyline/")).rejects.toThrow("over HTTP or HTTPS");
     const links = await assets.skylinePreloadLinks("/skyline/");
     expect(links.split("\n")).toHaveLength(preloads.length);
     expect(links.split("\n")[3]).toBe('<link rel="preload" href="/skyline/skyline-3d.html" as="fetch" crossorigin="anonymous">');
@@ -785,11 +787,11 @@ const frame = (root) => {
 window.mountNow = () => {
   const painted = document.querySelector('#placeholder [data-skyline-boot]');
   const placeholder = frame(painted.shadowRoot);
-  // The wrapper the host placed, or the element skylineBootMarkup made.
-  const handed = query.get('pass') === 'element' ? painted : document.querySelector('#placeholder');
+  // The wrapper the host placed, the element skylineBootMarkup made, or an unrelated element.
+  const handed = query.get('pass') === 'element' ? painted : query.get('pass') === 'other' ? document.querySelector('#other') : document.querySelector('#placeholder');
   const skyline = mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', theme, controls: query.get('controls') === 'open' ? 'open' : 'closed', placeholder: handed });
   skyline.ready.then(() => { window.settled = 'ready'; }, (error) => { window.settled = 'rejected: ' + error.message; });
-  return { placeholder, shell: frame(skyline.element.shadowRoot), removed: !handed.isConnected && !painted.isConnected };
+  return { placeholder, shell: frame(skyline.element.shadowRoot), handedRemoved: !handed.isConnected, paintedRemoved: !painted.isConnected };
 };
 `);
     const bundle = await Bun.build({ entrypoints: [path.join(consumer, "boot-host.ts")], outdir: publicDirectory, target: "browser", format: "esm", minify: true });
@@ -802,10 +804,10 @@ window.mountNow = () => {
       // animation to continue, and an open bar, which takes no silhouette from the shell.
       for (const { theme, phone, pass, reduced, open } of [
         { theme: "dark", phone: true }, { theme: "light", phone: false }, { theme: "dark", phone: false, pass: "element" },
-        { theme: "light", phone: true, reduced: true }, { theme: "dark", phone: false, open: true },
+        { theme: "light", phone: true, reduced: true }, { theme: "dark", phone: false, open: true }, { theme: "dark", phone: true, pass: "other" },
       ] as { theme: "dark" | "light"; phone: boolean; pass?: string; reduced?: boolean; open?: boolean }[]) {
         const label = `${theme}${phone ? " phone" : ""}${pass ? ` ${pass}` : ""}${reduced ? " reduced" : ""}${open ? " open" : ""}`;
-        await writeFile(path.join(publicDirectory, `${theme}.html`), `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0}#placeholder,#host{position:fixed;inset:0}</style>${links}</head><body><div id="placeholder">${assets.skylineBootMarkup({ theme })}</div><div id="host"></div><script type="module" src="boot-host.js"></script></body></html>`);
+        await writeFile(path.join(publicDirectory, `${theme}.html`), `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0}#placeholder,#host{position:fixed;inset:0}</style>${links}</head><body><div id="placeholder">${assets.skylineBootMarkup({ theme })}</div><div id="host"></div><div id="other"></div><script type="module" src="boot-host.js"></script></body></html>`);
         const page = await browser.newPage({ viewport: phone ? { width: 390, height: 844 } : { width: 1440, height: 900 }, reducedMotion: reduced ? "reduce" : "no-preference" });
         const errors: string[] = [], warnings: string[] = [], requested: string[] = [];
         page.on("pageerror", (error) => errors.push(error.message));
@@ -822,9 +824,14 @@ window.mountNow = () => {
           // Mounting puts the shell's silhouette in the same place, at the same point of its
           // animation, and removes the placeholder, all in one task.
           type Frame = { box: number[]; started: Record<string, number> };
-          const swap = await page.evaluate(() => (window as unknown as { mountNow(): { placeholder: Frame; shell: Frame | null; removed: boolean } }).mountNow());
-          expect(swap.removed, label).toBe(true);
-          if (open) {
+          const swap = await page.evaluate(() => (window as unknown as { mountNow(): { placeholder: Frame; shell: Frame | null; handedRemoved: boolean; paintedRemoved: boolean } }).mountNow());
+          expect(swap.handedRemoved, label).toBe(true);
+          // An element holding no silhouette is removed all the same, and the shell's starts afresh.
+          expect(swap.paintedRemoved, label).toBe(pass !== "other");
+          if (pass === "other") {
+            expect(swap.shell!.box, label).toEqual(swap.placeholder.box);
+            expect(Object.keys(swap.shell!.started).sort(), label).toEqual(["skyline-boot-fade", "skyline-boot-sweep"]);
+          } else if (open) {
             // An open bar's height is the scene's to know: its own outline shows instead.
             expect(swap.shell, label).toBeNull();
             expect(await page.locator(".skyline-boot").count(), label).toBe(0);

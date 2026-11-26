@@ -1,5 +1,5 @@
 import { cp, mkdir, readFile } from "node:fs/promises";
-import { bootHostStyle, bootHtml, bootTree, escape, PLACEHOLDER_ATTRIBUTE } from "./skyline-boot.js";
+import { bootHostStyle, bootHtml, bootTree, escapeHtml, PLACEHOLDER_ATTRIBUTE } from "./skyline-boot.js";
 
 /**
  * Copies the viewer's complete asset directory into a host application's static
@@ -47,6 +47,9 @@ interface ViewerModules { modules: string[]; engine: string | null }
  * mount a viewer within a few seconds of loading: the browser warns about preloads it never used.
  */
 export async function skylinePreloads(assetsUrl: string, { three = false }: SkylinePreloadOptions = {}): Promise<SkylinePreload[]> {
+  // The same URLs `mountSkyline` accepts: a path, or an HTTP(S) address, without a query or fragment.
+  const scheme = /^([a-z][a-z\d+.-]*):/i.exec(assetsUrl)?.[1]?.toLowerCase();
+  if (scheme !== undefined && scheme !== "http" && scheme !== "https") throw new TypeError("Skyline assets must be served over HTTP or HTTPS.");
   if (/[?#]/.test(assetsUrl)) throw new TypeError("Skyline assetsUrl must be a directory URL without a query or fragment.");
   const base = assetsUrl.endsWith("/") ? assetsUrl : `${assetsUrl}/`;
   const { modules, engine } = JSON.parse(await readFile(new URL("../site/viewer-modules.json", import.meta.url), "utf8")) as ViewerModules;
@@ -69,7 +72,7 @@ export async function skylinePreloads(assetsUrl: string, { three = false }: Skyl
 /** `skylinePreloads` as `<link>` elements, one per line, for a page's head. */
 export async function skylinePreloadLinks(assetsUrl: string, options: SkylinePreloadOptions = {}): Promise<string> {
   return (await skylinePreloads(assetsUrl, options))
-    .map((link) => `<link${Object.entries(link).map(([name, value]) => ` ${name}="${escape(String(value))}"`).join("")}>`)
+    .map((link) => `<link${Object.entries(link).map(([name, value]) => ` ${name}="${escapeHtml(String(value))}"`).join("")}>`)
     .join("\n");
 }
 
@@ -88,5 +91,5 @@ export interface SkylineBootOptions {
  */
 export function skylineBootMarkup({ theme = "dark" }: SkylineBootOptions = {}): string {
   if (theme !== "light" && theme !== "dark") throw new TypeError('Skyline theme must be "light" or "dark".');
-  return `<div ${PLACEHOLDER_ATTRIBUTE} aria-hidden="true" style="${escape(bootHostStyle(theme))}"><template shadowrootmode="open">${bootHtml(bootTree(theme))}</template></div>`;
+  return `<div ${PLACEHOLDER_ATTRIBUTE} aria-hidden="true" style="${escapeHtml(bootHostStyle(theme))}"><template shadowrootmode="open">${bootHtml(bootTree(theme))}</template></div>`;
 }

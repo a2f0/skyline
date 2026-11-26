@@ -156,10 +156,6 @@ function showFailure(root: ShadowRoot, error: unknown): void {
 }
 
 /**
- * Mounts the viewer in a new element appended to `container`, and returns at once: the
- * element is in place, and `ready` settles once the 3D skyline shows or can't start.
- */
-/**
  * Starts the silhouette's animations where the host's placeholder has reached, so swapping one
  * for the other shows no jump. Animations pair by name; any the placeholder lacks, as with
  * reduced motion, start afresh.
@@ -175,6 +171,10 @@ function continuePlaceholder(boot: HTMLElement, placeholder: Element): void {
   }
 }
 
+/**
+ * Mounts the viewer in a new element appended to `container`, and returns at once: the
+ * element is in place, and `ready` settles once the 3D skyline shows or can't start.
+ */
 export function mountViewer(container: HTMLElement, { assetsUrl, title, placeholder, ...options }: ViewerOptions): SkylineInstance {
   const document = container.ownerDocument;
   const assets = assetsBase(document, assetsUrl);

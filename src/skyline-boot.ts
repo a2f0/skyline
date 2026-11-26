@@ -86,12 +86,12 @@ export function createBoot(document: Document, theme: BootTheme): HTMLElement {
 }
 
 /** Escapes text for an HTML attribute value or text. */
-export const escape = (text: string): string => text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+export const escapeHtml = (text: string): string => text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /** The silhouette as HTML, for a page's markup. */
 export function bootHtml(node: BootNode): string {
   const [tag, attributes, children] = node;
-  const attributeText = Object.entries(attributes).map(([name, value]) => ` ${name}="${escape(value)}"`).join("");
+  const attributeText = Object.entries(attributes).map(([name, value]) => ` ${name}="${escapeHtml(value)}"`).join("");
   // Style text is CSS, not HTML: it holds no markup to escape.
   const content = typeof children === "string" ? children : (children ?? []).map(bootHtml).join("");
   return `<${tag}${attributeText}>${content}</${tag}>`;
