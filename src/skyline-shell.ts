@@ -181,6 +181,7 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, placehol
   const theme = options.theme === undefined ? (options.colour ? "light" : "dark") : options.theme;
   if (theme !== "light" && theme !== "dark") throw new TypeError('Skyline theme must be "light" or "dark".');
   // The placeholder is removed once the viewer is in place, which must not take the viewer with it.
+  if (placeholder != null && (placeholder as Partial<Node>).nodeType !== 1) throw new TypeError("Skyline placeholder must be an element.");
   if (placeholder?.contains(container)) throw new TypeError("Skyline placeholder must not hold the container.");
   const element = document.createElement("div");
   // Paint before any assets arrive, including when a stylesheet fails to load.

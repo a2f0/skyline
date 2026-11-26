@@ -325,7 +325,10 @@ thread, so it keeps moving while the scene builds its first frame in one long ta
 The viewer runs in the host's page, under the host's content security policy. A host
 with one must allow the assets' origin (usually `'self'`) in `script-src`,
 `style-src` and `connect-src` (the viewer fetches its markup, stars and module list), and inline
-styles in `style-src`, which the viewer sets on its elements. Serve the assets from
+styles in `style-src` (`'unsafe-inline'`): the viewer sets them on its elements, and its loading
+silhouette brings its own `<style>` element. The markup from `skylineBootMarkup` needs the same
+in the host's HTML, for its `style` attribute and the `<style>` in its template; under a policy
+that allows only nonced styles, the silhouette shows unstyled. Serve the assets from
 the host's origin when you can; on another origin, every file must allow the page's
 origin through CORS. The viewer's code runs with the host page's privileges wherever
 it is served from: serve it only from an origin you trust.

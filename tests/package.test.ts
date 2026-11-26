@@ -239,7 +239,7 @@ window.mountFixture({ colour: query.get('colour') === '1', ...(query.has('theme'
     // The loader holds the shell, the module preloading and the loading silhouette, which it
     // paints before any asset arrives (about 7 KB, docs/package.md); this fixture adds about
     // 1.2 KB. The scene's code stays in the assets.
-    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(8960);
+    expect(bundle.outputs[0]!.size, "mounting should not pull scene geometry or Three.js into the host bundle").toBeLessThan(8704);
     // A host page whose styles would reach a viewer they could: rules for every element and
     // its buttons, a right-to-left direction, inherited type and colour, and a custom
     // property the viewer uses. The viewer's own class names appear in the host too, where
@@ -789,6 +789,8 @@ window.mountNow = () => {
   // A placeholder that holds the container is refused before anything mounts.
   let holding = false;
   try { mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', placeholder: document.body }); } catch (error) { holding = error instanceof TypeError && /must not hold the container/.test(error.message) && !document.querySelector('#host').childElementCount; }
+  // So is one that is not an element.
+  try { mountSkyline(document.querySelector('#host'), { assetsUrl: '/skyline/', placeholder: '#placeholder' }); holding = false; } catch (error) { holding &&= error instanceof TypeError && /must be an element/.test(error.message) && !document.querySelector('#host').childElementCount; }
   const painted = document.querySelector('#placeholder [data-skyline-boot]');
   const placeholder = frame(painted.shadowRoot);
   // The wrapper the host placed, the element skylineBootMarkup made, or an unrelated element.

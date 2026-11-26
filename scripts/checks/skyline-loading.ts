@@ -134,7 +134,15 @@ if (import.meta.main) command("Usage: bun scripts/checks/skyline-loading.ts [--c
   const filename = path.resolve(import.meta.dirname, "../../src/skyline-3d.html");
   const bootFilename = path.resolve(import.meta.dirname, "../../src/skyline-boot-outline.ts");
   const source = readFileSync(filename, "utf8");
-  const bootSource = (() => { try { return readFileSync(bootFilename, "utf8"); } catch { return ""; } })();
+  // A missing outline module is one to write; any other read error is reported as it is.
+  const bootSource = (() => {
+    try {
+      return readFileSync(bootFilename, "utf8");
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return "";
+      throw error;
+    }
+  })();
   const marker = /(?<=<!-- skyline-loading:start -->)[\s\S]*?(?=<!-- skyline-loading:end -->)/;
   if (!marker.test(source)) throw new Error("skyline-3d.html is missing its loading silhouette markers.");
   const buildings = geographicBuildings.map((record) => createGeographicBuilding(record).building);
