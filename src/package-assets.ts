@@ -1,5 +1,5 @@
 import { cp, mkdir, readFile } from "node:fs/promises";
-import { bootHostStyle, bootHtml, bootTree, PLACEHOLDER_ATTRIBUTE } from "./skyline-boot.js";
+import { bootHostStyle, bootHtml, bootTree, escape, PLACEHOLDER_ATTRIBUTE } from "./skyline-boot.js";
 
 /**
  * Copies the viewer's complete asset directory into a host application's static
@@ -65,8 +65,6 @@ export async function skylinePreloads(assetsUrl: string, { three = false }: Skyl
     { ...fetched("stars.svg"), fetchpriority: "low" },
   ];
 }
-
-const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /** `skylinePreloads` as `<link>` elements, one per line, for a page's head. */
 export async function skylinePreloadLinks(assetsUrl: string, options: SkylinePreloadOptions = {}): Promise<string> {

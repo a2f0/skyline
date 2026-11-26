@@ -85,7 +85,8 @@ export function createBoot(document: Document, theme: BootTheme): HTMLElement {
   return build(bootTree(theme), false) as HTMLElement;
 }
 
-const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+/** Escapes text for an HTML attribute value or text. */
+export const escape = (text: string): string => text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /** The silhouette as HTML, for a page's markup. */
 export function bootHtml(node: BootNode): string {

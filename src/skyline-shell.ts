@@ -167,9 +167,11 @@ function showFailure(root: ShadowRoot, error: unknown): void {
 function continuePlaceholder(boot: HTMLElement, placeholder: Element): void {
   const painted = placeholder.matches(`[${PLACEHOLDER_ATTRIBUTE}]`) ? placeholder : placeholder.querySelector(`[${PLACEHOLDER_ATTRIBUTE}]`);
   const theirs = painted?.shadowRoot?.querySelector(".skyline-boot")?.getAnimations?.({ subtree: true }) ?? [];
+  // Only CSS animations have names; anything else a page animates is left alone.
+  const name = (animation: Animation) => (animation as Partial<CSSAnimation>).animationName || undefined;
   for (const ours of boot.getAnimations?.({ subtree: true }) ?? []) {
-    const match = theirs.find((animation) => (animation as CSSAnimation).animationName === (ours as CSSAnimation).animationName);
-    if (match?.startTime != null) ours.startTime = match.startTime;
+    const match = name(ours) && theirs.find((animation) => name(animation) === name(ours));
+    if (match && match.startTime != null) ours.startTime = match.startTime;
   }
 }
 
@@ -241,8 +243,8 @@ export function mountViewer(container: HTMLElement, { assetsUrl, title, placehol
       );
   });
   // The element and the console report a failure, so a host that ignores `ready` sees no
-  // unhandled rejection. The viewer hides the silhouette itself; this also covers a viewer
-  // from older assets, which doesn't know it.
+  // unhandled rejection. The viewer owns the silhouette's visibility while it boots; the
+  // shell owns its removal, which also covers a viewer from older assets that doesn't know it.
   const settle = () => { dropPreloads(); boot?.remove(); };
   ready.then(settle, settle);
 

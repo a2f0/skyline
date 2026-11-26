@@ -106,7 +106,8 @@ export function mount(root: ShadowRoot, { assets, signal, controls, colour, them
   function updateView() {
     viewer.toggleAttribute("data-booting", sceneStatus !== "ready" && mode === "3d");
     // The shell's silhouette shows while the scene boots in view, and leaves at its first
-    // frame, or once it fails or loses its graphics context.
+    // frame, or once it fails or loses its graphics context: a function of the scene's state
+    // and the mode alone. The shell removes it once `ready` settles.
     if (boot) boot.hidden = sceneStatus !== "booting" || mode !== "3d";
     scene.hidden = mode !== "3d";
     if (mode === "original" && !drawing.getAttribute("src")) drawing.src = new URL("skyline-original-fit.svg", assets).href;
