@@ -8,9 +8,13 @@ import path from "node:path";
 // drawing was traced from, src/skyline.jpg, is the one exception, the vendored Three.js
 // bundle's own constants are not Skyline's to change, the colour trial's palette,
 // src/models/colour-palette.ts, holds its colours in that one file, and this file's samples
-// are colours on purpose.
+// are colours on purpose. The skills agent-tool manages, the files .agent-tool-skills.json
+// records, are not Skyline's to change either: the pinned installer writes them and the push
+// gate refuses an edited copy, and their prose cites pull requests such as #3354 that read as
+// hex colours. Skyline's own skills stay checked.
 const root = path.resolve(import.meta.dirname, "..");
-const exempt = new Set(["src/skyline.jpg", "src/vendor/three-r186.js", "src/models/colour-palette.ts", "bun.lock", "tests/grayscale.test.ts"]);
+const managed = Object.keys((JSON.parse(readFileSync(path.join(root, ".agent-tool-skills.json"), "utf8")) as { files: Record<string, string> }).files);
+const exempt = new Set(["src/skyline.jpg", "src/vendor/three-r186.js", "src/models/colour-palette.ts", "bun.lock", "tests/grayscale.test.ts", ...managed]);
 const files = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8" })
   .split("\0").filter((file) => file && !exempt.has(file));
 
