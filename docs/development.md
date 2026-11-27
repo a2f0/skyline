@@ -296,7 +296,8 @@ regenerates the harness permission rules: `.claude/settings.json` for Claude Cod
 `.codex/rules/agent-tool.rules` for Codex and `.gemini/policies/agent-tool.toml`
 for Gemini CLI, with ownership recorded in `.agent-tool-permissions.json`. All
 three only allow routine agent-tool commands; Gemini's rules apply only in its
-`default` approval mode and only to arguments free of shell syntax.
+`default` approval mode and only to arguments free of command substitution,
+chaining and redirection.
 Merging, publishing, adding dependencies and changing permissions get no rule in
 any harness and follow each user's chosen approval and sandbox policies:
 Claude Code prompts for an explicit `ask` rule even in bypass mode, a Codex
