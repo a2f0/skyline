@@ -8,9 +8,20 @@ import path from "node:path";
 // drawing was traced from, src/skyline.jpg, is the one exception, the vendored Three.js
 // bundle's own constants are not Skyline's to change, the colour trial's palette,
 // src/models/colour-palette.ts, holds its colours in that one file, and this file's samples
-// are colours on purpose.
+// are colours on purpose. The skills agent-tool manages, the files .agent-tool-skills.json
+// records, are not Skyline's to change either: the pinned installer writes them and the push
+// gate refuses an edited copy, and their prose cites pull requests such as #3354 that read as
+// hex colours. Only entries inside a skill directory are exempt, so a path added to the
+// manifest elsewhere is still checked, and Skyline's own skills stay checked.
 const root = path.resolve(import.meta.dirname, "..");
-const exempt = new Set(["src/skyline.jpg", "src/vendor/three-r186.js", "src/models/colour-palette.ts", "bun.lock", "tests/grayscale.test.ts"]);
+const manifest: unknown = JSON.parse(readFileSync(path.join(root, ".agent-tool-skills.json"), "utf8"));
+if (typeof manifest !== "object" || manifest === null || !("files" in manifest) || typeof manifest.files !== "object" || manifest.files === null) {
+  throw new Error(".agent-tool-skills.json has no files map, so the managed skills it exempts cannot be read.");
+}
+const recorded = Object.keys(manifest.files);
+const skillFile = /^\.(?:agents|claude)\/skills\/[^/]+\//;
+const managed = recorded.filter((file) => skillFile.test(file));
+const exempt = new Set(["src/skyline.jpg", "src/vendor/three-r186.js", "src/models/colour-palette.ts", "bun.lock", "tests/grayscale.test.ts", ...managed]);
 const files = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8" })
   .split("\0").filter((file) => file && !exempt.has(file));
 
@@ -52,6 +63,16 @@ describe("grayscale", () => {
       return colours(bytes.toString("utf8")).map(({ colour, line }) => `${file}:${line} ${colour}`);
     });
     expect(coloured).toEqual([]);
+  });
+
+  test("exempts only agent-tool's skill copies", () => {
+    expect(recorded.filter((file) => !skillFile.test(file))).toEqual([]);
+    // Skyline's own skill, every tracked file of both copies, stays in the scan.
+    const own = execFileSync("git", ["ls-files", "-z", "--", ".agents/skills/building-fidelity", ".claude/skills/building-fidelity"], { cwd: root, encoding: "utf8" })
+      .split("\0").filter(Boolean);
+    expect(own).toContain(".agents/skills/building-fidelity/SKILL.md");
+    expect(own).toContain(".claude/skills/building-fidelity/SKILL.md");
+    expect(own.filter((file) => !files.includes(file))).toEqual([]);
   });
 
   test("finds a colour in each notation", () => {
