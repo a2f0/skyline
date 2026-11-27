@@ -65,7 +65,7 @@ beforeAll(() => {
   }
   cpSync(path.join(root, ".agent-tool-skills.json"), path.join(repo, ".agent-tool-skills.json"));
   // And the generated harness permission rules, which the hook checks beside the skills.
-  for (const file of [".agent-tool-permissions.json", ".claude/settings.json", ".codex/rules/agent-tool.rules"]) {
+  for (const file of [".agent-tool-permissions.json", ".claude/settings.json", ".codex/rules/agent-tool.rules", ".gemini/policies/agent-tool.toml"]) {
     mkdirSync(path.dirname(path.join(repo, file)), { recursive: true });
     cpSync(path.join(root, file), path.join(repo, file));
   }
