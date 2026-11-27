@@ -214,7 +214,8 @@ After updating the exact agent-tool dependency or `permissions` in
 `bun run agents:sync`, which installs the managed skills and then the generated
 harness permission rules. Commit package/lockfile, both managed skill
 directories, `.agent-tool-skills.json`, `.claude/settings.json`,
-`.codex/rules/agent-tool.rules` and `.agent-tool-permissions.json` together;
+`.codex/rules/agent-tool.rules`, `.gemini/policies/agent-tool.toml` and
+`.agent-tool-permissions.json` together;
 never edit managed or generated copies. `permissions.executables` classifies
 the installed CLIs agents run through `bun run agent-tool bun x <name> -- <args>`:
 `tsc` is `local` and `wrangler` is `release`. `agents:check` runs in the gate,

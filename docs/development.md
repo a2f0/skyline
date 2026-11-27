@@ -289,11 +289,13 @@ managed skills. `bun run agent-tool doctor` checks review CLI compatibility;
 
 `bun run agents:sync` refreshes regular-file skill copies in `.agents/skills` and
 `.claude/skills`, with ownership recorded in `.agent-tool-skills.json`, then
-regenerates the harness permission rules: `.claude/settings.json` for Claude Code
-and `.codex/rules/agent-tool.rules` for Codex, with ownership recorded in
-`.agent-tool-permissions.json`. Both only allow routine agent-tool commands.
+regenerates the harness permission rules: `.claude/settings.json` for Claude Code,
+`.codex/rules/agent-tool.rules` for Codex and `.gemini/policies/agent-tool.toml`
+for Gemini CLI, with ownership recorded in `.agent-tool-permissions.json`. All
+three only allow routine agent-tool commands; Gemini's rules apply only in its
+`default` approval mode and only to arguments free of shell syntax.
 Merging, publishing, adding dependencies and changing permissions get no rule in
-either harness and follow each user's chosen approval and sandbox policies:
+any harness and follow each user's chosen approval and sandbox policies:
 Claude Code prompts for an explicit `ask` rule even in bypass mode, and a Codex
 `prompt` rule overrides a broader user allow and is rejected under
 `approval_policy = "never"`, as agent-tool's
