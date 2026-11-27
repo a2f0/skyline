@@ -4,7 +4,9 @@ Skyline is a TypeScript static site and the `@a2f0/skyline` package. Read
 [development](docs/development.md) for setup, layout, checks and maintenance;
 [package](docs/package.md) for publishing; and [deploying](docs/deploying.md)
 for Cloudflare and Terraform operations. Claude Code, Codex, OpenCode and Hermes
-read this file directly. Keep README a short overview; topic documentation belongs
+read this file directly. Gemini CLI reads it once the user's own Gemini settings
+list `AGENTS.md` as a context file, since the repository carries no `GEMINI.md` or
+Gemini settings. Keep README a short overview; topic documentation belongs
 in `docs/`, indexed by `docs/README.md`.
 
 ## Sources and tooling

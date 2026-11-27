@@ -3,7 +3,10 @@
 Sources are TypeScript under `@tsconfig/strictest`. The browser modules compile to `dist/` with
 tsc, the only build step; there is no bundler. `AGENTS.md`, which Claude Code,
 Codex, OpenCode and Hermes read directly, is the repository's policy for agents
-and holds the shipping rules; this page explains the tooling behind it.
+and holds the shipping rules; this page explains the tooling behind it. Gemini CLI
+reads `AGENTS.md` only when the user's `~/.gemini/settings.json` lists it in
+`context.fileName`: the repository carries no `GEMINI.md` or Gemini settings, and
+`.gemini/` holds only agent-tool's generated policy.
 
 ## Layout
 
@@ -296,10 +299,12 @@ three only allow routine agent-tool commands; Gemini's rules apply only in its
 `default` approval mode and only to arguments free of shell syntax.
 Merging, publishing, adding dependencies and changing permissions get no rule in
 any harness and follow each user's chosen approval and sandbox policies:
-Claude Code prompts for an explicit `ask` rule even in bypass mode, and a Codex
+Claude Code prompts for an explicit `ask` rule even in bypass mode, a Codex
 `prompt` rule overrides a broader user allow and is rejected under
-`approval_policy = "never"`, as agent-tool's
-[permissions guide](https://github.com/a2f0/agent-tool/blob/7467d144214f8ebe2e72c1041a41a64a6705dc37/docs/permissions.md)
+`approval_policy = "never"`, and Gemini keeps the user's approval mode, so it
+prompts in `default` mode while its YOLO mode already allows every command, as
+agent-tool's
+[permissions guide](https://github.com/a2f0/agent-tool/blob/6e5b75cc5a15164be0e6ebf0cdcfc3c3a03d301f/docs/permissions.md)
 describes. `permissions.executables` in `agent-tool.json` classifies the installed
 CLIs that `bun run agent-tool bun x <name> -- <args>` runs: `tsc` is `local`
 (allowed) and `wrangler` is `release` (no rule, so the user's policy applies),
