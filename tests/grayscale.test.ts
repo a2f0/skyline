@@ -67,7 +67,11 @@ describe("grayscale", () => {
 
   test("exempts only agent-tool's skill copies", () => {
     expect(recorded.filter((file) => !skillFile.test(file))).toEqual([]);
-    const own = [".agents/skills/building-fidelity/SKILL.md", ".claude/skills/building-fidelity/SKILL.md"];
+    // Skyline's own skill, every tracked file of both copies, stays in the scan.
+    const own = execFileSync("git", ["ls-files", "-z", "--", ".agents/skills/building-fidelity", ".claude/skills/building-fidelity"], { cwd: root, encoding: "utf8" })
+      .split("\0").filter(Boolean);
+    expect(own).toContain(".agents/skills/building-fidelity/SKILL.md");
+    expect(own).toContain(".claude/skills/building-fidelity/SKILL.md");
     expect(own.filter((file) => !files.includes(file))).toEqual([]);
   });
 
